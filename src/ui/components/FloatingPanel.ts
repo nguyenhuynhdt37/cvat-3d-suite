@@ -1944,15 +1944,14 @@ export class FloatingPanel {
       return;
     }
 
-    if (this.selectedUiId === null) {
-      this.showToast("Vui lòng chọn xe trước khi mở toàn màn hình!", "warning");
-      return;
-    }
+    const firstTrack = this.frameTracks[0];
+    const targetUiId = this.selectedUiId !== null ? this.selectedUiId : (firstTrack ? firstTrack.uiId : 1);
+    const targetServerId = this.selectedServerId || (firstTrack ? firstTrack.serverId : undefined);
 
     this.trackStudioModal.open(
       this.currentCtx,
-      this.selectedUiId,
-      this.selectedServerId || undefined,
+      targetUiId,
+      targetServerId,
       this.frameTracks
     );
   }

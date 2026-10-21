@@ -106,6 +106,24 @@ export class TrackStudioModal {
           this.toggleOutsideFrame(this.selectedFrame);
           return;
         }
+
+        // Phím [ : Chuyển sang xe trước
+        if (e.key === "[" && this.currentTab === "active_track") {
+          const target = e.target as HTMLElement;
+          if (target && (target.tagName === "INPUT" || target.tagName === "SELECT")) return;
+          e.preventDefault();
+          this.switchPrevTrack();
+          return;
+        }
+
+        // Phím ] : Chuyển sang xe tiếp theo
+        if (e.key === "]" && this.currentTab === "active_track") {
+          const target = e.target as HTMLElement;
+          if (target && (target.tagName === "INPUT" || target.tagName === "SELECT")) return;
+          e.preventDefault();
+          this.switchNextTrack();
+          return;
+        }
       },
       true
     );
@@ -213,7 +231,7 @@ export class TrackStudioModal {
               cursor: pointer;
               border-radius: 4px;
               transition: all 0.15s;
-            ">Xe #${this.activeTrackId} · Duyệt Toàn Bộ Frame</button>
+            ">Duyệt Frame (Xe #${this.activeTrackId})</button>
 
             <button id="studio-tab-batch" style="
               border: none;
@@ -225,7 +243,39 @@ export class TrackStudioModal {
               cursor: pointer;
               border-radius: 4px;
               transition: all 0.15s;
-            ">Quản Lý Kích Thước Tất Cả Xe (${allTracks.length})</button>
+            ">Tất Cả Track ID (${allTracks.length})</button>
+          </div>
+
+          <!-- Quick Track Selector Dropdown & Switcher -->
+          <div style="display: flex; align-items: center; gap: 4px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; padding: 2px 6px;">
+            <span style="font-size: 11px; color: #a1a1aa; font-weight: 600;">Track:</span>
+            <select id="studio-quick-track-select" style="
+              background: transparent;
+              border: none;
+              color: #38bdf8;
+              font-size: 12px;
+              font-weight: bold;
+              cursor: pointer;
+              outline: none;
+              padding: 3px 4px;
+              max-width: 200px;
+            ">
+              ${allTracks
+                .map(
+                  (t) => `
+                <option value="${t.uiId}" ${t.uiId === this.activeTrackId ? "selected" : ""} style="background: #18181b; color: white;">
+                  #${t.uiId} · ${t.labelName} (${t.shapes.length}f)
+                </option>
+              `
+                )
+                .join("")}
+            </select>
+            <button id="btn-quick-prev-track" title="Xe trước (phím [)" style="
+              background: #27272a; border: 1px solid rgba(255,255,255,0.1); color: #d4d4d8; font-size: 11px; padding: 2px 7px; border-radius: 4px; cursor: pointer;
+            ">◀</button>
+            <button id="btn-quick-next-track" title="Xe sau (phím ])" style="
+              background: #27272a; border: 1px solid rgba(255,255,255,0.1); color: #d4d4d8; font-size: 11px; padding: 2px 7px; border-radius: 4px; cursor: pointer;
+            ">▶</button>
           </div>
 
           <!-- Status Indicator -->
@@ -664,7 +714,7 @@ export class TrackStudioModal {
         const varies = maxL - minL > 0.01 || maxW - minW > 0.01 || maxH - minH > 0.01;
 
         return `
-          <tr data-track-id="${t.uiId}" style="border-bottom: 1px solid rgba(255,255,255,0.06); background: ${t.dirty ? "rgba(34, 197, 94, 0.06)" : "transparent"};">
+          <tr class="batch-track-row" data-track-id="${t.uiId}" style="border-bottom: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: background 0.15s; background: ${t.uiId === this.activeTrackId ? "rgba(37, 99, 235, 0.15)" : t.dirty ? "rgba(34, 197, 94, 0.06)" : "transparent"};">
             <td style="padding: 10px 14px; font-weight: bold; color: #38bdf8; font-family: monospace;">#${t.uiId}</td>
             <td style="padding: 10px 14px;">
               <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${t.labelColor}; margin-right: 6px;"></span>
@@ -690,7 +740,7 @@ export class TrackStudioModal {
               <button class="btn-batch-snap" data-track-id="${t.uiId}" style="margin-left: 4px; background: #27272a; border: 1px solid rgba(255,255,255,0.1); color: #2dd4bf; padding: 5px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">⇩ Đất</button>
             </td>
             <td style="padding: 10px 14px; text-align: right;">
-              <button class="btn-open-studio-track" data-track-id="${t.uiId}" style="background: #27272a; border: 1px solid rgba(255,255,255,0.1); color: #a1a1aa; padding: 5px 10px; border-radius: 4px; font-size: 11px; cursor: pointer;">Xem Chi Tiết ➔</button>
+              <button class="btn-open-studio-track" data-track-id="${t.uiId}" style="background: #2563eb; border: 1px solid rgba(255,255,255,0.15); color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Duyệt Frame ➔</button>
             </td>
           </tr>
         `;
@@ -776,13 +826,21 @@ export class TrackStudioModal {
       });
     });
 
-    // Nút Mở Studio xe
+    // Click vào bất kỳ hàng nào của bảng xe -> Chuyển sang duyệt frame xe đó
+    this.overlay.querySelectorAll<HTMLTableRowElement>(".batch-track-row").forEach((row) => {
+      row.addEventListener("click", (e) => {
+        const target = e.target as HTMLElement;
+        if (target.tagName === "INPUT" || target.tagName === "BUTTON") return;
+        const trackId = parseInt(row.dataset.trackId || "0", 10);
+        this.switchActiveTrack(trackId);
+      });
+    });
+
+    // Nút Mở Studio xe (Duyệt Frame)
     this.overlay.querySelectorAll<HTMLButtonElement>(".btn-open-studio-track").forEach((btn) => {
       btn.addEventListener("click", () => {
         const trackId = parseInt(btn.dataset.trackId || "0", 10);
-        this.activeTrackId = trackId;
-        this.currentTab = "active_track";
-        this.render();
+        this.switchActiveTrack(trackId);
       });
     });
   }
@@ -790,6 +848,44 @@ export class TrackStudioModal {
   // =========================================================================
   // LOGIC ĐIỀU KHIỂN & TƯƠNG TÁC
   // =========================================================================
+
+  public switchActiveTrack(trackId: number): void {
+    if (!this.store) return;
+    const track = this.store.getTrack(trackId);
+    if (!track) return;
+
+    this.activeTrackId = trackId;
+    this.currentTab = "active_track";
+
+    // Đồng bộ frame: giữ frame hiện tại nếu nằm trong dải của xe, ngược lại nhảy tới firstFrame
+    const curF = CVATBridge.getCurrentFrame();
+    if (track.shapes.some((s) => s.frame === curF)) {
+      this.selectedFrame = curF;
+    } else if (track.shapes.length > 0) {
+      this.selectedFrame = track.firstFrame;
+      this.jumpToCVATFrame(track.firstFrame);
+    }
+
+    this.render();
+  }
+
+  public switchPrevTrack(): void {
+    if (!this.store) return;
+    const all = this.store.getAllTracks();
+    if (all.length <= 1) return;
+    const idx = all.findIndex((t) => t.uiId === this.activeTrackId);
+    const prevIdx = idx <= 0 ? all.length - 1 : idx - 1;
+    this.switchActiveTrack(all[prevIdx].uiId);
+  }
+
+  public switchNextTrack(): void {
+    if (!this.store) return;
+    const all = this.store.getAllTracks();
+    if (all.length <= 1) return;
+    const idx = all.findIndex((t) => t.uiId === this.activeTrackId);
+    const nextIdx = idx < 0 || idx >= all.length - 1 ? 0 : idx + 1;
+    this.switchActiveTrack(all[nextIdx].uiId);
+  }
 
   private attachHeaderListeners(): void {
     if (!this.overlay) return;
@@ -803,6 +899,22 @@ export class TrackStudioModal {
     this.overlay.querySelector("#studio-tab-batch")?.addEventListener("click", () => {
       this.currentTab = "batch_all";
       this.render();
+    });
+
+    // Quick Track Selector Dropdown
+    this.overlay.querySelector<HTMLSelectElement>("#studio-quick-track-select")?.addEventListener("change", (e) => {
+      const select = e.target as HTMLSelectElement;
+      const tid = parseInt(select.value, 10);
+      if (!isNaN(tid)) this.switchActiveTrack(tid);
+    });
+
+    // Nút Xe trước / Xe sau
+    this.overlay.querySelector("#btn-quick-prev-track")?.addEventListener("click", () => {
+      this.switchPrevTrack();
+    });
+
+    this.overlay.querySelector("#btn-quick-next-track")?.addEventListener("click", () => {
+      this.switchNextTrack();
     });
 
     // Nút Đóng
