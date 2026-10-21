@@ -1,0 +1,54 @@
+# ==========================================
+# Git Ignore Configuration for cvat-3d-suite
+# ==========================================
+
+# 1. Environment and Sensitive Credentials (MANDATORY)
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# 2. Annotation Backups & Proprietary Data
+backups/
+**/backups/
+*.json.bak
+
+# 3. Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 4. Build Artifacts
+dist/
+**/dist/
+
+# 5. OS Metadata & Caches
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 6. Test Outputs, Temporary Media & Screenshots (DO NOT PUSH)
+screenshots/
+**/screenshots/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.tmp
+*.log
+
+# 7. IDE / Editor Folders
+.idea/
+.vscode/
+*.swp
+*.swo
