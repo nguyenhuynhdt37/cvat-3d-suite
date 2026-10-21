@@ -23,11 +23,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# 4. Build Artifacts
-dist/
-**/dist/
-
-# 5. OS Metadata & Caches
+# 4. OS Metadata & Caches
 .DS_Store
 .DS_Store?
 ._*

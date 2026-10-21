@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "CVAT 3D Suite",
+  "version": "1.0.0",
+  "description": "CVAT 3D Point Cloud Annotation & Alignment Assistant",
+  "permissions": [
+    "activeTab"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_end",
+      "world": "MAIN"
+    }
+  ]
+}
