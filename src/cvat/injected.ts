@@ -54,8 +54,17 @@ export function mainWorldScript(): void {
     return null;
   }
 
-  // Trích xuất đối tượng THREE.Points từ Scene của Canvas3D
-  function getSceneLidarPoints(): { count: number; array: Float32Array } | null {
+  // Interface dữ liệu điểm mây LiDAR mở rộng hỗ trợ Intensity và Color phản quang
+  interface SceneLidarPoints {
+    count: number;
+    array: Float32Array;
+    intensity?: Float32Array | null;
+    color?: Float32Array | null;
+    getIntensityAt: (idx: number) => number;
+  }
+
+  // Trích xuất đối tượng THREE.Points từ Scene của Canvas3D (kèm kênh Intensity/Color)
+  function getSceneLidarPoints(): SceneLidarPoints | null {
     try {
       const store = getReduxStore();
       const canvas = store?.getState()?.annotation?.canvas?.instance;
@@ -73,8 +82,36 @@ export function mainWorldScript(): void {
       });
 
       if (!found) return null;
-      const posAttr = found.geometry.attributes.position;
-      return { count: posAttr.count, array: posAttr.array };
+      const posAttr = found.geometry?.attributes?.position;
+      if (!posAttr || !posAttr.array) return null;
+
+      const count = posAttr.count;
+      const array = posAttr.array as Float32Array;
+      const intensityAttr = (found.geometry?.attributes?.intensity || found.geometry?.attributes?.intensities)?.array as Float32Array | undefined;
+      const colorAttr = (found.geometry?.attributes?.color || found.geometry?.attributes?.colors)?.array as Float32Array | undefined;
+
+      const getIntensityAt = (idx: number): number => {
+        if (intensityAttr && idx < intensityAttr.length) {
+          const val = intensityAttr[idx];
+          return val <= 1.0 ? val * 255 : val;
+        }
+        if (colorAttr && idx * 3 + 2 < colorAttr.length) {
+          const r = colorAttr[idx * 3];
+          const g = colorAttr[idx * 3 + 1];
+          const b = colorAttr[idx * 3 + 2];
+          const l = 0.299 * r + 0.587 * g + 0.114 * b;
+          return r <= 1.0 && g <= 1.0 && b <= 1.0 ? l * 255 : l;
+        }
+        return 0;
+      };
+
+      return {
+        count,
+        array,
+        intensity: intensityAttr || null,
+        color: colorAttr || null,
+        getIntensityAt,
+      };
     } catch (e) {
       console.warn("[CVAT 3D Suite] Không thể trích xuất LiDAR points:", e);
       return null;
@@ -3629,6 +3666,136 @@ export function mainWorldScript(): void {
     } catch (err: any) {
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_RES_COMMIT_SAVE", {
+          detail: { success: false, error: err.message || String(err) },
+        })
+      );
+    }
+  });
+
+  // 1c. Lắng nghe yêu cầu Căn Yaw theo Vạch Kẻ Làn Đường 3D (LiDAR Intensity Lane Snap)
+  window.addEventListener("CVAT_EXT_REQ_SNAP_YAW_TO_LANE", async (e: any) => {
+    const { jobId, frame, uiId, serverId, currentFrameOnly = true } = e.detail || {};
+    try {
+      const job = await getActiveJobInstance(jobId);
+      const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+
+      const p = target.points;
+      const curX = p[0];
+      const curY = p[1];
+      const curZ = p[2];
+      const curYaw = p[5];
+      const curL = p[6] || 4.6;
+      const curW = p[7] || 1.85;
+      const curH = p[8] || 1.5;
+
+      const lidar = getSceneLidarPoints();
+      if (!lidar || lidar.count === 0) {
+        throw new Error("Không tìm thấy điểm LiDAR trong scene");
+      }
+
+      const ptsWithIntensity: Array<{ x: number; y: number; z: number; intensity?: number }> = [];
+      const groundZ = curZ - curH / 2;
+      const cosY = Math.cos(-curYaw);
+      const sinY = Math.sin(-curYaw);
+
+      for (let i = 0; i < lidar.count; i++) {
+        const z = lidar.array[i * 3 + 2];
+        if (Math.abs(z - groundZ) > 0.15) continue;
+
+        const x = lidar.array[i * 3];
+        const y = lidar.array[i * 3 + 1];
+        const dx = x - curX;
+        const dy = y - curY;
+        const lx = dx * cosY - dy * sinY;
+        const ly = dx * sinY + dy * cosY;
+
+        if (Math.abs(lx) <= 15.0 && Math.abs(ly) <= 6.0) {
+          ptsWithIntensity.push({
+            x,
+            y,
+            z,
+            intensity: lidar.getIntensityAt(i),
+          });
+        }
+      }
+
+      const res = fitYawToLaneIntensity(
+        ptsWithIntensity,
+        curX,
+        curY,
+        curZ,
+        curYaw,
+        curL,
+        curW,
+        curH,
+        { groundZ }
+      );
+
+      if (!res.hasLane) {
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_SNAP_YAW_TO_LANE", {
+            detail: {
+              success: false,
+              uiId,
+              hasLane: false,
+              message: res.message || "Không tìm thấy vạch sơn làn đường rõ nét, giữ nguyên góc Yaw",
+            },
+          })
+        );
+        return;
+      }
+
+      const newYaw = res.newYawRad;
+      const newPoints = [...target.points];
+      newPoints[5] = newYaw;
+      target.points = newPoints;
+      if (!isDrawn && typeof target.save === "function") {
+        await target.save();
+      }
+
+      updateThreeJsCuboid(uiId, newYaw);
+
+      if (currentFrameOnly === false && job) {
+        try {
+          const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+          if (parentTrack) {
+            const shapes = toArray(parentTrack.shapes || parentTrack.keyframes);
+            for (const sh of shapes) {
+              if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+                const shPoints = [...sh.points];
+                shPoints[5] = newYaw;
+                sh.points = shPoints;
+              }
+            }
+            if (typeof parentTrack.save === "function") {
+              await parentTrack.save();
+            }
+          }
+        } catch (tErr) {
+          console.warn("[CVAT 3D Suite] Lỗi áp dụng Yaw theo làn cho toàn track:", tErr);
+        }
+      }
+
+      markCvatSaveButtonUnsaved();
+
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_SNAP_YAW_TO_LANE", {
+          detail: {
+            success: true,
+            uiId,
+            hasLane: true,
+            newYawRad: res.newYawRad,
+            newYawDeg: res.newYawDeg,
+            deltaYawDeg: res.deltaYawDeg,
+            confidence: res.confidence,
+            message: res.message,
+          },
+        })
+      );
+    } catch (err: any) {
+      console.error("[CVAT 3D Suite] Lỗi căn Yaw theo làn đường:", err);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_SNAP_YAW_TO_LANE", {
           detail: { success: false, error: err.message || String(err) },
         })
       );

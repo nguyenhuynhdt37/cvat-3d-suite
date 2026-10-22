@@ -2094,6 +2094,146 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return out;
   }
+  function fitYawToLaneIntensity$1(pts, cx, cy, cz, curYaw, curL = 4.6, curW = 1.85, curH = 1.5, options = {}) {
+    const defaultYawDeg = radToDeg(curYaw);
+    const fallbackResult = (msg2) => ({
+      hasLane: false,
+      laneYawRad: curYaw,
+      laneYawDeg: defaultYawDeg,
+      deltaYawDeg: 0,
+      newYawRad: curYaw,
+      newYawDeg: defaultYawDeg,
+      inliersCount: 0,
+      confidence: 0,
+      message: msg2
+    });
+    if (!pts || pts.length < 30) {
+      return fallbackResult("Không đủ điểm mây LiDAR để quét vạch sơn mặt đường");
+    }
+    const groundZ = options.groundZ !== void 0 ? options.groundZ : cz - curH / 2;
+    const searchX = options.maxSearchRadiusX ?? 12;
+    const searchY = options.maxSearchRadiusY ?? 4.5;
+    const maxAngleDiffDeg = options.maxAngleDiffDeg ?? 35;
+    const intensityPercentile = options.intensityPercentile ?? 0.85;
+    const ransacIters = options.ransacIterations ?? 80;
+    const distThreshold = options.distanceThreshold ?? 0.1;
+    const minInliers = options.minInliers ?? 12;
+    const cosY = Math.cos(-curYaw);
+    const sinY = Math.sin(-curYaw);
+    const groundPts = [];
+    for (const p of pts) {
+      const dz = Math.abs(p.z - groundZ);
+      if (dz > 0.12) continue;
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      const lx = dx * cosY - dy * sinY;
+      const ly = dx * sinY + dy * cosY;
+      if (Math.abs(lx) <= searchX && Math.abs(ly) <= searchY) {
+        const intensity = typeof p.intensity === "number" ? p.intensity : 0;
+        groundPts.push({ x: p.x, y: p.y, z: p.z, lx, ly, intensity });
+      }
+    }
+    if (groundPts.length < 25) {
+      return fallbackResult(`Số điểm mặt sàn xung quanh quá ít (${groundPts.length} điểm)`);
+    }
+    const intensities = groundPts.map((p) => p.intensity).sort((a, b) => a - b);
+    const maxIntensity = intensities[intensities.length - 1];
+    const minIntensity = intensities[0];
+    if (maxIntensity < 20 || maxIntensity - minIntensity < 15) {
+      return fallbackResult("Mây điểm không chứa kênh cường độ phản xạ (Intensity) rõ nét của vạch sơn");
+    }
+    const pIdx = Math.min(intensities.length - 1, Math.floor(intensities.length * intensityPercentile));
+    const intensityThreshold = Math.max(35, intensities[pIdx]);
+    const candidatePts = groundPts.filter((p) => p.intensity >= intensityThreshold);
+    if (candidatePts.length < minInliers) {
+      return fallbackResult(`Số điểm hạt giống vạch sơn quá ít (${candidatePts.length} điểm < ${minInliers})`);
+    }
+    let bestInliers = [];
+    const nCandidates = candidatePts.length;
+    for (let iter = 0; iter < ransacIters; iter++) {
+      const idx1 = Math.floor(Math.random() * nCandidates);
+      let idx2 = Math.floor(Math.random() * nCandidates);
+      let attempts = 0;
+      while (idx2 === idx1 && attempts++ < 10) {
+        idx2 = Math.floor(Math.random() * nCandidates);
+      }
+      if (idx1 === idx2) continue;
+      const p1 = candidatePts[idx1];
+      const p2 = candidatePts[idx2];
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const segLenSq = dx * dx + dy * dy;
+      if (segLenSq < 1.44) continue;
+      const segLen = Math.sqrt(segLenSq);
+      const A = -dy / segLen;
+      const B = dx / segLen;
+      const C = -(A * p1.x + B * p1.y);
+      const currentInliers = [];
+      for (let i = 0; i < nCandidates; i++) {
+        const pt = candidatePts[i];
+        const dist = Math.abs(A * pt.x + B * pt.y + C);
+        if (dist <= distThreshold) {
+          currentInliers.push(pt);
+        }
+      }
+      if (currentInliers.length > bestInliers.length) {
+        bestInliers = currentInliers;
+      }
+    }
+    if (bestInliers.length < minInliers) {
+      return fallbackResult(`Không tìm thấy vệt đường thẳng vạch sơn đủ tin cậy (${bestInliers.length} inliers < ${minInliers})`);
+    }
+    let sumX = 0, sumY = 0;
+    for (const p of bestInliers) {
+      sumX += p.x;
+      sumY += p.y;
+    }
+    const meanX = sumX / bestInliers.length;
+    const meanY = sumY / bestInliers.length;
+    let sxx = 0, syy = 0, sxy = 0;
+    for (const p of bestInliers) {
+      const dx = p.x - meanX;
+      const dy = p.y - meanY;
+      sxx += dx * dx;
+      syy += dy * dy;
+      sxy += dx * dy;
+    }
+    const laneHeading = 0.5 * Math.atan2(2 * sxy, sxx - syy);
+    const norm = (r) => {
+      let a = r;
+      while (a > Math.PI) a -= 2 * Math.PI;
+      while (a < -Math.PI) a += 2 * Math.PI;
+      return a;
+    };
+    const candYaw1 = norm(laneHeading);
+    const candYaw2 = norm(laneHeading + Math.PI);
+    const diff1 = Math.abs(norm(curYaw - candYaw1));
+    const diff2 = Math.abs(norm(curYaw - candYaw2));
+    const chosenYaw = diff1 <= diff2 ? candYaw1 : candYaw2;
+    const deltaYawRad = norm(chosenYaw - curYaw);
+    const deltaYawDeg = radToDeg(deltaYawRad);
+    if (Math.abs(deltaYawDeg) > maxAngleDiffDeg) {
+      return fallbackResult(
+        `Góc lệch xe so với vạch làn quá lớn (${Math.abs(deltaYawDeg).toFixed(1)}° > ${maxAngleDiffDeg}°), hủy căn làn để bảo vệ góc rẽ thật của xe`
+      );
+    }
+    const newYawRad = Number(chosenYaw.toFixed(5));
+    const newYawDeg = Number(radToDeg(newYawRad).toFixed(2));
+    const confidence = Math.min(100, Math.max(50, Math.round(bestInliers.length / candidatePts.length * 100)));
+    const sign = deltaYawDeg >= 0 ? "+" : "";
+    const msg = `Đã căn Yaw theo vạch kẻ làn đường 3D (${newYawDeg}°, ΔYaw: ${sign}${deltaYawDeg.toFixed(1)}°, Độ tin cậy: ${confidence}%, ${bestInliers.length} điểm vạch sơn)`;
+    return {
+      hasLane: true,
+      laneYawRad: Number(laneHeading.toFixed(5)),
+      laneYawDeg: Number(radToDeg(laneHeading).toFixed(2)),
+      deltaYawDeg: Number(deltaYawDeg.toFixed(2)),
+      newYawRad,
+      newYawDeg,
+      inliersCount: bestInliers.length,
+      confidence,
+      message: msg
+    };
+  }
   if (typeof globalThis !== "undefined") {
     globalThis.boxCorners = boxCorners;
     globalThis.BOX_EDGES = BOX_EDGES;
@@ -2107,6 +2247,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     globalThis.estimateTwoWheelerHeading = estimateTwoWheelerHeading;
     globalThis.estimateEgoRoadGroundZ = estimateEgoRoadGroundZ;
     globalThis.computeGroundSlopesAndZ = computeGroundSlopesAndZ;
+    globalThis.fitYawToLaneIntensity = fitYawToLaneIntensity$1;
   }
   if (typeof window !== "undefined") {
     window.boxCorners = boxCorners;
@@ -2121,6 +2262,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     window.estimateTwoWheelerHeading = estimateTwoWheelerHeading;
     window.estimateEgoRoadGroundZ = estimateEgoRoadGroundZ;
     window.computeGroundSlopesAndZ = computeGroundSlopesAndZ;
+    window.fitYawToLaneIntensity = fitYawToLaneIntensity$1;
   }
   function mainWorldScript() {
     if (window.__CVAT_3D_SUITE_INJECTED__) return;
@@ -2163,7 +2305,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return null;
     }
     function getSceneLidarPoints() {
-      var _a, _b, _c, _d, _e, _f;
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r;
       try {
         const store = getReduxStore();
         const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
@@ -2177,8 +2319,33 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         });
         if (!found) return null;
-        const posAttr = found.geometry.attributes.position;
-        return { count: posAttr.count, array: posAttr.array };
+        const posAttr = (_h = (_g = found.geometry) == null ? void 0 : _g.attributes) == null ? void 0 : _h.position;
+        if (!posAttr || !posAttr.array) return null;
+        const count = posAttr.count;
+        const array = posAttr.array;
+        const intensityAttr = (_m = ((_j = (_i = found.geometry) == null ? void 0 : _i.attributes) == null ? void 0 : _j.intensity) || ((_l = (_k = found.geometry) == null ? void 0 : _k.attributes) == null ? void 0 : _l.intensities)) == null ? void 0 : _m.array;
+        const colorAttr = (_r = ((_o = (_n = found.geometry) == null ? void 0 : _n.attributes) == null ? void 0 : _o.color) || ((_q = (_p = found.geometry) == null ? void 0 : _p.attributes) == null ? void 0 : _q.colors)) == null ? void 0 : _r.array;
+        const getIntensityAt = (idx) => {
+          if (intensityAttr && idx < intensityAttr.length) {
+            const val = intensityAttr[idx];
+            return val <= 1 ? val * 255 : val;
+          }
+          if (colorAttr && idx * 3 + 2 < colorAttr.length) {
+            const r = colorAttr[idx * 3];
+            const g = colorAttr[idx * 3 + 1];
+            const b = colorAttr[idx * 3 + 2];
+            const l = 0.299 * r + 0.587 * g + 0.114 * b;
+            return r <= 1 && g <= 1 && b <= 1 ? l * 255 : l;
+          }
+          return 0;
+        };
+        return {
+          count,
+          array,
+          intensity: intensityAttr || null,
+          color: colorAttr || null,
+          getIntensityAt
+        };
       } catch (e) {
         console.warn("[CVAT 3D Suite] Không thể trích xuất LiDAR points:", e);
         return null;
@@ -4917,6 +5084,121 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         );
       }
     });
+    window.addEventListener("CVAT_EXT_REQ_SNAP_YAW_TO_LANE", async (e) => {
+      const { jobId, frame, uiId, serverId, currentFrameOnly = true } = e.detail || {};
+      try {
+        const job = await getActiveJobInstance(jobId);
+        const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+        const p = target.points;
+        const curX = p[0];
+        const curY = p[1];
+        const curZ = p[2];
+        const curYaw = p[5];
+        const curL = p[6] || 4.6;
+        const curW = p[7] || 1.85;
+        const curH = p[8] || 1.5;
+        const lidar = getSceneLidarPoints();
+        if (!lidar || lidar.count === 0) {
+          throw new Error("Không tìm thấy điểm LiDAR trong scene");
+        }
+        const ptsWithIntensity = [];
+        const groundZ = curZ - curH / 2;
+        const cosY = Math.cos(-curYaw);
+        const sinY = Math.sin(-curYaw);
+        for (let i = 0; i < lidar.count; i++) {
+          const z = lidar.array[i * 3 + 2];
+          if (Math.abs(z - groundZ) > 0.15) continue;
+          const x = lidar.array[i * 3];
+          const y = lidar.array[i * 3 + 1];
+          const dx = x - curX;
+          const dy = y - curY;
+          const lx = dx * cosY - dy * sinY;
+          const ly = dx * sinY + dy * cosY;
+          if (Math.abs(lx) <= 15 && Math.abs(ly) <= 6) {
+            ptsWithIntensity.push({
+              x,
+              y,
+              z,
+              intensity: lidar.getIntensityAt(i)
+            });
+          }
+        }
+        const res = fitYawToLaneIntensity(
+          ptsWithIntensity,
+          curX,
+          curY,
+          curZ,
+          curYaw,
+          curL,
+          curW,
+          curH,
+          { groundZ }
+        );
+        if (!res.hasLane) {
+          window.dispatchEvent(
+            new CustomEvent("CVAT_EXT_RES_SNAP_YAW_TO_LANE", {
+              detail: {
+                success: false,
+                uiId,
+                hasLane: false,
+                message: res.message || "Không tìm thấy vạch sơn làn đường rõ nét, giữ nguyên góc Yaw"
+              }
+            })
+          );
+          return;
+        }
+        const newYaw = res.newYawRad;
+        const newPoints = [...target.points];
+        newPoints[5] = newYaw;
+        target.points = newPoints;
+        if (!isDrawn && typeof target.save === "function") {
+          await target.save();
+        }
+        updateThreeJsCuboid(uiId, newYaw);
+        if (currentFrameOnly === false && job) {
+          try {
+            const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+            if (parentTrack) {
+              const shapes = toArray(parentTrack.shapes || parentTrack.keyframes);
+              for (const sh of shapes) {
+                if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+                  const shPoints = [...sh.points];
+                  shPoints[5] = newYaw;
+                  sh.points = shPoints;
+                }
+              }
+              if (typeof parentTrack.save === "function") {
+                await parentTrack.save();
+              }
+            }
+          } catch (tErr) {
+            console.warn("[CVAT 3D Suite] Lỗi áp dụng Yaw theo làn cho toàn track:", tErr);
+          }
+        }
+        markCvatSaveButtonUnsaved();
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_SNAP_YAW_TO_LANE", {
+            detail: {
+              success: true,
+              uiId,
+              hasLane: true,
+              newYawRad: res.newYawRad,
+              newYawDeg: res.newYawDeg,
+              deltaYawDeg: res.deltaYawDeg,
+              confidence: res.confidence,
+              message: res.message
+            }
+          })
+        );
+      } catch (err) {
+        console.error("[CVAT 3D Suite] Lỗi căn Yaw theo làn đường:", err);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_SNAP_YAW_TO_LANE", {
+            detail: { success: false, error: err.message || String(err) }
+          })
+        );
+      }
+    });
     window.addEventListener("CVAT_EXT_REQ_FLIP_YAW", async (e) => {
       const { jobId, frame, uiId, serverId, currentFrameOnly, customYawRad } = e.detail || {};
       try {
@@ -6509,6 +6791,47 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         success: true,
         newYawDeg: finalYawDeg,
         message: (mwRes == null ? void 0 : mwRes.message) || `Đã lật 180° xe #${uiId} (Yaw mới: ${finalYawDeg}°) • Realtime 100%`
+      };
+    }
+    /**
+     * Căn góc xoay Yaw theo vạch kẻ làn đường 3D (LiDAR Intensity Lane Snap)
+     */
+    static async snapYawToLane(jobId, uiId, serverId, currentFrameOnly = true) {
+      this.ensureMainWorldBridge();
+      const currentFrame = this.getCurrentFrame();
+      const mainWorldPromise = new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(null), 1200);
+        const onResponse = (e) => {
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_SNAP_YAW_TO_LANE", onResponse);
+          if (e.detail) {
+            resolve(e.detail);
+          } else {
+            resolve(null);
+          }
+        };
+        window.addEventListener("CVAT_EXT_RES_SNAP_YAW_TO_LANE", onResponse);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_SNAP_YAW_TO_LANE", {
+            detail: { jobId, frame: currentFrame, uiId, serverId, currentFrameOnly }
+          })
+        );
+      });
+      const mwRes = await mainWorldPromise;
+      if (mwRes && mwRes.success) {
+        return {
+          success: true,
+          hasLane: mwRes.hasLane,
+          newYawDeg: mwRes.newYawDeg,
+          deltaYawDeg: mwRes.deltaYawDeg,
+          confidence: mwRes.confidence,
+          message: mwRes.message || `Đã căn Yaw theo làn cho xe #${uiId}`
+        };
+      }
+      return {
+        success: false,
+        hasLane: false,
+        message: (mwRes == null ? void 0 : mwRes.message) || "Không tìm thấy vạch sơn làn đường rõ nét quanh xe, giữ nguyên góc Yaw"
       };
     }
     /**
@@ -9532,6 +9855,43 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       await this.handleSnapGround("road", { applyToTrack: true });
     }
     /**
+     * Căn góc xoay Yaw theo vạch kẻ làn đường 3D (LiDAR Intensity Lane Snap)
+     */
+    async handleSnapYawToLane() {
+      if (!this.currentCtx || !this.currentCtx.jobId) {
+        this.showToast("Chưa kết nối Job CVAT!", "warning");
+        return;
+      }
+      if (this.selectedUiId === null) {
+        this.showToast("Vui lòng chọn xe trước!", "warning");
+        return;
+      }
+      if (this.isProcessing) return;
+      await this.pushUndoSnapshot("Căn Yaw Theo Làn 3D", this.applyToTrack);
+      this.isProcessing = true;
+      this.showToast("Đang quét vạch sơn phản quang 3D để căn Yaw...", "info");
+      try {
+        const serverId = this.selectedServerId || this.selectedUiId;
+        const res = await CVATBridge.snapYawToLane(
+          this.currentCtx.jobId,
+          this.selectedUiId,
+          serverId,
+          !this.applyToTrack
+        );
+        if (res.success && res.newYawDeg !== void 0) {
+          this.currentYawDeg = res.newYawDeg;
+          this.showToast(res.message, "success");
+        } else {
+          this.showToast(res.message || "Không tìm thấy vạch sơn rõ nét!", "warning");
+        }
+      } catch (err) {
+        this.showToast(`Lỗi căn Yaw theo làn: ${err.message || err}`, "error");
+      } finally {
+        this.isProcessing = false;
+        this.updateContent();
+      }
+    }
+    /**
      * Xử lý FIT XE: Hỗ trợ CĂN TOP, CĂN SIDE, CĂN FRONT hoặc GHÉP CHU TRÌNH HOÀN CHỈNH (TOP ➔ SIDE ➔ FRONT)
      */
     async handleEgoRayFit(step = "all") {
@@ -10115,9 +10475,28 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             </button>
           </div>
 
-          <!-- VI CHỈNH GÓC YAW -->
+          <!-- VI CHỈNH GÓC YAW & CĂN THEO VẠCH KẺ LÀN ĐƯỜNG 3D -->
           <div style="display: flex; flex-direction: column; gap: 4px;">
-            <span style="font-size: 9px; color: #64748b; font-family: monospace; font-weight: 500;">Xoay góc Yaw:</span>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 9px; color: #64748b; font-family: monospace; font-weight: 500;">Xoay góc Yaw:</span>
+              <button id="btn-snap-yaw-lane" title="Quét vạch sơn phản quang 3D dưới lòng đường để khóa góc Yaw thẳng theo tim đường (Phím L)" style="
+                background: #f0fdf4;
+                border: 1px solid #86efac;
+                color: #15803d;
+                font-size: 9px;
+                font-weight: 600;
+                padding: 2px 7px;
+                border-radius: 4px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                transition: all 0.12s;
+              ">
+                <span style="display: flex; align-items: center; color: #16a34a;">${ICONS.road}</span>
+                <span>Căn Theo Làn (LiDAR)</span>
+              </button>
+            </div>
             <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;">
               <button class="btn-rot" data-deg="-90" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer;">-90°</button>
               <button class="btn-rot" data-deg="-15" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer;">-15°</button>
@@ -11462,6 +11841,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         });
       });
+      const snapYawLaneBtn = this.container.querySelector("#btn-snap-yaw-lane");
+      if (snapYawLaneBtn) {
+        snapYawLaneBtn.addEventListener("click", () => this.handleSnapYawToLane());
+      }
       const rotBtns = this.container.querySelectorAll(".btn-rot");
       rotBtns.forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -11696,6 +12079,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           e.preventDefault();
           console.log("[CVAT 3D Suite] Phím tắt Shift+B: Khớp Chuẩn Catalog");
           panel.handleCatalogFit();
+          return;
+        }
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "L" || e.key === "l")) {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt L: Căn Yaw theo Vạch Kẻ Làn Đường 3D");
+          panel.handleSnapYawToLane();
           return;
         }
         if (e.key === "PageUp") {

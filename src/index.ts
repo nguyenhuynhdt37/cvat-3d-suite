@@ -209,6 +209,14 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
         return;
       }
 
+      // Phím L: Căn Yaw theo Vạch Kẻ Làn Đường 3D (LiDAR Intensity Lane Snap)
+      if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "L" || e.key === "l")) {
+        e.preventDefault();
+        console.log("[CVAT 3D Suite] Phím tắt L: Căn Yaw theo Vạch Kẻ Làn Đường 3D");
+        panel.handleSnapYawToLane();
+        return;
+      }
+
       // Phím PageUp: Nâng +1cm (Vi chỉnh Z)
       if (e.key === "PageUp") {
         e.preventDefault();

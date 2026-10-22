@@ -27,6 +27,7 @@ import {
   detectLateralWallBounds,
   detectLongitudinalBumperBounds,
   estimateEgoRoadGroundZ,
+  fitYawToLaneIntensity,
 } from "../src/core/geometry.ts";
 import {
   findBestFitCatalog,
@@ -3264,7 +3265,114 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
   );
 }
 
-console.log("\n🎉 TẤT CẢ 86 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z, CĂN GÓC FRONT ROLL 2 ĐẦU, BẢO TOÀN CURPOINT BIÊN, VÀ CĂN XE 2 BÁNH MẤT BÁNH TRƯỚC/SAU (RIDER 42%) ĐÃ ĐẠT 100%!");
+// 87. Test Căn Yaw Theo Vạch Sơn Phản Quang 3D (LiDAR Intensity Lane Snap)
+{
+  const testPts87: Array<{ x: number; y: number; z: number; intensity?: number }> = [];
+  // 1. Mặt đường nhựa xung quanh (intensity thấp 10 - 25)
+  for (let x = -10; x <= 10; x += 1.0) {
+    for (let y = -4; y <= 4; y += 1.0) {
+      testPts87.push({ x, y, z: 0.0, intensity: 18 });
+    }
+  }
+  // 2. Vạch sơn phản quang thẳng tắp theo trục X tại Y = 1.8m (intensity cao 180 - 220)
+  for (let x = -9.0; x <= 9.0; x += 0.3) {
+    testPts87.push({ x, y: 1.80, z: 0.0, intensity: 200 });
+  }
+
+  // Xe tại tâm (0, 0, 0.75m), góc Yaw ban đầu bị lệch +8 độ (0.1396 rad)
+  const initYawRad = (8.0 * Math.PI) / 180;
+  const res87 = fitYawToLaneIntensity(
+    testPts87,
+    0.0, 0.0, 0.75,
+    initYawRad,
+    4.6, 1.85, 1.5,
+    { groundZ: 0.0 }
+  );
+
+  assert.strictEqual(res87.hasLane, true, "Test 87: Phải nhận diện được vạch sơn làn đường phản quang");
+  assert.ok(
+    Math.abs(res87.newYawDeg) < 0.6,
+    `Test 87: Góc Yaw mới phải bám thẳng tắp theo tim đường 0° (thực tế: ${res87.newYawDeg}°)`
+  );
+  assert.ok(res87.confidence >= 70, `Test 87: Độ tin cậy phải >= 70% (thực tế: ${res87.confidence}%)`);
+
+  console.log(
+    `✅ Test 87: Căn Yaw Theo Vạch Sơn LiDAR: Góc ban đầu +8.0° ➔ Nắn thẳng tắp theo làn ${res87.newYawDeg}° (Độ tin cậy: ${res87.confidence}%, ${res87.inliersCount} điểm vạch sơn)`
+  );
+}
+
+// 88. Test Xe Quay Ngược Chiều (Yaw ban đầu 172°) ➔ Tự Động Chọn Hướng 180°
+{
+  const testPts88: Array<{ x: number; y: number; z: number; intensity?: number }> = [];
+  // Mặt đường
+  for (let x = -8; x <= 8; x += 1.0) {
+    for (let y = -3; y <= 3; y += 1.0) {
+      testPts88.push({ x, y, z: 0.0, intensity: 20 });
+    }
+  }
+  // Vạch sơn theo trục X tại Y = -1.8m
+  for (let x = -7.0; x <= 7.0; x += 0.3) {
+    testPts88.push({ x, y: -1.80, z: 0.0, intensity: 210 });
+  }
+
+  // Xe quay ngược chiều: Yaw = 172 độ (3.0019 rad)
+  const initYawRad = (172.0 * Math.PI) / 180;
+  const res88 = fitYawToLaneIntensity(
+    testPts88,
+    0.0, 0.0, 0.75,
+    initYawRad,
+    4.6, 1.85, 1.5,
+    { groundZ: 0.0 }
+  );
+
+  assert.strictEqual(res88.hasLane, true, "Test 88: Phải nhận diện vạch sơn khi xe quay ngược chiều");
+  // Phải chọn góc ngược chiều ~ 180° hoặc -180°, tuyệt đối không lộn ngược đầu xe về 0°
+  const absYaw = Math.abs(res88.newYawDeg);
+  assert.ok(
+    Math.abs(absYaw - 180) < 0.8,
+    `Test 88: Phải căn ngược chiều ~180° (thực tế: ${res88.newYawDeg}°)`
+  );
+
+  console.log(
+    `✅ Test 88: Xe Chạy Ngược Chiều: Góc ban đầu 172.0° ➔ Khóa hướng ngược chiều chuẩn xác ${res88.newYawDeg}° (Không lộn đầu xe)`
+  );
+}
+
+// 89. Test Cơ Chế Phòng Vệ Fallback An Toàn (Không Vạch Sơn Hoặc Xe Đang Rẽ Góc Vuông 60°)
+{
+  // Trường hợp 1: Mặt đường không có vạch sơn (intensity đồng đều 20)
+  const noLanePts: Array<{ x: number; y: number; z: number; intensity?: number }> = [];
+  for (let x = -5; x <= 5; x += 1.0) {
+    for (let y = -3; y <= 3; y += 1.0) {
+      noLanePts.push({ x, y, z: 0.0, intensity: 20 });
+    }
+  }
+  const initYaw = 0.25;
+  const resNoLane = fitYawToLaneIntensity(noLanePts, 0, 0, 0.75, initYaw, 4.6, 1.85, 1.5, { groundZ: 0.0 });
+  assert.strictEqual(resNoLane.hasLane, false, "Test 89a: Không có vạch sơn ➔ hasLane = false");
+  assert.strictEqual(resNoLane.newYawRad, initYaw, "Test 89a: Giữ nguyên góc Yaw ban đầu an toàn 100%");
+
+  // Trường hợp 2: Có vạch sơn nhưng xe đang rẽ góc vuông 60° (vượt trần 35°)
+  const turningPts: Array<{ x: number; y: number; z: number; intensity?: number }> = [];
+  for (let x = -8; x <= 8; x += 1.0) {
+    for (let y = -3; y <= 3; y += 1.0) {
+      turningPts.push({ x, y, z: 0.0, intensity: 20 });
+    }
+  }
+  for (let x = -7; x <= 7; x += 0.3) {
+    turningPts.push({ x, y: 1.5, z: 0.0, intensity: 200 });
+  }
+  const turningYawRad = (60.0 * Math.PI) / 180; // Xe đang rẽ 60 độ
+  const resTurning = fitYawToLaneIntensity(turningPts, 0, 0, 0.75, turningYawRad, 4.6, 1.85, 1.5, { groundZ: 0.0 });
+  assert.strictEqual(resTurning.hasLane, false, "Test 89b: Xe rẽ 60° vượt trần 35° ➔ Hủy căn làn để bảo vệ góc rẽ thật");
+  assert.strictEqual(resTurning.newYawRad, turningYawRad, "Test 89b: Giữ nguyên góc rẽ của xe");
+
+  console.log(
+    `✅ Test 89: Cơ Chế Phòng Vệ Fallback An Toàn 100% (Tự động giữ nguyên góc xe khi không có vạch sơn hoặc xe đang rẽ cua 60°)`
+  );
+}
+
+console.log("\n🎉 TẤT CẢ 89 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z, CĂN GÓC FRONT ROLL 2 ĐẦU, BẢO TOÀN CURPOINT BIÊN, RIDER 42% VÀ CĂN YAW THEO VẠCH KẺ LÀN LIDAR INTENSITY ĐÃ ĐẠT 100%!");
 
 
 

@@ -1051,6 +1051,47 @@ export class FloatingPanel {
   }
 
   /**
+   * Căn góc xoay Yaw theo vạch kẻ làn đường 3D (LiDAR Intensity Lane Snap)
+   */
+  public async handleSnapYawToLane(): Promise<void> {
+    if (!this.currentCtx || !this.currentCtx.jobId) {
+      this.showToast("Chưa kết nối Job CVAT!", "warning");
+      return;
+    }
+    if (this.selectedUiId === null) {
+      this.showToast("Vui lòng chọn xe trước!", "warning");
+      return;
+    }
+
+    if (this.isProcessing) return;
+    await this.pushUndoSnapshot("Căn Yaw Theo Làn 3D", this.applyToTrack);
+    this.isProcessing = true;
+    this.showToast("Đang quét vạch sơn phản quang 3D để căn Yaw...", "info");
+
+    try {
+      const serverId = this.selectedServerId || this.selectedUiId;
+      const res = await CVATBridge.snapYawToLane(
+        this.currentCtx.jobId,
+        this.selectedUiId,
+        serverId,
+        !this.applyToTrack
+      );
+
+      if (res.success && res.newYawDeg !== undefined) {
+        this.currentYawDeg = res.newYawDeg;
+        this.showToast(res.message, "success");
+      } else {
+        this.showToast(res.message || "Không tìm thấy vạch sơn rõ nét!", "warning");
+      }
+    } catch (err: any) {
+      this.showToast(`Lỗi căn Yaw theo làn: ${err.message || err}`, "error");
+    } finally {
+      this.isProcessing = false;
+      this.updateContent();
+    }
+  }
+
+  /**
    * Xử lý FIT XE: Hỗ trợ CĂN TOP, CĂN SIDE, CĂN FRONT hoặc GHÉP CHU TRÌNH HOÀN CHỈNH (TOP ➔ SIDE ➔ FRONT)
    */
   public async handleEgoRayFit(step: "all" | "top" | "side" | "front" = "all"): Promise<void> {
@@ -1762,9 +1803,28 @@ export class FloatingPanel {
             </button>
           </div>
 
-          <!-- VI CHỈNH GÓC YAW -->
+          <!-- VI CHỈNH GÓC YAW & CĂN THEO VẠCH KẺ LÀN ĐƯỜNG 3D -->
           <div style="display: flex; flex-direction: column; gap: 4px;">
-            <span style="font-size: 9px; color: #64748b; font-family: monospace; font-weight: 500;">Xoay góc Yaw:</span>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 9px; color: #64748b; font-family: monospace; font-weight: 500;">Xoay góc Yaw:</span>
+              <button id="btn-snap-yaw-lane" title="Quét vạch sơn phản quang 3D dưới lòng đường để khóa góc Yaw thẳng theo tim đường (Phím L)" style="
+                background: #f0fdf4;
+                border: 1px solid #86efac;
+                color: #15803d;
+                font-size: 9px;
+                font-weight: 600;
+                padding: 2px 7px;
+                border-radius: 4px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                transition: all 0.12s;
+              ">
+                <span style="display: flex; align-items: center; color: #16a34a;">${ICONS.road}</span>
+                <span>Căn Theo Làn (LiDAR)</span>
+              </button>
+            </div>
             <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;">
               <button class="btn-rot" data-deg="-90" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer;">-90°</button>
               <button class="btn-rot" data-deg="-15" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer;">-15°</button>
@@ -3193,6 +3253,12 @@ export class FloatingPanel {
         }
       });
     });
+
+    // Gắn sự kiện Căn Yaw Theo Vạch Kẻ Làn Đường 3D (LiDAR Intensity Lane Snap)
+    const snapYawLaneBtn = this.container.querySelector("#btn-snap-yaw-lane");
+    if (snapYawLaneBtn) {
+      snapYawLaneBtn.addEventListener("click", () => this.handleSnapYawToLane());
+    }
 
     // 11. Gắn sự kiện Xoay Vi Chỉnh Yaw (nếu accordion đang mở)
     const rotBtns = this.container.querySelectorAll<HTMLButtonElement>(".btn-rot");

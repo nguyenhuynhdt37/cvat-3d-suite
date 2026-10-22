@@ -94,6 +94,21 @@
   - **Mất bánh sau** ($dist_{\text{rear}} < 0.38 \cdot L$): Tự động phóng mép cản sau về $lx_{\text{rider}} - 0.58 \cdot L$, bám cản trước thật đón tia.
   - **Mất cả 2 bánh** (chỉ có người lái): Tự động định vị tâm xe tại $lx_{\text{rider}} - 0.08 \cdot L$.
 
+### 12. Căn Yaw Theo Vạch Kẻ Làn Đường 3D (LiDAR Intensity Lane Snap)
+- **Độc lập camera, kháng méo hình ảnh**: Tận dụng kênh cường độ phản xạ `intensity` của mây điểm LiDAR (vạch sơn nhiệt phản quang phản xạ mạnh gấp 3-5 lần nhựa đường) để trích xuất tim làn 3D nguyên bản, không bị ảnh hưởng bởi ống kính camera méo góc rộng/mắt cá của Vin.
+- **Vùng khảo sát mặt đường quanh xe**:
+  - Trích xuất các điểm sát mặt đất $Z \in [Z_{\text{ground}} - 0.15\text{m}, Z_{\text{ground}} + 0.18\text{m}]$ trong phạm vi dọc $X \in [-12\text{m}, 12\text{m}]$ và ngang $Y \in [-4.5\text{m}, 4.5\text{m}]$ quanh xe.
+  - Phân vị động trích xuất top 15% điểm có `intensity` cao nhất đại diện cho vạch sơn phản quang.
+- **RANSAC 2D Line Fitting & PCA Hồi Quy**:
+  - Thuật toán RANSAC 2D tìm cụm vạch kẻ thẳng hàng với ngưỡng khoảng cách $12\text{cm}$.
+  - Hồi quy trực giao PCA trên tập inliers để xác định chính xác vector hướng của vạch làn $\vec{v} = (v_x, v_y)$.
+- **Đồng pha hướng xe & Chặn an toàn (Guardrail)**:
+  - Khóa hướng xuôi chiều: nếu $\vec{v} \cdot \vec{d}_{\text{xe}} < 0$ thì đảo chiều $\vec{v} \leftarrow -\vec{v}$.
+  - Chặn lệch góc an toàn: Nếu góc lệch giữa xe và vạch sơn $|\Delta\psi| > 35^\circ$ (xe đang rẽ cua góc vuông hoặc đổi làn gắt), hệ thống tự động kích hoạt **Fallback an toàn**: giữ nguyên 100% góc Yaw ban đầu, không bẻ vẹo xe.
+- **Bảo toàn 100% công thức cũ**:
+  - Chỉ can thiệp duy nhất góc xoay Yaw $\psi$.
+  - Khóa cứng 100% vị trí tâm $X, Y, Z$, kích thước $L, W, H$, và góc dốc nghiêng $\text{Roll}, \text{Pitch}$.
+
 ---
 
 ## II. QUY CHUẨN GIAO DIỆN (UI/UX)

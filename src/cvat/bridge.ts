@@ -308,6 +308,65 @@ export class CVATBridge {
   }
 
   /**
+   * Căn góc xoay Yaw theo vạch kẻ làn đường 3D (LiDAR Intensity Lane Snap)
+   */
+  public static async snapYawToLane(
+    jobId: number,
+    uiId: number,
+    serverId: number,
+    currentFrameOnly: boolean = true
+  ): Promise<{ success: boolean; hasLane?: boolean; newYawDeg?: number; deltaYawDeg?: number; confidence?: number; message: string }> {
+    this.ensureMainWorldBridge();
+    const currentFrame = this.getCurrentFrame();
+
+    const mainWorldPromise = new Promise<{
+      success: boolean;
+      hasLane?: boolean;
+      newYawDeg?: number;
+      deltaYawDeg?: number;
+      confidence?: number;
+      message?: string;
+    } | null>((resolve) => {
+      const timeout = setTimeout(() => resolve(null), 1200);
+
+      const onResponse = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_SNAP_YAW_TO_LANE", onResponse);
+        if (e.detail) {
+          resolve(e.detail);
+        } else {
+          resolve(null);
+        }
+      };
+
+      window.addEventListener("CVAT_EXT_RES_SNAP_YAW_TO_LANE", onResponse);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_SNAP_YAW_TO_LANE", {
+          detail: { jobId, frame: currentFrame, uiId, serverId, currentFrameOnly },
+        })
+      );
+    });
+
+    const mwRes = await mainWorldPromise;
+    if (mwRes && mwRes.success) {
+      return {
+        success: true,
+        hasLane: mwRes.hasLane,
+        newYawDeg: mwRes.newYawDeg,
+        deltaYawDeg: mwRes.deltaYawDeg,
+        confidence: mwRes.confidence,
+        message: mwRes.message || `Đã căn Yaw theo làn cho xe #${uiId}`,
+      };
+    }
+
+    return {
+      success: false,
+      hasLane: false,
+      message: mwRes?.message || "Không tìm thấy vạch sơn làn đường rõ nét quanh xe, giữ nguyên góc Yaw",
+    };
+  }
+
+  /**
    * Cập nhật kích thước (L, W, H) linh hoạt cho xe:
    * Hỗ trợ áp dụng chỉ Frame hiện tại hoặc Đồng bộ cho Toàn bộ Track.
    * Dữ liệu được lưu trực tiếp vào cvat-core thông qua Main World Bridge (Realtime 100%).
