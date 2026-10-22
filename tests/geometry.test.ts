@@ -2827,7 +2827,175 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
   console.log(`✅ Test 75: Tự Nhận Diện Nền Vỉa Hè (+20cm so với Ego): Ghim đúng mặt vỉa hè Z = ${curbRes.groundZ}m, Khóa Roll = 0°`);
 }
 
-console.log("\n🎉 TẤT CẢ 75 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z & CĂN GÓC FRONT ROLL 2 ĐẦU ĐÃ ĐẠT 100%!");
+// 76. Test Người Đi Bộ Ít Điểm Ở Xa (N=6): Tự Thích Ứng Mật Độ Thưa, Giảm Trọng Số Chân, Không Teo Nhỏ
+{
+  // Người đi bộ ở khoảng cách xa (cx = 15m, cy = 5m), chỉ có 6 điểm tia LiDAR thưa thớt
+  // Mặt đất z = 0.0m
+  const sparsePedPts: Array<{ x: number; y: number; z: number }> = [
+    { x: 15.12, y: 5.10, z: 1.45 }, // Ngực (Core body)
+    { x: 14.92, y: 4.90, z: 1.15 }, // Hông (Core body)
+    { x: 15.02, y: 5.04, z: 0.95 }, // Bụng (Core body)
+    { x: 15.00, y: 5.00, z: 1.70 }, // Đỉnh đầu (Core body)
+    { x: 15.06, y: 5.02, z: 0.22 }, // Cẳng chân (Tầng chân sát trục đứng d_xy <= 0.28m -> Được thu nạp bổ trợ)
+    { x: 14.96, y: 4.96, z: 0.12 }, // Bàn chân sát đất (d_xy <= 0.28m)
+    // Thêm điểm quét xiên loang sát đất cách xa 80cm (nhiễu mặt đường)
+    { x: 15.80, y: 5.80, z: 0.05 },
+  ];
+
+  // Chạy Fit All
+  const sparseFitRes = fitPedestrianBox(
+    sparsePedPts,
+    15.0, 5.0, 0.85, 0.0,
+    0.60, 0.60, 1.70,
+    { step: "all" }
+  );
+
+  // 1. Phải ôm trọn toàn bộ điểm người thật (span lx ~ 0.20m, ly ~ 0.20m + đệm 8cm -> L, W ~ 0.40m)
+  assert.ok(
+    sparseFitRes.newL >= 0.35 && sparseFitRes.newL <= 0.55,
+    `Test 76: Chiều dài L người ít điểm phải ôm trọn điểm thật trong [0.35, 0.55]m (thực tế: ${sparseFitRes.newL}m)`
+  );
+  assert.ok(
+    sparseFitRes.newW >= 0.35 && sparseFitRes.newW <= 0.55,
+    `Test 76: Chiều rộng W người ít điểm phải ôm trọn điểm thật trong [0.35, 0.55]m (thực tế: ${sparseFitRes.newW}m)`
+  );
+
+  // 2. Điểm nhiễu sát đất tại (15.8, 5.8) phải bị loại bỏ 100%, tâm không bị lệch quá 10cm
+  assert.ok(
+    Math.abs(sparseFitRes.newCenterX - 15.02) < 0.10,
+    `Test 76: Tâm X phải bám cụm điểm thật ~15.02m (thực tế: ${sparseFitRes.newCenterX}m)`
+  );
+  assert.ok(
+    Math.abs(sparseFitRes.newCenterY - 5.01) < 0.10,
+    `Test 76: Tâm Y phải bám cụm điểm thật ~5.01m (thực tế: ${sparseFitRes.newCenterY}m)`
+  );
+
+  // 3. Chiều cao H nở lên đỉnh đầu + 12cm đệm (1.70m + 0.12m = 1.82m)
+  assert.ok(
+    Math.abs(sparseFitRes.newH - 1.82) < 0.05,
+    `Test 76: Chiều cao H phải ôm đỉnh đầu + 12cm đệm ~1.82m (thực tế: ${sparseFitRes.newH}m)`
+  );
+
+  console.log(
+    `✅ Test 76: Người Ít Điểm Ở Xa (N=6): Tự ôm trọn điểm thật ${sparseFitRes.newL}x${sparseFitRes.newW}x${sparseFitRes.newH}m, giảm trọng số chân và loại bỏ 100% nhiễu loang sát đất`
+  );
+}
+
+// 77. Test Người Đi Bộ Bị Ghosting Kéo Dài (Motion Smear): Khóa Trần Kích Thước & Ưu Tiên Bám Cản Đón Tia Ego
+{
+  // Trường hợp 1: Ghosting dính liền liên tục (vệt chuyển động không có khoảng trống, kéo dài 1.35m)
+  // Điểm nối liền từ X = 10.15m lùi về tận 8.85m (bước 0.08m < 0.14m)
+  const continuousGhostPts: Array<{ x: number; y: number; z: number }> = [];
+
+  // Mặt đất
+  for (let x = 8.0; x <= 11.0; x += 0.5) {
+    for (let y = 4.0; y <= 6.0; y += 0.5) {
+      continuousGhostPts.push({ x, y, z: 0.0 });
+    }
+  }
+
+  // Thân thật và vệt bóng ma dính liền
+  for (let x = 8.85; x <= 10.15; x += 0.08) {
+    continuousGhostPts.push({ x, y: 5.0, z: 1.2 });
+  }
+
+  // Giả sử Annotator kéo box dài 1.10m do bị đánh lừa bởi vệt bóng ma ghosting
+  // Xe Ego ở phía trước tại (20, 5, 0) -> Ego nhìn thấy mặt trước đón tia (X lớn hơn)
+  const ghostFitRes = fitPedestrianBox(
+    continuousGhostPts,
+    10.0, 5.0, 0.85, 0.0,
+    1.10, 0.60, 1.70,
+    { step: "l", egoPos: { x: 20.0, y: 5.0, z: 0.0 } }
+  );
+
+  // 1. Chiều dài L BẮT BUỘC KHỐNG CHẾ TRẦN AN TOÀN L <= 0.80m (Không bị dãn ra 1.38m theo bóng ma)
+  assert.strictEqual(
+    ghostFitRes.newL,
+    0.80,
+    `Test 77: Chiều dài L phải bị khóa trần an toàn 0.80m kháng ghosting (thực tế: ${ghostFitRes.newL}m)`
+  );
+
+  // 2. Mép trước đón tia Ego phải bám sát thân thật 10.15m (không trôi lùi theo bóng ma)
+  const frontBoxEdge = ghostFitRes.newCenterX + ghostFitRes.newL / 2;
+  assert.ok(
+    Math.abs(frontBoxEdge - 10.16) < 0.05,
+    `Test 77: Mép trước box phải bám khít mép thân thật đón tia Ego 10.16m (thực tế: ${frontBoxEdge.toFixed(3)}m)`
+  );
+
+  console.log(
+    `✅ Test 77: Người Bị Ghosting Kéo Dài: Khóa trần an toàn L = ${ghostFitRes.newL}m, Mép trước đón tia bám khít thân thật ${frontBoxEdge.toFixed(2)}m (loại bỏ bóng ma)`
+  );
+}
+
+// 78. Test Xe 2 Bánh Ít Điểm Ở Xa (N=7): Tự Thích Ứng, Không Chém Đứt Bánh Xe, Bắt Trọn Tay Lái
+{
+  // Xe máy ở xa (cx = 20m, cy = 8m, yaw = 0 rad), chỉ có 7 điểm
+  const sparseBikePts: Array<{ x: number; y: number; z: number }> = [
+    { x: 20.70, y: 8.00, z: 0.35 }, // Bánh trước
+    { x: 19.30, y: 8.00, z: 0.35 }, // Bánh sau
+    { x: 20.00, y: 8.00, z: 0.60 }, // Khung xe
+    { x: 19.80, y: 8.00, z: 1.10 }, // Yên xe / Người lái
+    { x: 20.45, y: 8.35, z: 1.05 }, // Tay lái trái
+    { x: 20.45, y: 7.65, z: 1.05 }, // Tay lái phải
+    { x: 19.85, y: 8.00, z: 1.55 }, // Nón bảo hiểm
+    // Điểm mặt đất quanh xe
+    { x: 20.00, y: 8.00, z: 0.00 },
+  ];
+
+  const bikeFitRes = fitTwoWheelerBox(
+    sparseBikePts,
+    20.0, 8.0, 0.85, 0.0,
+    1.80, 0.70, 1.55,
+    { step: "w" }
+  );
+
+  // 1. Không bị teo nhỏ: Chiều rộng W bắt trọn 2 đầu tay lái ly in [-0.35, +0.35] + đệm gương
+  assert.ok(
+    bikeFitRes.newW >= 0.80 && bikeFitRes.newW <= 0.95,
+    `Test 78: Chiều rộng W xe 2 bánh ít điểm phải bắt trọn tay lái trong [0.80, 0.95]m (thực tế: ${bikeFitRes.newW}m)`
+  );
+
+  // 2. Chiều dài L giữ nguyên 1.80m (chuẩn xe 2 bánh bảo toàn L)
+  assert.strictEqual(bikeFitRes.newL, 1.80, "Test 78: Chiều dài L bảo toàn 1.80m");
+
+  console.log(
+    `✅ Test 78: Xe 2 Bánh Ít Điểm Ở Xa (N=7): Bắt trọn tay lái W = ${bikeFitRes.newW}m, bảo toàn L = ${bikeFitRes.newL}m không bị teo nhỏ`
+  );
+}
+
+// 79. Test Xe 2 Bánh Bị Ghosting Dãn Ngang: Khống Chế Trần An Toàn W <= 0.95m
+{
+  // Xe 2 bánh bị bóng ma dãn rộng sang ngang (vết quét loang ly in [-0.80, 0.80] -> spanW = 1.6m)
+  const ghostBikePts: Array<{ x: number; y: number; z: number }> = [
+    { x: 10.50, y: 5.00, z: 0.35 },
+    { x: 9.50, y: 5.00, z: 0.35 },
+    { x: 10.00, y: 5.00, z: 0.80 },
+    // Vệt ghosting dãn ngang
+    { x: 10.00, y: 5.80, z: 1.05 },
+    { x: 10.00, y: 4.20, z: 1.05 },
+    { x: 10.00, y: 5.00, z: 0.00 }, // Mặt đất
+  ];
+
+  const ghostBikeRes = fitTwoWheelerBox(
+    ghostBikePts,
+    10.0, 5.0, 0.85, 0.0,
+    1.80, 0.70, 1.55,
+    { step: "w" }
+  );
+
+  // Chiều rộng W BẮT BUỘC KHỐNG CHẾ TRẦN AN TOÀN W <= 0.95m (Không bị phình to lên 1.45m hay 1.60m)
+  assert.strictEqual(
+    ghostBikeRes.newW,
+    0.95,
+    `Test 79: Chiều rộng W phải bị khống chế trần an toàn 0.95m kháng ghosting (thực tế: ${ghostBikeRes.newW}m)`
+  );
+
+  console.log(
+    `✅ Test 79: Xe 2 Bánh Bị Ghosting Dãn Ngang 1.6m: Khóa trần an toàn W = ${ghostBikeRes.newW}m kháng ghosting`
+  );
+}
+
+console.log("\n🎉 TẤT CẢ 79 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z, CĂN GÓC FRONT ROLL 2 ĐẦU, TỰ THÍCH ỨNG ÍT ĐIỂM & KHÁNG GHOSTING ĐÃ ĐẠT 100%!");
 
 
 

@@ -1700,19 +1700,23 @@ export function mainWorldScript(): void {
       groundZ = footGroundPts[Math.max(0, Math.floor(footGroundPts.length * 0.15))];
     }
 
-    // 2. Thu thập điểm thân người cốt lõi (từ mặt đất + 30cm loại bỏ 100% vệt quét mặt đất quanh chân)
-    const minBodyZ = groundZ + 0.30;
+    // 2. Thu thập điểm thân người có phân tầng và GIẢM TRỌNG SỐ Ở CHÂN:
+    // - Tầng thân chính (Core Body): Z in [groundZ + 0.30m, groundZ + 2.30m] -> Trọng số 100%
+    // - Tầng chân (Foot/Ankle): Z in [groundZ + 0.08m, groundZ + 0.30m] -> Giảm trọng số
+    const minCoreZ = groundZ + 0.30;
     const maxBodyZ = groundZ + 2.30;
+    const minFootZ = groundZ + 0.08;
     const outerL = Math.max(0.45, curL / 2 + 0.25);
     const outerW = Math.max(0.40, curW / 2 + 0.25);
 
     const cosY = Math.cos(-yaw);
     const sinY = Math.sin(-yaw);
-    const rawBodyPts: Array<{ lx: number; ly: number; z: number }> = [];
+    const coreBodyPts: Array<{ lx: number; ly: number; z: number }> = [];
+    const footPts: Array<{ lx: number; ly: number; z: number }> = [];
 
     for (let i = 0; i < count; i++) {
       const z = array[i * 3 + 2];
-      if (z < minBodyZ || z > maxBodyZ) continue;
+      if (z < minFootZ || z > maxBodyZ) continue;
       const x = array[i * 3];
       const y = array[i * 3 + 1];
       const dx = x - cx;
@@ -1720,15 +1724,31 @@ export function mainWorldScript(): void {
       const lx = dx * cosY - dy * sinY;
       const ly = dx * sinY + dy * cosY;
       if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
-        rawBodyPts.push({ lx, ly, z });
+        if (z >= minCoreZ) {
+          coreBodyPts.push({ lx, ly, z });
+        } else {
+          // Tầng chân: CHỈ nhận nếu nằm sát trục đứng thân người (|lx| <= 0.28m, |ly| <= 0.28m)
+          // Loại bỏ hoàn toàn 100% vệt quét xiên loang sát đất, vạch sơn phản quang, gờ vỉa hè
+          if (Math.abs(lx) <= 0.28 && Math.abs(ly) <= 0.28) {
+            footPts.push({ lx, ly, z });
+          }
+        }
       }
     }
 
-    // 3. Phân cụm mật độ liên tục 2D (Continuous Density-Connected Clustering)
-    // - Cắt đứt thung lũng khoảng cách >= 14cm để chống dính sang người bên cạnh trong đám đông
-    // - Ưu tiên chọn cụm điểm thân người cốt lõi nằm gần tâm box nhất (centerBias = 0)
-    const clusterLy = filterDenseConnectedCluster1D(rawBodyPts, "ly", 0.14, 0);
-    const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", 0.14, 0);
+    let rawBodyPts = coreBodyPts;
+    if (coreBodyPts.length < 8 && footPts.length > 0) {
+      rawBodyPts = [...coreBodyPts, ...footPts];
+    }
+
+    // 3. Phân cụm mật độ tự thích ứng (Adaptive Density-Connected Clustering):
+    // - Khi box ít điểm (N <= 12 điểm): Tự động nới maxGap = 0.25m để không chém đứt điểm người ở cự ly xa
+    // - Khi box nhiều điểm (N > 12 điểm): maxGap = 0.14m để chém đứt đám đông và cắt bỏ bóng ma ghosting rời rạc
+    const isSparse = rawBodyPts.length <= 12;
+    const maxClusteringGap = isSparse ? 0.25 : 0.14;
+
+    const clusterLy = filterDenseConnectedCluster1D(rawBodyPts, "ly", maxClusteringGap, 0);
+    const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxClusteringGap, 0);
 
     let newX = cx;
     let newY = cy;
@@ -1763,8 +1783,9 @@ export function mainWorldScript(): void {
     const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
     const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
 
-    const pMinIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.02) : 0;
-    const pMaxIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.98) : bodyPts.length - 1;
+    // Nếu ít điểm: Bắt trọn 100% điểm cực biên không dùng phân vị làm teo nhỏ box
+    const pMinIdx = !isSparse && bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.02) : 0;
+    const pMaxIdx = !isSparse && bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.98) : bodyPts.length - 1;
 
     const lxMin = allLx[pMinIdx];
     const lxMax = allLx[pMaxIdx];
@@ -1922,7 +1943,7 @@ export function mainWorldScript(): void {
       const sideText = visibleSide === "left" ? "Sườn Trái đón tia Ego" : visibleSide === "right" ? "Sườn Phải đón tia Ego" : "Cân đối 2 sườn";
       msg = `Đã căn FRONT Người đi bộ: [${sideText}] ôm sát viền đón tia (ΔY: ${signY}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
     } else if (step === "l") {
-      // 4. FIX RIÊNG CHIỀU DÀI L
+      // 4. FIX RIÊNG CHIỀU DÀI L (Bắt trọn sải chân, tự thích ứng ít điểm & kháng ghosting)
       newYaw = yaw;
       newYawDeg = curYawDeg;
       deltaYawDeg = 0;
@@ -1930,17 +1951,39 @@ export function mainWorldScript(): void {
       newH = curH;
       newZ = cz;
 
-      newL = Number(Math.max(0.35, Math.min(0.85, (lxMax - lxMin) + 0.08)).toFixed(2));
-      let shiftLx = (lxMin + lxMax) / 2;
-      shiftLx = Math.max(-0.35, Math.min(0.35, shiftLx));
+      const spanL = (lxMax - lxMin) + 0.08;
+      let shiftLx = 0;
 
+      if (spanL > 0.80) {
+        // Kháng Ghosting: Chặn trần L <= 0.80m, ưu tiên căn mép đón tia Ego
+        newL = 0.80;
+        if (options.egoPos) {
+          const dxEgo = options.egoPos.x - cx;
+          const dyEgo = options.egoPos.y - cy;
+          const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
+          if (lxEgo > 0.15) {
+            shiftLx = (lxMax + 0.01) - newL / 2;
+          } else if (lxEgo < -0.15) {
+            shiftLx = (lxMin - 0.01) + newL / 2;
+          } else {
+            shiftLx = (lxMin + lxMax) / 2;
+          }
+        } else {
+          shiftLx = (lxMin + lxMax) / 2;
+        }
+      } else {
+        newL = Number(Math.max(0.35, Math.min(0.80, spanL)).toFixed(2));
+        shiftLx = (lxMin + lxMax) / 2;
+      }
+
+      shiftLx = Math.max(-0.35, Math.min(0.35, shiftLx));
       newX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
       newY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
 
       const signX = shiftLx >= 0 ? "+" : "";
-      msg = `Đã fix Chiều Dài (L) Người đi bộ: L=${newL}m (căn tâm X: ${signX}${(shiftLx * 100).toFixed(1)}cm), giữ nguyên W, H & Z`;
+      msg = `Đã fix Chiều Dài (L) Người đi bộ: L=${newL}m (căn tâm X: ${signX}${(shiftLx * 100).toFixed(1)}cm, kháng ghosting), giữ nguyên W, H & Z`;
     } else if (step === "w") {
-      // 5. FIX RIÊNG CHIỀU RỘNG W
+      // 5. FIX RIÊNG CHIỀU RỘNG W (Bắt trọn vai/ngực, tự thích ứng ít điểm & kháng ghosting)
       newYaw = yaw;
       newYawDeg = curYawDeg;
       deltaYawDeg = 0;
@@ -1948,15 +1991,37 @@ export function mainWorldScript(): void {
       newH = curH;
       newZ = cz;
 
-      newW = Number(Math.max(0.35, Math.min(0.85, (lyMax - lyMin) + 0.08)).toFixed(2));
-      let shiftLy = (lyMin + lyMax) / 2;
-      shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      const spanW = (lyMax - lyMin) + 0.08;
+      let shiftLy = 0;
 
+      if (spanW > 0.75) {
+        // Kháng Ghosting: Chặn trần W <= 0.75m, ưu tiên căn mép đón tia Ego
+        newW = 0.75;
+        if (options.egoPos) {
+          const toEgoX = options.egoPos.x - cx;
+          const toEgoY = options.egoPos.y - cy;
+          const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+          if (egoLocalY > 0.04) {
+            shiftLy = (lyMax + 0.01) - newW / 2;
+          } else if (egoLocalY < -0.04) {
+            shiftLy = (lyMin - 0.01) + newW / 2;
+          } else {
+            shiftLy = (lyMin + lyMax) / 2;
+          }
+        } else {
+          shiftLy = (lyMin + lyMax) / 2;
+        }
+      } else {
+        newW = Number(Math.max(0.35, Math.min(0.75, spanW)).toFixed(2));
+        shiftLy = (lyMin + lyMax) / 2;
+      }
+
+      shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
       newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
       newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
 
       const signY = shiftLy >= 0 ? "+" : "";
-      msg = `Đã fix Chiều Rộng (W) Người đi bộ: W=${newW}m (căn tâm Y: ${signY}${(shiftLy * 100).toFixed(1)}cm), giữ nguyên L, H & Z`;
+      msg = `Đã fix Chiều Rộng (W) Người đi bộ: W=${newW}m (căn tâm Y: ${signY}${(shiftLy * 100).toFixed(1)}cm, kháng ghosting), giữ nguyên L, H & Z`;
     } else if (step === "h") {
       // 6. FIX RIÊNG CHIỀU CAO H (Ground-Lock: Đáy Z_base cố định, nở lên nóc +12cm đệm đầu)
       newYaw = yaw;
@@ -1976,9 +2041,11 @@ export function mainWorldScript(): void {
 
       msg = `Đã fix Chiều Cao (H) Người đi bộ: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên đỉnh đầu +12cm), giữ nguyên L, W & XY`;
     } else {
-      // 7. TOÀN DIỆN (ALL): 1-Click Smart Fit
-      newL = Number(Math.max(0.40, Math.min(0.85, lxMax - lxMin + 0.08)).toFixed(2));
-      newW = Number(Math.max(0.40, Math.min(0.85, lyMax - lyMin + 0.08)).toFixed(2));
+      // 7. TOÀN DIỆN (ALL): 1-Click Smart Fit (Kháng Ghosting L<=0.80m, W<=0.75m)
+      const spanL = (lxMax - lxMin) + 0.08;
+      newL = Number(Math.max(0.40, Math.min(0.80, spanL)).toFixed(2));
+      const spanW = (lyMax - lyMin) + 0.08;
+      newW = Number(Math.max(0.40, Math.min(0.75, spanW)).toFixed(2));
 
       const roofTopZ = highestPtZ + headBuffer;
       newH = Number(Math.max(1.05, Math.min(2.15, roofTopZ - groundZ)).toFixed(2));
@@ -2098,19 +2165,23 @@ export function mainWorldScript(): void {
       groundZ = groundPts[Math.max(0, Math.floor(groundPts.length * 0.15))];
     }
 
-    // 2. Thu thập điểm thân xe và người lái (từ mặt đất +25cm loại bỏ vệt quét loang sát lốp xe)
-    const minBodyZ = groundZ + 0.25;
+    // 2. Thu thập điểm thân xe và người lái có phân tầng và GIẢM TRỌNG SỐ Ở BÁNH XE SÁT ĐẤT:
+    // - Tầng thân xe & người lái (Core): Z in [groundZ + 0.25m, groundZ + 2.30m] -> Trọng số 100%
+    // - Tầng lốp/bánh xe sát đất: Z in [groundZ + 0.08m, groundZ + 0.25m] -> Giảm trọng số
+    const minCoreZ = groundZ + 0.25;
     const maxBodyZ = groundZ + 2.30;
+    const minWheelZ = groundZ + 0.08;
     const outerL = curL / 2 + 0.45;
     const outerW = Math.max(curW, 0.85) / 2 + 0.45;
 
     const cosY = Math.cos(-yaw);
     const sinY = Math.sin(-yaw);
-    const bodyPts: Array<{ lx: number; ly: number; z: number }> = [];
+    const corePts: Array<{ lx: number; ly: number; z: number }> = [];
+    const wheelPts: Array<{ lx: number; ly: number; z: number }> = [];
 
     for (let i = 0; i < count; i++) {
       const z = array[i * 3 + 2];
-      if (z < minBodyZ || z > maxBodyZ) continue;
+      if (z < minWheelZ || z > maxBodyZ) continue;
       const x = array[i * 3];
       const y = array[i * 3 + 1];
       const dx = x - cx;
@@ -2118,9 +2189,27 @@ export function mainWorldScript(): void {
       const lx = dx * cosY - dy * sinY;
       const ly = dx * sinY + dy * cosY;
       if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
-        bodyPts.push({ lx, ly, z });
+        if (z >= minCoreZ) {
+          corePts.push({ lx, ly, z });
+        } else {
+          // Điểm bánh xe sát đất: CHỈ nhận nếu nằm sát trục dọc xe (|ly| <= 0.22m)
+          // Loại bỏ 100% vệt quét xiên mặt đất hoặc gờ vỉa hè hai bên
+          if (Math.abs(ly) <= 0.22) {
+            wheelPts.push({ lx, ly, z });
+          }
+        }
       }
     }
+
+    let rawPts = corePts;
+    if (corePts.length < 8 && wheelPts.length > 0) {
+      rawPts = [...corePts, ...wheelPts];
+    }
+
+    const isSparse = rawPts.length <= 12;
+    const maxClusteringGap = isSparse ? 0.28 : 0.16;
+    const clusterLy = filterDenseConnectedCluster1D(rawPts, "ly", maxClusteringGap, 0);
+    const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxClusteringGap, 0);
 
     let newX = cx;
     let newY = cy;
@@ -2155,9 +2244,9 @@ export function mainWorldScript(): void {
     const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
     const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
 
-    // Sai số cho phép nhiễu cao hơn (chỉ cắt 1.5% thay vì 5%) để bắt trọn gương xe và cạnh ngoài
-    const pMinIdx = bodyPts.length >= 30 ? Math.floor(bodyPts.length * 0.015) : 0;
-    const pMaxIdx = bodyPts.length >= 30 ? Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.985)) : bodyPts.length - 1;
+    // Nếu ít điểm: Bắt trọn 100% điểm cực biên không dùng phân vị làm teo nhỏ box
+    const pMinIdx = !isSparse && bodyPts.length >= 30 ? Math.floor(bodyPts.length * 0.015) : 0;
+    const pMaxIdx = !isSparse && bodyPts.length >= 30 ? Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.985)) : bodyPts.length - 1;
 
     const lxMin = allLx[pMinIdx];
     const lxMax = allLx[pMaxIdx];
@@ -2364,7 +2453,23 @@ export function mainWorldScript(): void {
         shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
       }
 
-      newW = Number(Math.max(0.55, Math.min(1.45, measuredW)).toFixed(2));
+      // Kháng Ghosting: Giới hạn trần an toàn W <= 0.95m cho xe 2 bánh (chống bóng ma dãn ngang)
+      if (measuredW > 0.95) {
+        newW = 0.95;
+        if (options.egoPos) {
+          const toEgoX = options.egoPos.x - cx;
+          const toEgoY = options.egoPos.y - cy;
+          const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+          if (egoLocalY > 0.05) {
+            shiftLy = (lyMax + 0.03) - newW / 2;
+          } else if (egoLocalY < -0.05) {
+            shiftLy = (lyMin - 0.03) + newW / 2;
+          }
+        }
+      } else {
+        newW = Number(Math.max(0.55, Math.min(0.95, measuredW)).toFixed(2));
+      }
+      shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
 
       newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
       newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
@@ -2431,7 +2536,7 @@ export function mainWorldScript(): void {
         shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
       }
 
-      newW = Number(Math.max(0.55, Math.min(1.35, measuredW)).toFixed(2));
+      newW = Number(Math.max(0.55, Math.min(0.95, measuredW)).toFixed(2));
 
       const roofTopZ = highestPtZ + headBuffer;
       newH = Number(Math.max(1.15, Math.min(2.20, roofTopZ - groundZ)).toFixed(2));
