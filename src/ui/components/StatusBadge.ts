@@ -20,6 +20,8 @@ export class StatusBadge {
   private createContainer(): void {
     this.container = document.createElement("div");
     this.container.id = "cvat-3d-suite-badge";
+    this.container.setAttribute("translate", "no");
+    this.container.classList.add("notranslate");
     this.container.style.position = "fixed";
     this.container.style.bottom = "24px";
     this.container.style.right = "24px";
@@ -31,11 +33,11 @@ export class StatusBadge {
     this.container.style.gap = "8px";
     this.container.style.padding = "6px 12px";
     this.container.style.borderRadius = "20px";
-    this.container.style.backgroundColor = "rgba(20, 20, 20, 0.92)";
+    this.container.style.backgroundColor = "rgba(255, 255, 255, 0.96)";
     this.container.style.backdropFilter = "blur(8px)";
-    this.container.style.color = "#ffffff";
-    this.container.style.boxShadow = "0 4px 16px rgba(0, 0, 0, 0.4)";
-    this.container.style.border = "1px solid rgba(255, 255, 255, 0.15)";
+    this.container.style.color = "#09090b";
+    this.container.style.boxShadow = "0 4px 16px rgba(0, 0, 0, 0.08)";
+    this.container.style.border = "1px solid #e2e8f0";
     this.container.style.userSelect = "none";
     this.container.style.cursor = "pointer";
     this.container.style.transition = "all 0.2s ease";
@@ -44,7 +46,7 @@ export class StatusBadge {
     this.container.addEventListener("mouseenter", () => {
       if (this.container) {
         this.container.style.transform = "translateY(-1px)";
-        this.container.style.boxShadow = "0 6px 20px rgba(0, 0, 0, 0.6)";
+        this.container.style.boxShadow = "0 6px 20px rgba(0, 0, 0, 0.12)";
         this.container.style.borderColor = "rgba(24, 144, 255, 0.5)";
       }
     });
@@ -52,8 +54,8 @@ export class StatusBadge {
     this.container.addEventListener("mouseleave", () => {
       if (this.container) {
         this.container.style.transform = "translateY(0)";
-        this.container.style.boxShadow = "0 4px 16px rgba(0, 0, 0, 0.4)";
-        this.container.style.borderColor = "rgba(255, 255, 255, 0.15)";
+        this.container.style.boxShadow = "0 4px 16px rgba(0, 0, 0, 0.08)";
+        this.container.style.borderColor = "#e2e8f0";
       }
     });
 
@@ -67,16 +69,16 @@ export class StatusBadge {
     let statusText = "CVAT Sẵn sàng";
 
     if (ctx.isJob && ctx.is3D) {
-      dotColor = "#52c41a"; // Xanh lá: 3D Kết nối hoàn hảo
+      dotColor = "#10b981"; // Xanh lá
       statusText = `3D Job #${ctx.jobId}`;
       if (ctx.taskId) {
         statusText += ` (Task #${ctx.taskId})`;
       }
     } else if (ctx.isJob) {
-      dotColor = "#1890ff"; // Xanh dương: Đang ở Job 2D hoặc 3D đang load
+      dotColor = "#0284c7"; // Xanh dương
       statusText = `Job #${ctx.jobId} (Loading 3D...)`;
     } else {
-      dotColor = "#8c8c8c"; // Xám: Dashboard
+      dotColor = "#64748b"; // Xám
       statusText = "CVAT Dashboard";
     }
 
@@ -86,12 +88,12 @@ export class StatusBadge {
         height: 8px;
         border-radius: 50%;
         background-color: ${dotColor};
-        box-shadow: 0 0 8px ${dotColor};
+        box-shadow: 0 0 6px ${dotColor};
         display: inline-block;
       "></span>
-      <span style="font-weight: 600; letter-spacing: 0.3px;">CVAT 3D Suite</span>
-      <span style="color: rgba(255, 255, 255, 0.3); font-size: 10px;">|</span>
-      <span style="color: #d9d9d9;">${statusText}</span>
+      <span style="font-weight: 600; letter-spacing: 0.3px; color: #09090b;">CVAT 3D Suite</span>
+      <span style="color: #cbd5e1; font-size: 10px;">|</span>
+      <span style="color: #475569;">${statusText}</span>
     `;
 
     this.container.title = `${ctx.statusMessage}\nNhấp để kiểm tra trạng thái.`;

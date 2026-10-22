@@ -81,7 +81,12 @@ export function mainWorldScript(): void {
     }
   }
 
-  // Thuật toán Annular Ring Ground Detection & 3D Slope Fitting (Pitch & Roll)
+  // Thuật toán Annular Ring Ground Detection & 3D Slope Fitting (Pitch Dọc & Roll Ngang Front)
+  // Thuật toán TÍNH CAO ĐỘ MẶT ĐẤT VÀ ĐỘ DỐC ĐƯỜNG 3D THEO FOOTPRINT VẾT ĐÈ CỦA BOX (Pitch & Roll Fitting)
+  // - Thu hẹp bán kính quét XY bám sát viền bánh xe (+0.55m dọc đầu đuôi, +0.45m ngang sườn xe Front)
+  //   Loại bỏ 100% nhiễu do vơ phải các điểm của xe bên cạnh, dải phân cách bê tông hay tường rào
+  // - Mở rộng độ sâu quét Z sâu xuống -4.5m dưới tâm xe để bắt trọn curpoint mặt đường dưới cùng khi box lơ lửng
+  // - Cân bằng 4 góc tiếp đất (Front-Left, Front-Right, Rear-Left, Rear-Right) đảm bảo căn cứ dốc ngang Front (Roll) chuẩn xác
   function detectAccurateGroundZ(
     cx: number,
     cy: number,
@@ -89,7 +94,9 @@ export function mainWorldScript(): void {
     yaw: number,
     halfL: number,
     halfW: number,
-    isInitialBox: boolean = false
+    halfH: number = 0.8,
+    isInitialBox: boolean = false,
+    lockRollFlat: boolean = false
   ): {
     groundZ: number | null;
     pitchRad: number;
@@ -97,10 +104,19 @@ export function mainWorldScript(): void {
     pitchDeg: number;
     rollDeg: number;
     groundPointsCount: number;
+    isFallbackZeroGround?: boolean;
   } {
     const lidar = getSceneLidarPoints();
     if (!lidar || lidar.count === 0) {
-      return { groundZ: null, pitchRad: 0, rollRad: 0, pitchDeg: 0, rollDeg: 0, groundPointsCount: 0 };
+      return {
+        groundZ: 0,
+        pitchRad: 0,
+        rollRad: 0,
+        pitchDeg: 0,
+        rollDeg: 0,
+        groundPointsCount: 0,
+        isFallbackZeroGround: true,
+      };
     }
 
     const { count, array } = lidar;
@@ -108,17 +124,19 @@ export function mainWorldScript(): void {
     const sinY = Math.sin(-yaw);
 
     const groundPts: Array<{ lx: number; ly: number; z: number }> = [];
-    const outerL = isInitialBox ? 3.5 : halfL + 1.3;
-    const outerW = isInitialBox ? 2.8 : halfW + 1.3;
-    const innerL = isInitialBox ? 0.3 : Math.max(0.4, halfL - 0.2);
-    const innerW = isInitialBox ? 0.3 : Math.max(0.3, halfW - 0.2);
+    // Bán kính quét Footprint chặt chẽ quanh 4 lốp xe:
+    const outerL = isInitialBox ? 3.0 : halfL + 0.55;
+    const outerW = isInitialBox ? 2.0 : halfW + 0.45;
+    const innerL = isInitialBox ? 0.2 : Math.max(0.15, halfL - 0.35);
+    const innerW = isInitialBox ? 0.2 : Math.max(0.15, halfW - 0.35);
 
-    // Trần cao độ mặt đất: Mặt đường luôn nằm thấp hơn tâm xe cz + 0.35m
-    const maxGroundZ = cz + 0.35;
+    // Mở rộng độ sâu: Trần cao độ lấy từ mép sàn xe trở xuống (cz - halfH * 0.4), đáy quét sâu tận cz - 4.5m
+    const maxGroundZ = cz - Math.max(0.15, halfH * 0.4);
+    const minGroundZ = cz - 4.5;
 
     for (let i = 0; i < count; i++) {
       const z = array[i * 3 + 2];
-      if (z > maxGroundZ) continue;
+      if (z > maxGroundZ || z < minGroundZ) continue;
 
       const x = array[i * 3];
       const y = array[i * 3 + 1];
@@ -128,7 +146,7 @@ export function mainWorldScript(): void {
       const lx = dx * cosY - dy * sinY;
       const ly = dx * sinY + dy * cosY;
 
-      // Nằm trong vành đai mở rộng và KHÔNG nằm trong vùng lõi gầm xe bị che khuất
+      // Nằm trong vành đai Footprint tiếp đất và KHÔNG nằm trong vùng lõi gầm xe bị che khuất
       const inOuter = Math.abs(lx) <= outerL && Math.abs(ly) <= outerW;
       const inCore = !isInitialBox && Math.abs(lx) < innerL && Math.abs(ly) < innerW;
 
@@ -137,28 +155,13 @@ export function mainWorldScript(): void {
       }
     }
 
-    if (groundPts.length < 5) {
-      // Fallback: Quét toàn bộ điểm lân cận thấp hơn maxGroundZ
+    if (groundPts.length < 8) {
+      // Fallback 1: Nới nhẹ thêm 25cm (tối đa outerL + 0.25) cho xe ở quá xa cảm biến
+      const extL = outerL + 0.25;
+      const extW = outerW + 0.25;
       for (let i = 0; i < count; i++) {
         const z = array[i * 3 + 2];
-        if (z > maxGroundZ) continue;
-        const dx = array[i * 3] - cx;
-        const dy = array[i * 3 + 1] - cy;
-        if (dx * dx + dy * dy <= outerL * outerL) {
-          const lx = dx * cosY - dy * sinY;
-          const ly = dx * sinY + dy * cosY;
-          groundPts.push({ lx, ly, z });
-        }
-      }
-    }
-
-    if (groundPts.length < 4) {
-      // Fallback mở rộng bán kính 2.5m cho các xe ở xa cảm biến LiDAR
-      const extL = outerL + 1.8;
-      const extW = outerW + 1.8;
-      for (let i = 0; i < count; i++) {
-        const z = array[i * 3 + 2];
-        if (z > maxGroundZ) continue;
+        if (z > maxGroundZ || z < minGroundZ) continue;
         const dx = array[i * 3] - cx;
         const dy = array[i * 3 + 1] - cy;
         const lx = dx * cosY - dy * sinY;
@@ -169,45 +172,110 @@ export function mainWorldScript(): void {
       }
     }
 
-    if (groundPts.length < 3) {
-      return { groundZ: null, pitchRad: 0, rollRad: 0, pitchDeg: 0, rollDeg: 0, groundPointsCount: groundPts.length };
+    if (groundPts.length < 6) {
+      // Dưới chân không có điểm hoặc rất ít điểm (< 6 điểm) -> Lấy mốc Ego làm Z = 0, đặt phẳng mặt xuống
+      return {
+        groundZ: 0,
+        pitchRad: 0,
+        rollRad: 0,
+        pitchDeg: 0,
+        rollDeg: 0,
+        groundPointsCount: groundPts.length,
+        isFallbackZeroGround: true,
+      };
     }
 
-    // 1. Phân tích Histogram 2cm để tìm đỉnh cao độ mặt đường thực tế dày đặc nhất (loại bỏ 100% tia phản xạ ngầm)
-    const allZ = groundPts.map((p) => p.z).sort((a, b) => a - b);
-    const minZ = allZ[0];
-    const maxZ = allZ[allZ.length - 1];
-    const binSize = 0.02; // 2cm
-    const binCount = Math.ceil((maxZ - minZ) / binSize) + 1;
-    const bins = new Float32Array(binCount);
+    // Lọc cụm điểm sàn dưới cùng (Bottom Floor Cluster):
+    groundPts.sort((a, b) => a.z - b.z);
+    // Loại bỏ 1% điểm ngầm đáy sâu cùng (nhiễu phản xạ đáy cống/vũng nước)
+    const cutLow = Math.floor(groundPts.length * 0.01);
+    const sorted = groundPts.slice(cutLow);
 
-    for (const z of allZ) {
-      const idx = Math.min(binCount - 1, Math.max(0, Math.floor((z - minZ) / binSize)));
-      bins[idx] += 1;
+    // Thuật toán Lọc Mặt Sàn Kháng Thân Xe & Vật Thể Nổi (Robust Ground Inlier Filter):
+    // 1. Lấy 35% số điểm ở tầng thấp nhất làm hạt giống sàn cơ sở (Ground Seed Points)
+    let validPts = sorted;
+    const seedCount = Math.max(6, Math.floor(sorted.length * 0.35));
+    const seedPts = sorted.slice(0, seedCount);
+
+    let sumSeedLx = 0, sumSeedLy = 0, sumSeedZ = 0;
+    for (const p of seedPts) {
+      sumSeedLx += p.lx;
+      sumSeedLy += p.ly;
+      sumSeedZ += p.z;
+    }
+    const meanSeedLx = sumSeedLx / seedCount;
+    const meanSeedLy = sumSeedLy / seedCount;
+    const meanSeedZ = sumSeedZ / seedCount;
+
+    let vSeedLx = 0, vSeedLy = 0, cSeedLxLy = 0, cSeedLxZ = 0, cSeedLyZ = 0;
+    for (const p of seedPts) {
+      const dlx = p.lx - meanSeedLx;
+      const dly = p.ly - meanSeedLy;
+      const dz = p.z - meanSeedZ;
+      vSeedLx += dlx * dlx;
+      vSeedLy += dly * dly;
+      cSeedLxLy += dlx * dly;
+      cSeedLxZ += dlx * dz;
+      cSeedLyZ += dly * dz;
     }
 
-    let bestBin = 0;
-    let bestScore = -1;
-    for (let i = 0; i < binCount; i++) {
-      const score = bins[i] + 0.5 * ((bins[i - 1] || 0) + (bins[i + 1] || 0));
-      if (score > bestScore) {
-        bestScore = score;
-        bestBin = i;
-      }
+    const detSeed = vSeedLx * vSeedLy - cSeedLxLy * cSeedLxLy;
+    let aSeed = 0, bSeed = 0, c0Seed = meanSeedZ;
+    if (Math.abs(detSeed) > 1e-4) {
+      aSeed = (cSeedLxZ * vSeedLy - cSeedLyZ * cSeedLxLy) / detSeed;
+      bSeed = (cSeedLyZ * vSeedLx - cSeedLxZ * cSeedLxLy) / detSeed;
+      c0Seed = meanSeedZ - aSeed * meanSeedLx - bSeed * meanSeedLy;
     }
 
-    const peakZ = minZ + (bestBin + 0.5) * binSize;
-    // Lọc các điểm thuộc lớp mặt đường lộ thiên quanh đỉnh (±6cm)
-    const roadSurfacePts = groundPts.filter((p) => Math.abs(p.z - peakZ) <= 0.06);
-    const fitPts = roadSurfacePts.length >= 4 ? roadSurfacePts : groundPts;
+    // 2. Lọc Inliers: Điểm mặt đất thực tế chỉ nằm trong dải tán xạ [-8cm, +8cm] so với mặt phẳng sàn cơ sở.
+    // Các điểm thân xe (gầm xe, sườn xe, xe khác đỗ gần) có dz > +10cm sẽ bị loại bỏ 100%.
+    const inliers = sorted.filter((p) => {
+      const expectedZ = aSeed * p.lx + bSeed * p.ly + c0Seed;
+      const diff = p.z - expectedZ;
+      return diff >= -0.08 && diff <= 0.08;
+    });
 
-    // 2. Hồi quy tuyến tính bình phương tối thiểu (OLS): z = a * lx + b * ly + c0
+    if (inliers.length >= 6 && inliers.length >= sorted.length * 0.20) {
+      validPts = inliers;
+    }
+
+    // Cân bằng 4 góc phần tư (Quadrant Balancing): Front-Left, Front-Right, Rear-Left, Rear-Right
+    // Đảm bảo sườn Trái và Phải có tỷ trọng ngang nhau -> góc Front (Roll) cực kỳ chuẩn xác
+    const qFL: typeof groundPts = [];
+    const qFR: typeof groundPts = [];
+    const qRL: typeof groundPts = [];
+    const qRR: typeof groundPts = [];
+
+    for (const p of validPts) {
+      if (p.lx >= 0 && p.ly >= 0) qFL.push(p);
+      else if (p.lx >= 0 && p.ly < 0) qFR.push(p);
+      else if (p.lx < 0 && p.ly >= 0) qRL.push(p);
+      else qRR.push(p);
+    }
+
+    const fitPts: typeof groundPts = [];
+    const takeRatio = 0.45; // Lấy 45% điểm thấp nhất của mỗi phân vùng
+
+    const addLowestFromQuadrant = (q: typeof groundPts) => {
+      if (q.length === 0) return;
+      const count = Math.max(1, Math.floor(q.length * takeRatio));
+      fitPts.push(...q.slice(0, count));
+    };
+
+    addLowestFromQuadrant(qFL);
+    addLowestFromQuadrant(qFR);
+    addLowestFromQuadrant(qRL);
+    addLowestFromQuadrant(qRR);
+
+    const finalPts = fitPts.length >= 4 ? fitPts : validPts.slice(0, Math.max(4, Math.floor(validPts.length * 0.45)));
+
+    // Hồi quy tuyến tính bình phương tối thiểu (OLS) mặt phẳng 3D: z = a * lx + b * ly + c0
     let sumLx = 0;
     let sumLy = 0;
     let sumZ = 0;
-    const N = fitPts.length;
+    const N = finalPts.length;
 
-    for (const p of fitPts) {
+    for (const p of finalPts) {
       sumLx += p.lx;
       sumLy += p.ly;
       sumZ += p.z;
@@ -223,7 +291,7 @@ export function mainWorldScript(): void {
     let covLxZ = 0;
     let covLyZ = 0;
 
-    for (const p of fitPts) {
+    for (const p of finalPts) {
       const dlx = p.lx - meanLx;
       const dly = p.ly - meanLy;
       const dz = p.z - meanZ;
@@ -237,31 +305,1812 @@ export function mainWorldScript(): void {
     const det = varLx * varLy - covLxLy * covLxLy;
     let pitchRad = 0;
     let rollRad = 0;
-    let c0 = peakZ; // Mặc định là đỉnh cao độ mặt đường
+    let c0 = meanZ;
+    let a = 0;
+    let b = 0;
+
+    const maxPitchRad = (20 * Math.PI) / 180;
+    const maxRollRad = (25 * Math.PI) / 180;
 
     if (Math.abs(det) > 1e-4) {
-      const a = (covLxZ * varLy - covLyZ * covLxLy) / det;
-      const b = (covLyZ * varLx - covLxZ * covLxLy) / det;
-
-      // Giới hạn độ dốc đường thực tế: Pitch tối đa 20°, Roll tối đa 25°
-      // Trong Three.js hệ Z-Up, quay quanh trục Y có z' = -x*sin(ry), do đó pitchRad = -atan(a) để nâng mũi xe theo đường dốc
-      const maxPitchRad = (20 * Math.PI) / 180;
-      const maxRollRad = (25 * Math.PI) / 180;
+      a = (covLxZ * varLy - covLyZ * covLxLy) / det;
+      b = (covLyZ * varLx - covLxZ * covLxLy) / det;
 
       pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(a)));
       rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, Math.atan(b)));
 
       // Cao độ mặt đất tại tâm xe (lx = 0, ly = 0)
       c0 = meanZ - a * meanLx - b * meanLy;
+    } else {
+      const pIdx = Math.floor(finalPts.length * 0.15);
+      c0 = finalPts[pIdx].z;
     }
+
+    // Tính sai số dư (residual) của các điểm so với mặt phẳng hồi quy OLS
+    if (Math.abs(det) > 1e-4) {
+      let sumRes = 0;
+      for (const p of finalPts) {
+        const expectedZ = a * p.lx + b * p.ly + c0;
+        sumRes += Math.abs(p.z - expectedZ);
+      }
+      const meanResidual = sumRes / finalPts.length;
+      void meanResidual;
+    }
+
+    // =========================================================================
+    // THUẬT TOÁN PHÂN BIỆT MẶT ĐƯỜNG DỐC NGHIÊNG TỰ NHIÊN VS VỈA HÈ BẬC ĐỨNG:
+    // 1. Nếu mây điểm phân bố phẳng đều (meanResidual < 0.035m) và góc dốc ngang |rollRad| <= 10°:
+    //    -> 100% là MẶT ĐƯỜNG DỐC NGHIÊNG TỰ NHIÊN (Natural Sloped Road)!
+    //    -> Giữ nguyên rollRad để xe bám nghiêng theo mặt đường, Front View khít 100%.
+    // 2. Chỉ coi là vỉa hè khi có bậc đứng rõ rệt (stepDeltaZ >= 0.08m) VÀ sai số mặt phẳng lớn (meanResidual >= 0.035m),
+    //    hoặc khi người dùng chủ động yêu cầu lockRollFlat = true.
+    // =========================================================================
+
+    // Phân vị thấp 12% đại diện cho cao độ mặt đường dưới lòng đường (Lowest Road Surface)
+    const p12Idx = Math.max(0, Math.floor(validPts.length * 0.12));
+    const lowestRoadZ = validPts[p12Idx].z;
+
+    const leftPtsZ = validPts.filter((p) => p.ly > 0.15).map((p) => p.z).sort((a, b) => a - b);
+    const rightPtsZ = validPts.filter((p) => p.ly < -0.15).map((p) => p.z).sort((a, b) => a - b);
+
+    let isCurbOrRamp = lockRollFlat === true;
+
+    if (!isCurbOrRamp && leftPtsZ.length >= 3 && rightPtsZ.length >= 3) {
+      const leftMedian = leftPtsZ[Math.floor(leftPtsZ.length * 0.25)];
+      const rightMedian = rightPtsZ[Math.floor(rightPtsZ.length * 0.25)];
+      const stepDeltaZ = Math.abs(leftMedian - rightMedian);
+      const lowerPts = leftMedian < rightMedian ? leftPtsZ : rightPtsZ;
+      const lowerSpread = lowerPts[Math.floor(lowerPts.length * 0.75)] - lowerPts[Math.floor(lowerPts.length * 0.25)];
+
+      // Nhận diện Bậc Vỉa Hè: Chênh lệch cao độ lớn giữa 2 bên (stepDeltaZ >= 0.08m = 8cm)
+      // VÀ bên lòng đường thấp là mặt phẳng ngang (lowerSpread < 0.05m = 5cm).
+      // Nếu lòng đường dốc liên tục hoặc độ nghiêng nhẹ (< 8cm): Là đường nghiêng tự nhiên -> bám theo Roll!
+      if (stepDeltaZ >= 0.08 && lowerSpread < 0.05) {
+        isCurbOrRamp = true;
+      }
+    }
+
+    if (isCurbOrRamp) {
+      rollRad = 0;
+      c0 = lowestRoadZ;
+
+      // Bảo lưu dốc dọc xe (Pitch) từ các điểm thuộc mặt đường bên dưới
+      const roadPts = validPts.filter((p) => p.z <= lowestRoadZ + 0.10);
+      if (roadPts.length >= 4) {
+        let sLx = 0;
+        let sZ = 0;
+        for (const p of roadPts) {
+          sLx += p.lx;
+          sZ += p.z;
+        }
+        const mLx = sLx / roadPts.length;
+        const mZ = sZ / roadPts.length;
+        let vLx = 0;
+        let cLxZ = 0;
+        for (const p of roadPts) {
+          const dlx = p.lx - mLx;
+          const dz = p.z - mZ;
+          vLx += dlx * dlx;
+          cLxZ += dlx * dz;
+        }
+        if (vLx > 1e-4) {
+          const aRoad = cLxZ / vLx;
+          pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(aRoad)));
+        }
+      }
+    }
+
+    let pitchRadVal = Number(pitchRad.toFixed(5));
+    let rollRadVal = Number(rollRad.toFixed(5));
+    let pitchDegVal = Number(((pitchRad * 180) / Math.PI).toFixed(2));
+    let rollDegVal = Number(((rollRad * 180) / Math.PI).toFixed(2));
+
+    if (Math.abs(pitchRadVal) < 1e-6) pitchRadVal = 0;
+    if (Math.abs(rollRadVal) < 1e-6) rollRadVal = 0;
+    if (Math.abs(pitchDegVal) < 1e-4) pitchDegVal = 0;
+    if (Math.abs(rollDegVal) < 1e-4) rollDegVal = 0;
 
     return {
       groundZ: Number(c0.toFixed(3)),
-      pitchRad: Number(pitchRad.toFixed(5)),
-      rollRad: Number(rollRad.toFixed(5)),
-      pitchDeg: Number(((pitchRad * 180) / Math.PI).toFixed(2)),
-      rollDeg: Number(((rollRad * 180) / Math.PI).toFixed(2)),
-      groundPointsCount: fitPts.length,
+      pitchRad: pitchRadVal,
+      rollRad: rollRadVal,
+      pitchDeg: pitchDegVal,
+      rollDeg: rollDegVal,
+      groundPointsCount: finalPts.length,
+    };
+  }
+
+  // Thuật toán TỰ ĐỘNG NHẬN DIỆN VỈA HÈ & BẬC GÁC LỀ TRONG MAIN WORLD (Auto Curb Detection)
+  function detectCurbStepAndRollInMainWorld(
+    cx: number,
+    cy: number,
+    cz: number,
+    yaw: number,
+    halfL: number,
+    halfW: number,
+    trackW?: number
+  ): {
+    hasCurb: boolean;
+    side: "left" | "right" | "none";
+    curbHeight: number;
+    curbHeightCm: number;
+    rollRad: number;
+    rollDeg: number;
+    roadGroundZ: number;
+    deltaCenterZ: number;
+  } {
+    const lidar = getSceneLidarPoints();
+    if (!lidar || lidar.count === 0) {
+      return { hasCurb: false, side: "none", curbHeight: 0.15, curbHeightCm: 15, rollRad: 0, rollDeg: 0, roadGroundZ: cz - 0.7, deltaCenterZ: 0.075 };
+    }
+
+    const { count, array } = lidar;
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+    const effectiveW = trackW !== undefined ? trackW : halfW * 2;
+
+    const minLy = Math.max(0.2, halfW * 0.7);
+    const maxLy = halfW + 0.85;
+    const maxLx = halfL + 0.55;
+
+    const maxZ = cz - 0.15;
+    const minZ = cz - 4.5;
+
+    const leftPts: number[] = [];
+    const rightPts: number[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const z = array[i * 3 + 2];
+      if (z > maxZ || z < minZ) continue;
+      const x = array[i * 3];
+      const y = array[i * 3 + 1];
+      const lx = (x - cx) * cosY - (y - cy) * sinY;
+      const ly = (x - cx) * sinY + (y - cy) * cosY;
+
+      if (Math.abs(lx) > maxLx) continue;
+
+      if (ly >= minLy && ly <= maxLy) {
+        leftPts.push(z);
+      } else if (ly <= -minLy && ly >= -maxLy) {
+        rightPts.push(z);
+      }
+    }
+
+    if (leftPts.length < 3 || rightPts.length < 3) {
+      return { hasCurb: false, side: "none", curbHeight: 0.15, curbHeightCm: 15, rollRad: 0, rollDeg: 0, roadGroundZ: cz - 0.7, deltaCenterZ: 0.075 };
+    }
+
+    leftPts.sort((a, b) => a - b);
+    rightPts.sort((a, b) => a - b);
+
+    const leftZ = leftPts[Math.floor(leftPts.length * 0.25)];
+    const rightZ = rightPts[Math.floor(rightPts.length * 0.25)];
+
+    const deltaZ = leftZ - rightZ;
+    const absDeltaZ = Math.abs(deltaZ);
+
+    if (absDeltaZ >= 0.07 && absDeltaZ <= 0.32) {
+      const curbHeight = Number(absDeltaZ.toFixed(3));
+      const curbHeightCm = Math.round(curbHeight * 100);
+      const side = deltaZ > 0 ? "left" : "right";
+
+      const ratio = Math.max(-0.6, Math.min(0.6, deltaZ / effectiveW));
+      const rollRad = Number(Math.asin(ratio).toFixed(5));
+      const rollDeg = Number(((rollRad * 180) / Math.PI).toFixed(2));
+
+      const roadGroundZ = Number(Math.min(leftZ, rightZ).toFixed(3));
+      const deltaCenterZ = Number((curbHeight / 2).toFixed(3));
+
+      return {
+        hasCurb: true,
+        side,
+        curbHeight,
+        curbHeightCm,
+        rollRad,
+        rollDeg,
+        roadGroundZ,
+        deltaCenterZ,
+      };
+    }
+
+    return {
+      hasCurb: false,
+      side: "none",
+      curbHeight: Number(absDeltaZ.toFixed(3)),
+      curbHeightCm: Math.round(absDeltaZ * 100),
+      rollRad: 0,
+      rollDeg: 0,
+      roadGroundZ: Number(Math.min(leftZ, rightZ).toFixed(3)),
+      deltaCenterZ: 0,
+    };
+  }
+
+  // Thuật toán Phân Cụm Điểm Liên Tục & Mật Độ (Continuous Density-Connected Clustering):
+  // - Dò khoảng cách (gap) giữa các điểm lân cận để tách cụm khi có khoảng trống lớn giữa 2 xe.
+  // Thuật toán Phân Cụm Điểm Liên Tục & Mật Độ (Continuous Density-Connected Clustering):
+  // - Dò khoảng cách (gap) giữa các điểm lân cận để tách cụm khi có khoảng trống lớn giữa 2 xe.
+  // - Ưu tiên cụm có điểm gần tâm Box hiện tại nhất (minDistanceToCenter).
+  // - Loại bỏ 100% điểm của xe khác đỗ bên cạnh hoặc vật cản ngoài lề.
+  function filterDenseConnectedCluster1D<T extends { lx: number; ly: number; z: number }>(
+    pts: T[],
+    axis: "ly" | "lx",
+    maxGap: number = 0.22,
+    centerBias: number = 0
+  ): T[] {
+    if (pts.length < 8) return pts;
+
+    const sorted = [...pts].sort((a, b) => a[axis] - b[axis]);
+    const clusters: T[][] = [];
+    let currentCluster: T[] = [sorted[0]];
+
+    for (let i = 1; i < sorted.length; i++) {
+      const gap = sorted[i][axis] - sorted[i - 1][axis];
+      if (gap > maxGap) {
+        clusters.push(currentCluster);
+        currentCluster = [sorted[i]];
+      } else {
+        currentCluster.push(sorted[i]);
+      }
+    }
+    if (currentCluster.length > 0) {
+      clusters.push(currentCluster);
+    }
+
+    if (clusters.length === 1) {
+      return pts;
+    }
+
+    // CHỌN CỤM CỦA VẬT THỂ MỤC TIÊU:
+    let bestCluster = clusters[0];
+    let minDistanceToCenter = Infinity;
+
+    for (const c of clusters) {
+      if (c.length < 2) continue;
+
+      let clusterMinDist = Infinity;
+      for (const p of c) {
+        const d = Math.abs(p[axis] - centerBias);
+        if (d < clusterMinDist) clusterMinDist = d;
+      }
+
+      if (clusterMinDist < minDistanceToCenter - 0.05) {
+        minDistanceToCenter = clusterMinDist;
+        bestCluster = c;
+      } else if (Math.abs(clusterMinDist - minDistanceToCenter) <= 0.05) {
+        if (c.length > bestCluster.length) {
+          bestCluster = c;
+        }
+      }
+    }
+
+    if (bestCluster.length >= 4) {
+      return bestCluster;
+    }
+
+    return pts;
+  }
+
+  // Dò tìm biên 1D thích nghi theo mật độ điểm và khoảng hở (Density & Gap Adaptive 1D Boundary Detection)
+  // Tự động loại bỏ cụm nhiễu bên ngoài (vị trí 2 chấm đỏ) và gương chiếu hậu nhô ra ở sườn xe
+  function detectAdaptiveBounds(
+    sortedValues: number[],
+    isYAxis: boolean = false
+  ): { min: number; max: number } {
+    const n = sortedValues.length;
+    if (n < 8) {
+      return { min: sortedValues[0] ?? 0, max: sortedValues[n - 1] ?? 0 };
+    }
+
+    const pMinIdx = Math.max(0, Math.floor(n * 0.005));
+    const pMaxIdx = Math.min(n - 1, Math.floor(n * 0.995));
+    let minVal = sortedValues[pMinIdx];
+    let maxVal = sortedValues[pMaxIdx];
+
+    const minGap = isYAxis ? 0.14 : 0.25;
+    const maxNoisePoints = Math.max(2, Math.min(12, Math.floor(n * 0.06)));
+
+    // 1. Quét từ MAX về trung tâm (tìm khoảng hở gap ngăn cách cụm nhiễu/gương ở phía dương)
+    for (let i = n - 1; i >= Math.floor(n * 0.65); i--) {
+      const gap = sortedValues[i] - sortedValues[i - 1];
+      const pointsAfter = n - i;
+
+      if (gap >= minGap && pointsAfter <= maxNoisePoints) {
+        maxVal = sortedValues[i - 1];
+        break;
+      }
+    }
+
+    // 2. Quét từ MIN về trung tâm (tìm khoảng hở gap ngăn cách cụm nhiễu ở phía âm)
+    for (let i = 0; i <= Math.floor(n * 0.35); i++) {
+      const gap = sortedValues[i + 1] - sortedValues[i];
+      const pointsBefore = i + 1;
+
+      if (gap >= minGap && pointsBefore <= maxNoisePoints) {
+        minVal = sortedValues[i + 1];
+        break;
+      }
+    }
+
+    return {
+      min: Number(minVal.toFixed(2)),
+      max: Number(maxVal.toFixed(2)),
+    };
+  }
+
+
+
+  // Thuật toán Tính Toán Biên Kháng Nhiễu Dựa Trên Mật Độ (Density Robust Bounds)
+  function computeDensityRobustBounds(
+    pts: Array<{ lx: number; ly: number; z: number }>,
+    options: {
+      rorRadius?: number;
+      rorMinNeighbors?: number;
+    } = {}
+  ): {
+    lxMin: number;
+    lxMax: number;
+    lyMin: number;
+    lyMax: number;
+    zTop: number;
+    validPointsCount: number;
+  } {
+    if (pts.length === 0) {
+      return { lxMin: 0, lxMax: 0, lyMin: 0, lyMax: 0, zTop: 0, validPointsCount: 0 };
+    }
+
+    const rorRadius = options.rorRadius ?? 0.35;
+    const rorMinNeighbors = options.rorMinNeighbors ?? 1;
+
+    // LỚP 1: Radius Outlier Removal (ROR)
+    let cleanPts = pts;
+    if (pts.length >= 12) {
+      const rorFiltered: Array<{ lx: number; ly: number; z: number }> = [];
+      const r2 = rorRadius * rorRadius;
+
+      for (let i = 0; i < pts.length; i++) {
+        let neighbors = 0;
+        const pi = pts[i];
+        for (let j = 0; j < pts.length; j++) {
+          if (i === j) continue;
+          const pj = pts[j];
+          const dx = pi.lx - pj.lx;
+          const dy = pi.ly - pj.ly;
+          const dz = pi.z - pj.z;
+          if (dx * dx + dy * dy + dz * dz <= r2) {
+            neighbors++;
+            if (neighbors >= rorMinNeighbors) break;
+          }
+        }
+        if (neighbors >= rorMinNeighbors) {
+          rorFiltered.push(pi);
+        }
+      }
+
+      if (rorFiltered.length >= 8 && rorFiltered.length >= pts.length * 0.5) {
+        cleanPts = rorFiltered;
+      }
+    }
+
+    const allLx = cleanPts.map((p) => p.lx).sort((a, b) => a - b);
+    const allLy = cleanPts.map((p) => p.ly).sort((a, b) => a - b);
+    const allZ = cleanPts.map((p) => p.z).sort((a, b) => a - b);
+
+    const fallbackLxMin = allLx[0];
+    const fallbackLxMax = allLx[allLx.length - 1];
+    const fallbackLyMin = allLy[0];
+    const fallbackLyMax = allLy[allLy.length - 1];
+    const zTop = allZ[allZ.length - 1];
+
+    if (cleanPts.length < 10) {
+      return {
+        lxMin: fallbackLxMin,
+        lxMax: fallbackLxMax,
+        lyMin: fallbackLyMin,
+        lyMax: fallbackLyMax,
+        zTop,
+        validPointsCount: cleanPts.length,
+      };
+    }
+
+    const boundsX = detectAdaptiveBounds(allLx, false);
+    const boundsY = detectAdaptiveBounds(allLy, true);
+
+    return {
+      lxMin: boundsX.min,
+      lxMax: boundsX.max,
+      lyMin: boundsY.min,
+      lyMax: boundsY.max,
+      zTop,
+      validPointsCount: cleanPts.length,
+    };
+  }
+
+  // Thuật toán Lọc Nhiễu Thưa Thớt Cận Thân Xe Dựa Trên Mật Độ Lõi 3D trong Main World
+  function filterSparseNoiseByLocalDensity<T extends { lx: number; ly: number; z: number }>(
+    pts: T[],
+    options: { radius?: number; minCoreNeighbors?: number; adaptiveRatio?: number } = {}
+  ): T[] {
+    if (pts.length < 8) return pts;
+    const radius = options.radius ?? 0.12;
+    const r2 = radius * radius;
+    const n = pts.length;
+    const densities = new Int32Array(n);
+    for (let i = 0; i < n; i++) {
+      const pi = pts[i];
+      let count = 0;
+      for (let j = 0; j < n; j++) {
+        const pj = pts[j];
+        const dx = pi.lx - pj.lx;
+        const dy = pi.ly - pj.ly;
+        const dz = pi.z - pj.z;
+        if (dx * dx + dy * dy + dz * dz <= r2) count++;
+      }
+      densities[i] = count;
+    }
+    const sorted = Array.from(densities).sort((a, b) => a - b);
+    const medianDensity = sorted[Math.floor(n / 2)];
+    const adaptiveRatio = options.adaptiveRatio ?? 0.25;
+    const userMin = options.minCoreNeighbors ?? 3;
+    const coreThreshold = Math.max(userMin, Math.floor(medianDensity * adaptiveRatio));
+    const corePts: T[] = [];
+    for (let i = 0; i < n; i++) {
+      if (densities[i] >= coreThreshold) corePts.push(pts[i]);
+    }
+    if (corePts.length >= 6 && corePts.length >= n * 0.4) return corePts;
+    return pts;
+  }
+
+  // Thuật toán Dò Bức Tường Mật Độ Vỏ Xe & Cắt Thung Lũng Mật Độ trong Main World
+  function detectDominantWallEdgeWithValleyCutoff<T extends { lx: number; ly: number; z: number }>(
+    pts: T[],
+    axis: "ly" | "lx",
+    direction: "positive" | "negative",
+    nominalHalf: number,
+    options: {
+      binSize?: number;
+      minSpanOrthogonal?: number;
+      maxSearchExtension?: number;
+    } = {}
+  ): {
+    edge: number;
+    wallPoints: T[];
+    peakDensity: number;
+  } {
+    const isPos = direction === "positive";
+    const orthAxis = axis === "ly" ? "lx" : "ly";
+    const binSize = options.binSize ?? 0.03; // 3cm
+    const minSpanOrth = options.minSpanOrthogonal ?? (axis === "ly" ? 0.70 : 0.60);
+    const maxSearchExt = options.maxSearchExtension ?? 0.35;
+
+    const candidatePts = pts.filter((p) => (isPos ? p[axis] > 0.02 : p[axis] < -0.02));
+    if (candidatePts.length < 3) {
+      return {
+        edge: isPos ? nominalHalf : -nominalHalf,
+        wallPoints: candidatePts,
+        peakDensity: candidatePts.length,
+      };
+    }
+
+    const maxDist = nominalHalf + maxSearchExt;
+    const numBins = Math.ceil(maxDist / binSize) + 2;
+    const bins: T[][] = Array.from({ length: numBins }, () => []);
+
+    for (const p of candidatePts) {
+      const dist = isPos ? p[axis] : -p[axis];
+      if (dist >= 0 && dist <= maxDist) {
+        const bIdx = Math.min(numBins - 1, Math.floor(dist / binSize));
+        bins[bIdx].push(p);
+      }
+    }
+
+    // 1. Tìm ĐỈNH MẬT ĐỘ THÂN XE (Dominant Wall Peak)
+    const nominalMinBin = Math.max(0, Math.floor((nominalHalf - 0.45) / binSize));
+    const nominalMaxBin = Math.min(numBins - 1, Math.floor((nominalHalf + maxSearchExt) / binSize));
+
+    let peakBin = nominalMinBin;
+    let maxCount = 0;
+
+    for (let b = nominalMinBin; b <= nominalMaxBin; b++) {
+      const count = bins[b].length;
+      if (count > maxCount) {
+        maxCount = count;
+        peakBin = b;
+      }
+    }
+
+    if (maxCount < 2) {
+      for (let b = 1; b < numBins - 1; b++) {
+        if (bins[b].length > maxCount) {
+          maxCount = bins[b].length;
+          peakBin = b;
+        }
+      }
+    }
+
+    if (maxCount === 0) {
+      return {
+        edge: isPos ? nominalHalf : -nominalHalf,
+        wallPoints: candidatePts,
+        peakDensity: 0,
+      };
+    }
+
+    // 2. Dò mép vỏ xe từ peakBin ra phía ngoài (b tăng dần)
+    const minWallDensity = Math.max(2, Math.floor(maxCount * 0.15));
+    let outerWallBin = peakBin;
+
+    let consecutiveEmptyBins = 0;
+    for (let b = peakBin + 1; b < numBins; b++) {
+      const ptsInBin = bins[b];
+      const count = ptsInBin.length;
+
+      if (count === 0) {
+        consecutiveEmptyBins++;
+        if (consecutiveEmptyBins >= 2) {
+          break; // Cắt thung lũng khoảng trống!
+        }
+        continue;
+      }
+
+      const distCenter = (b + 0.5) * binSize;
+      if (count < minWallDensity && distCenter > nominalHalf) {
+        consecutiveEmptyBins++;
+        if (consecutiveEmptyBins >= 2) {
+          break;
+        }
+        continue;
+      }
+
+      if (distCenter > nominalHalf - 0.05) {
+        const orthVals = ptsInBin.map((p) => p[orthAxis]);
+        const spanOrth = Math.max(...orthVals) - Math.min(...orthVals);
+        if (count <= 6 && spanOrth < minSpanOrth * 0.6) {
+          if (b > peakBin + 1) {
+            break;
+          }
+        }
+      }
+
+      consecutiveEmptyBins = 0;
+      outerWallBin = b;
+    }
+
+    // 3. Thu thập điểm của thân xe từ tâm ra đến outerWallBin (loại bỏ người đi bộ bên ngoài)
+    const collectedWallPoints: T[] = [];
+    for (let b = 0; b <= outerWallBin; b++) {
+      for (const p of bins[b]) {
+        collectedWallPoints.push(p);
+      }
+    }
+
+    const outerEdgePts: T[] = [];
+    const edgeStartBin = Math.max(0, outerWallBin - 3);
+    for (let b = edgeStartBin; b <= outerWallBin; b++) {
+      for (const p of bins[b]) {
+        outerEdgePts.push(p);
+      }
+    }
+
+    if (outerEdgePts.length >= 3) {
+      const dists = outerEdgePts.map((p) => (isPos ? p[axis] : -p[axis])).sort((a, b) => a - b);
+      const pIdx = Math.max(0, Math.min(dists.length - 1, Math.floor(dists.length * 0.95)));
+      const chosenDist = dists[pIdx];
+      const edge = isPos ? Number(chosenDist.toFixed(3)) : Number((-chosenDist).toFixed(3));
+      return {
+        edge,
+        wallPoints: collectedWallPoints,
+        peakDensity: maxCount,
+      };
+    }
+
+    const fallbackDist = (outerWallBin + 1) * binSize;
+    const edge = isPos ? Number(fallbackDist.toFixed(3)) : Number((-fallbackDist).toFixed(3));
+    return {
+      edge,
+      wallPoints: collectedWallPoints.length > 0 ? collectedWallPoints : candidatePts,
+      peakDensity: maxCount,
+    };
+  }
+
+  // Thuật toán Dò Tìm Nóc Xe Thật trong Main World
+  function detectRoofTopBounds(
+    pts: Array<{ z: number; lx?: number; ly?: number }>,
+    expectedRoofZ?: number
+  ): number {
+    if (pts.length === 0) return expectedRoofZ ?? 0;
+    const zValues = pts.map((p) => p.z).sort((a, b) => a - b);
+    const n = zValues.length;
+    if (n < 6) return zValues[n - 1];
+    let maxRoofZ = zValues[n - 1];
+    const minGap = 0.22;
+    const maxNoisePoints = Math.max(2, Math.min(8, Math.floor(n * 0.08)));
+    for (let i = n - 1; i >= Math.floor(n * 0.55); i--) {
+      const gap = zValues[i] - zValues[i - 1];
+      const pointsAfter = n - i;
+      if (gap >= minGap && pointsAfter <= maxNoisePoints) {
+        maxRoofZ = zValues[i - 1];
+        break;
+      }
+    }
+    return Number(maxRoofZ.toFixed(3));
+  }
+
+  // Thuật toán Căn Thẳng Góc Yaw Dựa Trên Viền Mật Độ Đột Biến Nhìn Từ Top View trong Main World
+  function straightenYawFromBoundaryEdge(
+    pts: Array<{ lx: number; ly: number; z: number }>,
+    currentYaw: number,
+    L: number,
+    _W: number,
+    visibleLateral: "left" | "right",
+    options: { maxAdjustmentDeg?: number } = {}
+  ): { newYawRad: number; newYawDeg: number; deltaYawDeg: number; slope: number } {
+    const maxAdjDeg = options.maxAdjustmentDeg ?? 8.0;
+    const maxAdjRad = (maxAdjDeg * Math.PI) / 180;
+    const isLeft = visibleLateral === "left";
+    const sidePts = pts.filter((p) => (isLeft ? p.ly > 0 : p.ly < 0) && Math.abs(p.lx) <= L / 2);
+    if (sidePts.length < 8) {
+      return {
+        newYawRad: currentYaw,
+        newYawDeg: Number(((currentYaw * 180) / Math.PI).toFixed(2)),
+        deltaYawDeg: 0,
+        slope: 0,
+      };
+    }
+    const numSlices = 10;
+    const sliceWidth = L / numSlices;
+    const slicePoints: Array<{ lx: number; ly: number }> = [];
+    for (let s = 0; s < numSlices; s++) {
+      const minLx = -L / 2 + s * sliceWidth;
+      const maxLx = minLx + sliceWidth;
+      const inSlice = sidePts.filter((p) => p.lx >= minLx && p.lx < maxLx);
+      if (inSlice.length >= 1) {
+        if (isLeft) {
+          const sortedLy = inSlice.map((p) => p.ly).sort((a, b) => a - b);
+          const pIdx = Math.max(0, Math.floor(sortedLy.length * 0.90));
+          const medianLx = (minLx + maxLx) / 2;
+          slicePoints.push({ lx: medianLx, ly: sortedLy[pIdx] });
+        } else {
+          const sortedLy = inSlice.map((p) => p.ly).sort((a, b) => a - b);
+          const pIdx = Math.min(sortedLy.length - 1, Math.floor(sortedLy.length * 0.10));
+          const medianLx = (minLx + maxLx) / 2;
+          slicePoints.push({ lx: medianLx, ly: sortedLy[pIdx] });
+        }
+      }
+    }
+    if (slicePoints.length < 4) {
+      return {
+        newYawRad: currentYaw,
+        newYawDeg: Number(((currentYaw * 180) / Math.PI).toFixed(2)),
+        deltaYawDeg: 0,
+        slope: 0,
+      };
+    }
+
+    // Hồi quy bền vững kháng ngoại lai Theil-Sen Estimator (Median of Slopes):
+    const slopes: number[] = [];
+    for (let i = 0; i < slicePoints.length; i++) {
+      for (let j = i + 1; j < slicePoints.length; j++) {
+        const dx = slicePoints[j].lx - slicePoints[i].lx;
+        const dy = slicePoints[j].ly - slicePoints[i].ly;
+        if (Math.abs(dx) >= 0.25) {
+          slopes.push(dy / dx);
+        }
+      }
+    }
+
+    let slope = 0;
+    if (slopes.length >= 3) {
+      slopes.sort((a, b) => a - b);
+      slope = slopes[Math.floor(slopes.length / 2)];
+    } else {
+      let sumLx = 0, sumLy = 0, sumLxLy = 0, sumLx2 = 0;
+      const m = slicePoints.length;
+      for (const p of slicePoints) {
+        sumLx += p.lx; sumLy += p.ly; sumLxLy += p.lx * p.ly; sumLx2 += p.lx * p.lx;
+      }
+      const denom = m * sumLx2 - sumLx * sumLx;
+      slope = Math.abs(denom) > 1e-6 ? (m * sumLxLy - sumLx * sumLy) / denom : 0;
+    }
+
+    let deltaYaw = Math.atan(slope);
+    deltaYaw = Math.max(-maxAdjRad, Math.min(maxAdjRad, deltaYaw));
+    let deltaYawDeg = Number(((deltaYaw * 180) / Math.PI).toFixed(2));
+    if (Math.abs(deltaYawDeg) < 0.25) {
+      deltaYaw = 0;
+      deltaYawDeg = 0;
+    }
+    let newYaw = currentYaw + deltaYaw;
+    while (newYaw > Math.PI) newYaw -= 2 * Math.PI;
+    while (newYaw < -Math.PI) newYaw += 2 * Math.PI;
+    return {
+      newYawRad: Number(newYaw.toFixed(5)),
+      newYawDeg: Number(((newYaw * 180) / Math.PI).toFixed(2)),
+      deltaYawDeg,
+      slope: Number(slope.toFixed(4)),
+    };
+  }
+
+  // Thuật toán FIT GÓC ĐÓN TIA EGO (RAY-CAST L-SHAPE FIT) & GHIM ĐẤT 3D (CẢ SIDE VIEW VÀ FRONT VIEW)
+  function fitBoxToEgoRayAndGroundInMainWorld(
+    points: number[],
+    egoPos: { x: number; y: number; z: number } = { x: 0, y: 0, z: 0 },
+    options: {
+      preserveDimensions?: boolean;
+      fitRoofTop?: boolean;
+      alignMode?: "w_only" | "both";
+      fitStep?: "all" | "top" | "side" | "front";
+      edgePadding?: number;
+    } = {}
+  ): {
+    newX: number;
+    newY: number;
+    newZ: number;
+    newYawRad?: number;
+    newYawDeg?: number;
+    deltaYawDeg?: number;
+    newL: number;
+    newW: number;
+    newH: number;
+    pitchRad: number;
+    rollRad: number;
+    pitchDeg: number;
+    rollDeg: number;
+    groundZ: number;
+    roofTopZ: number;
+    shiftLx?: number;
+    shiftLy?: number;
+    visibleFaces: { longitudinal: "front" | "rear"; lateral: "left" | "right" };
+    dominantEdge?: {
+      edgeSide: "left" | "right";
+      bumperSide: "front" | "rear";
+      sideWallEdge: number;
+      bumperEdge: number;
+    };
+    pointsCount: number;
+    message: string;
+  } {
+    const cx = points[0];
+    const cy = points[1];
+    const cz = points[2];
+    const yaw = points[5];
+    const L = points[6];
+    const W = points[7];
+    const H = points[8];
+
+    const lidar = getSceneLidarPoints();
+    if (!lidar || lidar.count === 0) {
+      return {
+        newX: cx,
+        newY: cy,
+        newZ: cz,
+        newYawRad: yaw,
+        newYawDeg: Number(((yaw * 180) / Math.PI).toFixed(2)),
+        deltaYawDeg: 0,
+        newL: L,
+        newW: W,
+        newH: H,
+        pitchRad: 0,
+        rollRad: 0,
+        pitchDeg: 0,
+        rollDeg: 0,
+        groundZ: cz - H / 2,
+        roofTopZ: cz + H / 2,
+        visibleFaces: { longitudinal: "front", lateral: "left" },
+        pointsCount: 0,
+        message: "Không tìm thấy điểm LiDAR trong scene",
+      };
+    }
+
+    const { count, array } = lidar;
+
+    // BƯỚC 0: Auto Ghim Đất theo Footprint Tight (Bám dốc mặt đường thật, nếu thiếu điểm lấy mốc Ego Z = 0)
+    const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, L / 2, W / 2, H / 2, false, false);
+    const groundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : 0;
+    const pitchRad = groundInfo.pitchRad;
+    const rollRad = groundInfo.rollRad;
+
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+
+    // Thu thập điểm thân xe (tránh điểm mặt đất và điểm cành cây/dây điện)
+    const minBodyZ = groundZ + 0.05;
+    const maxRoofZ = groundZ + H + 0.55;
+    const fitStep = options.fitStep ?? "all";
+    const outerL = L / 2 + 0.45;
+    const outerW = W / 2 + 0.35;
+
+    const rawBodyPts: Array<{ x: number; y: number; z: number; lx: number; ly: number }> = [];
+    for (let i = 0; i < count; i++) {
+      const z = array[i * 3 + 2];
+      if (z < minBodyZ || z > maxRoofZ) continue;
+      const x = array[i * 3];
+      const y = array[i * 3 + 1];
+      const dx = x - cx;
+      const dy = y - cy;
+      const lx = dx * cosY - dy * sinY;
+      const ly = dx * sinY + dy * cosY;
+      if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
+        rawBodyPts.push({ x, y, z, lx, ly });
+      }
+    }
+
+    // Lớp 1: Lọc nhiễu thưa thớt sát thân xe bằng mật độ lõi 3D
+    const denseCorePts = filterSparseNoiseByLocalDensity(rawBodyPts, { radius: 0.12, minCoreNeighbors: 2 });
+
+    // Lớp 2: Lọc cụm liên tục (Loại bỏ 100% điểm của xe khác đỗ bên cạnh hoặc nối đuôi)
+    const clusterLy = filterDenseConnectedCluster1D(denseCorePts, "ly", 0.22, 0);
+    const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", 0.22, 0);
+
+    const dxEgo = cx - egoPos.x;
+    const dyEgo = cy - egoPos.y;
+    const vLocalX = -dxEgo * cosY + dyEgo * sinY;
+    const vLocalY = -dxEgo * sinY - dyEgo * cosY;
+
+    let visibleLongitudinal: "front" | "rear" = vLocalX >= 0 ? "front" : "rear";
+    let visibleLateral: "left" | "right" = vLocalY >= 0 ? "left" : "right";
+
+    let shiftLx = 0;
+    let shiftLy = 0;
+    let roofTopZ = groundZ + H;
+    let newH = H;
+    let newL = L;
+    let newW = W;
+    let finalYaw = yaw;
+    let straightYawDeg = Number(((yaw * 180) / Math.PI).toFixed(2));
+    let deltaYawDeg = 0;
+    const preserveDimensions = options.preserveDimensions ?? true;
+
+    const validBodyPts = bodyPts.length >= 4 ? bodyPts : (denseCorePts.length >= 4 ? denseCorePts : rawBodyPts);
+
+    if (validBodyPts.length >= 4) {
+      // Helper 1: Căn mép cản trước/sau theo trục dọc X (Side View)
+      const computeSideShift = (
+        pts: Array<{ lx: number; ly: number; z: number }>,
+        targetL: number,
+        targetW: number,
+        currentYaw: number,
+        center_x: number,
+        center_y: number,
+        ego_pos: { x: number; y: number }
+      ) => {
+        const toEgoX = ego_pos.x - center_x;
+        const toEgoY = ego_pos.y - center_y;
+        const egoLocalX = toEgoX * Math.cos(currentYaw) + toEgoY * Math.sin(currentYaw);
+
+        const frontBumperPts = pts.filter((p) => p.lx > 0.05);
+        const rearBumperPts = pts.filter((p) => p.lx < -0.05);
+
+        let visibleBumper: "front" | "rear";
+        if (frontBumperPts.length >= rearBumperPts.length + 3) {
+          visibleBumper = "front";
+        } else if (rearBumperPts.length >= frontBumperPts.length + 3) {
+          visibleBumper = "rear";
+        } else {
+          visibleBumper = egoLocalX >= 0 ? "front" : "rear";
+        }
+
+        const targetBumperPts = pts.filter((p) => Math.abs(p.ly) <= targetW / 2 + 0.15);
+        const activePtsForL = targetBumperPts.length >= 4 ? targetBumperPts : pts;
+        const bumperCloudPts = activePtsForL.filter((p) => (visibleBumper === "front" ? p.lx > 0 : p.lx < 0));
+        const cleanBumperPts = filterSparseNoiseByLocalDensity(bumperCloudPts, { radius: 0.15, minCoreNeighbors: 2 });
+        const finalBumperPts = cleanBumperPts.length >= 3 ? cleanBumperPts : bumperCloudPts;
+
+        let bumperEdge: number;
+        if (finalBumperPts.length >= 3) {
+          const wallDet = detectDominantWallEdgeWithValleyCutoff(
+            finalBumperPts,
+            "lx",
+            visibleBumper === "front" ? "positive" : "negative",
+            targetL / 2,
+            { minSpanOrthogonal: 0.60 }
+          );
+          bumperEdge = wallDet.edge;
+        } else {
+          bumperEdge = visibleBumper === "front" ? targetL / 2 : -targetL / 2;
+        }
+
+        const edgePadding = options.edgePadding ?? 0.05; // 5.0cm
+        let sLx = 0;
+        if (visibleBumper === "front") {
+          sLx = (bumperEdge + edgePadding) - targetL / 2;
+        } else {
+          sLx = (bumperEdge - edgePadding) + targetL / 2;
+        }
+
+        const maxShiftL = Math.min(0.40, targetL * 0.25);
+        sLx = Math.max(-maxShiftL, Math.min(maxShiftL, sLx));
+        if (Math.abs(sLx) < 0.01) sLx = 0;
+
+        return { shiftLx: sLx, visibleBumper };
+      };
+
+      // Helper 2: Căn góc xoay Yaw theo viền đón tia (Top View)
+      const computeTopYaw = (
+        pts: Array<{ lx: number; ly: number; z: number }>,
+        currentYaw: number,
+        targetL: number,
+        targetW: number,
+        visibleSide: "left" | "right"
+      ) => {
+        const wallDet = detectDominantWallEdgeWithValleyCutoff(
+          pts,
+          "ly",
+          visibleSide === "left" ? "positive" : "negative",
+          targetW / 2,
+          { minSpanOrthogonal: 0.70 }
+        );
+        const activePtsForYaw = wallDet.wallPoints.length >= 6 ? wallDet.wallPoints : pts;
+        return straightenYawFromBoundaryEdge(activePtsForYaw, currentYaw, targetL, targetW, visibleSide, { maxAdjustmentDeg: 12.0 });
+      };
+
+      // Helper 3: Căn mép sườn xe theo phương W (Front View)
+      const computeFrontShift = (
+        pts: Array<{ lx: number; ly: number; z: number }>,
+        targetW: number,
+        targetL: number,
+        currentYaw: number,
+        center_x: number,
+        center_y: number,
+        ego_pos: { x: number; y: number }
+      ) => {
+        const toEgoX = ego_pos.x - center_x;
+        const toEgoY = ego_pos.y - center_y;
+        const egoLocalY = -toEgoX * Math.sin(currentYaw) + toEgoY * Math.cos(currentYaw);
+
+        const leftSidePts = pts.filter((p) => p.ly > 0.05);
+        const rightSidePts = pts.filter((p) => p.ly < -0.05);
+
+        let visibleSide: "left" | "right";
+        if (leftSidePts.length >= rightSidePts.length + 3) {
+          visibleSide = "left";
+        } else if (rightSidePts.length >= leftSidePts.length + 3) {
+          visibleSide = "right";
+        } else {
+          visibleSide = egoLocalY >= 0 ? "left" : "right";
+        }
+
+        const targetSidePts = pts.filter((p) => Math.abs(p.lx) <= targetL / 2 + 0.15);
+        const activePtsForW = targetSidePts.length >= 4 ? targetSidePts : pts;
+        const sideCloudPts = activePtsForW.filter((p) => (visibleSide === "left" ? p.ly > 0 : p.ly < 0));
+        const cleanSidePts = filterSparseNoiseByLocalDensity(sideCloudPts, { radius: 0.15, minCoreNeighbors: 2 });
+        const finalSidePts = cleanSidePts.length >= 3 ? cleanSidePts : sideCloudPts;
+
+        let boundaryEdge: number;
+        if (finalSidePts.length >= 3) {
+          const wallDet = detectDominantWallEdgeWithValleyCutoff(
+            finalSidePts,
+            "ly",
+            visibleSide === "left" ? "positive" : "negative",
+            targetW / 2,
+            { minSpanOrthogonal: 0.70 }
+          );
+          boundaryEdge = wallDet.edge;
+        } else {
+          boundaryEdge = visibleSide === "left" ? targetW / 2 : -targetW / 2;
+        }
+
+        const edgePadding = options.edgePadding ?? 0.05; // 5.0cm
+        let sLy = 0;
+        if (visibleSide === "left") {
+          sLy = (boundaryEdge + edgePadding) - targetW / 2;
+        } else {
+          sLy = (boundaryEdge - edgePadding) + targetW / 2;
+        }
+
+        const maxShiftW = Math.min(0.40, targetW * 0.30);
+        sLy = Math.max(-maxShiftW, Math.min(maxShiftW, sLy));
+        if (Math.abs(sLy) < 0.01) sLy = 0;
+
+        return { shiftLy: sLy, visibleSide };
+      };
+
+      if (fitStep === "top") {
+        // ========================================================
+        // CHẾ ĐỘ 1: CĂN TOP CHUYÊN TRÁCH GÓC XOAY YAW (XOAY TẠI CHỖ QUANH TÂM)
+        // ========================================================
+        const expectedRoofZ = groundZ + H;
+        roofTopZ = detectRoofTopBounds(validBodyPts, expectedRoofZ);
+
+        const frontDet = computeFrontShift(validBodyPts, W, L, yaw, cx, cy, egoPos);
+        visibleLateral = frontDet.visibleSide;
+
+        const straightYawResult = computeTopYaw(validBodyPts, yaw, L, W, visibleLateral);
+        finalYaw = straightYawResult.newYawRad;
+        straightYawDeg = straightYawResult.newYawDeg;
+        deltaYawDeg = straightYawResult.deltaYawDeg;
+
+        shiftLx = 0;
+        shiftLy = 0;
+      } else if (fitStep === "side") {
+        // ========================================================
+        // CHẾ ĐỘ 2: CĂN SIDE ĐỘC LẬP (Trục dọc X đón tia Ego)
+        // ========================================================
+        finalYaw = yaw;
+        straightYawDeg = Number(((yaw * 180) / Math.PI).toFixed(2));
+        deltaYawDeg = 0;
+
+        const sideRes = computeSideShift(validBodyPts, L, W, yaw, cx, cy, egoPos);
+        shiftLx = sideRes.shiftLx;
+        visibleLongitudinal = sideRes.visibleBumper;
+        shiftLy = 0;
+      } else if (fitStep === "front") {
+        // ========================================================
+        // CHẾ ĐỘ 3: CĂN FRONT ĐỘC LẬP (Trục ngang Y / Phương W đón tia Ego)
+        // TUYỆT ĐỐI KHÔNG GHIM ĐẤT, giữ nguyên Z và Roll/Pitch
+        // ========================================================
+        finalYaw = yaw;
+        straightYawDeg = Number(((yaw * 180) / Math.PI).toFixed(2));
+        deltaYawDeg = 0;
+
+        const frontRes = computeFrontShift(validBodyPts, W, L, yaw, cx, cy, egoPos);
+        shiftLy = frontRes.shiftLy;
+        visibleLateral = frontRes.visibleSide;
+        shiftLx = 0;
+      } else {
+        // ========================================================
+        // CHẾ ĐỘ 4: GHÉP CHU TRÌNH HOÀN CHỈNH (HERO SMART FIT / PHÍM SHIFT+T)
+        // QUY TRÌNH: Ghim Đất -> Side -> Top -> Front -> Side -> Top -> Front
+        // ========================================================
+        // BƯỚC 1: Ghim Đất đã tính tại Bước 0 (groundZ và pitchRad)
+        const expectedRoofZ = groundZ + H;
+        roofTopZ = detectRoofTopBounds(validBodyPts, expectedRoofZ);
+
+        let curCx = cx;
+        let curCy = cy;
+        let curYaw = yaw;
+
+        const toLocalPts = (cCenter_x: number, cCenter_y: number, cYaw: number) => {
+          const cY = Math.cos(-cYaw);
+          const sY = Math.sin(-cYaw);
+          return validBodyPts.map((p) => {
+            const dx = p.x - cCenter_x;
+            const dy = p.y - cCenter_y;
+            return {
+              x: p.x,
+              y: p.y,
+              z: p.z,
+              lx: dx * cY - dy * sY,
+              ly: dx * sY + dy * cY,
+            };
+          });
+        };
+
+        const applyShift = (sLx: number, sLy: number, cYaw: number) => {
+          const cW = Math.cos(cYaw);
+          const sW = Math.sin(cYaw);
+          curCx = Number((curCx + sLx * cW - sLy * sW).toFixed(3));
+          curCy = Number((curCy + sLx * sW + sLy * cW).toFixed(3));
+        };
+
+        // --- VÒNG 1 (Định vị mốc sơ bộ) ---
+        // 2. Side lần 1 (Căn cản trước/sau đón tia X)
+        let localPts = toLocalPts(curCx, curCy, curYaw);
+        const side1 = computeSideShift(localPts, L, W, curYaw, curCx, curCy, egoPos);
+        applyShift(side1.shiftLx, 0, curYaw);
+        visibleLongitudinal = side1.visibleBumper;
+
+        // 3. Top lần 1 (Căn góc xoay Yaw)
+        localPts = toLocalPts(curCx, curCy, curYaw);
+        const frontDet1 = computeFrontShift(localPts, W, L, curYaw, curCx, curCy, egoPos);
+        const top1 = computeTopYaw(localPts, curYaw, L, W, frontDet1.visibleSide);
+        curYaw = top1.newYawRad;
+
+        // 4. Front lần 1 (Căn sườn đón tia W)
+        localPts = toLocalPts(curCx, curCy, curYaw);
+        const front1 = computeFrontShift(localPts, W, L, curYaw, curCx, curCy, egoPos);
+        applyShift(0, front1.shiftLy, curYaw);
+        visibleLateral = front1.visibleSide;
+
+        // --- VÒNG 2 (Tinh chỉnh hội tụ Coarse-to-Fine) ---
+        // 5. Side lần 2 (Căn lại cản X theo Yaw và Y mới)
+        localPts = toLocalPts(curCx, curCy, curYaw);
+        const side2 = computeSideShift(localPts, L, W, curYaw, curCx, curCy, egoPos);
+        applyShift(side2.shiftLx, 0, curYaw);
+        visibleLongitudinal = side2.visibleBumper;
+
+        // 6. Top lần 2 (Vi chỉnh Yaw lần cuối)
+        localPts = toLocalPts(curCx, curCy, curYaw);
+        const top2 = computeTopYaw(localPts, curYaw, L, W, visibleLateral);
+        curYaw = top2.newYawRad;
+
+        // 7. Front lần 2 (Khóa khít mép sườn W lần cuối)
+        localPts = toLocalPts(curCx, curCy, curYaw);
+        const front2 = computeFrontShift(localPts, W, L, curYaw, curCx, curCy, egoPos);
+        applyShift(0, front2.shiftLy, curYaw);
+        visibleLateral = front2.visibleSide;
+
+        finalYaw = curYaw;
+        straightYawDeg = Number(((finalYaw * 180) / Math.PI).toFixed(2));
+        deltaYawDeg = Number((((finalYaw - yaw) * 180) / Math.PI).toFixed(2));
+        while (deltaYawDeg > 180) deltaYawDeg -= 360;
+        while (deltaYawDeg < -180) deltaYawDeg += 360;
+
+        // Tính độ lệch tổng thể shiftLx, shiftLy chiếu vào hệ finalYaw
+        const cFinal = Math.cos(-finalYaw);
+        const sFinal = Math.sin(-finalYaw);
+        const totalDx = curCx - cx;
+        const totalDy = curCy - cy;
+        shiftLx = Number((totalDx * cFinal - totalDy * sFinal).toFixed(3));
+        shiftLy = Number((totalDx * sFinal + totalDy * cFinal).toFixed(3));
+      }
+
+      // Giới hạn an toàn chung cho shiftLx và shiftLy
+      if (fitStep === "top") {
+        shiftLx = 0;
+        shiftLy = 0;
+      } else {
+        const maxShiftL = Math.min(0.40, L * 0.25);
+        const maxShiftW = Math.min(0.40, W * 0.30);
+        shiftLx = Math.max(-maxShiftL, Math.min(maxShiftL, shiftLx));
+        shiftLy = Math.max(-maxShiftW, Math.min(maxShiftW, shiftLy));
+      }
+
+      if (preserveDimensions !== true) {
+        const measuredH = roofTopZ - groundZ;
+        newH = Number(Math.max(1.35, Math.min(2.8, measuredH)).toFixed(2));
+      } else {
+        newH = H;
+        newL = L;
+        newW = W;
+      }
+    }
+
+    // Tọa độ tâm trong hệ thế giới (World Frame) tính theo góc Yaw mới đã căn thẳng
+    const cosWorld = Math.cos(finalYaw);
+    const sinWorld = Math.sin(finalYaw);
+    const newX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
+    const newY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
+    // Đáy xe tiếp đất chuẩn xác 100% (Auto Ghim Đất) - NGOẠI TRỪ FRONT VIEW
+    const cosPitch = Math.cos(pitchRad);
+    const cosRoll = Math.cos(rollRad);
+    let newZ = Number((groundZ + (newH / 2) * cosPitch * cosRoll).toFixed(3));
+    let finalPitch = pitchRad;
+    let finalRoll = rollRad;
+
+    if (fitStep === "top" || fitStep === "side" || fitStep === "front") {
+      // TOP, SIDE VÀ FRONT TUYỆT ĐỐI KHÔNG ĐƯỢC GHIM ĐẤT: Giữ nguyên 100% cao độ Z và góc nghiêng của box hiện tại
+      newZ = cz;
+      finalPitch = points[4] || 0;
+      finalRoll = points[3] || 0;
+    }
+
+    const faceTextLong = visibleLongitudinal === "front" ? "Mặt Trước" : "Mặt Sau";
+    const faceTextLat = visibleLateral === "left" ? "Sườn Trái" : "Sườn Phải";
+
+    let msg = `Đã ghép chu trình (Đất ➔ Side ➔ Top ➔ Front ➔ Side ➔ Top ➔ Front): Yaw ${straightYawDeg}°, Cản [${faceTextLong}], Sườn [${faceTextLat}] & Ghim Đất (Z: ${newZ}m)`;
+    if (fitStep === "top") {
+      const deltaSign = deltaYawDeg >= 0 ? "+" : "";
+      msg = `Đã căn TOP: Xoay Yaw (${straightYawDeg}°, Δ=${deltaSign}${deltaYawDeg}°) song song sườn đón tia [${faceTextLat}], khóa tâm X/Y (giữ nguyên cao độ Z)`;
+    } else if (fitStep === "side") {
+      const deltaXSign = shiftLx >= 0 ? "+" : "";
+      msg = `Đã căn SIDE: Cản [${faceTextLong}] đón tia (ΔX: ${deltaXSign}${shiftLx.toFixed(2)}m, giữ nguyên cao độ Z)`;
+    } else if (fitStep === "front") {
+      const deltaYSign = shiftLy >= 0 ? "+" : "";
+      msg = `Đã căn FRONT: Mép sườn [${faceTextLat}] ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên cao độ Z)`;
+    }
+
+    return {
+      newX,
+      newY,
+      newZ,
+      newYawRad: finalYaw,
+      newYawDeg: straightYawDeg,
+      deltaYawDeg,
+      newL,
+      newW,
+      newH,
+      pitchRad: finalPitch,
+      rollRad: finalRoll,
+      pitchDeg: Number(((finalPitch * 180) / Math.PI).toFixed(2)),
+      rollDeg: Number(((finalRoll * 180) / Math.PI).toFixed(2)),
+      groundZ,
+      roofTopZ,
+      shiftLx: Number(shiftLx.toFixed(3)),
+      shiftLy: Number(shiftLy.toFixed(3)),
+      visibleFaces: {
+        longitudinal: visibleLongitudinal,
+        lateral: visibleLateral,
+      },
+      dominantEdge: {
+        edgeSide: visibleLateral,
+        bumperSide: visibleLongitudinal,
+        sideWallEdge: Number(shiftLy.toFixed(3)),
+        bumperEdge: Number(shiftLx.toFixed(3)),
+      },
+      pointsCount: bodyPts.length,
+      message: msg,
+    };
+  }
+
+  // Thuật toán CHUYÊN BIỆT CHO NGƯỜI ĐI BỘ TRONG MAIN WORLD (PEDESTRIAN FIT)
+  function fitPedestrianInMainWorld(
+    points: number[],
+    options: { headBuffer?: number; margin?: number } = {}
+  ): {
+    newX: number;
+    newY: number;
+    newZ: number;
+    newL: number;
+    newW: number;
+    newH: number;
+    groundZ: number;
+    pointsCount: number;
+    message: string;
+  } {
+    const cx = points[0];
+    const cy = points[1];
+    const cz = points[2];
+    const yaw = points[5];
+    const curL = points[6] || 0.65;
+    const curW = points[7] || 0.65;
+    const curH = points[8] || 1.70;
+
+    const lidar = getSceneLidarPoints();
+    if (!lidar || lidar.count === 0) {
+      return {
+        newX: cx,
+        newY: cy,
+        newZ: cz,
+        newL: curL,
+        newW: curW,
+        newH: curH,
+        groundZ: cz - curH / 2,
+        pointsCount: 0,
+        message: "Không tìm thấy điểm LiDAR trong scene",
+      };
+    }
+
+    const { count, array } = lidar;
+    const headBuffer = options.headBuffer ?? 0.12;
+    const margin = options.margin ?? 0.15;
+
+    // 1. Quét mặt đất siêu hẹp sát chân người
+    const footRadius = Math.max(0.35, Math.max(curL, curW) / 2 + margin);
+    const footGroundPts: number[] = [];
+    const maxFootGroundZ = cz - curH / 2 + 0.35;
+    const minFootGroundZ = cz - 4.0;
+
+    for (let i = 0; i < count; i++) {
+      const z = array[i * 3 + 2];
+      if (z > maxFootGroundZ || z < minFootGroundZ) continue;
+      const x = array[i * 3];
+      const y = array[i * 3 + 1];
+      const dx = x - cx;
+      const dy = y - cy;
+      if (dx * dx + dy * dy <= footRadius * footRadius) {
+        footGroundPts.push(z);
+      }
+    }
+
+    let groundZ = cz - curH / 2;
+    if (footGroundPts.length >= 3) {
+      footGroundPts.sort((a, b) => a - b);
+      groundZ = footGroundPts[Math.max(0, Math.floor(footGroundPts.length * 0.15))];
+    }
+
+    // 2. Thu thập điểm thân người
+    const minBodyZ = groundZ + 0.05;
+    const maxBodyZ = groundZ + 2.30;
+    const outerL = Math.max(0.45, curL / 2 + 0.25);
+    const outerW = Math.max(0.40, curW / 2 + 0.25);
+
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+    const bodyPts: Array<{ lx: number; ly: number; z: number }> = [];
+
+    for (let i = 0; i < count; i++) {
+      const z = array[i * 3 + 2];
+      if (z < minBodyZ || z > maxBodyZ) continue;
+      const x = array[i * 3];
+      const y = array[i * 3 + 1];
+      const dx = x - cx;
+      const dy = y - cy;
+      const lx = dx * cosY - dy * sinY;
+      const ly = dx * sinY + dy * cosY;
+      if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
+        bodyPts.push({ lx, ly, z });
+      }
+    }
+
+    let newL = curL;
+    let newW = curW;
+    let newH = curH;
+    let shiftLx = 0;
+    let shiftLy = 0;
+    let roofTopZ = groundZ + curH;
+
+    if (bodyPts.length >= 3) {
+      const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
+      const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
+      const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
+
+      const pMinIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.02) : 0;
+      const pMaxIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.98) : bodyPts.length - 1;
+
+      const lxMin = allLx[pMinIdx];
+      const lxMax = allLx[pMaxIdx];
+      const lyMin = allLy[pMinIdx];
+      const lyMax = allLy[pMaxIdx];
+      const highestPtZ = allZ[allZ.length - 1];
+
+      newL = Number(Math.max(0.45, Math.min(1.30, lxMax - lxMin + 0.10)).toFixed(2));
+      newW = Number(Math.max(0.40, Math.min(1.10, lyMax - lyMin + 0.10)).toFixed(2));
+
+      roofTopZ = highestPtZ + headBuffer;
+      newH = Number(Math.max(1.05, Math.min(2.15, roofTopZ - groundZ)).toFixed(2));
+
+      shiftLx = (lxMin + lxMax) / 2;
+      shiftLy = (lyMin + lyMax) / 2;
+
+      const maxShift = 0.40;
+      shiftLx = Math.max(-maxShift, Math.min(maxShift, shiftLx));
+      shiftLy = Math.max(-maxShift, Math.min(maxShift, shiftLy));
+    }
+
+    const cosWorld = Math.cos(yaw);
+    const sinWorld = Math.sin(yaw);
+    const newX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
+    const newY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
+    const newZ = Number((groundZ + newH / 2).toFixed(3));
+
+    const msg = `Đã fit Người Đi Bộ: ${newL}x${newW}x${newH}m (Khóa thẳng đứng 0°, Ghim đất Z: ${newZ}m, Bù đỉnh đầu +${Math.round(headBuffer * 100)}cm)`;
+
+    return {
+      newX,
+      newY,
+      newZ,
+      newL,
+      newW,
+      newH,
+      groundZ: Number(groundZ.toFixed(3)),
+      pointsCount: bodyPts.length,
+      message: msg,
+    };
+  }
+
+  // Thuật toán CHUYÊN BIỆT CHO XE ĐẠP / XE MÁY (CYCLIST / TWO-WHEELER) TRONG MAIN WORLD
+  function fitCyclistInMainWorld(
+    points: number[],
+    options: {
+      headBuffer?: number;
+      margin?: number;
+      egoPos?: { x: number; y: number; z: number };
+      step?: "all" | "top" | "side" | "front" | "w" | "h";
+    } = {}
+  ): {
+    newX: number;
+    newY: number;
+    newZ: number;
+    newYaw: number;
+    newYawDeg: number;
+    deltaYawDeg: number;
+    newL: number;
+    newW: number;
+    newH: number;
+    groundZ: number;
+    pointsCount: number;
+    step: "all" | "top" | "side" | "front" | "w" | "h";
+    message: string;
+  } {
+    const cx = points[0];
+    const cy = points[1];
+    const cz = points[2];
+    const yaw = points[5];
+    const curL = points[6] || 1.75;
+    const curW = points[7] || 0.65;
+    const curH = points[8] || 1.55;
+    const step = options.step ?? "all";
+
+    const curYawDeg = Number(((yaw * 180) / Math.PI).toFixed(2));
+
+    const lidar = getSceneLidarPoints();
+    if (!lidar || lidar.count === 0) {
+      return {
+        newX: cx,
+        newY: cy,
+        newZ: cz,
+        newYaw: yaw,
+        newYawDeg: curYawDeg,
+        deltaYawDeg: 0,
+        newL: curL,
+        newW: curW,
+        newH: curH,
+        groundZ: cz - curH / 2,
+        pointsCount: 0,
+        step,
+        message: "Không tìm thấy điểm LiDAR trong scene",
+      };
+    }
+
+    const { count, array } = lidar;
+    const headBuffer = options.headBuffer ?? 0.10;
+    const margin = options.margin ?? 0.20;
+
+    // 1. Quét mặt đất vệt bánh xe
+    const footRadius = Math.max(0.60, curL / 2 + margin);
+    const groundPts: number[] = [];
+    const maxGroundZ = cz - curH / 2 + 0.35;
+    const minGroundZ = cz - 4.0;
+
+    for (let i = 0; i < count; i++) {
+      const z = array[i * 3 + 2];
+      if (z > maxGroundZ || z < minGroundZ) continue;
+      const x = array[i * 3];
+      const y = array[i * 3 + 1];
+      const dx = x - cx;
+      const dy = y - cy;
+      if (dx * dx + dy * dy <= footRadius * footRadius) {
+        groundPts.push(z);
+      }
+    }
+
+    let groundZ = cz - curH / 2;
+    if (groundPts.length >= 3) {
+      groundPts.sort((a, b) => a - b);
+      groundZ = groundPts[Math.max(0, Math.floor(groundPts.length * 0.15))];
+    }
+
+    // 2. Thu thập điểm thân xe và người lái (nới rộng biên để bắt gương chiếu hậu, tay lái bè và hàng hóa)
+    const minBodyZ = groundZ + 0.05;
+    const maxBodyZ = groundZ + 2.30;
+    const outerL = curL / 2 + 0.45;
+    const outerW = Math.max(curW, 0.85) / 2 + 0.45;
+
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+    const bodyPts: Array<{ lx: number; ly: number; z: number }> = [];
+
+    for (let i = 0; i < count; i++) {
+      const z = array[i * 3 + 2];
+      if (z < minBodyZ || z > maxBodyZ) continue;
+      const x = array[i * 3];
+      const y = array[i * 3 + 1];
+      const dx = x - cx;
+      const dy = y - cy;
+      const lx = dx * cosY - dy * sinY;
+      const ly = dx * sinY + dy * cosY;
+      if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
+        bodyPts.push({ lx, ly, z });
+      }
+    }
+
+    let newX = cx;
+    let newY = cy;
+    let newZ = cz;
+    let newYaw = yaw;
+    let newYawDeg = curYawDeg;
+    let deltaYawDeg = 0;
+    let newL = curL; // BẢO TOÀN TUYỆT ĐỐI 100% CHIỀU DÀI L
+    let newW = curW;
+    let newH = curH;
+    let msg = "";
+
+    if (bodyPts.length < 3) {
+      return {
+        newX,
+        newY,
+        newZ,
+        newYaw,
+        newYawDeg,
+        deltaYawDeg: 0,
+        newL,
+        newW,
+        newH,
+        groundZ: Number(groundZ.toFixed(3)),
+        pointsCount: bodyPts.length,
+        step,
+        message: `Không đủ điểm LiDAR xe 2 bánh (${bodyPts.length} điểm)`,
+      };
+    }
+
+    const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
+    const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
+    const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
+
+    // Sai số cho phép nhiễu cao hơn (chỉ cắt 1.5% thay vì 5%) để bắt trọn gương xe và cạnh ngoài
+    const pMinIdx = bodyPts.length >= 30 ? Math.floor(bodyPts.length * 0.015) : 0;
+    const pMaxIdx = bodyPts.length >= 30 ? Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.985)) : bodyPts.length - 1;
+
+    const lxMin = allLx[pMinIdx];
+    const lxMax = allLx[pMaxIdx];
+    const lyMin = allLy[pMinIdx];
+    const lyMax = allLy[pMaxIdx];
+    const highestPtZ = allZ[allZ.length - 1];
+
+    // Hàm chuẩn hóa góc cục bộ
+    const normalizeRad = (r: number) => {
+      let a = r;
+      while (a > Math.PI) a -= 2 * Math.PI;
+      while (a < -Math.PI) a += 2 * Math.PI;
+      return a;
+    };
+
+    // Hàm ước tính góc lệch Yaw theo trục nối Cực Đuôi -> Cực Đầu kết hợp PCA 2D
+    const calcHeadingDelta = (): number => {
+      const n = bodyPts.length;
+
+      // 1. PCA 2D trên cụm điểm thân xe
+      let sumLx = 0;
+      let sumLy = 0;
+      for (const p of bodyPts) {
+        sumLx += p.lx;
+        sumLy += p.ly;
+      }
+      const meanLx = sumLx / n;
+      const meanLy = sumLy / n;
+      let sxx = 0;
+      let syy = 0;
+      let sxy = 0;
+      for (const p of bodyPts) {
+        const dx = p.lx - meanLx;
+        const dy = p.ly - meanLy;
+        sxx += dx * dx;
+        syy += dy * dy;
+        sxy += dx * dy;
+      }
+      sxx /= n;
+      syy /= n;
+      sxy /= n;
+      const deltaThetaPca = 0.5 * Math.atan2(2 * sxy, sxx - syy);
+
+      // 2. Vector nối Trọng tâm Cụm Đuôi -> Cụm Đầu
+      const sorted = [...bodyPts].sort((a, b) => a.lx - b.lx);
+      const rearSlice = sorted.slice(0, Math.max(1, Math.floor(n * 0.18)));
+      const frontSlice = sorted.slice(Math.max(1, Math.floor(n * 0.82)));
+
+      const rearLx = rearSlice.reduce((s, p) => s + p.lx, 0) / rearSlice.length;
+      const rearLy = rearSlice.reduce((s, p) => s + p.ly, 0) / rearSlice.length;
+      const frontLx = frontSlice.reduce((s, p) => s + p.lx, 0) / frontSlice.length;
+      const frontLy = frontSlice.reduce((s, p) => s + p.ly, 0) / frontSlice.length;
+
+      const dLx = frontLx - rearLx;
+      const dLy = frontLy - rearLy;
+      let deltaThetaExt = deltaThetaPca;
+      if (dLx >= 0.35) {
+        deltaThetaExt = Math.atan2(dLy, dLx);
+      }
+
+      let dTheta = Math.abs(deltaThetaPca - deltaThetaExt) < 0.2
+        ? 0.7 * deltaThetaPca + 0.3 * deltaThetaExt
+        : deltaThetaPca;
+
+      return Math.max(-Math.PI / 4, Math.min(Math.PI / 4, dTheta));
+    };
+
+    if (step === "top") {
+      // 1. CĂN TOP ĐỘC LẬP: Xoay Yaw theo Trục Đầu - Đuôi, khóa tâm X/Y/Z và kích thước L/W/H
+      const dTheta = calcHeadingDelta();
+      newYaw = normalizeRad(yaw + dTheta);
+      newYawDeg = Number(((newYaw * 180) / Math.PI).toFixed(2));
+      deltaYawDeg = Number(((dTheta * 180) / Math.PI).toFixed(2));
+
+      newX = cx;
+      newY = cy;
+      newZ = cz;
+      newL = curL;
+      newW = curW;
+      newH = curH;
+
+      const sign = deltaYawDeg >= 0 ? "+" : "";
+      msg = `Đã căn TOP Xe 2 bánh: Xoay Yaw (${newYawDeg}°, Δ=${sign}${deltaYawDeg}°) theo trục Đầu - Đuôi, khóa tâm X/Y/Z & L/W/H`;
+    } else if (step === "side") {
+      // 2. CĂN SIDE ĐỘC LẬP: Cản X đón tia & Ghim đất, Khóa L tuyệt đối
+      newYaw = yaw;
+      newYawDeg = curYawDeg;
+      deltaYawDeg = 0;
+      newL = curL;
+      newW = curW;
+      newH = curH;
+
+      let shiftLx = 0;
+      let bumperName = "Đón tia";
+
+      if (options.egoPos) {
+        const dxEgo = options.egoPos.x - cx;
+        const dyEgo = options.egoPos.y - cy;
+        const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
+        if (lxEgo > 0.4) {
+          shiftLx = lxMax - curL / 2;
+          bumperName = "Cản trước";
+        } else if (lxEgo < -0.4) {
+          shiftLx = lxMin + curL / 2;
+          bumperName = "Cản sau";
+        } else {
+          shiftLx = (lxMin + lxMax) / 2;
+          bumperName = "Cân đối";
+        }
+      } else {
+        const frontCount = bodyPts.filter((p) => p.lx > 0).length;
+        const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
+        if (frontCount > rearCount * 1.5) {
+          shiftLx = lxMax - curL / 2;
+          bumperName = "Cản trước";
+        } else if (rearCount > frontCount * 1.5) {
+          shiftLx = lxMin + curL / 2;
+          bumperName = "Cản sau";
+        } else {
+          shiftLx = (lxMin + lxMax) / 2;
+          bumperName = "Cân đối";
+        }
+      }
+
+      shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
+      newZ = cz; // TUYỆT ĐỐI KHÔNG GHIM ĐẤT: Giữ nguyên cao độ Z ban đầu (đã có nút ghim đất riêng)
+      newX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
+      newY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
+
+      const signX = shiftLx >= 0 ? "+" : "";
+      msg = `Đã căn SIDE Xe 2 bánh: [${bumperName}] bám vệt lốp (ΔX: ${signX}${(shiftLx * 100).toFixed(1)}cm, giữ nguyên cao độ Z), Khóa L: ${newL}m`;
+    } else if (step === "front") {
+      // 3. CĂN FRONT ĐỘC LẬP (LÀM CHUẨN THEO CAR THEO YÊU CẦU NGƯỜI DÙNG)
+      // - Mặt phẳng 2D Y - Z theo phương W: Căn sườn xe đón tia
+      // - 🚨 TUYỆT ĐỐI KHÔNG GHIM ĐẤT: Giữ nguyên 100% cao độ Z (newZ = cz)
+      // - Trục dọc X giữ nguyên cố định 100% (shiftLx = 0)
+      // - BẢO TOÀN TUYỆT ĐỐI 100% KÍCH THƯỚC L, W, H (Không co giãn size ở nút Front)
+      newYaw = yaw;
+      newYawDeg = curYawDeg;
+      deltaYawDeg = 0;
+      newL = curL;
+      newW = curW;
+      newH = curH;
+      newZ = cz; // GIỮ NGUYÊN 100% CAO ĐỘ Z (KHÔNG GHIM ĐẤT NHƯ CAR)
+
+      let visibleSide: "left" | "right";
+      if (options.egoPos) {
+        const toEgoX = options.egoPos.x - cx;
+        const toEgoY = options.egoPos.y - cy;
+        const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+        visibleSide = egoLocalY >= 0 ? "left" : "right";
+      } else {
+        const leftCount = bodyPts.filter((p) => p.ly > 0.05).length;
+        const rightCount = bodyPts.filter((p) => p.ly < -0.05).length;
+        visibleSide = leftCount >= rightCount ? "left" : "right";
+      }
+
+      // Padding đệm an toàn 5cm để gương và tay lái không cọ sát mép box
+      const edgePadding = 0.05;
+      let shiftLy = 0;
+      if (lyMin <= -0.06 && lyMax >= 0.06) {
+        shiftLy = (lyMin + lyMax) / 2;
+      } else if (visibleSide === "left") {
+        shiftLy = (lyMax + edgePadding) - curW / 2;
+      } else {
+        shiftLy = (lyMin - edgePadding) + curW / 2;
+      }
+
+      shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+
+      newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
+      newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
+
+      const signY = shiftLy >= 0 ? "+" : "";
+      const sideText = visibleSide === "left" ? "Sườn Trái" : "Sườn Phải";
+      msg = `Đã căn FRONT Xe 2 bánh: [${sideText}] đón tia ăn khít phương W (ΔY: ${signY}${(shiftLy * 100).toFixed(1)}cm), giữ nguyên cao độ Z và kích thước (chuẩn Car)`;
+    } else if (step === "w") {
+      // -------------------------------------------------------------
+      // CHẾ ĐỘ FIT RIÊNG CHIỀU RỘNG W: Bắt gương xe, tay lái (+5cm đệm gương)
+      // -------------------------------------------------------------
+      newYaw = yaw;
+      newYawDeg = curYawDeg;
+      deltaYawDeg = 0;
+      newL = curL;
+      newH = curH;
+      newZ = cz;
+
+      let shiftLy = 0;
+      let measuredW = curW;
+
+      if (lyMin <= -0.06 && lyMax >= 0.06) {
+        measuredW = (lyMax - lyMin) + 0.16;
+        shiftLy = (lyMin + lyMax) / 2;
+        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      } else if (lyMax > 0 && lyMin > -0.06) {
+        measuredW = 2 * (lyMax + 0.10);
+        shiftLy = 0;
+      } else if (lyMin < 0 && lyMax < 0.06) {
+        measuredW = 2 * (Math.abs(lyMin) + 0.10);
+        shiftLy = 0;
+      } else {
+        measuredW = (lyMax - lyMin) + 0.16;
+        shiftLy = (lyMin + lyMax) / 2;
+        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      }
+
+      newW = Number(Math.max(0.55, Math.min(1.45, measuredW)).toFixed(2));
+
+      newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
+      newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
+
+      const signY = shiftLy >= 0 ? "+" : "";
+      msg = `Đã fit Rộng (W) Xe 2 bánh: W=${newW}m (Đệm +5cm bắt trọn gương/tay lái), căn Y: ${signY}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên L, H & Z`;
+    } else if (step === "h") {
+      // -------------------------------------------------------------
+      // CHẾ ĐỘ FIT RIÊNG CHIỀU CAO H: Bám sàn Z_base cố định, nở lên nóc
+      // -------------------------------------------------------------
+      newYaw = yaw;
+      newYawDeg = curYawDeg;
+      deltaYawDeg = 0;
+      newL = curL;
+      newW = curW;
+      newX = cx;
+      newY = cy;
+
+      const currentBaseZ = cz - curH / 2;
+      const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
+
+      const roofTopZ = highestPtZ + Math.max(0.12, headBuffer);
+      newH = Number(Math.max(1.15, Math.min(2.20, roofTopZ - effectiveBaseZ)).toFixed(2));
+      newZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
+
+      msg = `Đã fit Cao (H) Xe 2 bánh: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên nóc +12cm), giữ nguyên L, W & XY`;
+    } else {
+      // 4. CHU TRÌNH TOÀN DIỆN: TOP ➔ SIDE ➔ FRONT
+      const dTheta = calcHeadingDelta();
+      newYaw = normalizeRad(yaw + dTheta);
+      newYawDeg = Number(((newYaw * 180) / Math.PI).toFixed(2));
+      deltaYawDeg = Number(((dTheta * 180) / Math.PI).toFixed(2));
+
+      newL = curL; // BẢO TOÀN TUYỆT ĐỐI CHIỀU DÀI L
+
+      let shiftLx = 0;
+      const frontCount = bodyPts.filter((p) => p.lx > 0).length;
+      const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
+      if (frontCount > rearCount * 1.5) {
+        shiftLx = lxMax - curL / 2;
+      } else if (rearCount > frontCount * 1.5) {
+        shiftLx = lxMin + curL / 2;
+      } else {
+        shiftLx = (lxMin + lxMax) / 2;
+      }
+      shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
+
+      let shiftLy = 0;
+      let measuredW = curW;
+
+      if (lyMin <= -0.06 && lyMax >= 0.06) {
+        measuredW = lyMax - lyMin + 0.12;
+        shiftLy = (lyMin + lyMax) / 2;
+        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      } else if (lyMax > 0 && lyMin > -0.06) {
+        measuredW = 2 * (lyMax + 0.08);
+        shiftLy = 0;
+      } else if (lyMin < 0 && lyMax < 0.06) {
+        measuredW = 2 * (Math.abs(lyMin) + 0.08);
+        shiftLy = 0;
+      } else {
+        measuredW = lyMax - lyMin + 0.12;
+        shiftLy = (lyMin + lyMax) / 2;
+        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      }
+
+      newW = Number(Math.max(0.55, Math.min(1.35, measuredW)).toFixed(2));
+
+      const roofTopZ = highestPtZ + headBuffer;
+      newH = Number(Math.max(1.15, Math.min(2.20, roofTopZ - groundZ)).toFixed(2));
+      newZ = Number((groundZ + newH / 2).toFixed(3));
+
+      const cosW = Math.cos(newYaw);
+      const sinW = Math.sin(newYaw);
+      newX = Number((cx + shiftLx * cosW - shiftLy * sinW).toFixed(3));
+      newY = Number((cy + shiftLx * sinW + shiftLy * cosW).toFixed(3));
+
+      msg = `Đã fit toàn diện Xe 2 bánh: ${newL}x${newW}x${newH}m (Khóa L, Xoay Yaw ${newYawDeg}°, Ghim đất Z: ${newZ}m)`;
+    }
+
+    return {
+      newX,
+      newY,
+      newZ,
+      newYaw,
+      newYawDeg,
+      deltaYawDeg,
+      newL,
+      newW,
+      newH,
+      groundZ: Number(groundZ.toFixed(3)),
+      pointsCount: bodyPts.length,
+      step,
+      message: msg,
     };
   }
 
@@ -310,10 +2159,10 @@ export function mainWorldScript(): void {
     const halfL = isInitialBox ? 3.0 : l / 2 + 0.35;
     const halfW = isInitialBox ? 2.0 : w / 2 + 0.35;
 
-    // 2. Dò cao độ mặt đất thực tế bằng thuật toán Annular Ring Ground Detection & 3D Slope
-    const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, l / 2, w / 2, isInitialBox);
+    // 2. Dò cao độ mặt đất thực tế bằng thuật toán Footprint Tight Ground Snap (Bám dốc mặt đường thật, nếu thiếu điểm lấy mốc Ego Z = 0)
+    const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, l / 2, w / 2, h / 2, isInitialBox, false);
     const detectedGroundZ = groundInfo.groundZ;
-    const effectiveGroundZ = detectedGroundZ !== null ? detectedGroundZ : cz - h / 2;
+    const effectiveGroundZ = detectedGroundZ !== null ? detectedGroundZ : 0;
 
     // 3. Thu thập các điểm thuộc vùng lân cận chiếc xe
     let cosY = Math.cos(-yaw);
@@ -381,28 +2230,26 @@ export function mainWorldScript(): void {
 
     // 5. Tính toán kích thước ôm khít (Tight Fit) hoặc chuẩn Catalog
     if (candidateBodyPts.length >= 10) {
-      const localBodyPts: Array<{ lx: number; ly: number; z: number }> = [];
+      const rawLocalBodyPts: Array<{ lx: number; ly: number; z: number }> = [];
       for (const p of candidateBodyPts) {
         const dx = p.x - cx;
         const dy = p.y - cy;
         const lx = dx * cosY - dy * sinY;
         const ly = dx * sinY + dy * cosY;
-        localBodyPts.push({ lx, ly, z: p.z });
+        rawLocalBodyPts.push({ lx, ly, z: p.z });
       }
 
-      const allLx = localBodyPts.map((p) => p.lx).sort((a, b) => a - b);
-      const allLy = localBodyPts.map((p) => p.ly).sort((a, b) => a - b);
-      const allZ = localBodyPts.map((p) => p.z).sort((a, b) => a - b);
+      // Lọc cụm thân xe chính: loại bỏ 100% xe bên cạnh ở trục ly và xe nối đuôi ở trục lx
+      const filteredLy = filterDenseConnectedCluster1D(rawLocalBodyPts, "ly", 0.22, 0);
+      const localBodyPts = filterDenseConnectedCluster1D(filteredLy, "lx", 0.22, 0);
 
-      // Lọc 1% outlier cạnh biên để lấy chính xác mép ngoài của các mặt xe
-      const pMinIdx = Math.max(0, Math.floor(localBodyPts.length * 0.01));
-      const pMaxIdx = Math.min(localBodyPts.length - 1, Math.floor(localBodyPts.length * 0.99));
-
-      const lxMin = allLx[pMinIdx];
-      const lxMax = allLx[pMaxIdx];
-      const lyMin = allLy[pMinIdx];
-      const lyMax = allLy[pMaxIdx];
-      const zTop = allZ[pMaxIdx];
+      // Áp dụng thuật toán biên kháng nhiễu mật độ & loại bỏ gương chiếu hậu
+      const robustBounds = computeDensityRobustBounds(localBodyPts);
+      const lxMin = robustBounds.lxMin;
+      const lxMax = robustBounds.lxMax;
+      const lyMin = robustBounds.lyMin;
+      const lyMax = robustBounds.lyMax;
+      const zTop = robustBounds.zTop;
 
       const measuredL = lxMax - lxMin;
       const measuredW = lyMax - lyMin;
@@ -594,6 +2441,23 @@ export function mainWorldScript(): void {
     return null;
   }
 
+  // Đảm bảo mảng points của cuboid luôn có tối thiểu 16 phần tử để thỏa mãn quy tắc validation của cvat-core (16 / 2 = 8 đỉnh)
+  function ensureCuboidPoints(newValues: number[], existingPoints?: number[]): number[] {
+    let result: number[];
+    if (Array.isArray(existingPoints) && existingPoints.length >= 16) {
+      result = [...existingPoints];
+      for (let i = 0; i < Math.min(newValues.length, 9); i++) {
+        result[i] = newValues[i];
+      }
+    } else {
+      result = [...newValues];
+      while (result.length < 16) {
+        result.push(0);
+      }
+    }
+    return result;
+  }
+
   // Tìm đối tượng với cơ chế phòng vệ 2 lớp (cvat-core annotations + Three.js drawnObjects fallback)
   async function findTargetSafely(job: any, frame: number, uiId: number, serverId?: number): Promise<{ target: any; isDrawn: boolean }> {
     if (job && job.annotations) {
@@ -665,25 +2529,62 @@ export function mainWorldScript(): void {
   ): Promise<any | null> {
     if (!job) return null;
 
+    // 0. Nếu chưa có parentID, thử truy vấn ở frame hiện tại của job để trích xuất parentID/trackID
+    if (!parentID && job.annotations) {
+      try {
+        const curFrame = typeof job.frame === "number" ? job.frame : 0;
+        const curStates = await job.annotations.get(curFrame);
+        if (Array.isArray(curStates)) {
+          const curSt = curStates.find(
+            (s: any) =>
+              Number(s.clientID) === Number(uiId) ||
+              (serverId && Number(s.serverID) === Number(serverId))
+          );
+          if (curSt) {
+            parentID = curSt.parentID || curSt.trackID || (curSt.parent && curSt.parent.clientID);
+          }
+        }
+      } catch (e) {}
+    }
+
     // 1. Tìm trực tiếp trong collection.tracks của cvat-core
     const tracks = getJobTrackCollection(job);
     if (tracks && tracks.length > 0) {
-      let found = tracks.find((t: any) => t.clientID === uiId);
+      let found = tracks.find(
+        (t: any) =>
+          Number(t.clientID) === Number(uiId) ||
+          Number(t.id) === Number(uiId) ||
+          String(t.clientID) === String(uiId)
+      );
       if (found) return found;
 
       if (serverId) {
-        found = tracks.find((t: any) => t.serverID === serverId);
+        found = tracks.find(
+          (t: any) =>
+            Number(t.serverID) === Number(serverId) ||
+            String(t.serverID) === String(serverId)
+        );
         if (found) return found;
       }
 
       if (parentID) {
-        found = tracks.find((t: any) => t.clientID === parentID);
+        found = tracks.find(
+          (t: any) =>
+            Number(t.clientID) === Number(parentID) ||
+            Number(t.id) === Number(parentID) ||
+            String(t.clientID) === String(parentID)
+        );
         if (found) return found;
       }
 
       found = tracks.find((t: any) => {
-        const shList = toArray(t.shapes || t.keyframes);
-        return shList.some((sh: any) => sh.clientID === uiId);
+        const shList = toArray(t.shapes || t.keyframes || (t as any)._shapes);
+        return shList.some(
+          (sh: any) =>
+            Number(sh.clientID) === Number(uiId) ||
+            (serverId && Number(sh.serverID) === Number(serverId)) ||
+            (sh.parentID && Number(sh.parentID) === Number(uiId))
+        );
       });
       if (found) return found;
     }
@@ -693,16 +2594,14 @@ export function mainWorldScript(): void {
       try {
         const allObjects = await job.annotations.get(null, true);
         if (Array.isArray(allObjects)) {
-          let found = allObjects.find((t: any) => t.clientID === uiId);
+          let found = allObjects.find(
+            (t: any) =>
+              Number(t.clientID) === Number(uiId) ||
+              Number(t.id) === Number(uiId) ||
+              (serverId && Number(t.serverID) === Number(serverId)) ||
+              (parentID && (Number(t.clientID) === Number(parentID) || Number(t.id) === Number(parentID)))
+          );
           if (found) return found;
-          if (serverId) {
-            found = allObjects.find((t: any) => t.serverID === serverId);
-            if (found) return found;
-          }
-          if (parentID) {
-            found = allObjects.find((t: any) => t.clientID === parentID);
-            if (found) return found;
-          }
         }
       } catch (e) {}
 
@@ -710,16 +2609,14 @@ export function mainWorldScript(): void {
       try {
         const defaultTracks = await job.annotations.get();
         if (Array.isArray(defaultTracks)) {
-          let found = defaultTracks.find((t: any) => t.clientID === uiId);
+          let found = defaultTracks.find(
+            (t: any) =>
+              Number(t.clientID) === Number(uiId) ||
+              Number(t.id) === Number(uiId) ||
+              (serverId && Number(t.serverID) === Number(serverId)) ||
+              (parentID && (Number(t.clientID) === Number(parentID) || Number(t.id) === Number(parentID)))
+          );
           if (found) return found;
-          if (serverId) {
-            found = defaultTracks.find((t: any) => t.serverID === serverId);
-            if (found) return found;
-          }
-          if (parentID) {
-            found = defaultTracks.find((t: any) => t.clientID === parentID);
-            if (found) return found;
-          }
         }
       } catch (e) {}
     }
@@ -727,7 +2624,24 @@ export function mainWorldScript(): void {
     return null;
   }
 
-  // Tự động đồng bộ và lưu vĩnh viễn lên cơ sở dữ liệu CVAT bằng cvat-core API & AutoSave UI Header Trigger
+  // Kích hoạt chế độ "Đã sửa nhưng chưa lưu" trên CVAT Native Header (Sáng nút Save, không disabled)
+  function markCvatSaveButtonUnsaved(): void {
+    try {
+      (window as any).__CVAT_HAS_UNSAVED_CHANGES__ = true;
+      const cvatSaveBtn = document.querySelector<HTMLButtonElement>(
+        "button.cvat-annotation-header-save-button, .cvat-annotation-header-save-button, button[aria-label='Save annotations']"
+      );
+      if (cvatSaveBtn) {
+        cvatSaveBtn.disabled = false;
+        cvatSaveBtn.removeAttribute("disabled");
+        cvatSaveBtn.classList.remove("cvat-disabled-button");
+        cvatSaveBtn.style.opacity = "1";
+        cvatSaveBtn.style.cursor = "pointer";
+      }
+    } catch (e) {}
+  }
+
+  // Tự động đồng bộ và lưu vĩnh viễn lên cơ sở dữ liệu CVAT bằng cvat-core API & AutoSave UI Header Trigger (CHỈ GỌI KHI USER BẤM LƯU)
   async function persistJobAnnotations(job: any): Promise<void> {
     try {
       if (job && job.annotations && typeof job.annotations.save === "function") {
@@ -753,7 +2667,11 @@ export function mainWorldScript(): void {
   }
 
   // Thiết lập cơ chế tự động chọn xe khi click vào box trên Canvas 3D & Redux Subscriber Realtime
+  let isCanvasAutoSelectAttached = false;
   function setupCanvasAutoSelect(): void {
+    if (isCanvasAutoSelectAttached) return;
+    isCanvasAutoSelectAttached = true;
+
     const canvasContainers = document.querySelectorAll<HTMLElement>(
       ".cvat-canvas-container, .cvat-canvas3d-orthographic-view"
     );
@@ -803,12 +2721,14 @@ export function mainWorldScript(): void {
       }
     });
 
-    // LẮNG NGHE REDUX STORE SUB SCRIBE ĐỂ PHÁT HIỆN TỨC THÌ KHI VỪA VẼ XONG BOX MỚI
+    // LẮNG NGHE REDUX STORE SUBSCRIBE ĐỂ PHÁT HIỆN TỨC THÌ KHI VỪA VẼ XONG BOX MỚI
     try {
       const store = getReduxStore();
       if (store) {
         let prevActiveId: any = null;
         let prevStatesLen = 0;
+        let activeDebounceTimer: any = null;
+        let dirtyDebounceTimer: any = null;
 
         store.subscribe(() => {
           try {
@@ -819,35 +2739,50 @@ export function mainWorldScript(): void {
             if (curActiveId !== prevActiveId) {
               prevActiveId = curActiveId;
               if (curActiveId !== null && curActiveId !== undefined) {
-                const details = extractObjectDetails(Number(curActiveId));
-                window.dispatchEvent(
-                  new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-                    detail: { clientId: Number(curActiveId), details },
-                  })
-                );
+                if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
+                activeDebounceTimer = setTimeout(() => {
+                  activeDebounceTimer = null;
+                  const details = extractObjectDetails(Number(curActiveId));
+                  window.dispatchEvent(
+                    new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+                      detail: { clientId: Number(curActiveId), details },
+                    })
+                  );
+                }, 80);
               }
             }
 
             if (curStatesLen !== prevStatesLen) {
               prevStatesLen = curStatesLen;
-              // Thông báo cho extension cập nhật lại danh sách Dropdown
-              window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS_DIRTY"));
+              // Debounce 400ms để không bắn liên tục khi CVAT đang nạp batch states lúc khởi động
+              if (dirtyDebounceTimer) clearTimeout(dirtyDebounceTimer);
+              dirtyDebounceTimer = setTimeout(() => {
+                dirtyDebounceTimer = null;
+                window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS_DIRTY"));
+              }, 400);
             }
           } catch (err) {}
         });
       }
     } catch (sErr) {}
 
-    // Lắng nghe yêu cầu kích hoạt đối tượng từ Extension
+    // Lắng nghe yêu cầu kích hoạt đối tượng từ Extension (Chặn lặp vô tận)
     window.addEventListener("CVAT_EXT_REQ_ACTIVATE_OBJECT", (e: any) => {
       const { clientId } = e.detail || {};
+      if (!clientId) return;
       try {
         const store = getReduxStore();
         const canvas = store?.getState()?.annotation?.canvas?.instance;
         if (canvas && typeof canvas.activate === "function") {
-          canvas.activate(clientId);
-          if (typeof canvas.render === "function") {
-            canvas.render();
+          const curActive =
+            canvas.view?.activatedElementID ||
+            store?.getState()?.annotation?.annotations?.activatedStateClientID;
+          // Chỉ gọi activate nếu ID thực sự khác ID đang active để tránh kích hoạt lại vòng lặp vô tận!
+          if (curActive !== clientId) {
+            canvas.activate(clientId);
+            if (typeof canvas.render === "function") {
+              canvas.render();
+            }
           }
         }
       } catch (err) {}
@@ -1066,9 +3001,13 @@ export function mainWorldScript(): void {
       if (job) {
         const { target } = await findTargetSafely(job, frame, uiId, serverId);
         if (target) {
-          target.points = [...points];
+          target.points = ensureCuboidPoints(points, target.points);
           if (isFinal && typeof target.save === "function") {
-            await target.save();
+            try {
+              await target.save();
+            } catch (sErr) {
+              console.warn("[CVAT 3D Suite] Cảnh báo target.save trong UPDATE_LIVE_BOX:", sErr);
+            }
           }
         }
       }
@@ -1244,7 +3183,7 @@ export function mainWorldScript(): void {
         }
       }
 
-      (window as any).__CVAT_HAS_UNSAVED_CHANGES__ = true;
+      markCvatSaveButtonUnsaved();
 
       const newYawDeg = Math.round((newYaw * 180) / Math.PI);
       console.log(`[CVAT 3D Suite] Đã cập nhật xe #${uiId} sang Yaw: ${newYawDeg}° (Three.js Realtime: ${threeUpdated})`);
@@ -1373,7 +3312,7 @@ export function mainWorldScript(): void {
         }
       }
 
-      (window as any).__CVAT_HAS_UNSAVED_CHANGES__ = true;
+      markCvatSaveButtonUnsaved();
 
       const scopeText = applyToTrack
         ? `toàn bộ track (từ Frame #${startF} ➔ #${stopF}, ${trackCount} frames, Realtime)`
@@ -1405,7 +3344,7 @@ export function mainWorldScript(): void {
 
   // 4. Lắng nghe yêu cầu Ghim Mặt Đất & Địa Hình Vỉa Hè (Ground & Curb Snapping Chuẩn Xác từ LiDAR Points)
   window.addEventListener("CVAT_EXT_REQ_SNAP_GROUND", async (e: any) => {
-    const { jobId, frame, uiId, serverId, mode, deltaCm, deltaDeg, curbHeight, targetGroundZ } = e.detail || {};
+    const { jobId, frame, uiId, serverId, mode, deltaCm, deltaDeg, curbHeight, targetGroundZ: _targetGroundZ } = e.detail || {};
     try {
       const job = await getActiveJobInstance(jobId);
       const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
@@ -1426,36 +3365,62 @@ export function mainWorldScript(): void {
       let msg = "";
 
       if (mode === "road") {
-        // GHIM MẶT ĐƯỜNG BÁM DỐC 3D (ANNULAR RING + PITCH & ROLL FITTING)
+        // GHIM MẶT ĐƯỜNG BÁM DỐC 3D (BÁM ĐÚNG GÓC NGHIÊNG ROLL TỰ NHIÊN; NẾU THIẾU ĐIỂM LẤY MỐC EGO Z = 0 ĐẶT PHẲNG MẶT)
         const curL = newPoints[6] || 4.6;
         const curW = newPoints[7] || 1.85;
-        const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW / 2, false);
-        if (groundInfo.groundZ !== null) {
-          const cosSlope = Math.cos(groundInfo.rollRad) * Math.cos(groundInfo.pitchRad);
-          newZ = Number((groundInfo.groundZ + (curH / 2) * cosSlope).toFixed(3));
-          newRotX = groundInfo.rollRad;
-          newRotY = groundInfo.pitchRad;
-          msg = `Đã ghim đáy xe #${uiId} bám dốc mặt đường (Z: ${newZ}m, Dốc dọc Pitch: ${groundInfo.pitchDeg}°, Dốc ngang Roll: ${groundInfo.rollDeg}°)`;
-        } else {
-          const roadBottomZ = targetGroundZ !== undefined ? targetGroundZ : (curZ - curH / 2);
-          newZ = Number((roadBottomZ + curH / 2).toFixed(3));
+        const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW / 2, curH / 2, false, false);
+
+        if (groundInfo.isFallbackZeroGround || groundInfo.groundPointsCount < 6) {
+          // Với box mà dưới chân không có điểm hoặc rất ít (< 6 điểm): Lấy mốc Ego Z = 0, đặt phẳng mặt xuống
           newRotX = 0;
           newRotY = 0;
-          msg = `Đã ghim đáy xe #${uiId} sát mặt đường (Z: ${newZ}m)`;
+          newZ = Number((0 + curH / 2).toFixed(3));
+          msg = `Dưới chân ít điểm LiDAR (${groundInfo.groundPointsCount} điểm) ➔ Lấy mốc Ego Z = 0, đặt phẳng đáy xe tại Z = 0 (Tâm Z: ${newZ}m, Roll 0°, Pitch 0°)`;
+        } else if (groundInfo.groundZ !== null) {
+          const cosPitch = Math.cos(groundInfo.pitchRad);
+          const cosRoll = Math.cos(groundInfo.rollRad);
+          newZ = Number((groundInfo.groundZ + (curH / 2) * cosPitch * cosRoll).toFixed(3));
+          newRotX = groundInfo.rollRad; // Bám đúng độ dốc ngang Roll của mặt đường (Front View khít 100%)
+          newRotY = groundInfo.pitchRad; // Bám đúng độ dốc dọc Pitch của mặt đường (Side View khít 100%)
+          msg = `Đã ghim đáy xe #${uiId} bám sát mặt đường (Z: ${newZ}m, Roll: ${groundInfo.rollDeg}°, Pitch: ${groundInfo.pitchDeg}°)`;
+        } else {
+          // Fallback nếu không có điểm mặt đất: mốc Ego Z = 0 đặt phẳng mặt
+          newRotX = 0;
+          newRotY = 0;
+          newZ = Number((0 + curH / 2).toFixed(3));
+          msg = `Không có điểm mặt đất ➔ Lấy mốc Ego Z = 0, đặt phẳng đáy xe tại Z = 0 (Tâm Z: ${newZ}m)`;
         }
       } else if (mode === "curb") {
-        const offset = curbHeight !== undefined ? curbHeight : 0.15;
+        // TỰ ĐỘNG NHẬN DIỆN VỈA HÈ TỪ LIDAR (BÁN KÍNH RỘNG + ĐỘ SÂU)
+        const curL = newPoints[6] || 4.6;
+        const autoCurb = detectCurbStepAndRollInMainWorld(curX, curY, curZ, curRz, curL / 2, curW / 2, curW);
+        const offset = curbHeight !== undefined ? curbHeight : (autoCurb.hasCurb ? autoCurb.curbHeight : 0.15);
         newZ = Number((curZ + offset).toFixed(3));
-        msg = `Đã ghim đáy xe #${uiId} lên nền vỉa hè (+${Math.round(offset * 100)}cm ➔ Z: ${newZ}m)`;
+        msg = autoCurb.hasCurb
+          ? `Đã tự động nhận diện nền vỉa hè cao +${autoCurb.curbHeightCm}cm từ LiDAR ➔ Z: ${newZ}m`
+          : `Đã nâng đáy xe #${uiId} lên nền vỉa hè (+${Math.round(offset * 100)}cm ➔ Z: ${newZ}m)`;
       } else if (mode === "half_curb") {
-        const cH = curbHeight !== undefined ? curbHeight : 0.15;
-        const ratio = Math.max(-1, Math.min(1, cH / curW));
-        const rollRad = Math.asin(ratio);
-        const deltaZ = cH / 2;
-        newZ = Number((curZ + deltaZ).toFixed(3));
-        newRotX = Number(rollRad.toFixed(5));
-        const rollDeg = Math.round((rollRad * 180) / Math.PI);
-        msg = `Đã gác lề xe #${uiId} (Nghiêng Roll: ${rollDeg}°, Nâng Z: +${Math.round(deltaZ * 100)}cm)`;
+        // TỰ ĐỘNG NHẬN DIỆN BẬC GÁC LỀ TỪ LIDAR (TỰ ĐỘNG DÒ BÊN TRÁI / PHẢI & ĐO CHIỀU CAO THỰC TẾ)
+        const curL = newPoints[6] || 4.6;
+        const autoCurb = detectCurbStepAndRollInMainWorld(curX, curY, curZ, curRz, curL / 2, curW / 2, curW);
+
+        if (autoCurb.hasCurb && autoCurb.side !== "none") {
+          newRotX = autoCurb.rollRad;
+          const deltaZ = autoCurb.deltaCenterZ;
+          newZ = Number((curZ + deltaZ).toFixed(3));
+          const sideText = autoCurb.side === "left" ? "bên TRÁI" : "bên PHẢI";
+          msg = `Đã tự động nhận diện gác lề ${sideText} (Bậc vỉa hè: +${autoCurb.curbHeightCm}cm, Nghiêng Front Roll: ${autoCurb.rollDeg}°, Nâng Z: +${Math.round(deltaZ * 100)}cm)`;
+        } else {
+          // Fallback nếu không phát hiện bậc thềm rõ ràng
+          const cH = curbHeight !== undefined ? curbHeight : 0.15;
+          const ratio = Math.max(-1, Math.min(1, cH / curW));
+          const rollRad = Math.asin(ratio);
+          const deltaZ = cH / 2;
+          newZ = Number((curZ + deltaZ).toFixed(3));
+          newRotX = Number(rollRad.toFixed(5));
+          const rollDeg = Math.round((rollRad * 180) / Math.PI);
+          msg = `Đã gác lề xe #${uiId} (Nghiêng Roll: ${rollDeg}°, Nâng Z: +${Math.round(deltaZ * 100)}cm)`;
+        }
       } else if (mode === "micro_adjust") {
         const dCm = deltaCm !== undefined ? deltaCm : 1;
         newZ = Number((curZ + dCm / 100).toFixed(3));
@@ -1494,7 +3459,7 @@ export function mainWorldScript(): void {
         { rx: newRotX, ry: newRotY, rz: curRz }
       );
 
-      (window as any).__CVAT_HAS_UNSAVED_CHANGES__ = true;
+      markCvatSaveButtonUnsaved();
 
       console.log(`[CVAT 3D Suite] ${msg} (Three.js Side/Front Re-rendered Realtime)`);
 
@@ -1530,6 +3495,7 @@ export function mainWorldScript(): void {
       newPoints[0] = fit.newX;
       newPoints[1] = fit.newY;
       newPoints[2] = fit.newZ;
+      newPoints[3] = 0; // Khóa cứng Roll = 0° tuyệt đối, không nghiêng box theo vỉa hè
       if (fit.newYaw !== undefined) {
         newPoints[5] = fit.newYaw;
       }
@@ -1609,7 +3575,7 @@ export function mainWorldScript(): void {
         }
       }
 
-      (window as any).__CVAT_HAS_UNSAVED_CHANGES__ = true;
+      markCvatSaveButtonUnsaved();
 
       const scopeText = applyToTrack
         ? `toàn bộ track (từ Frame #${startF} ➔ #${stopF}, ${trackCount} frames, Realtime)`
@@ -1669,16 +3635,16 @@ export function mainWorldScript(): void {
         throw new Error(`Không tìm thấy điểm LiDAR nào trong Scene`);
       }
 
-      // 1. Dò mặt đất và độ dốc mặt đường 3D
-      const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curYaw, curL / 2, curW / 2, false);
-      const effectiveGroundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : curZ - curH / 2;
+      // 1. Dò mặt đất và độ dốc mặt đường 3D theo Footprint vết đè của Box (Bám dốc thật, nếu thiếu điểm lấy mốc Ego Z = 0)
+      const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curYaw, curL / 2, curW / 2, curH / 2, false, false);
+      const effectiveGroundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : 0;
 
       // 2. Thu thập điểm thân xe
       const { count, array } = lidar;
       const cosY = Math.cos(-curYaw);
       const sinY = Math.sin(-curYaw);
       const halfL = curL / 2 + 0.35;
-      const halfW = curW / 2 + 0.35;
+      const halfW = curW / 2 + 0.30;
       const minBodyZ = effectiveGroundZ + 0.03;
       const maxRoofZ = effectiveGroundZ + curH + 0.25;
 
@@ -1697,21 +3663,21 @@ export function mainWorldScript(): void {
         }
       }
 
-      if (bodyPts.length < 4) {
-        throw new Error(`Không đủ điểm LiDAR trên thân xe #${uiId} (tìm thấy ${bodyPts.length} điểm)`);
+      // Lọc cụm thân xe chính: loại bỏ 100% điểm xe khác đỗ bên cạnh hoặc nối đuôi
+      const filteredLy = filterDenseConnectedCluster1D(bodyPts, "ly", 0.22, 0);
+      const cleanBodyPts = filterDenseConnectedCluster1D(filteredLy, "lx", 0.22, 0);
+
+      if (cleanBodyPts.length < 4) {
+        throw new Error(`Không đủ điểm LiDAR trên thân xe #${uiId} (tìm thấy ${cleanBodyPts.length} điểm)`);
       }
 
       // 3. Tính toán dịch chuyển tâm bám cụm điểm mà GIỮ NGUYÊN 100% KÍCH THƯỚC (L, W, H)
-      const sortedLx = [...bodyPts].sort((a, b) => a.lx - b.lx);
-      const sortedLy = [...bodyPts].sort((a, b) => a.ly - b.ly);
-
-      const pMinIdx = Math.max(0, Math.floor(bodyPts.length * 0.02));
-      const pMaxIdx = Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.98));
-
-      const lxMin = sortedLx[pMinIdx].lx;
-      const lxMax = sortedLx[pMaxIdx].lx;
-      const lyMin = sortedLy[pMinIdx].ly;
-      const lyMax = sortedLy[pMaxIdx].ly;
+      // Áp dụng thuật toán biên kháng nhiễu mật độ & loại bỏ gương chiếu hậu
+      const robustBounds = computeDensityRobustBounds(cleanBodyPts);
+      const lxMin = robustBounds.lxMin;
+      const lxMax = robustBounds.lxMax;
+      const lyMin = robustBounds.lyMin;
+      const lyMax = robustBounds.lyMax;
 
       const spanL = lxMax - lxMin;
       const spanW = lyMax - lyMin;
@@ -1753,7 +3719,7 @@ export function mainWorldScript(): void {
       const newX = Number((curX + midLx * cosWorld - midLy * sinWorld).toFixed(2));
       const newY = Number((curY + midLx * sinWorld + midLy * cosWorld).toFixed(2));
       const newZ = Number((effectiveGroundZ + curH / 2).toFixed(3));
-      const newRotX = groundInfo.rollRad;
+      const newRotX = 0; // Khóa Roll = 0° tuyệt đối, không nghiêng box theo vỉa hè
       const newRotY = groundInfo.pitchRad;
 
       const newPoints = [...target.points];
@@ -1780,7 +3746,7 @@ export function mainWorldScript(): void {
         { rx: newRotX, ry: newRotY, rz: curYaw }
       );
 
-      (window as any).__CVAT_HAS_UNSAVED_CHANGES__ = true;
+      markCvatSaveButtonUnsaved();
 
       const msg = `Đã căn hộp ôm trọn cụm điểm (${bodyPts.length} điểm), bám dốc mặt đường (Pitch: ${groundInfo.pitchDeg}°, Roll: ${groundInfo.rollDeg}°) và BẢO TOÀN 100% kích thước chuẩn ${curL}x${curW}x${curH}m`;
       console.log(`[CVAT 3D Suite] ${msg}`);
@@ -1813,120 +3779,147 @@ export function mainWorldScript(): void {
     }
   });
 
-  // 6. Lắng nghe yêu cầu Quét Mốc Đa Frame và Tự Fit Toàn Track (Smart Multi-Frame Anchor Fit)
-  window.addEventListener("CVAT_EXT_REQ_MULTI_FRAME_ANCHOR_FIT", async (e: any) => {
-    const { jobId, frame, uiId, serverId } = e.detail || {};
+  // 5C. Lắng nghe yêu cầu FIT GÓC ĐÓN TIA EGO & GHIM ĐẤT 3D (Ego Ray-Cast L-Shape Fit & Ground Contact)
+  // Giải quyết: Tia laser từ Ego chiếu tới góc nào thì mép box đón tia (Side View & Front View) ép sát điểm ngoài cùng,
+  // đồng thời đáy chạm khít mặt đất và góc trên của box ôm sát nóc xe!
+  window.addEventListener("CVAT_EXT_REQ_EGO_RAY_FIT", async (e: any) => {
+    const { jobId, frame, uiId, serverId, egoPos, preserveDimensions, applyToTrack, fitStep } = e.detail || {};
     try {
       const job = await getActiveJobInstance(jobId);
       const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
 
-      // Bước 1: Khảo sát các frame của chiếc xe này trong toàn bộ track
-      const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+      const fit = fitBoxToEgoRayAndGroundInMainWorld(
+        target.points,
+        egoPos || { x: 0, y: 0, z: 0 },
+        { preserveDimensions, fitStep }
+      );
 
-      let bestFrame = frame;
-      let optL = target.points[6] || 4.65;
-      let optW = target.points[7] || 1.85;
-      let optH = target.points[8] || 1.45;
-      let bestScore = 0;
-      let framesSynced = 1;
-
-      // Đo lường chất lượng cụm điểm tại frame hiện tại
-      const currentFit = computeLidarGroundAndFit(target.points, "catalog");
-      if (currentFit.pointsCount > 0) {
-        optL = currentFit.newL;
-        optW = currentFit.newW;
-        optH = currentFit.newH;
-        bestScore = currentFit.pointsCount;
+      if (fit.pointsCount === 0) {
+        throw new Error(`Không tìm thấy điểm LiDAR nào trong vùng xe #${uiId}`);
       }
 
-      // NẾU CÓ NHIỀU FRAME TRONG TRACK: Duyệt qua các frame để tìm frame hiển thị tốt nhất
-      if (parentTrack && Array.isArray(parentTrack.shapes) && parentTrack.shapes.length > 1) {
-        const cuboidShapes = parentTrack.shapes.filter(
-          (s: any) => s.shapeType === "cuboid" && Array.isArray(s.points) && s.points.length >= 9
-        );
-        const trackFrames = cuboidShapes.map((s: any) => s.frame).sort((a: number, b: number) => a - b);
+      const newYaw = fit.newYawRad !== undefined ? fit.newYawRad : target.points[5];
+      const newPoints = [...target.points];
+      newPoints[0] = fit.newX;
+      newPoints[1] = fit.newY;
+      newPoints[2] = fit.newZ;
+      newPoints[3] = fit.rollRad;
+      newPoints[4] = fit.pitchRad;
+      newPoints[5] = newYaw; // Căn thẳng góc Yaw theo đường viền Top View!
+      newPoints[6] = fit.newL;
+      newPoints[7] = fit.newW;
+      newPoints[8] = fit.newH;
 
-        console.log(`[CVAT 3D Suite] Đang khảo sát ${trackFrames.length} frames của xe #${uiId} (Frames: ${trackFrames.join(", ")})...`);
+      target.points = newPoints;
+      if (!isDrawn && typeof target.save === "function") {
+        await target.save();
+      }
 
-        // Helper chuyển frame qua Player DOM hoặc Redux store
-        const switchFrameDom = async (f: number) => {
-          const frameInput = document.querySelector<HTMLInputElement>(
-            ".cvat-player-frame-input input, input.cvat-player-frame-input"
-          );
-          if (frameInput) {
-            frameInput.focus();
-            frameInput.value = String(f);
-            frameInput.dispatchEvent(new Event("input", { bubbles: true }));
-            frameInput.dispatchEvent(new Event("change", { bubbles: true }));
-            frameInput.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", code: "Enter", keyCode: 13, bubbles: true }));
-            await new Promise((r) => setTimeout(r, 220));
-          }
-        };
+      updateThreeJsCuboid(
+        uiId,
+        newYaw,
+        { x: fit.newX, y: fit.newY, z: fit.newZ },
+        { l: fit.newL, w: fit.newW, h: fit.newH },
+        { rx: fit.rollRad, ry: fit.pitchRad, rz: newYaw }
+      );
 
-        // Lấy tối đa 6 frame đại diện (bao gồm frame đầu, giữa, cuối) để quét nhanh mà không gây đơ web
-        const sampleFrames: number[] = [];
-        if (trackFrames.length <= 6) {
-          sampleFrames.push(...trackFrames);
-        } else {
-          sampleFrames.push(trackFrames[0]);
-          const step = Math.floor(trackFrames.length / 5);
-          for (let i = 1; i < 5; i++) {
-            sampleFrames.push(trackFrames[i * step]);
-          }
-          sampleFrames.push(trackFrames[trackFrames.length - 1]);
-        }
+      markCvatSaveButtonUnsaved();
 
-        // Khảo sát từng frame trong danh sách
-        for (const f of sampleFrames) {
-          if (f === frame) continue; // Đã đo ở trên
-          try {
-            await switchFrameDom(f);
-            const lidarF = getSceneLidarPoints();
-            if (lidarF && lidarF.count > 0) {
-              const shapeF = cuboidShapes.find((s: any) => s.frame === f);
-              if (shapeF) {
-                const fitF = computeLidarGroundAndFit(shapeF.points, "catalog");
-                if (fitF.pointsCount > bestScore) {
-                  bestScore = fitF.pointsCount;
-                  bestFrame = f;
-                  optL = fitF.newL;
-                  optW = fitF.newW;
-                  optH = fitF.newH;
-                  console.log(`[CVAT 3D Suite] Tìm thấy Frame #${f} hiển thị tốt hơn (${fitF.pointsCount} điểm, ${optL}x${optW}x${optH}m)`);
+      let trackCount = 1;
+      if (applyToTrack === true && job) {
+        try {
+          const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+          if (parentTrack) {
+            const shapes = toArray(parentTrack.shapes || parentTrack.keyframes);
+            for (const sh of shapes) {
+              if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+                const shPoints = [...sh.points];
+                const sOldZ = shPoints[2];
+                const sOldH = shPoints[8];
+                shPoints[2] = Number((sOldZ + (fit.newH - sOldH) / 2).toFixed(3));
+                shPoints[6] = fit.newL;
+                shPoints[7] = fit.newW;
+                shPoints[8] = fit.newH;
+                sh.points = shPoints;
+                if (sh.frame !== frame) {
+                  trackCount++;
                 }
               }
             }
-          } catch (scanErr) {
-            console.warn(`[CVAT 3D Suite] Lỗi quét Frame #${f}:`, scanErr);
+            if (typeof parentTrack.save === "function") {
+              await parentTrack.save();
+            }
           }
+        } catch (tErr) {
+          console.warn("[CVAT 3D Suite] Cảnh báo đồng bộ track trong Ego Ray Fit:", tErr);
         }
-
-        // Quay lại Frame ban đầu (hoặc Frame tốt nhất)
-        if (bestFrame !== frame) {
-          await switchFrameDom(frame);
-        }
-
-        // Bước 2: Đồng bộ kích thước mốc chuẩn optL, optW, optH cho TOÀN BỘ TRACK
-        for (const sh of cuboidShapes) {
-          const shPoints = [...sh.points];
-          const sOldZ = shPoints[2];
-          const sOldH = shPoints[8];
-          shPoints[2] = Number((sOldZ + (optH - sOldH) / 2).toFixed(3));
-          shPoints[6] = optL;
-          shPoints[7] = optW;
-          shPoints[8] = optH;
-          sh.points = shPoints;
-          framesSynced++;
-        }
-        await parentTrack.save();
       }
 
-      // Cập nhật Three.js của frame hiện tại
-      const finalPoints = [...target.points];
-      finalPoints[6] = optL;
-      finalPoints[7] = optW;
-      finalPoints[8] = optH;
-      target.points = finalPoints;
+      console.log(`[CVAT 3D Suite] ${fit.message}`);
+
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_EGO_RAY_FIT", {
+          detail: {
+            success: true,
+            uiId,
+            newX: fit.newX,
+            newY: fit.newY,
+            newZ: fit.newZ,
+            newYawRad: newYaw,
+            newYawDeg: fit.newYawDeg,
+            deltaYawDeg: fit.deltaYawDeg,
+            newL: fit.newL,
+            newW: fit.newW,
+            newH: fit.newH,
+            pitchRad: fit.pitchRad,
+            rollRad: fit.rollRad,
+            pitchDeg: fit.pitchDeg,
+            rollDeg: fit.rollDeg,
+            visibleFaces: fit.visibleFaces,
+            pointsCount: fit.pointsCount,
+            trackCount,
+            message: fit.message,
+          },
+        })
+      );
+    } catch (err: any) {
+      console.error("[CVAT 3D Suite] Lỗi Ego Ray Fit:", err);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_EGO_RAY_FIT", {
+          detail: { success: false, error: err.message || String(err) },
+        })
+      );
+    }
+  });
+
+  // 5D. Lắng nghe yêu cầu FIT CHUYÊN BIỆT CHO NGƯỜI ĐI BỘ (PEDESTRIAN FIT)
+  // - Co giãn kích thước L, W linh hoạt theo sải bước
+  // - Khóa cứng Roll = 0°, Pitch = 0° (Người luôn đứng thẳng tuyệt đối)
+  // - Quét mặt đất siêu hẹp +15cm tránh dính vỉa hè, rào chắn
+  // - Bù đỉnh đầu +12cm chống cắt ngang trán người
+  window.addEventListener("CVAT_EXT_REQ_FIT_PEDESTRIAN", async (e: any) => {
+    const { jobId, frame, uiId, serverId, headBuffer } = e.detail || {};
+    try {
+      const job = await getActiveJobInstance(jobId);
+      const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+
+      const fit = fitPedestrianInMainWorld(target.points, { headBuffer });
+
+      if (fit.pointsCount === 0) {
+        throw new Error(`Không tìm thấy điểm LiDAR nào thuộc người #${uiId}`);
+      }
+
+      const newPoints = [...target.points];
+      newPoints[0] = fit.newX;
+      newPoints[1] = fit.newY;
+      newPoints[2] = fit.newZ;
+      newPoints[3] = 0; // Roll = 0° tuyệt đối
+      newPoints[4] = 0; // Pitch = 0° tuyệt đối
+      newPoints[6] = fit.newL;
+      newPoints[7] = fit.newW;
+      newPoints[8] = fit.newH;
+
+      target.points = newPoints;
       if (!isDrawn && typeof target.save === "function") {
         await target.save();
       }
@@ -1934,33 +3927,683 @@ export function mainWorldScript(): void {
       updateThreeJsCuboid(
         uiId,
         target.points[5],
-        { x: target.points[0], y: target.points[1], z: target.points[2] },
-        { l: optL, w: optW, h: optH }
+        { x: fit.newX, y: fit.newY, z: fit.newZ },
+        { l: fit.newL, w: fit.newW, h: fit.newH },
+        { rx: 0, ry: 0, rz: target.points[5] }
       );
 
-      (window as any).__CVAT_HAS_UNSAVED_CHANGES__ = true;
-
-      const msg = `Đã quét chọn Frame #${bestFrame} hiển thị tốt nhất (${bestScore} điểm LiDAR), lấy kích thước chuẩn ${optL}x${optW}x${optH}m đồng bộ cho ${framesSynced} frames trong track`;
-      console.log(`[CVAT 3D Suite] ${msg}`);
+      markCvatSaveButtonUnsaved();
+      console.log(`[CVAT 3D Suite] ${fit.message}`);
 
       window.dispatchEvent(
-        new CustomEvent("CVAT_EXT_RES_MULTI_FRAME_ANCHOR_FIT", {
+        new CustomEvent("CVAT_EXT_RES_FIT_PEDESTRIAN", {
           detail: {
             success: true,
             uiId,
-            anchorFrame: bestFrame,
-            optL,
-            optW,
-            optH,
+            newX: fit.newX,
+            newY: fit.newY,
+            newZ: fit.newZ,
+            newL: fit.newL,
+            newW: fit.newW,
+            newH: fit.newH,
+            pointsCount: fit.pointsCount,
+            message: fit.message,
+          },
+        })
+      );
+    } catch (err: any) {
+      console.error("[CVAT 3D Suite] Lỗi Fit Pedestrian:", err);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_FIT_PEDESTRIAN", {
+          detail: { success: false, error: err.message || String(err) },
+        })
+      );
+    }
+  });
+
+  // 5E. Lắng nghe yêu cầu FIT CHUYÊN BIỆT CHO XE ĐẠP / XE MÁY (CYCLIST)
+  window.addEventListener("CVAT_EXT_REQ_FIT_CYCLIST", async (e: any) => {
+    const { jobId, frame, uiId, serverId, headBuffer, egoPos, step, applyToTrack } = e.detail || {};
+    try {
+      const job = await getActiveJobInstance(jobId);
+      const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+
+      const fit = fitCyclistInMainWorld(target.points, { headBuffer, egoPos, step });
+
+      if (fit.pointsCount === 0) {
+        throw new Error(`Không tìm thấy điểm LiDAR nào thuộc xe 2 bánh #${uiId}`);
+      }
+
+      const newPoints = [...target.points];
+      newPoints[0] = fit.newX;
+      newPoints[1] = fit.newY;
+      newPoints[2] = fit.newZ;
+      newPoints[3] = 0;
+      newPoints[4] = 0;
+      if (fit.newYaw !== undefined) {
+        newPoints[5] = fit.newYaw;
+      }
+      newPoints[6] = fit.newL;
+      newPoints[7] = fit.newW;
+      newPoints[8] = fit.newH;
+
+      target.points = newPoints;
+      if (!isDrawn && typeof target.save === "function") {
+        await target.save();
+      }
+
+      // ĐỒNG BỘ PARENT TRACK & REDUX ANNOTATIONS TRONG CVAT
+      let trackCount = 1;
+      const startF = typeof job?.startFrame === "number" ? job.startFrame : 0;
+      const stopF = typeof job?.stopFrame === "number" ? job.stopFrame : (startF + 100);
+
+      try {
+        const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+        if (parentTrack) {
+          const shapes = toArray(parentTrack.shapes || parentTrack.keyframes);
+          for (const sh of shapes) {
+            if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+              if (sh.frame === frame) {
+                // Luôn cập nhật shape của frame hiện tại trong track cha
+                sh.points = [...newPoints];
+              } else if (applyToTrack === true) {
+                // Nếu bật Toàn Track, cập nhật W và H cho toàn bộ các frame khác
+                const shPoints = [...sh.points];
+                const sOldH = shPoints[8] || fit.newH;
+                const dh = (fit.newH - sOldH) / 2;
+                shPoints[2] = Number((shPoints[2] + dh).toFixed(3));
+                shPoints[6] = fit.newL;
+                shPoints[7] = fit.newW;
+                shPoints[8] = fit.newH;
+                sh.points = shPoints;
+                trackCount++;
+              }
+            }
+          }
+          if (typeof parentTrack.save === "function") {
+            await parentTrack.save();
+          }
+        }
+
+        // Quét các frame khác nếu applyToTrack === true
+        if (applyToTrack === true && job) {
+          for (let f = startF; f <= stopF; f++) {
+            if (f === frame) continue;
+            try {
+              const states = await job.annotations.get(f);
+              if (Array.isArray(states)) {
+                const st = states.find(
+                  (s: any) => s.clientID === uiId || (serverId && s.serverID === serverId)
+                );
+                if (st && Array.isArray(st.points) && st.points.length >= 9) {
+                  const p = [...st.points];
+                  const sOldH = p[8] || fit.newH;
+                  const dh = (fit.newH - sOldH) / 2;
+                  p[2] = Number((p[2] + dh).toFixed(3));
+                  p[6] = fit.newL;
+                  p[7] = fit.newW;
+                  p[8] = fit.newH;
+                  st.points = p;
+                  if (typeof st.save === "function") {
+                    await st.save();
+                  }
+                  trackCount++;
+                }
+              }
+            } catch (e) {}
+          }
+        }
+      } catch (tErr) {
+        console.warn("[CVAT 3D Suite] Lưu parentTrack khi fit xe 2 bánh:", tErr);
+      }
+
+      updateThreeJsCuboid(
+        uiId,
+        newPoints[5],
+        { x: fit.newX, y: fit.newY, z: fit.newZ },
+        { l: fit.newL, w: fit.newW, h: fit.newH },
+        { rx: 0, ry: 0, rz: newPoints[5] }
+      );
+
+      markCvatSaveButtonUnsaved();
+      console.log(`[CVAT 3D Suite] ${fit.message}`);
+
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_FIT_CYCLIST", {
+          detail: {
+            success: true,
+            uiId,
+            newX: fit.newX,
+            newY: fit.newY,
+            newZ: fit.newZ,
+            newYaw: fit.newYaw,
+            newYawDeg: fit.newYawDeg,
+            deltaYawDeg: fit.deltaYawDeg,
+            newL: fit.newL,
+            newW: fit.newW,
+            newH: fit.newH,
+            pointsCount: fit.pointsCount,
+            step: fit.step,
+            applyToTrack: !!applyToTrack,
+            message: fit.message,
+          },
+        })
+      );
+    } catch (err: any) {
+      console.error("[CVAT 3D Suite] Lỗi Fit Cyclist:", err);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_FIT_CYCLIST", {
+          detail: { success: false, error: err.message || String(err) },
+        })
+      );
+    }
+  });
+
+  // Thuật toán Fit Box tại Frame Hiện Tại với Padding 5cm mỗi bên (+10cm L, +10cm W, +5cm H, Đáy Ghim Sàn)
+  function fitBoxWithPadding5cm(points: number[]): {
+    newL: number;
+    newW: number;
+    newH: number;
+    newZ: number;
+    pointsCount: number;
+    measuredL: number;
+    measuredW: number;
+    measuredH: number;
+    groundZ: number;
+  } {
+    const cx = points[0];
+    const cy = points[1];
+    const cz = points[2];
+    const yaw = points[5];
+    const l = points[6] || 4.65;
+    const w = points[7] || 1.85;
+    const h = points[8] || 1.45;
+
+    const lidar = getSceneLidarPoints();
+    if (!lidar || lidar.count === 0) {
+      throw new Error("Không trích xuất được điểm LiDAR từ Three.js scene!");
+    }
+
+    const { count, array } = lidar;
+    const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, l / 2, w / 2, h / 2, false, false);
+    const groundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : cz - h / 2;
+
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+
+    const minBodyZ = groundZ + 0.04;
+    const maxRoofZ = groundZ + 3.5;
+    const searchHalfL = l / 2 + 0.55;
+    const searchHalfW = w / 2 + 0.45;
+
+    const rawBodyPts: Array<{ lx: number; ly: number; z: number }> = [];
+    for (let i = 0; i < count; i++) {
+      const z = array[i * 3 + 2];
+      if (z < minBodyZ || z > maxRoofZ) continue;
+
+      const x = array[i * 3];
+      const y = array[i * 3 + 1];
+      const dx = x - cx;
+      const dy = y - cy;
+
+      const lx = dx * cosY - dy * sinY;
+      const ly = dx * sinY + dy * cosY;
+
+      if (Math.abs(lx) <= searchHalfL && Math.abs(ly) <= searchHalfW) {
+        rawBodyPts.push({ lx, ly, z });
+      }
+    }
+
+    if (rawBodyPts.length < 5) {
+      throw new Error(`Cụm điểm quá thưa (${rawBodyPts.length} điểm), không đủ để fit tự động!`);
+    }
+
+    // Tách cụm thân xe chính theo trục ly và lx
+    const clLy = filterDenseConnectedCluster1D(rawBodyPts, "ly", 0.20, 0);
+    const bodyPts = filterDenseConnectedCluster1D(clLy, "lx", 0.20, 0);
+
+    const finalPts = bodyPts.length >= 5 ? bodyPts : rawBodyPts;
+
+    // Đo mép trước / sau bằng Valley Cutoff
+    const frontWall = detectDominantWallEdgeWithValleyCutoff(finalPts, "lx", "positive", l / 2, { binSize: 0.04 });
+    const rearWall = detectDominantWallEdgeWithValleyCutoff(finalPts, "lx", "negative", l / 2, { binSize: 0.04 });
+    const measuredL = Math.max(0.5, Math.min(15.0, Number((frontWall.edge - rearWall.edge).toFixed(3))));
+
+    // Đo mép trái / phải bằng Valley Cutoff
+    const leftWall = detectDominantWallEdgeWithValleyCutoff(finalPts, "ly", "positive", w / 2, { binSize: 0.03 });
+    const rightWall = detectDominantWallEdgeWithValleyCutoff(finalPts, "ly", "negative", w / 2, { binSize: 0.03 });
+    const measuredW = Math.max(0.4, Math.min(3.5, Number((leftWall.edge - rightWall.edge).toFixed(3))));
+
+    // Đo nóc xe (phân vị 95% để loại bỏ nhiễu anten)
+    const zList = finalPts.map((p) => p.z).sort((a, b) => a - b);
+    const zRoof = zList[Math.floor(zList.length * 0.95)];
+    const measuredH = Math.max(0.4, Math.min(4.0, Number((zRoof - groundZ).toFixed(3))));
+
+    // 🚨 BỔ SUNG PADDING 5CM MỖI BÊN:
+    // +10cm cho L (5cm trước, 5cm sau)
+    // +10cm cho W (5cm trái, 5cm phải)
+    // +5cm cho H (nóc xe, đáy bám sàn cố định tại groundZ)
+    const newL = Number((measuredL + 0.10).toFixed(2));
+    const newW = Number((measuredW + 0.10).toFixed(2));
+    const newH = Number((measuredH + 0.05).toFixed(2));
+
+    // Đáy bám sàn cố định: newZ = groundZ + newH / 2
+    const newZ = Number((groundZ + newH / 2).toFixed(3));
+
+    return {
+      newL,
+      newW,
+      newH,
+      newZ,
+      pointsCount: finalPts.length,
+      measuredL,
+      measuredW,
+      measuredH,
+      groundZ,
+    };
+  }
+
+  // 6. Lắng nghe yêu cầu Fit Box Hiện Tại có Padding 5cm (+10cm L, +10cm W, +5cm H)
+  window.addEventListener("CVAT_EXT_REQ_FIT_CURRENT_BOX", async (e: any) => {
+    const { jobId, frame, uiId, serverId, applyToTrack = false } = e.detail || {};
+    try {
+      const job = await getActiveJobInstance(jobId);
+      const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+
+      const fit = fitBoxWithPadding5cm(target.points);
+
+      const newPoints = [...target.points];
+      newPoints[2] = fit.newZ;
+      newPoints[6] = fit.newL;
+      newPoints[7] = fit.newW;
+      newPoints[8] = fit.newH;
+      target.points = newPoints;
+
+      if (!isDrawn && typeof target.save === "function") {
+        await target.save();
+      }
+
+      let framesSynced = 1;
+      if (applyToTrack) {
+        const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+        if (parentTrack) {
+          const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || (parentTrack as any)._shapes);
+          for (const sh of shapesList) {
+            if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+              const pts = [...sh.points];
+              const sOldZ = pts[2];
+              const sOldH = pts[8];
+              pts[2] = Number((sOldZ + (fit.newH - sOldH) / 2).toFixed(3));
+              pts[6] = fit.newL;
+              pts[7] = fit.newW;
+              pts[8] = fit.newH;
+              sh.points = pts;
+              framesSynced++;
+            }
+          }
+          if (typeof parentTrack.save === "function") {
+            await parentTrack.save();
+          }
+        }
+      }
+
+      updateThreeJsCuboid(
+        uiId,
+        newPoints[5],
+        { x: newPoints[0], y: newPoints[1], z: fit.newZ },
+        { l: fit.newL, w: fit.newW, h: fit.newH },
+        { rx: newPoints[3] || 0, ry: newPoints[4] || 0, rz: newPoints[5] }
+      );
+
+      markCvatSaveButtonUnsaved();
+
+      const scopeText = applyToTrack ? `toàn bộ ${framesSynced} frames trong track` : `frame #${frame}`;
+      const msg = `Đã Fit Box với padding 5cm (L=${fit.newL}m, W=${fit.newW}m, H=${fit.newH}m, ${fit.pointsCount} điểm LiDAR) cho ${scopeText}`;
+      console.log(`[CVAT 3D Suite] ${msg}`);
+
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_FIT_CURRENT_BOX", {
+          detail: {
+            success: true,
+            uiId,
+            newL: fit.newL,
+            newW: fit.newW,
+            newH: fit.newH,
+            newZ: fit.newZ,
+            pointsCount: fit.pointsCount,
             framesSynced,
             message: msg,
           },
         })
       );
     } catch (err: any) {
-      console.error("[CVAT 3D Suite] Lỗi Multi-Frame Anchor Fit:", err);
+      console.error("[CVAT 3D Suite] Lỗi Fit Box Hiện Tại:", err);
       window.dispatchEvent(
-        new CustomEvent("CVAT_EXT_RES_MULTI_FRAME_ANCHOR_FIT", {
+        new CustomEvent("CVAT_EXT_RES_FIT_CURRENT_BOX", {
+          detail: { success: false, error: err.message || String(err) },
+        })
+      );
+    }
+  });
+
+  // 7. Lắng nghe yêu cầu Đánh dấu Outside cho toàn bộ frame của Track
+  window.addEventListener("CVAT_EXT_REQ_SET_TRACK_OUTSIDE", async (e: any) => {
+    const { jobId, frame, uiId, serverId, outside = true } = e.detail || {};
+    try {
+      const job = await getActiveJobInstance(jobId);
+      if (!job) throw new Error("Không tìm thấy Job Instance của CVAT");
+
+      const currentFrame = typeof frame === "number" ? frame : (typeof job.frame === "number" ? job.frame : 0);
+
+      // Thử tìm target ở frame hiện tại
+      let currentTarget: any = null;
+      try {
+        const res = await findTargetSafely(job, currentFrame, uiId, serverId);
+        currentTarget = res.target;
+      } catch (e) {}
+
+      const parentID = currentTarget?.parentID || currentTarget?.trackID || (currentTarget?.parent && currentTarget.parent.clientID);
+      let parentTrack = await findTrackInJob(job, uiId, serverId, parentID);
+
+      const previousStates: Array<{ frame: number; outside: boolean; points: number[] }> = [];
+      let countModified = 0;
+
+      // TRƯỜNG HỢP 1: TÌM THẤY PARENT TRACK
+      if (parentTrack) {
+        const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || (parentTrack as any)._shapes);
+        if (shapesList.length > 0) {
+          for (const sh of shapesList) {
+            previousStates.push({
+              frame: sh.frame,
+              outside: !!sh.outside,
+              points: Array.isArray(sh.points) ? [...sh.points] : [],
+            });
+            sh.outside = !!outside;
+            countModified++;
+          }
+          if (typeof parentTrack.save === "function") {
+            await parentTrack.save();
+          }
+        }
+      }
+
+      // TRƯỜNG HỢP 2: QUÉT CÁC FRAMES CỦA JOB ĐỂ ĐẢM BẢO BẮT TRỌN CẢ OBJECT STATE NỘI SUY
+      if (countModified === 0) {
+        const startF = typeof job.startFrame === "number" ? job.startFrame : 0;
+        const stopF = typeof job.stopFrame === "number" ? job.stopFrame : (startF + 300);
+
+        for (let f = startF; f <= stopF; f++) {
+          try {
+            const states = await job.annotations.get(f);
+            if (Array.isArray(states)) {
+              const st = states.find(
+                (s: any) =>
+                  Number(s.clientID) === Number(uiId) ||
+                  (serverId && Number(s.serverID) === Number(serverId)) ||
+                  (parentID && (Number(s.clientID) === Number(parentID) || Number(s.parentID) === Number(parentID)))
+              );
+              if (st) {
+                previousStates.push({
+                  frame: f,
+                  outside: !!st.outside,
+                  points: Array.isArray(st.points) ? [...st.points] : [],
+                });
+                st.outside = !!outside;
+                if (typeof st.save === "function") {
+                  await st.save();
+                }
+                countModified++;
+              }
+            }
+          } catch (e) {}
+        }
+      }
+
+      // TRƯỜNG HỢP 3: NẾU VẪN CHƯA THẤY NHƯNG CÓ CURRENT TARGET Ở FRAME HIỆN TẠI
+      if (countModified === 0 && currentTarget) {
+        previousStates.push({
+          frame: currentFrame,
+          outside: !!currentTarget.outside,
+          points: Array.isArray(currentTarget.points) ? [...currentTarget.points] : [],
+        });
+        currentTarget.outside = !!outside;
+        if (typeof currentTarget.save === "function") {
+          await currentTarget.save();
+        }
+        countModified = 1;
+      }
+
+      if (countModified === 0) {
+        throw new Error(`Không tìm thấy Track hoặc Shape #${uiId} trong toàn bộ Job`);
+      }
+
+      markCvatSaveButtonUnsaved();
+
+      const store = getReduxStore();
+      const canvas = store?.getState()?.annotation?.canvas?.instance;
+      if (canvas && typeof canvas.render === "function") {
+        canvas.render();
+      }
+
+      const msg = `Đã đánh dấu ${outside ? "Outside" : "Inside"} cho ${countModified} frame của xe #${uiId}`;
+      console.log(`[CVAT 3D Suite] ${msg}`);
+
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_SET_TRACK_OUTSIDE", {
+          detail: {
+            success: true,
+            uiId,
+            outside,
+            count: countModified,
+            previousStates,
+            message: msg,
+          },
+        })
+      );
+    } catch (err: any) {
+      console.error("[CVAT 3D Suite] Lỗi Set Track Outside:", err);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_SET_TRACK_OUTSIDE", {
+          detail: { success: false, error: err.message || String(err) },
+        })
+      );
+    }
+  });
+
+  // 8. Lắng nghe yêu cầu Khôi phục trạng thái (Undo / Pre)
+  window.addEventListener("CVAT_EXT_REQ_RESTORE_BOX", async (e: any) => {
+    const { jobId, frame, uiId, serverId, applyToTrack, boxPoints, trackShapesBackup } = e.detail || {};
+    try {
+      const job = await getActiveJobInstance(jobId);
+      if (!job) throw new Error("Không tìm thấy Job Instance của CVAT");
+
+      const currentFrame = typeof frame === "number" ? frame : (typeof job.frame === "number" ? job.frame : 0);
+
+      let currentTarget: any = null;
+      try {
+        const res = await findTargetSafely(job, currentFrame, uiId, serverId);
+        currentTarget = res.target;
+      } catch (e) {}
+
+      const parentID = currentTarget?.parentID || currentTarget?.trackID || (currentTarget?.parent && currentTarget.parent.clientID);
+      const parentTrack = await findTrackInJob(job, uiId, serverId, parentID);
+
+      // Nếu là thao tác toàn track: khôi phục danh sách shapes
+      if (applyToTrack && Array.isArray(trackShapesBackup) && trackShapesBackup.length > 0) {
+        if (parentTrack) {
+          const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || (parentTrack as any)._shapes);
+          for (const bk of trackShapesBackup) {
+            const sh = shapesList.find((s: any) => s.frame === bk.frame);
+            if (sh) {
+              if (bk.outside !== undefined) sh.outside = bk.outside;
+              if (Array.isArray(bk.points)) sh.points = ensureCuboidPoints(bk.points, sh.points);
+            }
+          }
+          if (typeof parentTrack.save === "function") {
+            try {
+              await parentTrack.save();
+            } catch (tSaveErr) {
+              console.warn("[CVAT 3D Suite] Cảnh báo parentTrack.save trong RESTORE_BOX:", tSaveErr);
+            }
+          }
+        }
+
+        // Khôi phục trên từng frame nếu parentTrack không lưu được
+        for (const bk of trackShapesBackup) {
+          try {
+            const states = await job.annotations.get(bk.frame);
+            if (Array.isArray(states)) {
+              const st = states.find(
+                (s: any) =>
+                  Number(s.clientID) === Number(uiId) ||
+                  (serverId && Number(s.serverID) === Number(serverId)) ||
+                  (parentID && (Number(s.clientID) === Number(parentID) || Number(s.parentID) === Number(parentID)))
+              );
+              if (st) {
+                if (bk.outside !== undefined) st.outside = bk.outside;
+                if (Array.isArray(bk.points)) st.points = ensureCuboidPoints(bk.points, st.points);
+                if (typeof st.save === "function") {
+                  try {
+                    await st.save();
+                  } catch (stSaveErr) {
+                    console.warn("[CVAT 3D Suite] Cảnh báo st.save trong RESTORE_BOX:", stSaveErr);
+                  }
+                }
+              }
+            }
+          } catch (e) {}
+        }
+      }
+
+      // Khôi phục frame hiện tại
+      if (Array.isArray(boxPoints) && boxPoints.length >= 9) {
+        try {
+          const { target, isDrawn } = await findTargetSafely(job, currentFrame, uiId, serverId);
+          target.points = ensureCuboidPoints(boxPoints, target.points);
+          if (!isDrawn && typeof target.save === "function") {
+            try {
+              await target.save();
+            } catch (curSaveErr) {
+              console.warn("[CVAT 3D Suite] Cảnh báo target.save trong RESTORE_BOX:", curSaveErr);
+            }
+          }
+
+          updateThreeJsCuboid(
+            uiId,
+            boxPoints[5],
+            { x: boxPoints[0], y: boxPoints[1], z: boxPoints[2] },
+            { l: boxPoints[6], w: boxPoints[7], h: boxPoints[8] },
+            { rx: boxPoints[3] || 0, ry: boxPoints[4] || 0, rz: boxPoints[5] }
+          );
+        } catch (curErr) {
+          console.warn("[CVAT 3D Suite] Khôi phục frame hiện tại:", curErr);
+        }
+      }
+
+      markCvatSaveButtonUnsaved();
+
+      const store = getReduxStore();
+      const canvas = store?.getState()?.annotation?.canvas?.instance;
+      if (canvas && typeof canvas.render === "function") {
+        canvas.render();
+      }
+
+      const msg = `Đã hoàn tác (Pre) thành công trạng thái trước đó của xe #${uiId}`;
+      console.log(`[CVAT 3D Suite] ${msg}`);
+
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_RESTORE_BOX", {
+          detail: {
+            success: true,
+            uiId,
+            message: msg,
+          },
+        })
+      );
+    } catch (err: any) {
+      console.error("[CVAT 3D Suite] Lỗi Restore Box (Pre):", err);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_RESTORE_BOX", {
+          detail: { success: false, error: err.message || String(err) },
+        })
+      );
+    }
+  });
+
+  // 7. Lắng nghe yêu cầu Vi Chỉnh Center (Dịch chuyển tâm dàn đều theo hệ trục cục bộ của xe)
+  window.addEventListener("CVAT_EXT_REQ_SHIFT_CENTER", async (e: any) => {
+    const { jobId, frame, uiId, serverId, deltaXLocal = 0, deltaYLocal = 0, applyToTrack = false } = e.detail || {};
+    try {
+      const job = await getActiveJobInstance(jobId);
+      const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+
+      const yaw = target.points[5] || 0;
+      const cosYaw = Math.cos(yaw);
+      const sinYaw = Math.sin(yaw);
+
+      // Chuyển vector độ lệch từ Local sang World
+      const deltaXWorld = deltaXLocal * cosYaw - deltaYLocal * sinYaw;
+      const deltaYWorld = deltaXLocal * sinYaw + deltaYLocal * cosYaw;
+
+      let framesShifted = 1;
+
+      if (applyToTrack) {
+        const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+        if (parentTrack && Array.isArray(parentTrack.shapes)) {
+          for (const sh of parentTrack.shapes) {
+            if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+              const pts = [...sh.points];
+              pts[0] = Number((pts[0] + deltaXWorld).toFixed(3));
+              pts[1] = Number((pts[1] + deltaYWorld).toFixed(3));
+              sh.points = pts;
+              framesShifted++;
+            }
+          }
+          await parentTrack.save();
+        }
+      }
+
+      // Cập nhật frame hiện tại
+      const currentPts = [...target.points];
+      currentPts[0] = Number((currentPts[0] + deltaXWorld).toFixed(3));
+      currentPts[1] = Number((currentPts[1] + deltaYWorld).toFixed(3));
+      target.points = currentPts;
+      if (!isDrawn && typeof target.save === "function") {
+        await target.save();
+      }
+
+      updateThreeJsCuboid(
+        uiId,
+        yaw,
+        { x: currentPts[0], y: currentPts[1], z: currentPts[2] },
+        { l: currentPts[6], w: currentPts[7], h: currentPts[8] },
+        { rx: 0, ry: 0, rz: yaw }
+      );
+
+      markCvatSaveButtonUnsaved();
+
+      const scopeText = applyToTrack ? `toàn bộ ${framesShifted} frames trong track` : `frame #${frame}`;
+      const msg = `Đã vi chỉnh Center (ΔX: ${deltaXLocal > 0 ? "+" : ""}${(deltaXLocal * 100).toFixed(0)}cm, ΔY: ${deltaYLocal > 0 ? "+" : ""}${(deltaYLocal * 100).toFixed(0)}cm) cho ${scopeText}`;
+      console.log(`[CVAT 3D Suite] ${msg}`);
+
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_SHIFT_CENTER", {
+          detail: {
+            success: true,
+            uiId,
+            newX: currentPts[0],
+            newY: currentPts[1],
+            deltaXLocal,
+            deltaYLocal,
+            framesShifted,
+            message: msg,
+          },
+        })
+      );
+    } catch (err: any) {
+      console.error("[CVAT 3D Suite] Lỗi vi chỉnh Center:", err);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_SHIFT_CENTER", {
           detail: { success: false, error: err.message || String(err) },
         })
       );

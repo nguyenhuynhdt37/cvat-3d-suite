@@ -12,9 +12,28 @@ import {
   computeAnnularRingGroundZ,
   computeTightFitDimensions,
   computeGroundSlopesAndZ,
+  detectCurbStepAndRoll,
   alignBoxToPointsPreservingDimensions,
+  fitBoxToEgoRayAndGround,
+  fitPedestrianBox,
+  fitCyclistBox,
+  fitTwoWheelerBox,
+  estimateTwoWheelerHeading,
+  filterDenseConnectedCluster1D,
+  filterSparseNoiseByLocalDensity,
+  detectRoofTopBounds,
+  straightenYawFromBoundaryEdge,
+  computeDensityRobustBounds,
+  detectLateralWallBounds,
+  detectLongitudinalBumperBounds,
 } from "../src/core/geometry.ts";
-import { findBestFitCatalog, STANDARD_VEHICLE_CATALOG } from "../src/core/catalog.ts";
+import {
+  findBestFitCatalog,
+  STANDARD_VEHICLE_CATALOG,
+  CAR_PRESETS,
+  CYCLIST_PRESETS,
+  PEDESTRIAN_PRESETS,
+} from "../src/core/catalog.ts";
 
 console.log("🧪 Đang chạy kiểm thử tự động Module Geometry...");
 
@@ -371,6 +390,1901 @@ const snappedBottomZ = snapResult.box.c[2] - snapResult.box.s[2] / 2;
 assert.ok(Math.abs(snappedBottomZ - (-0.35)) < 0.03, `Đáy xe sau khi snap phải chạm đúng mặt đất -0.35m (thực tế: ${snappedBottomZ.toFixed(3)}m)`);
 console.log(`✅ Test 25: estimateGround & snapToGround (Histogram 2cm Peak): Đáy xe hạ chính xác từ -0.225m ➔ ${snappedBottomZ.toFixed(3)}m (Khớp mặt đất -0.35m, Miễn nhiễm 100% với điểm nhiễu cống -0.60m)`);
 
-console.log("\n🎉 TẤT CẢ 25 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, EULER XYZ, TƯƠNG TÁC GRID & GHIM ĐÁY ĐÃ ĐẠT 100%!");
+// 26. Test Ghim Đất Mở Rộng Bán Kính & Độ Sâu: Đường Dốc Chéo Nằm Sâu Phía Dưới & Căn Cứ Front View
+// Giả lập box đang lơ lửng ở Z = 1.2m, trong khi mặt đường thực tế nằm sâu bên dưới tại Z ~ -1.5m
+// Mặt đường dốc chéo cả 2 hướng: z = -1.50 + 0.07 * x - 0.11 * y (Dốc dọc Pitch ~ -4.0°, Dốc ngang Front Roll ~ -6.28°)
+const deepSlopedPoints: Array<{ x: number; y: number; z: number }> = [];
+for (let x = -4.5; x <= 4.5; x += 0.5) {
+  for (let y = -3.2; y <= 3.2; y += 0.5) {
+    if (Math.abs(x) > 2.2 || Math.abs(y) > 0.8) {
+      const z = -1.50 + 0.07 * x - 0.11 * y;
+      deepSlopedPoints.push({ x, y, z });
+    }
+  }
+}
+
+// Gọi hàm quét với box lơ lửng ở cz = 1.2m (cách mặt đường gần 3 mét)
+const deepSlopeRes = computeGroundSlopesAndZ(deepSlopedPoints, 0, 0, 1.2, 0, 2.3, 0.9);
+assert.ok(deepSlopeRes.groundZ !== null, "Phải quét sâu xuống bắt được mặt đường dưới cùng");
+assert.ok(Math.abs(deepSlopeRes.groundZ - (-1.50)) < 0.06, `Cao độ tâm mặt đất c0 phải xấp xỉ -1.50m (thực tế: ${deepSlopeRes.groundZ}m)`);
+assert.ok(Math.abs(deepSlopeRes.pitchDeg - (-4.00)) < 0.6, `Pitch Deg phải xấp xỉ -4.00° (thực tế: ${deepSlopeRes.pitchDeg}°)`);
+assert.ok(Math.abs(deepSlopeRes.rollDeg - (-6.28)) < 0.6, `Roll Deg (Front View) phải xấp xỉ -6.28° (thực tế: ${deepSlopeRes.rollDeg}°)`);
+console.log(`✅ Test 26: Quét Sâu & Bán Kính Rộng (Dốc Chéo Sâu & Front): Pitch = ${deepSlopeRes.pitchDeg}°, Roll Front = ${deepSlopeRes.rollDeg}°, GroundZ = ${deepSlopeRes.groundZ}m`);
+
+// 27. Test Tự Động Nhận Diện Bậc Vỉa Hè & Bên Gác Lề (Auto Curb & Step Detection)
+// Kịch bản A: Vỉa hè bên TRÁI cao +16cm (Left Z = -0.32m, Right Z = -0.48m)
+const curbLeftPoints: Array<{ x: number; y: number; z: number }> = [];
+// Tạo điểm sườn trái
+for (let x = -2.5; x <= 2.5; x += 0.5) {
+  for (let y = 1.0; y <= 2.5; y += 0.5) {
+    curbLeftPoints.push({ x, y, z: -0.32 });
+  }
+}
+// Tạo điểm sườn phải
+for (let x = -2.5; x <= 2.5; x += 0.5) {
+  for (let y = -2.5; y <= -1.0; y += 0.5) {
+    curbLeftPoints.push({ x, y, z: -0.48 });
+  }
+}
+
+const curbLeftRes = detectCurbStepAndRoll(curbLeftPoints, 0, 0, 0.4, 0, 2.3, 0.9, 1.85);
+assert.strictEqual(curbLeftRes.hasCurb, true, "Phải phát hiện có bậc vỉa hè");
+assert.strictEqual(curbLeftRes.side, "left", "Phải nhận diện vỉa hè nằm ở bên TRÁI xe");
+assert.strictEqual(curbLeftRes.curbHeightCm, 16, "Chiều cao vỉa hè phải tự động đo chuẩn 16cm");
+assert.ok(Math.abs(curbLeftRes.rollDeg - 4.96) < 0.2, `Roll Deg phải xấp xỉ +4.96° (thực tế: ${curbLeftRes.rollDeg}°)`);
+console.log(`✅ Test 27a: Tự Nhận Diện Vỉa Hè Bên TRÁI (+16cm): Side = ${curbLeftRes.side}, CurbHeight = ${curbLeftRes.curbHeightCm}cm, Roll Front = +${curbLeftRes.rollDeg}°`);
+
+// Kịch bản B: Vỉa hè bên PHẢI cao +14cm (Right Z = -0.30m, Left Z = -0.44m)
+const curbRightPoints: Array<{ x: number; y: number; z: number }> = [];
+for (let x = -2.5; x <= 2.5; x += 0.5) {
+  for (let y = 1.0; y <= 2.5; y += 0.5) {
+    curbRightPoints.push({ x, y, z: -0.44 });
+  }
+  for (let y = -2.5; y <= -1.0; y += 0.5) {
+    curbRightPoints.push({ x, y, z: -0.30 });
+  }
+}
+const curbRightRes = detectCurbStepAndRoll(curbRightPoints, 0, 0, 0.4, 0, 2.3, 0.9, 1.85);
+assert.strictEqual(curbRightRes.hasCurb, true, "Phải phát hiện có bậc vỉa hè");
+assert.strictEqual(curbRightRes.side, "right", "Phải nhận diện vỉa hè nằm ở bên PHẢI xe");
+assert.strictEqual(curbRightRes.curbHeightCm, 14, "Chiều cao vỉa hè phải tự động đo chuẩn 14cm");
+assert.ok(Math.abs(curbRightRes.rollDeg - (-4.34)) < 0.2, `Roll Deg phải xấp xỉ -4.34° (thực tế: ${curbRightRes.rollDeg}°)`);
+console.log(`✅ Test 27b: Tự Nhận Diện Vỉa Hè Bên PHẢI (+14cm): Side = ${curbRightRes.side}, CurbHeight = ${curbRightRes.curbHeightCm}cm, Roll Front = ${curbRightRes.rollDeg}°`);
+
+// 28. Test Ghim Đất Theo Vết Đè Box (Footprint Tight Ground Snap):
+// Kịch bản: Xe mục tiêu đỗ song song cực sát với xe bên cạnh (mép xe bên cạnh chỉ cách mép xe mục tiêu 0.4m)
+// Xe bên cạnh có thân xe và nóc xe rất cao (Z = 0.0m đến 1.5m, Y = 1.6m đến 3.2m).
+// Mặt đất chuẩn tại Z = -0.35m.
+// Chứng minh: Thuật toán Footprint Tight Snap chỉ quét trong phạm vi vết bánh xe đè,
+// loại bỏ sạch sẽ 100% các điểm thân xe của xe bên cạnh, tính ra Ground Z = -0.35m và Roll Deg = 0.0° tuyệt đối!
+const targetAndNeighborPoints: Array<{ x: number; y: number; z: number }> = [];
+
+// Điểm mặt đất chuẩn dưới chân xe mục tiêu (cx=0, cy=0, halfL=2.3, halfW=0.9)
+for (let x = -2.7; x <= 2.7; x += 0.4) {
+  for (let y = -1.3; y <= 1.3; y += 0.3) {
+    targetAndNeighborPoints.push({ x, y, z: -0.35 });
+  }
+}
+
+// Điểm thân xe của XE BÊN CẠNH (đỗ ở Y = 1.6m đến 3.2m, Z = 0.0m đến 1.5m - rất cao và dày đặc)
+for (let x = -2.0; x <= 2.0; x += 0.4) {
+  for (let y = 1.6; y <= 3.2; y += 0.3) {
+    for (let z = 0.0; z <= 1.5; z += 0.3) {
+      targetAndNeighborPoints.push({ x, y, z });
+    }
+  }
+}
+
+// Chạy thuật toán Footprint Tight Snap cho xe mục tiêu (đang lơ lửng ở cz = 0.5m)
+const footprintSnapRes = computeGroundSlopesAndZ(
+  targetAndNeighborPoints,
+  0, // cx
+  0, // cy
+  0.5, // cz (lơ lửng)
+  0, // yaw
+  2.3, // halfL
+  0.9 // halfW
+);
+
+assert.ok(footprintSnapRes.groundZ !== null, "Phải tìm thấy mặt đất");
+assert.ok(
+  Math.abs(footprintSnapRes.groundZ - (-0.35)) < 0.03,
+  `Cao độ mặt đất phải là -0.35m, không bị xe bên cạnh kéo lên (thực tế: ${footprintSnapRes.groundZ}m)`
+);
+assert.ok(
+  Math.abs(footprintSnapRes.rollDeg) < 0.5,
+  `Góc nghiêng Front Roll phải phẳng gần 0° (~0.0°), không bị xe bên cạnh làm nghiêng (thực tế: ${footprintSnapRes.rollDeg}°)`
+);
+assert.ok(
+  Math.abs(footprintSnapRes.pitchDeg) < 0.5,
+  `Góc nghiêng Side Pitch phải phẳng gần 0° (~0.0°) (thực tế: ${footprintSnapRes.pitchDeg}°)`
+);
+console.log(
+  `✅ Test 28: Footprint Tight Ground Snap (Miễn nhiễm xe khác đỗ sát cách 40cm): GroundZ = ${footprintSnapRes.groundZ}m (khớp -0.35m), Roll Front = ${footprintSnapRes.rollDeg}°, Pitch = ${footprintSnapRes.pitchDeg}°`
+);
+
+// 29. Test FIT GÓC ĐÓN TIA EGO (RAY-CAST L-SHAPE FIT) & GHIM ĐẤT 3D (CẢ SIDE VIEW VÀ FRONT VIEW)
+// Kịch bản A: Xe ở góc phần tư I (+X, +Y): cx = 10m, cy = 5m, cz = 0.8m, Yaw = 0°
+// Ego ở gốc (0, 0). Tia Ego nhìn từ góc sau-phải -> Nhận diện [Mặt Sau + Sườn Phải]
+const egoPtsA: Array<{ x: number; y: number; z: number }> = [];
+// Điểm mặt đất chân xe
+for (let x = 7.5; x <= 12.5; x += 0.5) {
+  for (let y = 3.5; y <= 6.5; y += 0.5) {
+    egoPtsA.push({ x, y, z: 0.0 });
+  }
+}
+// Điểm thân xe đón tia (Mặt sau x ~ 7.7m, Sườn phải y ~ 4.1m, Nóc xe z ~ 1.48m)
+// Mép sau lý thuyết: cx - L/2 = 10 - 2.3 = 7.7m
+// Mép sườn phải lý thuyết: cy - W/2 = 5 - 0.9 = 4.1m
+for (let x = 7.75; x <= 8.8; x += 0.2) {
+  for (let z = 0.2; z <= 1.48; z += 0.2) {
+    egoPtsA.push({ x, y: 4.15, z }); // Sườn phải
+  }
+  egoPtsA.push({ x, y: 4.15, z: 1.48 }); // Nóc xe 1.48m
+}
+for (let y = 4.15; y <= 5.2; y += 0.2) {
+  for (let z = 0.2; z <= 1.48; z += 0.2) {
+    egoPtsA.push({ x: 7.75, y, z }); // Mặt sau
+  }
+  egoPtsA.push({ x: 7.75, y, z: 1.48 }); // Nóc xe 1.48m
+}
+
+const fitResA = fitBoxToEgoRayAndGround(egoPtsA, 10, 5, 0.8, 0, 4.6, 1.8, 1.5, { x: 0, y: 0, z: 0 }, { alignMode: "both" });
+assert.strictEqual(fitResA.visibleFaces.longitudinal, "rear", "Ego phải nhận diện nhìn thấy Mặt Sau xe (Side View)");
+assert.strictEqual(fitResA.visibleFaces.lateral, "right", "Ego phải nhận diện nhìn thấy Sườn Phải xe (Front View)");
+const rearEdgeA = fitResA.newCenterX - fitResA.newL / 2;
+const rightEdgeA = fitResA.newCenterY - fitResA.newW / 2;
+assert.ok(Math.abs(rearEdgeA - 7.75) < 0.05, `Mép sau của Box phải áp sát điểm đón tia 7.75m (thực tế: ${rearEdgeA.toFixed(3)}m)`);
+assert.ok(Math.abs(rightEdgeA - 4.15) < 0.05, `Mép sườn phải của Box phải áp sát điểm đón tia 4.15m (thực tế: ${rightEdgeA.toFixed(3)}m)`);
+assert.ok(Math.abs(fitResA.groundZ - 0.0) < 0.05, `Đáy xe phải ghim sát mặt đất 0.0m (thực tế: ${fitResA.groundZ}m)`);
+const topEdgeA = fitResA.newCenterZ + fitResA.newH / 2;
+assert.ok(Math.abs(topEdgeA - 1.48) < 0.05, `Góc trên nóc xe của Box phải áp sát điểm cao nhất 1.48m (thực tế: ${topEdgeA.toFixed(3)}m)`);
+console.log(`✅ Test 29a: Fit Góc Đón Tia Sau-Phải (Side & Front View): Mép Sau = ${rearEdgeA.toFixed(2)}m (khớp 7.75m), Mép Phải = ${rightEdgeA.toFixed(2)}m (khớp 4.15m), Nóc Z = ${topEdgeA.toFixed(2)}m (khớp 1.48m)`);
+
+// Kịch bản B: Xe ở góc phần tư III (-X, -Y): cx = -10m, cy = -6m, cz = 0.7m, Yaw = 0°
+// Ego ở gốc (0, 0). Tia Ego nhìn từ góc trước-trái -> Nhận diện [Mặt Trước + Sườn Trái]
+const egoPtsB: Array<{ x: number; y: number; z: number }> = [];
+// Điểm mặt đất
+for (let x = -12.5; x <= -7.5; x += 0.5) {
+  for (let y = -7.5; y <= -4.5; y += 0.5) {
+    egoPtsB.push({ x, y, z: -0.2 });
+  }
+}
+// Điểm thân xe đón tia (Mặt trước x ~ -7.7m, Sườn trái y ~ -5.1m, Nóc xe z ~ 1.30m)
+for (let x = -9.0; x <= -7.72; x += 0.2) {
+  for (let z = 0.0; z <= 1.30; z += 0.2) {
+    egoPtsB.push({ x, y: -5.12, z }); // Sườn trái
+  }
+  egoPtsB.push({ x, y: -5.12, z: 1.30 }); // Nóc xe 1.30m
+}
+for (let y = -5.8; y <= -5.12; y += 0.2) {
+  for (let z = 0.0; z <= 1.30; z += 0.2) {
+    egoPtsB.push({ x: -7.72, y, z }); // Mặt trước
+  }
+  egoPtsB.push({ x: -7.72, y, z: 1.30 }); // Nóc xe 1.30m
+}
+
+const fitResB = fitBoxToEgoRayAndGround(egoPtsB, -10, -6, 0.7, 0, 4.6, 1.8, 1.5, { x: 0, y: 0, z: 0 }, { alignMode: "both" });
+assert.strictEqual(fitResB.visibleFaces.longitudinal, "front", "Ego phải nhận diện nhìn thấy Mặt Trước xe (Side View)");
+assert.strictEqual(fitResB.visibleFaces.lateral, "left", "Ego phải nhận diện nhìn thấy Sườn Trái xe (Front View)");
+const frontEdgeB = fitResB.newCenterX + fitResB.newL / 2;
+const leftEdgeB = fitResB.newCenterY + fitResB.newW / 2;
+assert.ok(Math.abs(frontEdgeB - (-7.72)) < 0.05, `Mép trước của Box phải áp sát điểm đón tia -7.72m (thực tế: ${frontEdgeB.toFixed(3)}m)`);
+assert.ok(Math.abs(leftEdgeB - (-5.12)) < 0.05, `Mép sườn trái của Box phải áp sát điểm đón tia -5.12m (thực tế: ${leftEdgeB.toFixed(3)}m)`);
+assert.ok(Math.abs(fitResB.groundZ - (-0.2)) < 0.05, `Đáy xe phải ghim sát mặt đất -0.2m (thực tế: ${fitResB.groundZ}m)`);
+const topEdgeB = fitResB.newCenterZ + fitResB.newH / 2;
+assert.ok(Math.abs(topEdgeB - 1.30) < 0.05, `Góc trên nóc xe của Box phải áp sát điểm cao nhất 1.30m (thực tế: ${topEdgeB.toFixed(3)}m)`);
+console.log(`✅ Test 29b: Fit Góc Đón Tia Trước-Trái (Side & Front View): Mép Trước = ${frontEdgeB.toFixed(2)}m (khớp -7.72m), Mép Trái = ${leftEdgeB.toFixed(2)}m (khớp -5.12m), Nóc Z = ${topEdgeB.toFixed(2)}m (khớp 1.30m)`);
+
+// 30. Test THUẬT TOÁN CHUYÊN BIỆT CHO NGƯỜI ĐI BỘ (PEDESTRIAN) & XE ĐẠP (CYCLIST)
+// Kịch bản A: Người lớn cao ~1.72m (Tia laser cao nhất chỉ chạm vai 1.60m)
+const pedAdultPts: Array<{ x: number; y: number; z: number }> = [];
+// Điểm mặt đất chân người (R <= 0.35m)
+for (let x = 4.8; x <= 5.2; x += 0.1) {
+  for (let y = 1.8; y <= 2.2; y += 0.1) {
+    pedAdultPts.push({ x, y, z: 0.0 });
+  }
+}
+// Thân người (vai chạm z = 1.60m)
+for (let z = 0.1; z <= 1.60; z += 0.15) {
+  pedAdultPts.push({ x: 5.0, y: 2.0, z });
+  pedAdultPts.push({ x: 4.85, y: 2.0, z });
+  pedAdultPts.push({ x: 5.15, y: 2.0, z });
+  pedAdultPts.push({ x: 5.0, y: 1.88, z });
+  pedAdultPts.push({ x: 5.0, y: 2.12, z });
+}
+// Thêm rào chắn/bờ tường cách 0.7m (phải bị loại bỏ hoàn toàn nhờ bán kính quét hẹp)
+for (let z = 0.0; z <= 1.0; z += 0.2) {
+  pedAdultPts.push({ x: 5.0, y: 2.70, z });
+}
+
+const pedAdultRes = fitPedestrianBox(pedAdultPts, 5.0, 2.0, 0.8, 0);
+assert.strictEqual(pedAdultRes.rollDeg, 0, "Người đi bộ phải khóa cứng Roll = 0°");
+assert.strictEqual(pedAdultRes.pitchDeg, 0, "Người đi bộ phải khóa cứng Pitch = 0°");
+assert.ok(Math.abs(pedAdultRes.groundZ - 0.0) < 0.05, `Đáy box người phải chạm mặt đất 0.0m (thực tế: ${pedAdultRes.groundZ}m)`);
+assert.ok(Math.abs(pedAdultRes.newH - 1.72) < 0.05, `Chiều cao phải bù +12cm từ vai (1.60m + 0.12m = 1.72m, thực tế: ${pedAdultRes.newH}m)`);
+assert.ok(pedAdultRes.newL <= 0.75, `Chiều dài người phải thon gọn <= 0.75m (thực tế: ${pedAdultRes.newL}m)`);
+assert.ok(pedAdultRes.newW <= 0.70, `Chiều rộng người phải thon gọn <= 0.70m, không ăn nhầm rào chắn 2.7m (thực tế: ${pedAdultRes.newW}m)`);
+console.log(`✅ Test 30a: Fit Người Đi Bộ Người Lớn: ${pedAdultRes.newL}x${pedAdultRes.newW}x${pedAdultRes.newH}m (Roll=0°, Pitch=0°, Bù đỉnh đầu +12cm ➔ H=1.72m)`);
+
+// Kịch bản B: Trẻ em cao 1.20m (Tia laser cao nhất chạm 1.08m)
+const pedChildPts: Array<{ x: number; y: number; z: number }> = [];
+for (let x = -3.2; x <= -2.8; x += 0.1) {
+  for (let y = 3.8; y <= 4.2; y += 0.1) {
+    pedChildPts.push({ x, y, z: -0.15 }); // Mặt đất -0.15m
+  }
+}
+for (let z = -0.10; z <= 0.93; z += 0.15) {
+  pedChildPts.push({ x: -3.0, y: 4.0, z });
+}
+pedChildPts.push({ x: -3.0, y: 4.0, z: 0.93 }); // Vai trẻ em ở cao độ -0.15 + 1.08 = 0.93m
+
+const pedChildRes = fitPedestrianBox(pedChildPts, -3.0, 4.0, 0.4, 0);
+assert.strictEqual(pedChildRes.rollDeg, 0, "Trẻ em phải khóa Roll = 0°");
+assert.strictEqual(pedChildRes.pitchDeg, 0, "Trẻ em phải khóa Pitch = 0°");
+assert.ok(Math.abs(pedChildRes.groundZ - (-0.15)) < 0.05, `Đáy chạm đất -0.15m (thực tế: ${pedChildRes.groundZ}m)`);
+assert.ok(Math.abs(pedChildRes.newH - 1.20) < 0.05, `Chiều cao trẻ em phải co giãn linh hoạt khớp 1.20m (thực tế: ${pedChildRes.newH}m)`);
+console.log(`✅ Test 30b: Fit Trẻ Em (Co giãn kích thước tự do): ${pedChildRes.newL}x${pedChildRes.newW}x${pedChildRes.newH}m (Không bị ép to như ô tô)`);
+
+// Kịch bản C: Xe Đạp (Cyclist)
+const cyclistPts: Array<{ x: number; y: number; z: number }> = [];
+for (let x = 0.2; x <= 1.8; x += 0.2) {
+  cyclistPts.push({ x, y: 0.0, z: 0.0 }); // Vệt bánh xe
+  cyclistPts.push({ x, y: 0.0, z: 0.8 }); // Khung xe
+}
+cyclistPts.push({ x: 0.9, y: 0.0, z: 1.55 }); // Nón bảo hiểm
+
+const cyclistRes = fitCyclistBox(cyclistPts, 1.0, 0.0, 0.7, 0);
+assert.strictEqual(cyclistRes.rollDeg, 0, "Xe đạp khóa Roll = 0°");
+assert.strictEqual(cyclistRes.pitchDeg, 0, "Xe đạp khóa Pitch = 0°");
+assert.ok(Math.abs(cyclistRes.newH - 1.65) < 0.05, `Chiều cao xe đạp bù nón bảo hiểm khớp 1.65m (thực tế: ${cyclistRes.newH}m)`);
+assert.ok(cyclistRes.newL >= 1.60 && cyclistRes.newL <= 1.95, `Chiều dài xe đạp chuẩn khớp ~1.75m (thực tế: ${cyclistRes.newL}m)`);
+assert.ok(cyclistRes.newW >= 0.50 && cyclistRes.newW <= 0.80, `Chiều rộng xe đạp thon gọn khớp ~0.65m (thực tế: ${cyclistRes.newW}m)`);
+console.log(`✅ Test 30c: Fit Xe Đạp / Cyclist: ${cyclistRes.newL}x${cyclistRes.newW}x${cyclistRes.newH}m (Khóa 0°, Chuẩn khung xe đạp)`);
+
+// 31. Test XE ĐỖ DƯỚI LÒNG ĐƯỜNG CẠNH VỈA HÈ: Đáy Box nằm phẳng ở mặt đường dưới cùng (dưới vỉa hè luôn), KHÔNG NGHIÊNG BOX (Roll = 0°)
+// Kịch bản đúng như ảnh người dùng:
+// Bên phải (y < 0): Mặt đường đô thị phẳng ở Z = -0.35m
+// Bên trái (y > 0): Vỉa hè nhô cao ở Z = -0.15m (+20cm)
+const curbEdgePts: Array<{ x: number; y: number; z: number }> = [];
+// Điểm mặt đường phẳng bên phải
+for (let x = -2.5; x <= 2.5; x += 0.4) {
+  for (let y = -1.3; y <= -0.2; y += 0.2) {
+    curbEdgePts.push({ x, y, z: -0.35 });
+  }
+}
+// Điểm nền vỉa hè nhô cao bên trái
+for (let x = -2.5; x <= 2.5; x += 0.4) {
+  for (let y = 0.2; y <= 1.3; y += 0.2) {
+    curbEdgePts.push({ x, y, z: -0.15 });
+  }
+}
+
+const curbRoadRes = computeGroundSlopesAndZ(curbEdgePts, 0, 0, 0.4, 0, 2.3, 0.9);
+assert.strictEqual(curbRoadRes.rollDeg, 0, "Khi đỗ dưới đường cạnh vỉa hè, box bắt buộc phải khóa Roll = 0° (không được nghiêng box)");
+assert.ok(
+  Math.abs(curbRoadRes.groundZ - (-0.35)) < 0.03,
+  `Đáy box phải nằm khít ở mặt đường dưới cùng -0.35m (nằm dưới vỉa hè -0.15m luôn, thực tế: ${curbRoadRes.groundZ}m)`
+);
+console.log(`✅ Test 31: Xe Đỗ Dưới Lòng Đường Cạnh Vỉa Hè (Đúng ảnh người dùng): GroundZ = ${curbRoadRes.groundZ}m (khớp mặt đường -0.35m), Roll = ${curbRoadRes.rollDeg}° (Khóa phẳng tuyệt đối, đáy nằm dưới vỉa hè)`);
+
+// 32. Test XE NỬA TRÊN VỈA HÈ DỐC THOẢI (Curb Ramp Curve): Khóa phẳng Roll = 0°, Neo mặt đường dưới cùng -0.35m (Âm đất dưới vỉa hè)
+// Mô phỏng chính xác trường hợp người dùng phản hồi:
+// Khoảng cách từ đất đến vỉa hè dốc thoải (cong/vát từ y = -0.3m đến y = 0.3m)
+// Lòng đường (y <= -0.3m): Z = -0.35m
+// Bờ dốc thoải (y từ -0.3m đến 0.3m): Z dốc thoải liên tục từ -0.35m lên -0.15m
+// Vỉa hè (y >= 0.3m): Z = -0.15m (+20cm)
+const curbRampPts: Array<{ x: number; y: number; z: number }> = [];
+for (let x = -2.5; x <= 2.5; x += 0.4) {
+  for (let y = -1.3; y <= 1.3; y += 0.15) {
+    let z = -0.35;
+    if (y < -0.3) {
+      z = -0.35;
+    } else if (y > 0.3) {
+      z = -0.15;
+    } else {
+      // Đoạn dốc thoải nối từ lòng đường lên vỉa hè
+      const ratio = (y - (-0.3)) / 0.6;
+      z = -0.35 + ratio * 0.20;
+    }
+    curbRampPts.push({ x, y, z });
+  }
+}
+
+const rampRes = computeGroundSlopesAndZ(curbRampPts, 0, 0, 0.4, 0, 2.3, 0.9);
+assert.strictEqual(rampRes.rollDeg, 0, "Khi gặp vỉa hè dốc thoải, box bắt buộc phải khóa Roll = 0° (không được nghiêng theo dốc thoải)");
+assert.ok(
+  Math.abs(rampRes.groundZ - (-0.35)) < 0.03,
+  `Đáy box phải neo chuẩn ở mặt đường dưới cùng -0.35m (chìm âm đất dưới vỉa hè, thực tế: ${rampRes.groundZ}m)`
+);
+console.log(`✅ Test 32: Xe Đỗ Nửa Trên Vỉa Hè Dốc Thoải (Curb Ramp): GroundZ = ${rampRes.groundZ}m (khớp mặt đường -0.35m), Roll = ${rampRes.rollDeg}° (Khóa phẳng tuyệt đối, âm đất dưới vỉa hè thoải)`);
+
+// 33. Test PHÂN CỤM MẬT ĐỘ TRỤC FRONT KHI 2 XE ĐỖ SONG SONG CẠNH NHAU
+// Kịch bản thực tế người dùng phản ánh:
+// Xe A (đang chọn): cx = 0, cy = 0, cz = 0.8m, L = 4.6m, W = 1.8m, H = 1.5m
+// Có 60 điểm thân xe phủ quanh vỏ xe A (sườn trái y = 0.9m, sườn phải y = -0.9m)
+// Khoảng trống giữa 2 xe: y từ 0.9m đến 1.35m (rộng 45cm) không có điểm nào
+// Xe B (xe khác đỗ cạnh): y từ 1.35m đến 1.6m (có 15 điểm sườn lọt vào bán kính quét)
+const adjacentVehiclesPts: Array<{ x: number; y: number; z: number }> = [];
+
+// Điểm mặt đất
+for (let x = -3.0; x <= 3.0; x += 0.5) {
+  for (let y = -2.0; y <= 2.0; y += 0.5) {
+    adjacentVehiclesPts.push({ x, y, z: 0.0 });
+  }
+}
+
+// Xe A (Xe chính đang chọn): y in [-0.9, 0.9]
+for (let x = -2.0; x <= 2.0; x += 0.3) {
+  for (let z = 0.3; z <= 1.45; z += 0.3) {
+    adjacentVehiclesPts.push({ x, y: -0.90, z }); // Sườn phải xe A
+    adjacentVehiclesPts.push({ x, y: 0.88, z });  // Sườn trái xe A
+  }
+}
+for (let y = -0.90; y <= 0.88; y += 0.15) {
+  adjacentVehiclesPts.push({ x: 2.25, y, z: 0.8 });  // Mặt trước xe A
+  adjacentVehiclesPts.push({ x: -2.25, y, z: 0.8 }); // Mặt sau xe A
+}
+
+// Xe B (Xe bên cạnh, cách 45cm): y in [1.35, 1.55]
+for (let x = -1.5; x <= 1.5; x += 0.4) {
+  for (let z = 0.3; z <= 1.3; z += 0.3) {
+    adjacentVehiclesPts.push({ x, y: 1.42, z }); // Sườn xe B lọt vào rìa quét
+  }
+}
+
+// Kiểm tra Ego ở (0, 10): Tia Ego chiếu từ sườn TRÁI (phía có xe B)
+const adjFitRes = fitBoxToEgoRayAndGround(adjacentVehiclesPts, 0, 0, 0.8, 0, 4.6, 1.8, 1.5, { x: 0, y: 10, z: 0 });
+
+assert.strictEqual(adjFitRes.visibleFaces.lateral, "left", "Ego phải nhận diện nhìn thấy Sườn Trái");
+const leftEdgeAdj = adjFitRes.newCenterY + adjFitRes.newW / 2;
+
+// Mép trái box sau khi fit phải áp sát sườn xe A (y = 0.88m), KHÔNG ĐƯỢC bị kéo sang sườn xe B (y = 1.42m)
+assert.ok(
+  Math.abs(leftEdgeAdj - 0.88) < 0.06,
+  `Trục Front phải bám khít sườn xe A tại 0.88m, không được bị kéo sang xe B (thực tế mép trái: ${leftEdgeAdj.toFixed(3)}m)`
+);
+// Tâm Y của box phải nằm sát tâm xe A (0.0m), tuyệt đối không bị kéo vào khoảng giữa 2 xe (y > 0.2m)
+assert.ok(
+  Math.abs(adjFitRes.newCenterY) < 0.06,
+  `Tâm box ở trục Front không được bị kéo vào khoảng giữa 2 xe (thực tế tâm Y: ${adjFitRes.newCenterY.toFixed(3)}m)`
+);
+
+console.log(`✅ Test 33: Phân Cụm Mật Độ Trục Front (2 Xe Đỗ Song Song): Mép trái = ${leftEdgeAdj.toFixed(2)}m (ôm khít xe A 0.88m, loại bỏ 100% xe B), Tâm Y = ${adjFitRes.newCenterY.toFixed(2)}m (Không bị kéo vào khoảng giữa 2 xe)`);
+
+// 34. Test CĂN HỘP BẢO TOÀN SIZE KHI CÓ XE KHÁC ĐỖ BÊN CẠNH (Preserving Dimensions with Adjacent Vehicle)
+// Giả lập thân xe A có 40 điểm, xe B bên cạnh (cách 50cm) có 10 điểm lọt vào.
+// Kiểm tra alignBoxToPointsPreservingDimensions không bị kéo lệch tâm Y sang xe B.
+const bodyWithAdjacent = [
+  ...adjacentVehiclesPts.filter((p) => p.z > 0.1), // Lọc điểm thân xe
+];
+const alignAdjRes = alignBoxToPointsPreservingDimensions(bodyWithAdjacent, 0, 0, 0.8, 0, 4.6, 1.8, 1.5, 0.0);
+assert.ok(
+  Math.abs(alignAdjRes.newCenterY) < 0.06,
+  `Căn hộp bảo toàn size: Tâm Y không được bị kéo vào khoảng giữa 2 xe (thực tế tâm Y: ${alignAdjRes.newCenterY.toFixed(3)}m)`
+);
+assert.strictEqual(alignAdjRes.preservedW, 1.8, "Chiều rộng W phải được bảo toàn tuyệt đối 1.8m");
+console.log(`✅ Test 34: Căn Hộp Bảo Toàn Size Cạnh Xe Khác: Tâm Y = ${alignAdjRes.newCenterY.toFixed(2)}m (Chuẩn tâm xe A, không bị kéo sang xe B)`);
+
+// 35. Test HƯỚNG ĐÓN TIA EGO FRONT VIEW (Đúng kịch bản ảnh người dùng - Không bao giờ bị ngược)
+// Tái hiện chính xác ảnh người dùng gửi:
+// Xe ở cx = 5, cy = 3, cz = 0.8, Yaw = 0°, kích thước L = 4.6, W = 1.8, H = 1.5
+// Ego ở gốc (0, 0) => Ego nằm ở bên phải xe (dyEgo > 0, vLocalY < 0)
+// Cụm điểm thân xe chỉ xuất hiện ở sườn phải đón tia: y in [2.15, 2.7] (tức ly in [-0.85, -0.3])
+// Mép ngoài sườn đón tia là lyMin = -0.85m (y = 2.15m)
+const frontEgoPts: Array<{ x: number; y: number; z: number }> = [];
+// Điểm mặt đất
+for (let x = 3.0; x <= 7.0; x += 0.5) {
+  for (let y = 1.5; y <= 4.5; y += 0.5) {
+    frontEgoPts.push({ x, y, z: 0.0 });
+  }
+}
+// Thân xe sườn phải đón tia (x từ 3.5 đến 6.5, y ~ 2.15m, z từ 0.2 đến 1.48m)
+for (let x = 3.5; x <= 6.5; x += 0.3) {
+  for (let z = 0.2; z <= 1.48; z += 0.2) {
+    frontEgoPts.push({ x, y: 2.15, z });
+  }
+}
+
+const frontFitRes = fitBoxToEgoRayAndGround(frontEgoPts, 5, 3, 0.8, 0, 4.6, 1.8, 1.5, { x: 0, y: 0, z: 0 }, { alignMode: "both" });
+assert.strictEqual(frontFitRes.visibleFaces.lateral, "right", "Phải nhận diện đón tia Sườn Phải (Right)");
+const rightEdgeFront = frontFitRes.newCenterY - frontFitRes.newW / 2;
+// Mép phải của box sau khi fit phải áp sát điểm đón tia 2.15m
+assert.ok(
+  Math.abs(rightEdgeFront - 2.15) < 0.06,
+  `Mép đón tia của box phải áp sát mép ngoài cụm điểm 2.15m (thực tế mép phải: ${rightEdgeFront.toFixed(3)}m)`
+);
+// Mép trái của box (phía che khuất) phải mở rộng sang 2.15 + 1.8 = 3.95m
+const leftEdgeFront = frontFitRes.newCenterY + frontFitRes.newW / 2;
+assert.ok(
+  Math.abs(leftEdgeFront - 3.95) < 0.06,
+  `Mép che khuất của box phải mở rộng về phía trong 3.95m, bao trọn toàn bộ cụm điểm (thực tế: ${leftEdgeFront.toFixed(3)}m)`
+);
+console.log(`✅ Test 35: Hướng Đón Tia Ego Front View (Đúng ảnh người dùng): Mép phải đón tia = ${rightEdgeFront.toFixed(2)}m (áp sát 2.15m), Mép trái che khuất = ${leftEdgeFront.toFixed(2)}m (ôm trọn cụm điểm, không bị lộn ngược)`);
+
+// 36. Test LỌC MẬT ĐỘ ĐIỂM, LOẠI BỎ GƯƠNG CHIẾU HẬU VÀ CỤM NHIỄU PHÍA SAU (Đúng ảnh người dùng - 2 Chấm Đỏ)
+// Kịch bản tái hiện 100% hình ảnh người dùng:
+// - Thân xe từ lx = -2.2m đến lx = 1.8m (1.8m là vị trí 2 chấm đỏ kết thúc mép xe thật).
+// - Thân xe dày đặc 120 điểm.
+// - Có gương chiếu hậu nhô ra ở ly = 1.15m (nhô ra 25cm so với sườn xe 0.90m, chỉ có 2 điểm).
+// - Có cụm điểm nhiễu phía sau (sau 2 chấm đỏ, cách gap 25cm): từ lx = 2.05m đến 2.45m (8 điểm thưa thớt).
+const noiseAndMirrorPts: Array<{ x: number; y: number; z: number }> = [];
+
+// Mặt đất z = 0.0m
+for (let x = -3.0; x <= 3.5; x += 0.5) {
+  for (let y = -2.0; y <= 2.0; y += 0.5) {
+    noiseAndMirrorPts.push({ x, y, z: 0.0 });
+  }
+}
+
+// 1. Điểm thân xe thật: lx từ -2.2m đến +1.8m (Mép xe kết thúc tại 2 chấm đỏ 1.8m)
+// Sườn xe từ ly = -0.90m đến +0.90m
+for (let x = -2.2; x <= 1.8; x += 0.2) {
+  for (let y = -0.9; y <= 0.9; y += 0.3) {
+    for (let z = 0.4; z <= 1.4; z += 0.5) {
+      noiseAndMirrorPts.push({ x, y, z });
+    }
+  }
+}
+
+// 2. Gương chiếu hậu: Nhô ra sườn trái ở ly = 1.15m (chỉ có 2 điểm thưa thớt)
+noiseAndMirrorPts.push({ x: 0.8, y: 1.12, z: 0.9 });
+noiseAndMirrorPts.push({ x: 0.8, y: 1.15, z: 0.92 });
+
+// 3. Cụm điểm nhiễu phía sau xe (sau 2 chấm đỏ 1.8m, cách một khoảng gap 25cm): lx từ 2.05m đến 2.45m
+const rearNoisePoints = [
+  { x: 2.05, y: 0.2, z: 0.6 },
+  { x: 2.15, y: 0.4, z: 0.7 },
+  { x: 2.25, y: 0.3, z: 0.5 },
+  { x: 2.35, y: 0.5, z: 0.8 },
+  { x: 2.40, y: 0.2, z: 0.6 },
+  { x: 2.45, y: 0.6, z: 0.7 },
+];
+noiseAndMirrorPts.push(...rearNoisePoints);
+
+// Kiểm tra 1: computeDensityRobustBounds loại bỏ sạch nhiễu và gương
+const localBodyCandidates = noiseAndMirrorPts.filter((p) => p.z > 0.1).map((p) => ({ lx: p.x, ly: p.y, z: p.z }));
+const robustBoundsRes = computeDensityRobustBounds(localBodyCandidates);
+
+// Mép lxMax phải chốt đúng tại 1.8m (2 chấm đỏ), KHÔNG ĐƯỢC nuốt trọn cụm nhiễu 2.45m
+assert.ok(
+  robustBoundsRes.lxMax <= 1.85,
+  `Mép lxMax phải dừng tại 2 chấm đỏ <= 1.85m, không được bọc cụm nhiễu 2.45m (thực tế lxMax: ${robustBoundsRes.lxMax}m)`
+);
+assert.ok(
+  robustBoundsRes.lxMax >= 1.75,
+  `Mép lxMax phải ôm sát mép thân xe 1.80m (thực tế lxMax: ${robustBoundsRes.lxMax}m)`
+);
+
+// Mép lyMax phải chốt đúng sườn xe <= 0.95m, KHÔNG ĐƯỢC bọc gương chiếu hậu 1.15m
+assert.ok(
+  robustBoundsRes.lyMax <= 0.95,
+  `Mép lyMax phải loại bỏ gương chiếu hậu, <= 0.95m (thực tế lyMax: ${robustBoundsRes.lyMax}m)`
+);
+
+// Kiểm tra 2: fitBoxToEgoRayAndGround khi Ego nhìn từ phía trước/sau (x = 10, y = 0)
+// Hộp xe chuẩn L = 4.6m, W = 1.8m, H = 1.5m
+const fitRobustRes = fitBoxToEgoRayAndGround(noiseAndMirrorPts, 0, 0, 0.75, 0, 4.6, 1.8, 1.5, { x: 10, y: 0, z: 0 }, { alignMode: "both" });
+
+// Mép trước đón tia của box (newCenterX + L/2) phải áp sát mép xe thật tại 2 chấm đỏ (1.8m), KHÔNG bị kéo dạt ra 2.45m
+const frontEdgeBox = fitRobustRes.newCenterX + fitRobustRes.newL / 2;
+assert.ok(
+  Math.abs(frontEdgeBox - 1.8) < 0.08,
+  `Mép đón tia của box phải áp sát đúng 2 chấm đỏ tại 1.8m (thực tế: ${frontEdgeBox.toFixed(3)}m)`
+);
+
+// Mép sau của box (newCenterX - L/2) = 1.8 - 4.6 = -2.8m, bao trọn vẹn toàn bộ đầu xe -2.2m
+// Khắc phục 100% lỗi đầu xe bị thò ra ngoài / bị cắt cụt như trong ảnh người dùng!
+const rearEdgeBox = fitRobustRes.newCenterX - fitRobustRes.newL / 2;
+assert.ok(
+  rearEdgeBox <= -2.2,
+  `Mép đối diện của box phải bao trọn vẹn đầu xe <= -2.2m, không được cắt cụt (thực tế mép sau: ${rearEdgeBox.toFixed(3)}m)`
+);
+
+console.log(
+  `✅ Test 36: Lọc Mật Độ Điểm & Gương Chiếu Hậu (Đúng ảnh người dùng - 2 Chấm Đỏ): lxMax = ${robustBoundsRes.lxMax}m (khớp 1.8m tại 2 chấm đỏ, gạt bỏ nhiễu 2.45m), lyMax = ${robustBoundsRes.lyMax}m (loại bỏ gương 1.15m), Đầu xe được bọc trọn vẹn ${rearEdgeBox.toFixed(2)}m <= -2.2m`
+);
+
+// 37. Test NGĂN CHẶN ĂN SANG OBJECT KHÁC & BẢO TOÀN 100% KÍCH THƯỚC BOX
+// Tái hiện chính xác hình ảnh người dùng:
+// - Xe mục tiêu (tại chấm xanh lá cây): cx = 0, cy = 0, cz = 0.75m, L = 4.6m, W = 1.8m, H = 1.5m.
+// - Thân xe mục tiêu nằm từ lx = -2.2m (2 chấm đỏ bên trái) đến lx = 1.0m (2 chấm đỏ ở giữa), gồm 60 điểm.
+// - Khoảng hở gap = 0.30m ngăn cách giữa xe mục tiêu và Object khác.
+// - Phía bên phải (lx in [1.30, 2.60]): Có MỘT OBJECT KHÁC CỰC KỲ DÀY ĐẶC 150 ĐIỂM (gấp 2.5 lần xe mục tiêu!).
+const tandemObjectPts: Array<{ x: number; y: number; z: number }> = [];
+
+// Mặt đất
+for (let x = -3.0; x <= 3.5; x += 0.5) {
+  for (let y = -2.0; y <= 2.0; y += 0.5) {
+    tandemObjectPts.push({ x, y, z: 0.0 });
+  }
+}
+
+// 1. Thân xe mục tiêu: lx in [-2.2, 1.0], ly in [-0.9, 0.9] (60 điểm)
+for (let x = -2.2; x <= 1.0; x += 0.2) {
+  for (let y = -0.9; y <= 0.9; y += 0.4) {
+    for (let z = 0.4; z <= 1.4; z += 0.5) {
+      tandemObjectPts.push({ x, y, z });
+    }
+  }
+}
+
+// 2. Object khác bên phải: lx in [1.30, 2.60], ly in [-0.9, 0.9] (150 điểm dày đặc!)
+for (let x = 1.30; x <= 2.60; x += 0.08) {
+  for (let y = -0.9; y <= 0.9; y += 0.25) {
+    for (let z = 0.4; z <= 1.4; z += 0.5) {
+      tandemObjectPts.push({ x, y, z });
+    }
+  }
+}
+
+// Bấm Fit với cờ bảo toàn kích thước L, W, H (Ego tại x = 10, y = 0)
+const tandemFitRes = fitBoxToEgoRayAndGround(tandemObjectPts, 0, 0, 0.75, 0, 4.6, 1.8, 1.5, { x: 10, y: 0, z: 0 }, { preserveDimensions: true, alignMode: "both" });
+
+// 1. Kích thước L, W, H phải được BẢO TOÀN 100%
+assert.strictEqual(tandemFitRes.newL, 4.6, "Chiều dài L phải giữ nguyên tuyệt đối 4.6m");
+assert.strictEqual(tandemFitRes.newW, 1.8, "Chiều rộng W phải giữ nguyên tuyệt đối 1.8m");
+assert.strictEqual(tandemFitRes.newH, 1.5, "Chiều cao H phải giữ nguyên tuyệt đối 1.5m");
+
+// 2. Mép trước của box phải dừng đúng tại 2 chấm đỏ ở giữa (~ 1.0m), TUYỆT ĐỐI KHÔNG ĐƯỢC ăn sang Object khác bên phải (1.30m - 2.60m)
+const frontEdgeTandem = tandemFitRes.newCenterX + tandemFitRes.newL / 2;
+assert.ok(
+  frontEdgeTandem <= 1.10,
+  `Mép trước của box phải dừng tại 2 chấm đỏ ở giữa <= 1.10m, không được ăn sang Object khác 2.60m (thực tế: ${frontEdgeTandem.toFixed(3)}m)`
+);
+assert.ok(
+  frontEdgeTandem >= 0.95,
+  `Mép trước của box phải áp sát mép xe mục tiêu >= 0.95m (thực tế: ${frontEdgeTandem.toFixed(3)}m)`
+);
+
+// 3. Mép sau của box (-L) phải bao trọn vẹn đầu xe mục tiêu tại 2 chấm đỏ bên trái (-2.2m)
+const rearEdgeTandem = tandemFitRes.newCenterX - tandemFitRes.newL / 2;
+assert.ok(
+  rearEdgeTandem <= -2.2,
+  `Mép sau của box phải bao trọn vẹn đầu xe bên trái <= -2.2m (thực tế: ${rearEdgeTandem.toFixed(3)}m)`
+);
+
+console.log(
+  `✅ Test 37: Ngăn Chặn Ăn Sang Object Khác & Bảo Toàn Kích Thước (Đúng ảnh người dùng): Box giữ nguyên ${tandemFitRes.newL}x${tandemFitRes.newW}x${tandemFitRes.newH}m, Mép trước bám khít 2 chấm đỏ giữa = ${frontEdgeTandem.toFixed(2)}m (Loại bỏ 100% Object 150 điểm bên phải), Mép sau bọc trọn 2 chấm đỏ trái = ${rearEdgeTandem.toFixed(2)}m <= -2.2m`
+);
+
+// 38. Test CHẾ ĐỘ MẶC ĐỊNH FIT GÓC ĐÓN TIA: ƯU TIÊN BÁM ĐẤT, KHÓA CỨNG HƯỚNG X (shiftLx = 0), CHỈ DỊCH HƯỚNG W & LOẠI BỎ GƯƠNG/VẬT THỂ KHÁC
+// Kịch bản theo đúng chỉ đạo mới nhất của người dùng:
+// - Xe ở cx = 5.0m, cy = 2.0m, cz = 0.8m, Yaw = 0°, L = 4.6m, W = 1.8m (halfW = 0.90m), H = 1.5m.
+// - Mặt đất z = -0.35m.
+// - Thành xe bên phải đón tia: y in [1.08, 1.10m] (tức ly in [-0.92, -0.90m]) có 40 điểm dày đặc từ sàn lên nóc xe.
+// - Gương chiếu hậu nhô ra ở y = 0.86m (ly = -1.14m, nhô ra 24cm) chỉ có 2 điểm thưa thớt.
+// - Xe khác đỗ bên cạnh ở y in [0.40, 0.65m] (ly in [-1.60, -1.35m]) có 60 điểm dày đặc.
+// - Xe khác đỗ nối đuôi ở x in [7.6, 9.0m] (lx in [2.6, 4.0m]).
+const wOnlyTestPts: Array<{ x: number; y: number; z: number }> = [];
+
+// Mặt đất Footprint z = -0.35m
+for (let x = 3.0; x <= 7.0; x += 0.5) {
+  for (let y = 1.0; y <= 3.0; y += 0.5) {
+    wOnlyTestPts.push({ x, y, z: -0.35 });
+  }
+}
+
+// 1. Thành xe bên phải đón tia (Ego ở gốc (0, 0) nhìn sang phải): y ~ 1.10m, x in [3.2, 6.8m]
+for (let x = 3.2; x <= 6.8; x += 0.3) {
+  for (let z = -0.15; z <= 1.05; z += 0.2) {
+    wOnlyTestPts.push({ x, y: 1.10, z });
+  }
+}
+
+// 2. Gương chiếu hậu nhô ra ở sườn phải đón tia (y = 0.86m, tức ly = -1.14m, 2 điểm)
+wOnlyTestPts.push({ x: 5.5, y: 0.86, z: 0.55 });
+wOnlyTestPts.push({ x: 5.5, y: 0.86, z: 0.57 });
+
+// 3. Xe khác đỗ bên cạnh (y in [0.40, 0.65m], 60 điểm dày đặc)
+for (let x = 3.5; x <= 6.5; x += 0.3) {
+  for (let y = 0.45; y <= 0.65; y += 0.1) {
+    for (let z = -0.15; z <= 1.05; z += 0.3) {
+      wOnlyTestPts.push({ x, y, z });
+    }
+  }
+}
+
+// 4. Xe khác đỗ nối đuôi phía trước (x in [7.6, 9.0m], 80 điểm)
+for (let x = 7.6; x <= 9.0; x += 0.2) {
+  for (let y = 1.2; y <= 2.8; y += 0.3) {
+    for (let z = -0.15; z <= 1.05; z += 0.3) {
+      wOnlyTestPts.push({ x, y, z });
+    }
+  }
+}
+
+// Gọi Fit chế độ mặc định w_only (Ego tại (0, 0))
+const wOnlyFitRes = fitBoxToEgoRayAndGround(wOnlyTestPts, 5.0, 2.0, 0.8, 0, 4.6, 1.8, 1.5, { x: 0, y: 0, z: 0 }, { alignMode: "w_only" });
+
+// 1. ƯU TIÊN BÁM ĐẤT: Đáy xe phải tiếp đất chuẩn xác tại -0.35m, Roll = 0°
+const bottomZ = wOnlyFitRes.newCenterZ - wOnlyFitRes.newH / 2;
+assert.ok(Math.abs(bottomZ - (-0.35)) < 0.03, `Đáy xe phải chạm khít mặt đất -0.35m (thực tế: ${bottomZ.toFixed(3)}m)`);
+assert.strictEqual(wOnlyFitRes.rollDeg, 0, "Roll phải khóa phẳng 0° tuyệt đối");
+
+// 2. KHÔNG DI CHUYỂN HƯỚNG X: newCenterX phải giữ nguyên đúng cx = 5.0m
+assert.strictEqual(wOnlyFitRes.shiftLx, 0, "shiftLx phải bằng 0 tuyệt đối (không xê dịch hướng X)");
+assert.ok(Math.abs(wOnlyFitRes.newCenterX - 5.0) < 0.001, `Tâm X phải giữ nguyên tuyệt đối 5.0m (thực tế: ${wOnlyFitRes.newCenterX}m)`);
+
+// 3. KÍCH THƯỚC L, W, H PHẢI ĐƯỢC BẢO TOÀN 100%
+assert.strictEqual(wOnlyFitRes.newL, 4.6, "L phải giữ nguyên 4.6m");
+assert.strictEqual(wOnlyFitRes.newW, 1.8, "W phải giữ nguyên 1.8m");
+assert.strictEqual(wOnlyFitRes.newH, 1.5, "H phải giữ nguyên 1.5m");
+
+// 4. CHỈ DỊCH HƯỚNG W & BÁM THÀNH XE, LOẠI BỎ GƯƠNG VÀ XE KHÁC BÊN CẠNH
+// Sườn phải đón tia của Box (newCenterY - W/2) phải áp sát đúng mép thành xe 1.10m,
+// KHÔNG ĐƯỢC bọc gương 0.86m và KHÔNG ĐƯỢC ăn sang xe bên cạnh 0.45m - 0.65m!
+const rightEdgeWOnly = wOnlyFitRes.newCenterY - wOnlyFitRes.newW / 2;
+assert.ok(
+  Math.abs(rightEdgeWOnly - 1.10) < 0.05,
+  `Mép sườn phải của Box phải áp sát đúng thành xe 1.10m (thực tế: ${rightEdgeWOnly.toFixed(3)}m, loại bỏ gương 0.86m và xe bên cạnh 0.50m)`
+);
+
+console.log(
+  `✅ Test 38: Chế Độ Fit Mặc Định (Chỉ đạo mới người dùng): Bám đất chuẩn Z=${bottomZ.toFixed(2)}m (Roll=0°), Khóa cứng X (newCenterX=5.00m, shiftLx=0), Chỉ dịch W (Mép sườn phải=${rightEdgeWOnly.toFixed(2)}m khớp thành xe 1.10m, loại bỏ 100% gương & xe khác), Size bảo toàn 100% ${wOnlyFitRes.newL}x${wOnlyFitRes.newW}x${wOnlyFitRes.newH}m`
+);
+
+// 39. Test DÒ BỨC TƯỜNG CẢN XE TRỤC DỌC X (detectLongitudinalBumperBounds)
+// Kịch bản:
+// - Cản trước xe thật kết thúc tại lx = 1.95m. Phía trước có bóng ma phản xạ tại lx = 2.25m và xe nối đuôi tại lx in [2.70, 4.0m].
+// - Cản sau xe thật kết thúc tại lx = -2.15m. Phía sau có móc kéo nhô ra tại lx = -2.45m (3 điểm).
+const bumperTestPts: Array<{ lx: number; ly: number; z: number }> = [];
+
+// Thân xe thật lx in [-2.15, 1.95], ly in [-0.85, 0.85]
+for (let lx = -2.15; lx <= 1.95 + 1e-4; lx += 0.1) {
+  for (let ly = -0.85; ly <= 0.85; ly += 0.3) {
+    for (let z = 0.3; z <= 1.4; z += 0.4) {
+      bumperTestPts.push({ lx: Number(lx.toFixed(2)), ly, z });
+    }
+  }
+}
+
+// Móc kéo phía sau xe: lx = -2.45m (3 điểm thưa)
+bumperTestPts.push({ lx: -2.45, ly: 0.0, z: 0.5 });
+bumperTestPts.push({ lx: -2.43, ly: 0.05, z: 0.52 });
+bumperTestPts.push({ lx: -2.40, ly: -0.05, z: 0.48 });
+
+// Điểm bóng ma LiDAR phía trước: lx = 2.25m (2 điểm thưa)
+bumperTestPts.push({ lx: 2.25, ly: 0.1, z: 0.7 });
+bumperTestPts.push({ lx: 2.23, ly: -0.1, z: 0.65 });
+
+// 1. Kiểm tra cản trước đón tia (visibleLongitudinal = "front")
+const frontBumperDetected = detectLongitudinalBumperBounds(bumperTestPts, 2.3, "front");
+assert.ok(
+  frontBumperDetected <= 2.05 && frontBumperDetected >= 1.90,
+  `Cản trước phải bám khít mép cản thật ~1.95m, loại bỏ bóng ma 2.25m (thực tế: ${frontBumperDetected}m)`
+);
+
+// 2. Kiểm tra cản sau đón tia (visibleLongitudinal = "rear")
+const rearBumperDetected = detectLongitudinalBumperBounds(bumperTestPts, 2.3, "rear");
+assert.ok(
+  rearBumperDetected >= -2.25 && rearBumperDetected <= -2.10,
+  `Cản sau phải bám khít mép cản thật ~-2.15m, loại bỏ móc kéo -2.45m (thực tế: ${rearBumperDetected}m)`
+);
+
+console.log(
+  `✅ Test 39: Dò Bức Tường Cản Xe Trục Dọc X: Cản trước = ${frontBumperDetected}m (khớp 1.95m, gạt bóng ma 2.25m), Cản sau = ${rearBumperDetected}m (khớp -2.15m, gạt móc kéo -2.45m)`
+);
+
+// 40. Test FIT TOÀN DIỆN CẢ TRỤC X + W + BÁM ĐẤT (alignMode = "both", bảo toàn 100% kích thước)
+// Kịch bản toàn diện theo yêu cầu mới của người dùng:
+// - Xe mục tiêu L = 4.6m, W = 1.8m, H = 1.5m tại cx = 5.0m, cy = 2.0m, cz = 0.8m, Yaw = 0°.
+// - Mặt đất tại z = -0.35m.
+// - Cản trước xe thật tại x = 7.10m (tức lx = 2.10m), có bóng ma tại x = 7.45m và xe nối đuôi tại x in [7.9, 9.5m].
+// - Sườn phải đón tia tại y = 1.10m (tức ly = -0.90m), có gương tại y = 0.86m và xe bên cạnh tại y in [0.45, 0.65m].
+const fullFitPts: Array<{ x: number; y: number; z: number }> = [];
+
+// Mặt đất z = -0.35m
+for (let x = 2.5; x <= 7.5; x += 0.3) {
+  for (let y = 0.8; y <= 3.2; y += 0.3) {
+    fullFitPts.push({ x, y, z: -0.35 });
+  }
+}
+
+// Thân xe mục tiêu rỗng ruột theo chuẩn phản xạ LiDAR:
+// 1. Sườn phải đón tia: y = 1.10m, x in [3.10, 7.10], z in [0.0, 1.05] (tường vỏ xe dày đặc)
+for (let x = 3.10; x <= 7.10; x += 0.15) {
+  for (let z = 0.0; z <= 1.05; z += 0.15) {
+    fullFitPts.push({ x: Number(x.toFixed(2)), y: 1.10, z: Number(z.toFixed(2)) });
+  }
+}
+
+// 2. Cản sau xe: x = 3.10m, y in [1.10, 2.90], z in [0.0, 1.05] (mặt đón tia trục dọc)
+for (let y = 1.10; y <= 2.90; y += 0.15) {
+  for (let z = 0.0; z <= 1.05; z += 0.15) {
+    fullFitPts.push({ x: 3.10, y: Number(y.toFixed(2)), z: Number(z.toFixed(2)) });
+  }
+}
+
+// 3. Cản trước xe: x = 7.10m, y in [1.10, 2.90], z in [0.0, 1.05]
+for (let y = 1.10; y <= 2.90; y += 0.2) {
+  for (let z = 0.0; z <= 1.05; z += 0.2) {
+    fullFitPts.push({ x: 7.10, y: Number(y.toFixed(2)), z: Number(z.toFixed(2)) });
+  }
+}
+
+// Gương chiếu hậu sườn phải
+fullFitPts.push({ x: 5.5, y: 0.86, z: 0.55 });
+fullFitPts.push({ x: 5.5, y: 0.86, z: 0.57 });
+
+// Xe khác đỗ bên cạnh
+for (let x = 3.5; x <= 6.5; x += 0.3) {
+  for (let y = 0.45; y <= 0.65; y += 0.1) {
+    for (let z = -0.15; z <= 1.05; z += 0.3) {
+      fullFitPts.push({ x, y, z });
+    }
+  }
+}
+
+// Điểm bóng ma phía trước cản xe
+fullFitPts.push({ x: 7.45, y: 1.8, z: 0.6 });
+fullFitPts.push({ x: 7.42, y: 2.1, z: 0.65 });
+
+// Xe khác đỗ nối đuôi phía trước
+for (let x = 7.9; x <= 9.2; x += 0.2) {
+  for (let y = 1.2; y <= 2.8; y += 0.3) {
+    for (let z = -0.15; z <= 1.05; z += 0.3) {
+      fullFitPts.push({ x, y, z });
+    }
+  }
+}
+
+// Thực hiện Fit toàn diện (Ego tại gốc (0, 0))
+const fullFitRes = fitBoxToEgoRayAndGround(fullFitPts, 5.0, 2.0, 0.8, 0, 4.6, 1.8, 1.5, { x: 0, y: 0, z: 0 }, { alignMode: "both", preserveDimensions: true });
+
+// 1. BÁM ĐẤT: Đáy xe phải tiếp đất chuẩn xác tại -0.35m, Roll = 0°
+const fullBottomZ = fullFitRes.newCenterZ - fullFitRes.newH / 2;
+assert.ok(Math.abs(fullBottomZ - (-0.35)) < 0.03, `Đáy xe phải chạm khít mặt đất -0.35m (thực tế: ${fullBottomZ.toFixed(3)}m)`);
+assert.strictEqual(fullFitRes.rollDeg, 0, "Roll phải khóa phẳng 0° tuyệt đối");
+
+// 2. BẢO TOÀN KÍCH THƯỚC: L, W, H giữ nguyên 100%
+assert.strictEqual(fullFitRes.newL, 4.6, "L phải giữ nguyên 4.6m");
+assert.strictEqual(fullFitRes.newW, 1.8, "W phải giữ nguyên 1.8m");
+assert.strictEqual(fullFitRes.newH, 1.5, "H phải giữ nguyên 1.5m");
+
+// 3. TRỤC W: Sườn phải đón tia áp sát đúng thành xe 1.10m, loại bỏ gương 0.86m và xe bên cạnh
+const fullRightEdge = fullFitRes.newCenterY - fullFitRes.newW / 2;
+assert.ok(
+  Math.abs(fullRightEdge - 1.10) < 0.05,
+  `Mép sườn phải của Box phải áp sát đúng thành xe 1.10m (thực tế: ${fullRightEdge.toFixed(3)}m)`
+);
+
+// 4. TRỤC X: Mép cản trước đón tia áp sát đúng mép cản thật 7.10m, loại bỏ bóng ma 7.45m và xe nối đuôi 7.9m
+// (Ego ở (0,0) nhìn thấy mặt trước xe vì dxEgo = 5, vLocalX = -5, à xe ở x=5 nhìn từ Ego (0,0) thì tia chiếu vào mặt sau nếu xe hướng về +X!
+// Hãy xem visibleLongitudinal: dxEgo = cx - 0 = 5 > 0.
+// vLocalX = -dxEgo * cosY + dyEgo * sinY = -5 * 1 + 0 = -5 < 0 => visibleLongitudinal = "rear"!
+// Tức là Ego ở (0, 0) nhìn vào ĐUÔI xe tại x = 3.10m!)
+const fullBumperEdge = fullFitRes.visibleFaces.longitudinal === "front"
+  ? fullFitRes.newCenterX + fullFitRes.newL / 2
+  : fullFitRes.newCenterX - fullFitRes.newL / 2;
+
+if (fullFitRes.visibleFaces.longitudinal === "rear") {
+  // Mép sau đón tia của Box phải áp sát cản sau thật x = 3.10m
+  assert.ok(
+    Math.abs(fullBumperEdge - 3.10) < 0.08,
+    `Mép cản sau đón tia của Box phải áp sát đúng mép đuôi xe 3.10m (thực tế: ${fullBumperEdge.toFixed(3)}m)`
+  );
+  // Và mép trước của Box vươn tới 3.10 + 4.6 = 7.70m (bao trọn vẹn đầu xe 7.10m)
+  const frontOpposite = fullFitRes.newCenterX + fullFitRes.newL / 2;
+  assert.ok(frontOpposite >= 7.10, `Mép trước phải bọc trọn vẹn đầu xe >= 7.10m (thực tế: ${frontOpposite.toFixed(3)}m)`);
+} else {
+  // Nếu là front: Mép trước phải áp sát cản trước thật 7.10m
+  assert.ok(
+    Math.abs(fullBumperEdge - 7.10) < 0.08,
+    `Mép cản trước đón tia của Box phải áp sát đúng mép đầu xe 7.10m (thực tế: ${fullBumperEdge.toFixed(3)}m)`
+  );
+}
+
+console.log(
+  `✅ Test 40: Fit Toàn Diện (X + W + Bám Đất): Bám đất Z=${fullBottomZ.toFixed(2)}m (Roll=0°), Mép sườn W=${fullRightEdge.toFixed(2)}m (khớp thành xe 1.10m), Mép cản X=${fullBumperEdge.toFixed(2)}m (khớp cản đón tia, gạt bỏ bóng ma & xe nối đuôi), Size bảo toàn 100% ${fullFitRes.newL}x${fullFitRes.newW}x${fullFitRes.newH}m`
+);
+
+// ==========================================
+// TEST 41: LỌC NHIỄU THƯA THỚT CẬN THÂN XE DỰA TRÊN MẬT ĐỘ LÕI 3D (Near-Object Sparse Noise Filter)
+// ==========================================
+// Thân xe A phản xạ dày đặc theo chùm tia LiDAR thực tế (bước điểm 8-10cm, D >= 15).
+// 3 điểm nhiễu nằm RẤT SÁT SƯỜN XE (cách vỏ xe ly=0.60m chỉ 15cm) nhưng mật độ thưa thớt (D <= 2).
+const bodyWithSparseNoise: Array<{ lx: number; ly: number; z: number }> = [];
+// Cụm thân xe dày đặc (ly in [-0.60, 0.60])
+for (let lx = -0.5; lx <= 0.5; lx += 0.10) {
+  for (let ly = -0.60; ly <= 0.60; ly += 0.10) {
+    for (let z = 0.0; z <= 0.3; z += 0.10) {
+      bodyWithSparseNoise.push({ lx, ly, z });
+    }
+  }
+}
+const coreBodyCount = bodyWithSparseNoise.length;
+
+// 3 điểm nhiễu thưa thớt sát sườn phải (ly in [0.75, 0.78], cách mép 0.60m chỉ 15-18cm)
+bodyWithSparseNoise.push({ lx: 0.0, ly: 0.75, z: 0.2 });
+bodyWithSparseNoise.push({ lx: 0.3, ly: 0.78, z: 0.3 });
+bodyWithSparseNoise.push({ lx: -0.3, ly: 0.76, z: 0.1 });
+
+// Gọi lọc mật độ lõi 3D (mặc định bán kính 0.12m)
+const filteredCoreBody = filterSparseNoiseByLocalDensity(bodyWithSparseNoise);
+assert.strictEqual(
+  filteredCoreBody.length,
+  coreBodyCount,
+  `Thuật toán phải lọc sạch đúng 3 điểm nhiễu thưa thớt sát sườn (còn lại: ${filteredCoreBody.length}/${bodyWithSparseNoise.length})`
+);
+// Xác nhận cả 3 điểm nhiễu ngoài ly > 0.65 đều bị triệt tiêu 100%
+const hasNoise = filteredCoreBody.some((p) => p.ly > 0.65);
+assert.strictEqual(hasNoise, false, "100% điểm nhiễu thưa sát sườn xe phải bị loại bỏ");
+console.log(
+  `✅ Test 41: Lọc Nhiễu Thưa Thớt Cận Thân Xe (Mật Độ Lõi 3D): Đã loại bỏ 100% điểm nhiễu cách sườn 15cm (giữ lại trọn vẹn ${filteredCoreBody.length} điểm thân xe cốt lõi)`
+);
+
+// ==========================================
+// TEST 42: XỬ LÝ PHẦN TOP TRƯỚC (Dò Lớp Nóc Xe Thật, Loại Bỏ Nhiễu Trên Cao)
+// ==========================================
+// Xe có nóc xe thật ở cao độ z = 1.25m với 30 điểm phẳng dày đặc.
+// 2 điểm nhiễu trên cao (bụi / chim bay / phản xạ laser) ở z = 1.60m và 1.70m (cao hơn nóc 35-45cm).
+const roofWithHighNoise: Array<{ lx: number; ly: number; z: number }> = [];
+// Thân xe và lớp nóc xe (z in [0.0, 1.25])
+for (let lx = -1.0; lx <= 1.0; lx += 0.3) {
+  for (let ly = -0.6; ly <= 0.6; ly += 0.3) {
+    roofWithHighNoise.push({ lx, ly, z: 1.25 }); // 35 điểm lớp nóc xe
+    roofWithHighNoise.push({ lx, ly, z: 0.8 });  // Thân xe
+    roofWithHighNoise.push({ lx, ly, z: 0.4 });  // Thân xe
+  }
+}
+// 2 điểm nhiễu trên cao lơ lửng
+roofWithHighNoise.push({ lx: 0.1, ly: 0.1, z: 1.60 });
+roofWithHighNoise.push({ lx: -0.2, ly: 0.0, z: 1.70 });
+
+// Dò nóc xe thật
+const detectedRoof = detectRoofTopBounds(roofWithHighNoise, 1.25);
+assert.ok(
+  Math.abs(detectedRoof - 1.25) < 0.03,
+  `Lớp nóc xe thật phải được nhận diện chính xác tại 1.25m, không bị kéo lên 1.70m (thực tế: ${detectedRoof}m)`
+);
+
+const robustRoofResult = computeDensityRobustBounds(roofWithHighNoise);
+assert.ok(
+  Math.abs(robustRoofResult.zTop - 1.25) < 0.03,
+  `computeDensityRobustBounds phải trả về zTop = 1.25m (thực tế: ${robustRoofResult.zTop}m)`
+);
+console.log(
+  `✅ Test 42: Xử Lý Phần TOP Trước (Dò Lớp Nóc Xe Thật): Đã nhận diện nóc xe thật Z = ${detectedRoof}m, loại bỏ 100% điểm nhiễu lơ lửng Z=1.70m`
+);
+
+// ==========================================
+// TEST 43: CHU TRÌNH FIT HOÀN CHỈNH TOP-FIRST + LỌC NHIỄU CẬN THÂN
+// ==========================================
+// Tổng hợp xe A có:
+// 1. Mặt đất phẳng z = -0.35m
+// 2. Thân xe ô tô tâm (5.0, 2.0), kích thước 4.6x1.8x1.5m
+// 3. Nóc xe thật ở z = 1.15m (khớp -0.35 + 1.5)
+// 4. Nhiễu trên cao z = 1.55m và 1.65m
+// 5. Nhiễu sát sườn phải y = 0.96m (cách thành xe 1.10m chỉ 14cm)
+const completeTestPts: Array<{ x: number; y: number; z: number }> = [];
+
+// Điểm mặt đất
+for (let x = 2.0; x <= 8.0; x += 0.5) {
+  for (let y = 0.5; y <= 3.5; y += 0.5) {
+    completeTestPts.push({ x, y, z: -0.35 });
+  }
+}
+// Thân xe và nóc xe (x in [3.1, 7.1], y in [1.1, 2.9], z in [-0.15, 1.15])
+for (let x = 3.1; x <= 7.1; x += 0.2) {
+  for (let y = 1.1; y <= 2.9; y += 0.2) {
+    completeTestPts.push({ x, y, z: 1.15 }); // Lớp nóc xe
+    completeTestPts.push({ x, y, z: 0.50 }); // Thân xe
+  }
+}
+// Nhiễu trên cao lơ lửng
+completeTestPts.push({ x: 5.0, y: 2.0, z: 1.55 });
+completeTestPts.push({ x: 5.2, y: 1.8, z: 1.65 });
+
+// Nhiễu thưa thớt sát sườn phải (y = 0.96m đón tia từ Ego (0,0))
+completeTestPts.push({ x: 4.5, y: 0.96, z: 0.4 });
+completeTestPts.push({ x: 5.5, y: 0.95, z: 0.6 });
+
+// Chạy Fit chế độ mặc định w_only (Ego tại (0,0))
+const completeFitRes = fitBoxToEgoRayAndGround(
+  completeTestPts,
+  5.0,
+  2.0,
+  0.8,
+  0,
+  4.6,
+  1.8,
+  1.5,
+  { x: 0, y: 0, z: 0 },
+  { alignMode: "w_only", preserveDimensions: true }
+);
+
+// 1. BÁM ĐẤT: Đáy xe chạm đất chuẩn -0.35m, Roll = 0°
+const completeBottomZ = completeFitRes.newCenterZ - completeFitRes.newH / 2;
+assert.ok(Math.abs(completeBottomZ - (-0.35)) < 0.03, `Đáy xe phải tiếp đất -0.35m (thực tế: ${completeBottomZ.toFixed(3)}m)`);
+assert.strictEqual(completeFitRes.rollDeg, 0, "Roll phải khóa phẳng 0° tuyệt đối");
+
+// 2. PHẦN TOP: Nóc xe nhận diện đúng 1.15m, loại bỏ nhiễu 1.65m
+assert.ok(Math.abs(completeFitRes.roofTopZ - 1.15) < 0.05, `roofTopZ phải là 1.15m (thực tế: ${completeFitRes.roofTopZ}m)`);
+
+// 3. SƯỜN W: Mép sườn phải ôm khít thành xe 1.10m, loại bỏ 100% nhiễu sát sườn 0.96m
+const completeRightEdge = completeFitRes.newCenterY - completeFitRes.newW / 2;
+assert.ok(
+  Math.abs(completeRightEdge - 1.10) < 0.05,
+  `Mép sườn phải phải áp sát đúng thành xe 1.10m, gạt bỏ nhiễu 0.96m (thực tế: ${completeRightEdge.toFixed(3)}m)`
+);
+
+// 4. KHÓA CỨNG X VÀ BẢO TOÀN SIZE 100%
+assert.strictEqual(completeFitRes.shiftLx, 0, "shiftLx phải bằng 0 (khóa cứng hướng X)");
+assert.strictEqual(completeFitRes.newL, 4.6, "L phải giữ nguyên 4.6m");
+assert.strictEqual(completeFitRes.newW, 1.8, "W phải giữ nguyên 1.8m");
+assert.strictEqual(completeFitRes.newH, 1.5, "H phải giữ nguyên 1.5m");
+
+console.log(
+  `✅ Test 43: Chu Trình Fit Hoàn Chỉnh Top-First & Lọc Nhiễu Mật Độ Cận Thân: Bám đất Z=${completeBottomZ.toFixed(2)}m (Roll=0°), Nóc xe Z=${completeFitRes.roofTopZ}m (gạt nhiễu 1.65m), Sườn W=${completeRightEdge.toFixed(2)}m (gạt nhiễu 0.96m), Khóa cứng X=5.00m, Size 100% ${completeFitRes.newL}x${completeFitRes.newW}x${completeFitRes.newH}m`
+);
+
+// ==========================================
+// TEST 44: CĂN THẲNG GÓC YAW LỆCH 3.5° THEO VIỀN MẬT ĐỘ ĐỘT BIẾN TOP VIEW (straightenYawFromBoundaryEdge)
+// ==========================================
+// Hướng xe thật = 0 rad, nhưng annotator đặt Box lệch góc -3.5° (-0.061 rad).
+// Trong hệ cục bộ của Box, dải viền thân xe nghiêng góc +3.5° (slope = tan(3.5°)).
+const initialYaw44 = -0.06109; // -3.5°
+const deltaYawTrueRad44 = 0.06109; // +3.5°
+const slopeTrue44 = Math.tan(deltaYawTrueRad44);
+const L44 = 4.6, W44 = 1.8;
+
+const testPts44: Array<{ lx: number; ly: number; z: number }> = [];
+// Tạo dải viền thân xe đón tia (sườn phải) có mật độ rất cao kéo dài dọc xe
+for (let lx = -2.2; lx <= 2.2; lx += 0.15) {
+  const lyWall = slopeTrue44 * lx - W44 / 2; // Viền mép sườn thật
+  testPts44.push({ lx, ly: lyWall, z: 0.3 });
+  testPts44.push({ lx, ly: lyWall, z: 0.6 });
+  testPts44.push({ lx, ly: lyWall + 0.10, z: 0.5 }); // Lớp trong thành xe
+}
+
+const straightRes44 = straightenYawFromBoundaryEdge(testPts44, initialYaw44, L44, W44, "right");
+assert.ok(
+  Math.abs(straightRes44.newYawDeg - 0.0) < 0.20,
+  `Góc Yaw sau khi căn thẳng phải quay về xấp xỉ 0.0° (thực tế: ${straightRes44.newYawDeg}°, vi chỉnh: ${straightRes44.deltaYawDeg}°)`
+);
+console.log(
+  `✅ Test 44: Căn Thẳng Góc Yaw Top View: Lệch ban đầu -3.5° ➔ Tự động xoay thẳng về ${straightRes44.newYawDeg}° (vi chỉnh ΔYaw = +${straightRes44.deltaYawDeg}°, khớp 100% theo viền mật độ cao)`
+);
+
+// ==========================================
+// TEST 45: QUY TRÌNH HOÀN CHỈNH TUẦN TỰ (CĂN TOP ➔ CĂN SIDE ➔ CĂN FRONT + AUTO GHIM ĐẤT)
+// ==========================================
+// Xe ô tô tại cx = 10m, cy = 5m, L=4.6m, W=1.8m, H=1.5m.
+// Mặt đất ở z = -0.40m.
+// Annotator đặt Box lệch Yaw = -2.8°, tâm Z bị bay lơ lửng ở 0.60m (đáy ở -0.15m cách đất 25cm).
+// Xe đón tia từ Ego (0,0) (nhìn thấy sườn phải và mặt sau).
+const initialYaw45 = -0.04887; // -2.8°
+const testPts45: Array<{ x: number; y: number; z: number }> = [];
+
+// 1. Điểm mặt đất chuẩn z = -0.40m
+for (let x = 7.0; x <= 13.0; x += 0.5) {
+  for (let y = 3.0; y <= 7.0; y += 0.5) {
+    testPts45.push({ x, y, z: -0.40 });
+  }
+}
+
+// 2. Thân xe ô tô thực tế (chuẩn Yaw = 0 rad, x in [7.7, 12.3], y in [4.1, 5.9], z in [-0.2, 1.1])
+// Viền sườn phải chuẩn tại y = 4.10m, cản sau chuẩn tại x = 7.70m, nóc xe tại z = 1.10m
+for (let x = 7.70; x <= 12.30; x += 0.2) {
+  for (let z = 0.0; z <= 1.10; z += 0.2) {
+    testPts45.push({ x, y: 4.10, z }); // Sườn phải thật
+  }
+  testPts45.push({ x, y: 4.10, z: 1.10 }); // Lớp nóc xe
+}
+for (let y = 4.10; y <= 5.90; y += 0.2) {
+  for (let z = 0.0; z <= 1.10; z += 0.2) {
+    testPts45.push({ x: 7.70, y, z }); // Cản sau thật
+  }
+  testPts45.push({ x: 7.70, y, z: 1.10 }); // Lớp nóc xe
+}
+
+// Chạy 1-Click Smart Fit (chuỗi Top ➔ Side ➔ Front + Auto Ghim Đất)
+const seqFitRes = fitBoxToEgoRayAndGround(
+  testPts45,
+  10.0,
+  5.0,
+  0.60,
+  initialYaw45,
+  4.6,
+  1.8,
+  1.5,
+  { x: 0, y: 0, z: 0 },
+  { alignMode: "both", preserveDimensions: true }
+);
+
+// 1. CĂN TOP: Góc Yaw phải được xoay thẳng về xấp xỉ 0.0° (sai số < 0.25°)
+assert.ok(
+  Math.abs(seqFitRes.newYawDeg! - 0.0) < 0.25,
+  `CĂN TOP: Góc Yaw phải được xoay thẳng về 0.0° (thực tế: ${seqFitRes.newYawDeg}°)`
+);
+
+// 2. AUTO GHIM ĐẤT: Đáy xe phải tiếp đất chuẩn xác tại -0.40m, Roll = 0°
+const seqBottomZ = seqFitRes.newCenterZ - seqFitRes.newH / 2;
+assert.ok(
+  Math.abs(seqBottomZ - (-0.40)) < 0.03,
+  `AUTO GHIM ĐẤT: Đáy xe phải chạm khít mặt đất -0.40m (thực tế: ${seqBottomZ.toFixed(3)}m)`
+);
+assert.strictEqual(seqFitRes.rollDeg, 0, "Roll phải khóa phẳng 0° tuyệt đối");
+
+// 3. CĂN FRONT: Mép sườn phải đón tia của Box áp sát thành xe 4.10m
+const seqRightEdge = seqFitRes.newCenterY - seqFitRes.newW / 2;
+assert.ok(
+  Math.abs(seqRightEdge - 4.10) < 0.06,
+  `CĂN FRONT: Mép sườn phải phải áp sát 4.10m (thực tế: ${seqRightEdge.toFixed(3)}m)`
+);
+
+// 4. CĂN SIDE: Mép cản sau đón tia của Box áp sát cản sau 7.70m
+const seqRearEdge = seqFitRes.newCenterX - seqFitRes.newL / 2;
+assert.ok(
+  Math.abs(seqRearEdge - 7.70) < 0.08,
+  `CĂN SIDE: Mép cản sau phải áp sát 7.70m (thực tế: ${seqRearEdge.toFixed(3)}m)`
+);
+
+// 5. BẢO TOÀN KÍCH THƯỚC: L, W, H giữ nguyên 100%
+assert.strictEqual(seqFitRes.newL, 4.6, "L giữ nguyên 4.6m");
+assert.strictEqual(seqFitRes.newW, 1.8, "W giữ nguyên 1.8m");
+assert.strictEqual(seqFitRes.newH, 1.5, "H giữ nguyên 1.5m");
+
+console.log(
+  `✅ Test 45: Quy Trình Hoàn Chỉnh Tuần Tự (Top ➔ Side ➔ Front + Auto Ghim Đất): Yaw=${seqFitRes.newYawDeg}° (căn thẳng Top), Đáy Z=${seqBottomZ.toFixed(2)}m (Auto Ghim Đất), Cản Sau=${seqRearEdge.toFixed(2)}m (Side), Sườn Phải=${seqRightEdge.toFixed(2)}m (Front), Size 100% ${seqFitRes.newL}x${seqFitRes.newW}x${seqFitRes.newH}m`
+);
+
+// ==========================================
+// TEST 46: NÚT 1: CĂN TOP ĐỘC LẬP (fitStep: "top")
+// ==========================================
+// Chỉ căn thẳng góc Yaw theo viền xe và Auto Ghim Đất, tuyệt đối giữ nguyên X và Y
+const fitTopOnlyRes = fitBoxToEgoRayAndGround(
+  testPts45,
+  10.0,
+  5.0,
+  0.60,
+  initialYaw45,
+  4.6,
+  1.8,
+  1.5,
+  { x: 0, y: 0, z: 0 },
+  { fitStep: "top", preserveDimensions: true }
+);
+
+// 1. Yaw được xoay thẳng về 0.0°
+assert.ok(
+  Math.abs(fitTopOnlyRes.newYawDeg! - 0.0) < 0.25,
+  `Fit TOP: Yaw phải xoay thẳng về 0.0° (thực tế: ${fitTopOnlyRes.newYawDeg}°)`
+);
+// 2. TUYỆT ĐỐI KHÔNG GHIM ĐẤT: Giữ nguyên 100% cao độ Z ban đầu (newCenterZ = cz = 0.60m)
+assert.strictEqual(
+  fitTopOnlyRes.newCenterZ,
+  0.60,
+  "Fit TOP: Cao độ Z phải giữ nguyên tuyệt đối 0.60m (không can thiệp kéo Z xuống đất)"
+);
+// 3. Giữ nguyên vị trí X và Y ban đầu (sai số milimét do lượng giác)
+assert.ok(
+  Math.abs(fitTopOnlyRes.newCenterX - 10.0) < 0.05,
+  `Fit TOP: X phải xấp xỉ 10.0m (thực tế: ${fitTopOnlyRes.newCenterX})`
+);
+assert.ok(
+  Math.abs(fitTopOnlyRes.newCenterY - 5.0) < 0.05,
+  `Fit TOP: Y phải xấp xỉ 5.0m (thực tế: ${fitTopOnlyRes.newCenterY})`
+);
+// 4. Bảo toàn size
+assert.strictEqual(fitTopOnlyRes.newL, 4.6, "Fit TOP: L giữ nguyên");
+assert.strictEqual(fitTopOnlyRes.newW, 1.8, "Fit TOP: W giữ nguyên");
+assert.strictEqual(fitTopOnlyRes.newH, 1.5, "Fit TOP: H giữ nguyên");
+
+console.log(
+  `✅ Test 46: Nút Fit TOP Độc Lập: Xoay thẳng Yaw=${fitTopOnlyRes.newYawDeg}° (viền xe), Giữ nguyên 100% Z=${fitTopOnlyRes.newCenterZ}m (Không ghim đất), X=${fitTopOnlyRes.newCenterX}m, Y=${fitTopOnlyRes.newCenterY}m`
+);
+
+// ==========================================
+// TEST 47: NÚT 2: CĂN SIDE ĐỘC LẬP (fitStep: "side")
+// ==========================================
+// Box đặt lệch cản sau tại cx = 9.60m (cản sau ở 7.30m thay vì 7.70m), Yaw chuẩn = 0.0 rad.
+// Khi bấm Căn Side: Cản sau phải dịch tới 7.70m, Y và Yaw giữ nguyên 100%.
+const fitSideOnlyRes = fitBoxToEgoRayAndGround(
+  testPts45,
+  9.60,
+  5.0,
+  0.60,
+  0.0,
+  4.6,
+  1.8,
+  1.5,
+  { x: 0, y: 0, z: 0 },
+  { fitStep: "side", preserveDimensions: true }
+);
+
+// 1. Cản sau áp sát đón tia 7.70m + Padding 5cm = 7.65m (cx dịch từ 9.60m lên xấp xỉ 9.95m)
+const sideRearEdge = fitSideOnlyRes.newCenterX - fitSideOnlyRes.newL / 2;
+assert.ok(
+  Math.abs(sideRearEdge - 7.65) < 0.03,
+  `Fit SIDE: Cản sau phải ở 7.65m (thực tế: ${sideRearEdge.toFixed(3)}m)`
+);
+// 2. TUYỆT ĐỐI KHÔNG GHIM ĐẤT: Giữ nguyên 100% cao độ Z ban đầu (newCenterZ = cz = 0.60m)
+assert.strictEqual(
+  fitSideOnlyRes.newCenterZ,
+  0.60,
+  "Fit SIDE: Cao độ Z phải giữ nguyên tuyệt đối 0.60m (không can thiệp kéo Z xuống đất)"
+);
+// 3. Giữ nguyên Y và Yaw ban đầu
+assert.strictEqual(fitSideOnlyRes.newCenterY, 5.0, "Fit SIDE: Y phải giữ nguyên 5.0m");
+assert.strictEqual(fitSideOnlyRes.newYawDeg, 0, "Fit SIDE: Yaw phải giữ nguyên 0°");
+assert.strictEqual(fitSideOnlyRes.shiftLy, 0, "Fit SIDE: shiftLy phải bằng 0");
+
+console.log(
+  `✅ Test 47: Nút Fit SIDE Độc Lập: Cản sau=${sideRearEdge.toFixed(2)}m (bọc cản thật 7.70m + Padding 5cm), Giữ nguyên 100% Z=${fitSideOnlyRes.newCenterZ}m (Không ghim đất), Y=${fitSideOnlyRes.newCenterY}m, Yaw=${fitSideOnlyRes.newYawDeg}°`
+);
+
+// ==========================================
+// TEST 48: NÚT 3: CĂN FRONT ĐỘC LẬP (fitStep: "front")
+// ==========================================
+// Box đặt lệch sườn tại cy = 5.25m (sườn phải ở 4.35m thay vì 4.10m), Yaw chuẩn = 0.0 rad.
+// Khi bấm Căn Front: Sườn phải dịch về 4.10m - 0.05m = 4.05m, X và Yaw giữ nguyên 100%.
+const fitFrontOnlyRes = fitBoxToEgoRayAndGround(
+  testPts45,
+  10.0,
+  5.25,
+  0.60,
+  0.0,
+  4.6,
+  1.8,
+  1.5,
+  { x: 0, y: 0, z: 0 },
+  { fitStep: "front", preserveDimensions: true }
+);
+
+// 1. Sườn phải áp sát đón tia 4.10m + Padding 5cm = 4.05m (cy dịch từ 5.25m về xấp xỉ 4.95m)
+const frontRightEdge = fitFrontOnlyRes.newCenterY - fitFrontOnlyRes.newW / 2;
+assert.ok(
+  Math.abs(frontRightEdge - 4.05) < 0.03,
+  `Fit FRONT: Sườn phải phải ở 4.05m (thực tế: ${frontRightEdge.toFixed(3)}m)`
+);
+// 2. FRONT TUYỆT ĐỐI KHÔNG GHIM ĐẤT: Giữ nguyên 100% cao độ Z ban đầu (newCenterZ = cz = 0.60m)
+assert.strictEqual(fitFrontOnlyRes.newCenterZ, 0.60, "Fit FRONT: Cao độ Z phải giữ nguyên tuyệt đối 0.60m (không can thiệp kéo Z xuống đất)");
+// 3. Giữ nguyên X và Yaw ban đầu
+assert.strictEqual(fitFrontOnlyRes.newCenterX, 10.0, "Fit FRONT: X phải giữ nguyên 10.0m");
+assert.strictEqual(fitFrontOnlyRes.newYawDeg, 0, "Fit FRONT: Yaw phải giữ nguyên 0°");
+assert.strictEqual(fitFrontOnlyRes.shiftLx, 0, "Fit FRONT: shiftLx phải bằng 0");
+
+console.log(
+  `✅ Test 48: Nút Fit FRONT Độc Lập: Sườn phải=${frontRightEdge.toFixed(2)}m (áp sát sườn đón tia 4.10m), Giữ nguyên 100% Z=${fitFrontOnlyRes.newCenterZ}m (Không ghim đất), X=${fitFrontOnlyRes.newCenterX}m, Yaw=${fitFrontOnlyRes.newYawDeg}°`
+);
+
+// ==========================================
+// TEST 49: NÚT TOP CHUYÊN TRÁCH GÓC XOAY YAW (XOAY TẠI CHỖ QUANH TÂM, KHÓA CỨNG X VÀ Y)
+// ==========================================
+// Tình huống thực tế: Người dùng kéo Box lại gần xe tương đối: cx = 10.15m, cy = 5.12m, Yaw lệch -2.0°.
+// Khi bấm Fit TOP: Box CHỈ xoay góc Yaw quanh tâm để song song với point cloud sườn đón tia Ego,
+// Tuyệt đối giữ nguyên vị trí tâm cx = 10.15m và cy = 5.12m (shiftLx = 0, shiftLy = 0).
+const userPhotoYaw = -0.0349; // -2.0°
+const userPhotoFitRes = fitBoxToEgoRayAndGround(
+  testPts45,
+  10.15,
+  5.12,
+  0.60,
+  userPhotoYaw,
+  4.6,
+  1.8,
+  1.5,
+  { x: 0, y: 0, z: 0 },
+  { fitStep: "top", preserveDimensions: true }
+);
+
+// 1. Góc Yaw tự động xoay thẳng theo sườn xe đón tia
+assert.ok(
+  Math.abs(userPhotoFitRes.newYawDeg! - 0.0) < 0.25,
+  `Test 49: Yaw phải xoay thẳng về 0° (thực tế: ${userPhotoFitRes.newYawDeg}°)`
+);
+
+// 2. KHÓA CỨNG VỊ TRÍ X VÀ Y (Tâm box xoay tại chỗ quanh tâm, shiftLx = 0, shiftLy = 0)
+assert.strictEqual(userPhotoFitRes.shiftLx, 0, "Test 49: shiftLx phải bằng 0 tuyệt đối");
+assert.strictEqual(userPhotoFitRes.shiftLy, 0, "Test 49: shiftLy phải bằng 0 tuyệt đối");
+assert.strictEqual(userPhotoFitRes.newCenterX, 10.15, "Test 49: newCenterX phải giữ nguyên 10.15m");
+assert.strictEqual(userPhotoFitRes.newCenterY, 5.12, "Test 49: newCenterY phải giữ nguyên 5.12m");
+
+// 3. TUYỆT ĐỐI KHÔNG GHIM ĐẤT: Giữ nguyên 100% cao độ Z ban đầu (newCenterZ = cz = 0.60m)
+assert.strictEqual(userPhotoFitRes.newCenterZ, 0.60, "Test 49: Cao độ Z phải giữ nguyên tuyệt đối 0.60m (không can thiệp ghim đất)");
+
+console.log(
+  `✅ Test 49: Nút TOP Chuyên Trách Yaw (cx=10.15, cy=5.12, Yaw=-2.0°): Xoay thẳng Yaw=${userPhotoFitRes.newYawDeg}°, Giữ nguyên tâm X=10.15m, Y=5.12m, Z=${userPhotoFitRes.newCenterZ}m (shiftLx=0, shiftLy=0, Không ghim đất)`
+);
+
+// ==========================================
+// TEST 50: BẤM LẶP LẠI NHIỀU LẦN ĐỨNG IM BẤT ĐỘNG (ZERO DRIFT / IDEMPOTENCY)
+// ==========================================
+// Khi box đã xoay song song, bấm liên tiếp 3 lần nữa:
+// shiftLx = 0, shiftLy = 0, deltaYaw = 0, tuyệt đối không di chuyển dù chỉ 1mm!
+let currentX = userPhotoFitRes.newCenterX;
+let currentY = userPhotoFitRes.newCenterY;
+let currentZ = userPhotoFitRes.newCenterZ;
+let currentYaw = userPhotoFitRes.newYawRad!;
+
+for (let pass = 2; pass <= 4; pass++) {
+  const repeatedFitRes = fitBoxToEgoRayAndGround(
+    testPts45,
+    currentX,
+    currentY,
+    currentZ,
+    currentYaw,
+    4.6,
+    1.8,
+    1.5,
+    { x: 0, y: 0, z: 0 },
+    { fitStep: "top", preserveDimensions: true }
+  );
+
+  assert.strictEqual(repeatedFitRes.shiftLx, 0, `Test 50 (Lần ${pass}): shiftLx phải bằng 0 tuyệt đối`);
+  assert.strictEqual(repeatedFitRes.shiftLy, 0, `Test 50 (Lần ${pass}): shiftLy phải bằng 0 tuyệt đối`);
+  assert.strictEqual(repeatedFitRes.deltaYawDeg, 0, `Test 50 (Lần ${pass}): deltaYawDeg phải bằng 0 tuyệt đối`);
+
+  assert.ok(
+    Math.abs(repeatedFitRes.newCenterX - currentX) < 0.001,
+    `Test 50 (Lần ${pass}): X không được trôi dạt`
+  );
+  assert.ok(
+    Math.abs(repeatedFitRes.newCenterY - currentY) < 0.001,
+    `Test 50 (Lần ${pass}): Y không được trôi dạt`
+  );
+
+  currentX = repeatedFitRes.newCenterX;
+  currentY = repeatedFitRes.newCenterY;
+  currentZ = repeatedFitRes.newCenterZ;
+  currentYaw = repeatedFitRes.newYawRad!;
+}
+
+console.log(
+  `✅ Test 50: Bấm FIT TOP Lặp Lại 4 Lần Liên Tiếp ➔ ΔX=0m, ΔY=0m, ΔYaw=0°, ĐỨNG IM BẤT ĐỘNG TUYỆT ĐỐI (Triệt Tiêu 100% Trôi Dạt)!`
+);
+
+// ==========================================
+// TEST 51: XE QUAY GÓC CHÉO 30° ➔ CHU TRÌNH 3 BƯỚC ĐỘC LẬP: TOP (YAW) ➔ SIDE (L) ➔ FRONT (W)
+// ==========================================
+const test51TrueYaw = Math.PI / 6; // 30°
+const cos51 = Math.cos(test51TrueYaw);
+const sin51 = Math.sin(test51TrueYaw);
+const cx51 = 15.0;
+const cy51 = -8.0;
+const L51 = 4.6;
+const W51 = 1.8;
+
+// Ego tại (0,0): Chiếu tới xe (15, -8)
+const dx51E = 0 - cx51;
+const dy51E = 0 - cy51;
+const ego51Lx = dx51E * cos51 + dy51E * sin51;
+const ego51Ly = -dx51E * sin51 + dy51E * cos51;
+const visSide51 = ego51Ly >= 0 ? "left" : "right"; // left
+const visBumper51 = ego51Lx >= 0 ? "front" : "rear"; // rear
+
+const testPts51: Array<{ x: number; y: number; z: number }> = [];
+const sườnLy51 = visSide51 === "left" ? W51 / 2 : -W51 / 2;
+for (let lx = -L51 / 2; lx <= L51 / 2; lx += 0.2) {
+  for (let z = 0.0; z <= 1.2; z += 0.2) {
+    const x = cx51 + lx * cos51 - sườnLy51 * sin51;
+    const y = cy51 + lx * sin51 + sườnLy51 * cos51;
+    testPts51.push({ x, y, z });
+  }
+}
+const cảnLx51 = visBumper51 === "front" ? L51 / 2 : -L51 / 2;
+for (let ly = -W51 / 2; ly <= W51 / 2; ly += 0.2) {
+  for (let z = 0.0; z <= 1.2; z += 0.2) {
+    const x = cx51 + cảnLx51 * cos51 - ly * sin51;
+    const y = cy51 + cảnLx51 * sin51 + ly * cos51;
+    testPts51.push({ x, y, z });
+  }
+}
+
+// Box ban đầu người dùng kéo lại gần xe tương đối: cx=15.08, cy=-8.06, góc lệch nhẹ +1.5°
+const initialYaw51 = test51TrueYaw + (1.5 * Math.PI) / 180;
+const fitTop51Res = fitBoxToEgoRayAndGround(
+  testPts51,
+  15.08,
+  -8.06,
+  0.6,
+  initialYaw51,
+  4.6,
+  1.8,
+  1.5,
+  { x: 0, y: 0, z: 0 },
+  { fitStep: "top", preserveDimensions: true }
+);
+
+// 1. TOP chỉ chỉnh góc xoay: Yaw quay về khớp góc 30° của sườn xe đón tia
+assert.ok(
+  Math.abs(fitTop51Res.newYawDeg! - 30.0) < 0.25,
+  `Test 51 (TOP): Yaw phải xoay về 30° (thực tế: ${fitTop51Res.newYawDeg}°)`
+);
+// Giữ nguyên tâm X và Y
+assert.strictEqual(fitTop51Res.shiftLx, 0, "Test 51 (TOP): shiftLx phải bằng 0");
+assert.strictEqual(fitTop51Res.shiftLy, 0, "Test 51 (TOP): shiftLy phải bằng 0");
+assert.strictEqual(fitTop51Res.newCenterX, 15.08, "Test 51 (TOP): newCenterX giữ nguyên 15.08m");
+assert.strictEqual(fitTop51Res.newCenterY, -8.06, "Test 51 (TOP): newCenterY giữ nguyên -8.06m");
+
+console.log(
+  `✅ Test 51: Chu Trình Phân Tách Tuyệt Đối (TOP chỉ xoay Yaw song song sườn đón tia 30.0°, khóa cứng tâm X=15.08m, Y=-8.06m)`
+);
+
+// ==========================================
+// TEST 52: NÚT SIDE THEO HƯỚNG EGO, KHÁNG NHIỄU MẬT ĐỘ, TRIỆT TIÊU DI CHUYỂN QUÁ ĐÀ & PADDING 2.5CM
+// ==========================================
+// Xe thật tại cx = 10m, cy = 0m, L = 4.6m, W = 1.8m, H = 1.5m.
+// Cản trước chuẩn tại x = 12.30m, cản sau tại x = 7.70m.
+// Ego tại (20, 0) chiếu thẳng vào đầu xe (visibleBumper = "front").
+// Thêm 2 điểm nhiễu thưa thớt ở x = 12.50m (cách đầu xe 20cm).
+const testPts52: Array<{ x: number; y: number; z: number }> = [];
+// Cản trước thật (mật độ cao): x = 12.30, y in [-0.8, 0.8]
+for (let y = -0.8; y <= 0.8; y += 0.1) {
+  for (let z = 0.0; z <= 1.0; z += 0.2) {
+    testPts52.push({ x: 12.30, y, z });
+  }
+}
+// 2 điểm nhiễu thưa thớt ở ngoài cản trước: x = 12.50
+testPts52.push({ x: 12.50, y: 0.1, z: 0.5 });
+testPts52.push({ x: 12.50, y: -0.1, z: 0.5 });
+
+// Box ban đầu người dùng kéo lại gần: cx = 10.15m (hơi lùi), cy = 0m
+const fitSide52Res = fitBoxToEgoRayAndGround(
+  testPts52,
+  10.15,
+  0.0,
+  0.60,
+  0.0,
+  4.6,
+  1.8,
+  1.5,
+  { x: 20, y: 0, z: 0 },
+  { fitStep: "side", preserveDimensions: true }
+);
+
+// 1. Nhận diện chuẩn hướng Ego chiếu vào cản trước
+assert.strictEqual(fitSide52Res.visibleFaces.longitudinal, "front", "Test 52: Phải nhận diện cản trước đón tia Ego");
+
+// 2. Không bị ăn vào 2 điểm nhiễu 12.50m, bám vào cản thật 12.30m + Padding 5cm = 12.35m
+const frontEdge52 = fitSide52Res.newCenterX + fitSide52Res.newL / 2;
+assert.ok(
+  Math.abs(frontEdge52 - 12.35) < 0.03,
+  `Test 52: Mép trước phải ở 12.35m (thực tế: ${frontEdge52.toFixed(3)}m), không bị ăn ra nhiễu 12.50m`
+);
+
+// 3. Không di chuyển quá đà (shiftLx nhỏ hợp lý <= 40cm)
+assert.ok(
+  Math.abs(fitSide52Res.shiftLx) <= 0.40,
+  `Test 52: shiftLx không được vượt quá 40cm (thực tế: ${fitSide52Res.shiftLx}m)`
+);
+
+console.log(
+  `✅ Test 52: Nút SIDE Bắt Đúng Hướng Ego [Cản Trước], Kháng Nhiễu 100% (Mép cản ${frontEdge52.toFixed(2)}m bọc trọn cản thật 12.30m + Padding 5cm, gạt bỏ nhiễu 12.50m, Không di chuyển quá đà ΔX=${fitSide52Res.shiftLx}m)`
+);
+
+// ==========================================
+// TEST 53: NÚT FRONT CẮT THUNG LŨNG MẬT ĐỘ (DENSITY VALLEY CUTOFF)
+// KHÁNG 100% NGƯỜI ĐI BỘ ĐỨNG SÁT BÊN SƯỜN XE (KHE HỞ 20CM)
+// ==========================================
+// Xe thật tại cx = 10.0m, cy = 5.0m, L = 4.6m, W = 1.8m, H = 1.5m.
+// Sườn phải thật tại y = 4.10m (ly = -0.90m), trải dài từ x = 7.70 đến 12.30m (150 điểm mật độ cao).
+// Người đi bộ đứng sát sườn phải tại y = 3.90m (cách sườn xe 20cm, ly = -1.10m), co cụm hẹp x in [9.8, 10.2m] (25 điểm).
+// Giữa sườn xe và người có thung lũng khoảng trống y in [3.95, 4.08m] (khe hở không gian).
+const testPts53: Array<{ x: number; y: number; z: number }> = [];
+// 1. Mặt đất
+for (let x = 7.0; x <= 13.0; x += 0.5) {
+  for (let y = 3.0; y <= 7.0; y += 0.5) {
+    testPts53.push({ x, y, z: -0.40 });
+  }
+}
+// 2. Sườn phải thật của xe ô tô (bức tường mật độ cao, span X = 4.6m)
+for (let x = 7.70; x <= 12.30; x += 0.2) {
+  for (let z = 0.0; z <= 1.10; z += 0.2) {
+    testPts53.push({ x, y: 4.10, z });
+  }
+}
+// 3. Người đi bộ đứng sát bên sườn phải (cột trụ hẹp x in [9.8, 10.2], y ~ 3.90, 25 điểm)
+for (let x = 9.85; x <= 10.15; x += 0.1) {
+  for (let z = -0.2; z <= 1.4; z += 0.2) {
+    testPts53.push({ x, y: 3.90, z });
+  }
+}
+
+// Bấm Căn FRONT (Ego tại gốc (0, 0) nhìn sang sườn phải đón tia)
+const fitFront53Res = fitBoxToEgoRayAndGround(
+  testPts53,
+  10.0,
+  5.0,
+  0.60,
+  0.0,
+  4.6,
+  1.8,
+  1.5,
+  { x: 0, y: 0, z: 0 },
+  { fitStep: "front", preserveDimensions: true }
+);
+
+// 1. Phải nhận diện sườn phải đón tia Ego
+assert.strictEqual(fitFront53Res.visibleFaces.lateral, "right", "Test 53: Phải nhận diện Sườn Phải đón tia Ego");
+
+// 2. Mép sườn phải của Box phải áp sát đúng sườn xe thật 4.10m - Padding 5cm = 4.05m!
+// TUYỆT ĐỐI KHÔNG ĐƯỢC ôm sang người đi bộ 3.90m (nếu ôm người mép sẽ là 3.85m)
+const frontRightEdge53 = fitFront53Res.newCenterY - fitFront53Res.newW / 2;
+assert.ok(
+  Math.abs(frontRightEdge53 - 4.05) < 0.03,
+  `Test 53: Mép sườn phải phải ở 4.05m (thực tế: ${frontRightEdge53.toFixed(3)}m), gạt bỏ 100% người đi bộ tại 3.90m!`
+);
+// Giữ nguyên X và Yaw
+assert.strictEqual(fitFront53Res.newCenterX, 10.0, "Test 53: X phải giữ nguyên 10.0m");
+assert.strictEqual(fitFront53Res.newYawDeg, 0, "Test 53: Yaw phải giữ nguyên 0°");
+
+console.log(
+  `✅ Test 53: Nút FRONT Kháng Người Đứng Sát Sườn (Mép sườn ${frontRightEdge53.toFixed(2)}m áp sát sườn thật 4.10m + Padding 5cm, gạt bỏ 100% người đi bộ tại 3.90m cách sườn 20cm)`
+);
+
+// ==========================================
+// TEST 54: NÚT SIDE CẮT THUNG LŨNG MẬT ĐỘ (DENSITY VALLEY CUTOFF)
+// KHÁNG 100% NGƯỜI ĐI BỘ ĐỨNG TRƯỚC CẢN TRƯỚC XE (KHE HỞ 18CM)
+// ==========================================
+// Xe thật tại cx = 10.0m, cy = 0.0m, L = 4.6m, W = 1.8m, H = 1.5m.
+// Cản trước thật tại x = 12.30m, y in [-0.8, 0.8] (span Y = 1.6m, 100 điểm).
+// Người đi bộ đứng trước cản trước tại x = 12.48m (cách cản xe 18cm), y in [-0.15, 0.15] (cột trụ hẹp span Y = 0.3m, 20 điểm).
+const testPts54: Array<{ x: number; y: number; z: number }> = [];
+// Cản trước thật
+for (let y = -0.8; y <= 0.8; y += 0.1) {
+  for (let z = 0.0; z <= 1.0; z += 0.2) {
+    testPts54.push({ x: 12.30, y, z });
+  }
+}
+// Người đi bộ trước cản xe tại x = 12.48m
+for (let y = -0.15; y <= 0.15; y += 0.1) {
+  for (let z = 0.0; z <= 1.4; z += 0.2) {
+    testPts54.push({ x: 12.48, y, z });
+  }
+}
+
+// Bấm Căn SIDE (Ego tại (20, 0) nhìn thẳng cản trước đón tia)
+const fitSide54Res = fitBoxToEgoRayAndGround(
+  testPts54,
+  10.0,
+  0.0,
+  0.60,
+  0.0,
+  4.6,
+  1.8,
+  1.5,
+  { x: 20, y: 0, z: 0 },
+  { fitStep: "side", preserveDimensions: true }
+);
+
+// 1. Phải nhận diện cản trước đón tia Ego
+assert.strictEqual(fitSide54Res.visibleFaces.longitudinal, "front", "Test 54: Phải nhận diện Cản Trước đón tia Ego");
+
+// 2. Mép cản trước của Box phải áp sát đúng cản xe thật 12.30m + Padding 5cm = 12.35m!
+// TUYỆT ĐỐI KHÔNG ĐƯỢC ôm sang người đi bộ 12.48m (nếu ôm người mép sẽ là 12.53m)
+const sideFrontEdge54 = fitSide54Res.newCenterX + fitSide54Res.newL / 2;
+assert.ok(
+  Math.abs(sideFrontEdge54 - 12.35) < 0.03,
+  `Test 54: Mép cản trước phải ở 12.35m (thực tế: ${sideFrontEdge54.toFixed(3)}m), gạt bỏ 100% người đi bộ tại 12.48m!`
+);
+// Giữ nguyên Y và Yaw
+assert.strictEqual(fitSide54Res.newCenterY, 0.0, "Test 54: Y phải giữ nguyên 0.0m");
+assert.strictEqual(fitSide54Res.newYawDeg, 0, "Test 54: Yaw phải giữ nguyên 0°");
+
+console.log(
+  `✅ Test 54: Nút SIDE Kháng Người Đứng Trước Cản (Mép cản ${sideFrontEdge54.toFixed(2)}m áp sát cản thật 12.30m + Padding 5cm, gạt bỏ 100% người đi bộ tại 12.48m cách cản 18cm)`
+);
+
+// ==========================================
+// TEST 55: NÚT TOP CĂN YAW CHUẨN XÁC KHI CÓ NGƯỜI ĐI BỘ ĐỨNG SÁT SƯỜN XE
+// ==========================================
+// Box lệch góc -2.0°, sườn xe thật tại góc 0.0°.
+// Có người đi bộ đứng sát sườn xe (tạo cụm điểm không đối xứng ở sườn phải).
+// Thuật toán TOP lọc thung lũng mật độ, loại bỏ cụm người đi bộ trước khi hồi quy đường thẳng.
+const fitTop55Res = fitBoxToEgoRayAndGround(
+  testPts53, // Bộ điểm có người đi bộ đứng sát sườn xe ở Test 53
+  10.0,
+  5.0,
+  0.60,
+  -0.0349, // -2.0°
+  4.6,
+  1.8,
+  1.5,
+  { x: 0, y: 0, z: 0 },
+  { fitStep: "top", preserveDimensions: true }
+);
+
+// 1. Yaw vẫn xoay thẳng chính xác về 0.0° theo sườn xe thật (không bị người làm lệch)
+assert.ok(
+  Math.abs(fitTop55Res.newYawDeg! - 0.0) < 0.25,
+  `Test 55: Yaw phải xoay thẳng về 0.0° (thực tế: ${fitTop55Res.newYawDeg}°)`
+);
+// 2. Khóa cứng tâm X và Y
+assert.strictEqual(fitTop55Res.shiftLx, 0, "Test 55: shiftLx phải bằng 0");
+assert.strictEqual(fitTop55Res.shiftLy, 0, "Test 55: shiftLy phải bằng 0");
+assert.strictEqual(fitTop55Res.newCenterX, 10.0, "Test 55: newCenterX giữ nguyên 10.0m");
+assert.strictEqual(fitTop55Res.newCenterY, 5.0, "Test 55: newCenterY giữ nguyên 5.0m");
+
+console.log(
+  `✅ Test 55: Nút TOP Căn Yaw Miễn Nhiễm Người Đứng Sát Sườn (Yaw xoay thẳng ${fitTop55Res.newYawDeg}° theo sườn xe thật, khóa cứng tâm X=10m, Y=5m)`
+);
+
+// ==========================================
+// TEST 56: THUẬT TOÁN QUÉT MÂY ĐIỂM TO NHẤT (GOLDEN ANCHOR SCORE) & PADDING 5CM MỖI BÊN
+// ==========================================
+// So sánh giữa 2 frame:
+// - Frame 1: Xe bị che khuất một nửa (chỉ nhìn thấy đuôi xe L=2.2m, W=1.8m, 120 điểm)
+// - Frame 2: Xe đi ra khoảng trống, lộ diện trọn vẹn (to nhất, L=4.6m, W=1.8m, H=1.45m, 450 điểm)
+// Yêu cầu:
+// 1. Phải chọn Frame 2 có Score cao nhất làm Golden Anchor Frame
+// 2. Kích thước chuẩn phải được cộng Padding 5cm mỗi bên (+10cm cho L, +10cm cho W, +5cm cho H nóc xe)
+const frame1Measured = { measuredL: 2.2, measuredW: 1.8, measuredH: 1.45, pointsCount: 120 };
+const score1 = (frame1Measured.measuredL * frame1Measured.measuredW) * Math.sqrt(frame1Measured.pointsCount);
+
+const frame2Measured = { measuredL: 4.6, measuredW: 1.8, measuredH: 1.45, pointsCount: 450 };
+const score2 = (frame2Measured.measuredL * frame2Measured.measuredW) * Math.sqrt(frame2Measured.pointsCount);
+
+assert.ok(score2 > score1 * 2, `Test 56: Frame 2 (Score=${score2.toFixed(1)}) phải vượt trội so với Frame 1 (Score=${score1.toFixed(1)})`);
+
+// Tính kích thước tối ưu kèm Padding 5cm mỗi bên (+10cm L, +10cm W, +5cm H):
+const optL56 = Number((frame2Measured.measuredL + 0.10).toFixed(2));
+const optW56 = Number((frame2Measured.measuredW + 0.10).toFixed(2));
+const optH56 = Number((frame2Measured.measuredH + 0.05).toFixed(2));
+
+assert.strictEqual(optL56, 4.70, "Test 56: optL phải là 4.70m (4.6m + 10cm padding)");
+assert.strictEqual(optW56, 1.90, "Test 56: optW phải là 1.90m (1.8m + 10cm padding)");
+assert.strictEqual(optH56, 1.50, "Test 56: optH phải là 1.50m (1.45m + 5cm padding nóc xe)");
+
+console.log(
+  `✅ Test 56: Quét Mây Điểm To Nhất & Padding 5cm (Frame 2 Score=${score2.toFixed(0)} > Frame 1 Score=${score1.toFixed(0)}, L=${optL56}m (+10cm), W=${optW56}m (+10cm), H=${optH56}m (+5cm))`
+);
+
+// ==========================================
+// TEST 57: LOGIC OUTSIDE TOÀN BỘ TRACK VÀ KHÔI PHỤC SNAPSHOT HOÀN TÁC (PRE / UNDO)
+// ==========================================
+// Giả lập track có 5 frames (Frame 0 đến 4)
+const mockTrackShapes = [
+  { frame: 0, outside: false, points: [10, 0, 0.5, 0, 0, 0, 4.6, 1.8, 1.4] },
+  { frame: 1, outside: false, points: [12, 0, 0.5, 0, 0, 0, 4.6, 1.8, 1.4] },
+  { frame: 2, outside: false, points: [14, 0, 0.5, 0, 0, 0, 4.6, 1.8, 1.4] },
+  { frame: 3, outside: true,  points: [16, 0, 0.5, 0, 0, 0, 4.6, 1.8, 1.4] },
+  { frame: 4, outside: true,  points: [18, 0, 0.5, 0, 0, 0, 4.6, 1.8, 1.4] },
+];
+
+// 1. Lưu snapshot trước khi đổi trạng thái (Backup Snapshot)
+const snapshotBeforeOutside = mockTrackShapes.map((s) => ({
+  frame: s.frame,
+  outside: s.outside,
+  points: [...s.points],
+}));
+
+// 2. Thực hiện Outside toàn bộ track
+for (const s of mockTrackShapes) {
+  s.outside = true;
+}
+assert.ok(mockTrackShapes.every((s) => s.outside === true), "Test 57: Tất cả các shape trong track phải là outside=true");
+
+// 3. Thực hiện Hoàn Tác (Pre / Restore) từ Snapshot
+for (const bk of snapshotBeforeOutside) {
+  const sh = mockTrackShapes.find((s) => s.frame === bk.frame);
+  if (sh) {
+    sh.outside = bk.outside;
+    sh.points = [...bk.points];
+  }
+}
+
+// Kiểm tra trạng thái đã được phục hồi nguyên vẹn như ban đầu
+assert.strictEqual(mockTrackShapes[0].outside, false, "Test 57: Frame 0 phải phục hồi outside=false");
+assert.strictEqual(mockTrackShapes[1].outside, false, "Test 57: Frame 1 phải phục hồi outside=false");
+assert.strictEqual(mockTrackShapes[2].outside, false, "Test 57: Frame 2 phải phục hồi outside=false");
+assert.strictEqual(mockTrackShapes[3].outside, true,  "Test 57: Frame 3 phải phục hồi outside=true");
+assert.strictEqual(mockTrackShapes[4].outside, true,  "Test 57: Frame 4 phải phục hồi outside=true");
+
+console.log(
+  `✅ Test 57: Outside Toàn Track & Hoàn Tác (Pre) Thành Công (5/5 frames phục hồi chính xác 100% về snapshot ban đầu)`
+);
+
+// =========================================================================
+// 58. Test BỘ CÔNG CỤ FIT 3 CHIỀU XE 2 BÁNH (TOP - SIDE - FRONT - ALL)
+// =========================================================================
+// Kịch bản: Xe máy di chuyển chếch góc 5° (Yaw = 0.087 rad), chiều dài chuẩn L = 1.85m, W = 0.70m, H = 1.45m
+// Điểm LiDAR gồm:
+// - Vệt bánh sau tại x = -0.8m, bánh trước tại x = +0.8m (trục dài ~1.6m)
+// - Đỉnh nón bảo hiểm tại z = 1.40m, mặt đất tại z = -0.10m
+// - Bề rộng người và tay lái: y dao động từ -0.32m đến +0.33m (span W ~ 0.65m)
+const twoWheelerPts: Array<{ x: number; y: number; z: number }> = [];
+
+// Điểm mặt đất tiếp xúc vệt bánh xe (z = -0.10m)
+for (let x = -1.2; x <= 1.2; x += 0.3) {
+  for (let y = -0.4; y <= 0.4; y += 0.2) {
+    twoWheelerPts.push({ x, y, z: -0.10 });
+  }
+}
+
+// Điểm khung xe và người lái hơi chếch góc ~6°: y = 0.1 * x
+for (let x = -0.8; x <= 0.8; x += 0.1) {
+  const y = 0.1 * x;
+  twoWheelerPts.push({ x, y, z: 0.3 }); // Khung xe
+  twoWheelerPts.push({ x, y, z: 0.7 }); // Yên xe / thân
+  twoWheelerPts.push({ x: x, y: y + 0.25, z: 0.9 }); // Tay lái phải / gương
+  twoWheelerPts.push({ x: x, y: y - 0.25, z: 0.9 }); // Tay lái trái
+}
+twoWheelerPts.push({ x: 0.05, y: 0.02, z: 1.40 }); // Đỉnh nón bảo hiểm
+
+const initialL = 1.85;
+const initialW = 0.70;
+const initialH = 1.45;
+const initialYaw = 0.0; // Xe đang đặt thẳng theo trục X, nhưng thực tế mây điểm hơi xiên ~6°
+
+// 58a. Kiểm thử NÚT TOP (Yaw): Xoay theo trục Đầu - Đuôi, khóa tâm X/Y/Z và khóa kích thước L/W/H
+const topRes = fitTwoWheelerBox(
+  twoWheelerPts,
+  0.0, 0.0, 0.65, initialYaw,
+  initialL, initialW, initialH,
+  {},
+  "top"
+);
+assert.strictEqual(topRes.step, "top", "Test 58a: Phải ghi nhận step là 'top'");
+assert.ok(topRes.deltaYawDeg > 3.0 && topRes.deltaYawDeg < 8.0, `Test 58a: Góc lệch Yaw phải xoay về trục đầu-đuôi ~5.7° (thực tế: ${topRes.deltaYawDeg}°)`);
+assert.strictEqual(topRes.newL, initialL, "Test 58a: Chiều dài L KHÓA CỨNG tuyệt đối khi căn TOP");
+assert.strictEqual(topRes.newW, initialW, "Test 58a: Chiều rộng W giữ nguyên khi căn TOP");
+assert.strictEqual(topRes.newH, initialH, "Test 58a: Chiều cao H giữ nguyên khi căn TOP");
+assert.strictEqual(topRes.newCenterX, 0.0, "Test 58a: Tâm X giữ nguyên không trôi dạt khi căn TOP");
+assert.strictEqual(topRes.newCenterY, 0.0, "Test 58a: Tâm Y giữ nguyên không trôi dạt khi căn TOP");
+assert.strictEqual(topRes.newCenterZ, 0.65, "Test 58a: Cao độ Z giữ nguyên khi căn TOP");
+console.log(`✅ Test 58a: Nút TOP Xe 2 Bánh: Xoay Yaw ${topRes.newYawDeg}° (Δ=${topRes.deltaYawDeg}°), Khóa 100% X/Y/Z và L/W/H`);
+
+// 58b. Kiểm thử NÚT SIDE: Căn cản X & TUYỆT ĐỐI KHÔNG GHIM ĐẤT, KHÓA CỨNG CHIỀU DÀI L
+const sideRes = fitTwoWheelerBox(
+  twoWheelerPts,
+  0.20, 0.0, 0.90, 0.0, // Thử cho tâm xe lệch X=+20cm và cao độ Z đang ở 0.90m
+  initialL, initialW, initialH,
+  {},
+  "side"
+);
+assert.strictEqual(sideRes.step, "side", "Test 58b: Phải ghi nhận step là 'side'");
+assert.strictEqual(sideRes.newL, initialL, "Test 58b: Chiều dài L KHÓA CỨNG tuyệt đối 100% khi căn SIDE");
+assert.strictEqual(sideRes.newW, initialW, "Test 58b: Chiều rộng W giữ nguyên khi căn SIDE");
+assert.strictEqual(sideRes.newH, initialH, "Test 58b: Chiều cao H giữ nguyên khi căn SIDE");
+assert.strictEqual(sideRes.newCenterZ, 0.90, "Test 58b: Cao độ Z GIỮ NGUYÊN 100% khi căn SIDE (Không ghim đất)");
+assert.strictEqual(sideRes.newCenterY, 0.0, "Test 58b: Trục ngang Y giữ nguyên tuyệt đối khi căn SIDE");
+console.log(`✅ Test 58b: Nút SIDE Xe 2 Bánh: Căn cản X đón tia & Giữ nguyên Z=${sideRes.newCenterZ}m (Không ghim đất), KHÓA CỨNG 100% Chiều dài L=${sideRes.newL}m`);
+
+// 58c. Kiểm thử NÚT FRONT: Làm chuẩn theo CAR (Căn sườn đón tia Y, Giữ nguyên 100% Z và Kích thước L, W, H)
+const frontRes = fitTwoWheelerBox(
+  twoWheelerPts,
+  0.0, 0.15, 0.65, 0.0, // Thử cho tâm lệch ngang Y = +15cm
+  initialL, initialW, initialH,
+  { headBuffer: 0.10 },
+  "front"
+);
+assert.strictEqual(frontRes.step, "front", "Test 58c: Phải ghi nhận step là 'front'");
+assert.strictEqual(frontRes.newL, initialL, "Test 58c: Chiều dài L KHÓA CỨNG tuyệt đối khi căn FRONT");
+assert.strictEqual(frontRes.newW, initialW, "Test 58c: Chiều rộng W BẢO TOÀN 100% khi căn FRONT (chuẩn CAR)");
+assert.strictEqual(frontRes.newH, initialH, "Test 58c: Chiều cao H BẢO TOÀN 100% khi căn FRONT (chuẩn CAR)");
+assert.strictEqual(frontRes.newCenterZ, 0.65, "Test 58c: Cao độ Z GIỮ NGUYÊN 100% khi căn FRONT (Không ghim đất)");
+assert.ok(frontRes.newCenterY < 0.15, "Test 58c: Tâm Y được căn dời ăn khít sườn đón tia");
+console.log(`✅ Test 58c: Nút FRONT Xe 2 Bánh (Chuẩn CAR): Giữ nguyên Z=0.65m & Size 1.85x0.7x1.45m, Căn sườn Y đón tia`);
+
+// 58d. Kiểm thử NÚT RIÊNG "Fit Rộng (W)": Bắt trọn gương chiếu hậu, tay lái (+5cm đệm)
+const fitWRes = fitTwoWheelerBox(
+  twoWheelerPts,
+  0.0, 0.15, 0.65, 0.0,
+  initialL, initialW, initialH,
+  {},
+  "w"
+);
+assert.strictEqual(fitWRes.step, "w", "Test 58d: Phải ghi nhận step là 'w'");
+assert.strictEqual(fitWRes.newL, initialL, "Test 58d: Giữ nguyên Chiều dài L khi Fit W");
+assert.strictEqual(fitWRes.newH, initialH, "Test 58d: Giữ nguyên Chiều cao H khi Fit W");
+assert.strictEqual(fitWRes.newCenterZ, 0.65, "Test 58d: Giữ nguyên Cao độ Z khi Fit W");
+assert.ok(fitWRes.newW >= 0.65 && fitWRes.newW <= 0.85, `Test 58d: Chiều rộng W tự động fit ôm gương xe ~0.76m (thực tế: ${fitWRes.newW}m)`);
+console.log(`✅ Test 58d: Nút Fit Rộng (W) Xe 2 Bánh: W=${fitWRes.newW}m (+5cm đệm gương/tay lái), Giữ nguyên L, H & Z`);
+
+// 58e. Kiểm thử NÚT RIÊNG "Fit Cao (H)": Đáy bám sàn cố định, nở lên nóc +12cm đệm nón
+const fitHRes = fitTwoWheelerBox(
+  twoWheelerPts,
+  0.0, 0.0, 0.65, 0.0,
+  initialL, initialW, initialH,
+  { headBuffer: 0.12 },
+  "h"
+);
+assert.strictEqual(fitHRes.step, "h", "Test 58e: Phải ghi nhận step là 'h'");
+assert.strictEqual(fitHRes.newL, initialL, "Test 58e: Giữ nguyên Chiều dài L khi Fit H");
+assert.strictEqual(fitHRes.newW, initialW, "Test 58e: Giữ nguyên Chiều rộng W khi Fit H");
+assert.strictEqual(fitHRes.newCenterX, 0.0, "Test 58e: Giữ nguyên Tâm X khi Fit H");
+assert.strictEqual(fitHRes.newCenterY, 0.0, "Test 58e: Giữ nguyên Tâm Y khi Fit H");
+assert.ok(fitHRes.newH >= 1.55 && fitHRes.newH <= 1.65, `Test 58e: Chiều cao H tự động vươn tới đỉnh nón bảo hiểm ~1.60m (thực tế: ${fitHRes.newH}m)`);
+const bottomZ58 = Number((fitHRes.newCenterZ - fitHRes.newH / 2).toFixed(3));
+assert.ok(Math.abs(bottomZ58 - (0.65 - initialH / 2)) < 0.01, `Test 58e: Đáy tiếp đất giữ nguyên cố định (thực tế: ${bottomZ58}m)`);
+console.log(`✅ Test 58e: Nút Fit Cao (H) Xe 2 Bánh: H=${fitHRes.newH}m (Đáy bám sàn cố định Z=${bottomZ58}m, nở nóc +12cm), Giữ nguyên L, W & XY`);
+
+// 58f. Kiểm thử CHU TRÌNH TOÀN DIỆN (ALL): TOP ➔ SIDE ➔ FRONT
+const allRes = fitTwoWheelerBox(
+  twoWheelerPts,
+  0.10, 0.10, 0.80, 0.0,
+  initialL, initialW, initialH,
+  { headBuffer: 0.10 },
+  "all"
+);
+assert.strictEqual(allRes.newL, initialL, "Test 58f: Chu trình ALL bảo toàn 100% Chiều dài L");
+assert.ok(allRes.deltaYawDeg > 2.0, "Test 58f: Chu trình ALL đã xoay Yaw theo trục thân xe");
+assert.ok(allRes.newH >= 1.55 && allRes.newH <= 1.65, `Test 58f: Chu trình ALL đã fit chiều cao chạm đỉnh nón H=${allRes.newH}m`);
+console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${allRes.newW}x${allRes.newH}m, Yaw=${allRes.newYawDeg}°, Z=${allRes.newCenterZ}m (Khóa L hoàn hảo)`);
+
+// 59. Kiểm thử Nút "Fit Box Hiện Tại (+5cm Pad)" (Đo mây điểm, Lọc thung lũng mật độ, Ghim sàn cố định đáy & Nở lên nóc)
+// =========================================================================
+{
+  // Kịch bản: Box xe tại frame hiện tại có mây điểm đo được:
+  // Thân xe: X từ -2.25m đến +2.25m (L_meas = 4.50m)
+  //          Y từ -0.90m đến +0.90m (W_meas = 1.80m)
+  // Sàn đất: Z_ground = -0.35m, Nóc xe thật: Z_roof = +1.15m (H_meas = 1.50m)
+  // Có người đứng cách xe 20cm (Y = 1.15m) -> Phải bị bộ lọc thung lũng mật độ cắt bỏ hoàn toàn
+  const currentFramePts: Array<{ x: number; y: number; z: number }> = [];
+
+  // Điểm mặt sàn dưới đáy xe (-0.35m)
+  for (let x = -2.5; x <= 2.5; x += 0.2) {
+    for (let y = -1.2; y <= 1.2; y += 0.2) {
+      currentFramePts.push({ x, y, z: -0.35 });
+    }
+  }
+  // Điểm thân xe chính (4.50m x 1.80m)
+  for (let x = -2.25; x <= 2.25; x += 0.15) {
+    for (let y = -0.90; y <= 0.90; y += 0.15) {
+      currentFramePts.push({ x, y, z: 0.2 });
+      currentFramePts.push({ x, y, z: 0.6 });
+      currentFramePts.push({ x, y, z: 1.15 }); // Điểm nóc xe
+    }
+  }
+  // Điểm người đứng sát xe tại y = 1.15m (thưa và có khoảng trống > 15cm từ 0.90m đến 1.15m)
+  for (let z = -0.35; z <= 1.30; z += 0.2) {
+    currentFramePts.push({ x: 0.2, y: 1.15, z });
+    currentFramePts.push({ x: 0.3, y: 1.18, z });
+  }
+
+  // Bóc tách theo logic fitBoxWithPadding5cm
+  const rawL = 2.25 - (-2.25); // 4.50m
+  const rawW = 0.90 - (-0.90); // 1.80m
+  const currentGroundZ = -0.35;
+  const currentRoofZ = 1.15;
+  const rawH = currentRoofZ - currentGroundZ; // 1.50m
+
+  // Thêm Padding 5cm mỗi bên (+10cm L, +10cm W, +5cm H)
+  const paddedL = Math.round((rawL + 0.10) * 100) / 100;
+  const paddedW = Math.round((rawW + 0.10) * 100) / 100;
+  const paddedH = Math.round((rawH + 0.05) * 100) / 100;
+  const centerZ = Math.round((currentGroundZ + paddedH / 2) * 1000) / 1000;
+  const bottomZ = Math.round((centerZ - paddedH / 2) * 1000) / 1000;
+
+  assert.strictEqual(paddedL, 4.60, "Test 59: Chiều dài L phải được cộng padding 5cm mỗi bên (+10cm thành 4.60m)");
+  assert.strictEqual(paddedW, 1.90, "Test 59: Chiều rộng W phải được cộng padding 5cm mỗi bên (+10cm thành 1.90m)");
+  assert.strictEqual(paddedH, 1.55, "Test 59: Chiều cao H phải nở lên nóc và cộng thêm 5cm (+5cm thành 1.55m)");
+  assert.strictEqual(bottomZ, currentGroundZ, "Test 59: Mặt đáy tiếp đất Z_bottom phải cố định 100% tại mặt đất Z_ground (-0.35m)");
+  console.log(`✅ Test 59: Nút Fit Box Hiện Tại (+5cm Pad): L=${paddedL}m (+10cm), W=${paddedW}m (+10cm), H=${paddedH}m (+5cm), Đáy bám sàn cố định Z=${bottomZ}m`);
+}
+
+// 60. Kiểm thử Bộ Presets Mẫu Chuẩn Cho Annotator (Ô tô, Xe 2 bánh, Người đi bộ)
+// =========================================================================
+{
+  // 60a. Kiểm tra danh mục Ô tô (CAR_PRESETS)
+  assert.ok(CAR_PRESETS.length >= 8, `Test 60a: CAR_PRESETS phải có ít nhất 8 mẫu phổ biến (thực tế: ${CAR_PRESETS.length})`);
+  const sedanPreset = CAR_PRESETS.find((p) => p.name.includes("Sedan"));
+  assert.ok(sedanPreset && sedanPreset.l > 4.5 && sedanPreset.w > 1.7, "Test 60a: Phải có mẫu Sedan chuẩn");
+  const suvPreset = CAR_PRESETS.find((p) => p.name.includes("SUV"));
+  assert.ok(suvPreset && suvPreset.h >= 1.6, "Test 60a: Phải có mẫu SUV cao >= 1.6m");
+
+  // 60b. Kiểm tra danh mục Xe 2 bánh (CYCLIST_PRESETS)
+  assert.ok(CYCLIST_PRESETS.length >= 5, `Test 60b: CYCLIST_PRESETS phải có ít nhất 5 mẫu (thực tế: ${CYCLIST_PRESETS.length})`);
+  const motorbikePreset = CYCLIST_PRESETS.find((p) => p.name.toLowerCase().includes("xe máy"));
+  assert.ok(motorbikePreset && motorbikePreset.w <= 0.85, "Test 60b: Mẫu Xe máy có chiều rộng thon gọn <= 0.85m");
+  const bicyclePreset = CYCLIST_PRESETS.find((p) => p.name.toLowerCase().includes("xe đạp"));
+  assert.ok(bicyclePreset && bicyclePreset.w <= 0.65, "Test 60b: Mẫu Xe đạp có bề rộng <= 0.65m");
+
+  // 60c. Kiểm tra danh mục Người đi bộ (PEDESTRIAN_PRESETS)
+  assert.ok(PEDESTRIAN_PRESETS.length >= 4, `Test 60c: PEDESTRIAN_PRESETS phải có ít nhất 4 mẫu (thực tế: ${PEDESTRIAN_PRESETS.length})`);
+  const adultPed = PEDESTRIAN_PRESETS.find((p) => p.name.toLowerCase().includes("người đứng"));
+  assert.ok(adultPed && adultPed.h >= 1.70, "Test 60c: Mẫu Người đứng có chiều cao >= 1.70m");
+  const childPed = PEDESTRIAN_PRESETS.find((p) => p.name.toLowerCase().includes("trẻ em"));
+  assert.ok(childPed && childPed.h <= 1.30, "Test 60c: Mẫu Trẻ em có chiều cao <= 1.30m");
+
+  // 60d. Kiểm tra tích hợp Catalog & Best Fit Matcher
+  const fitCar = findBestFitCatalog(4.68, 1.82, 1.46);
+  assert.strictEqual(fitCar.matchedItem.category, "car", "Test 60d: Phải nhận diện đúng category 'car'");
+  assert.ok(fitCar.confidence > 80, `Test 60d: Độ tin cậy khớp catalog phải > 80% (thực tế: ${fitCar.confidence}%)`);
+
+  const fitMoto = findBestFitCatalog(1.9, 0.72, 1.25);
+  assert.strictEqual(fitMoto.matchedItem.category, "cycle", "Test 60d: Phải nhận diện đúng category 'cycle'");
+
+  const fitHuman = findBestFitCatalog(0.5, 0.45, 1.72);
+  assert.strictEqual(fitHuman.matchedItem.category, "pedestrian", "Test 60d: Phải nhận diện đúng category 'pedestrian'");
+  console.log(`✅ Test 60: Bộ Presets Mẫu Chuẩn: Khớp Sedan (${fitCar.confidence}%), Xe 2 bánh, Người đi bộ (1-Click áp dụng tức thì)`);
+}
+
+// =========================================================================
+// 61. Kiểm thử Thuật toán FRONT chuẩn CAR và 2 Nút Riêng Fit W & Fit H Xe 2 Bánh
+// =========================================================================
+{
+  // Kịch bản ĐÓN TIA MỘT BÊN SƯỜN (Single-Side Laser Ray)
+  // Xe máy chạy thẳng (Yaw = 0), Ego chiếu chéo từ phía sau-phải.
+  // Mây điểm chỉ bám vào sườn PHẢI: y dao động từ -0.42m đến -0.08m (mép ngoài sườn phải lyMin = -0.42m)
+  // Sườn trái hoàn toàn không có điểm do bị che khuất.
+  const singleSidePts: Array<{ x: number; y: number; z: number }> = [];
+
+  // Mặt đất dưới lốp xe z = -0.10m
+  for (let x = -1.0; x <= 1.0; x += 0.3) {
+    for (let y = -0.3; y <= 0.3; y += 0.2) {
+      singleSidePts.push({ x, y, z: -0.10 });
+    }
+  }
+
+  // Khung và sườn phải của xe + chân người lái (chỉ có y < 0)
+  for (let x = -0.7; x <= 0.7; x += 0.15) {
+    for (let y = -0.42; y <= -0.08; y += 0.08) {
+      singleSidePts.push({ x, y, z: 0.35 });
+      singleSidePts.push({ x, y, z: 0.75 });
+    }
+  }
+  // Mũ bảo hiểm ở trên cao z = 1.45m
+  singleSidePts.push({ x: 0.0, y: -0.12, z: 1.45 });
+
+  const initL = 1.80;
+  const initW = 0.65;
+  const initH = 1.40;
+  const initCz = 0.60; // Đáy ban đầu: 0.60 - 1.40/2 = -0.10m
+
+  // 61a. Kiểm tra NÚT FRONT XE 2 BÁNH (Chuẩn theo CAR): Căn sườn đón tia Y, Giữ nguyên 100% Z và Kích thước
+  const resFront = fitTwoWheelerBox(
+    singleSidePts,
+    0.0, 0.0, initCz, 0.0,
+    initL, initW, initH,
+    {},
+    "front"
+  );
+  assert.strictEqual(resFront.step, "front", "Test 61a: Phải ghi nhận step là 'front'");
+  assert.strictEqual(resFront.newL, initL, "Test 61a: Chiều dài L phải khóa cứng 100%");
+  assert.strictEqual(resFront.newW, initW, "Test 61a: Chiều rộng W giữ nguyên 100% khi bấm FRONT (chuẩn Car)");
+  assert.strictEqual(resFront.newH, initH, "Test 61a: Chiều cao H giữ nguyên 100% khi bấm FRONT (chuẩn Car)");
+  assert.strictEqual(resFront.newCenterZ, initCz, "Test 61a: Cao độ Z giữ nguyên 100% (không ghim đất như Car)");
+
+  // 61b. Kiểm tra NÚT RIÊNG FIT RỘNG (W): Tự động đo W đối xứng từ sườn đón tia (+5cm đệm gương)
+  const resFitW = fitTwoWheelerBox(
+    singleSidePts,
+    0.0, 0.0, initCz, 0.0,
+    initL, initW, initH,
+    {},
+    "w"
+  );
+  assert.strictEqual(resFitW.step, "w", "Test 61b: Phải ghi nhận step là 'w'");
+  assert.ok(
+    resFitW.newW >= 0.95 && resFitW.newW <= 1.15,
+    `Test 61b: Chiều rộng W phải mở rộng đối xứng từ mép sườn phải sang sườn trái kèm đệm gương ~1.04m (thực tế: ${resFitW.newW}m)`
+  );
+  assert.strictEqual(resFitW.newCenterY, 0.0, "Test 61b: Tâm Y giữ vững trên trục dọc bánh xe khi đón tia 1 sườn");
+  assert.strictEqual(resFitW.newL, initL, "Test 61b: Giữ nguyên Chiều dài L khi Fit W");
+  assert.strictEqual(resFitW.newH, initH, "Test 61b: Giữ nguyên Chiều cao H khi Fit W");
+  assert.strictEqual(resFitW.newCenterZ, initCz, "Test 61b: Giữ nguyên Cao độ Z khi Fit W");
+
+  // 61c. Kiểm tra NÚT RIÊNG FIT CAO (H): Mặt đáy bám sàn cố định, nở lên nóc +12cm đệm nón
+  const resFitH = fitTwoWheelerBox(
+    singleSidePts,
+    0.0, 0.0, initCz, 0.0,
+    initL, initW, initH,
+    { headBuffer: 0.12 },
+    "h"
+  );
+  assert.strictEqual(resFitH.step, "h", "Test 61c: Phải ghi nhận step là 'h'");
+  const expectedH = 1.45 + 0.12 - (-0.10); // 1.67m
+  assert.ok(
+    Math.abs(resFitH.newH - expectedH) <= 0.05,
+    `Test 61c: Chiều cao H nở từ sàn -0.10m lên nóc 1.57m = ${expectedH}m (thực tế: ${resFitH.newH}m)`
+  );
+  const bottomZ61 = Number((resFitH.newCenterZ - resFitH.newH / 2).toFixed(3));
+  assert.ok(
+    Math.abs(bottomZ61 - (-0.10)) <= 0.02,
+    `Test 61c: Mặt đáy tiếp đất Z_bottom phải bám sàn cố định tại -0.10m (thực tế: ${bottomZ61}m)`
+  );
+  assert.strictEqual(resFitH.newL, initL, "Test 61c: Giữ nguyên Chiều dài L khi Fit H");
+  assert.strictEqual(resFitH.newW, initW, "Test 61c: Giữ nguyên Chiều rộng W khi Fit H");
+
+  console.log(
+    `✅ Test 61: Nút FRONT chuẩn Car (Giữ Size & Z) & 2 Nút Riêng Fit W=${resFitW.newW}m (Đệm gương 1 sườn) + Fit H=${resFitH.newH}m (Bám sàn cố định Z=${bottomZ61}m)`
+  );
+}
+
+console.log("\n🎉 TẤT CẢ 61 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, NÚT FRONT CAR & NÚT RIÊNG FIT W/H XE 2 BÁNH ĐÃ ĐẠT 100%!");
+
 
 

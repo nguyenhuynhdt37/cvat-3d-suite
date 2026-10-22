@@ -39,10 +39,19 @@ export class CVATBridge {
    * Khởi tạo cầu nối vào Main World của CVAT
    */
   public static ensureMainWorldBridge(): void {
-    if (this.isBridgeInjected || document.getElementById("cvat-3d-suite-main-bridge")) {
+    if (this.isBridgeInjected || (window as any).__CVAT_3D_SUITE_INJECTED__ || document.getElementById("cvat-3d-suite-main-bridge")) {
       this.isBridgeInjected = true;
       return;
     }
+
+    try {
+      // Nếu đang chạy trong Chrome Extension với world: MAIN hoặc Userscript, gọi trực tiếp
+      if (typeof mainWorldScript === "function") {
+        mainWorldScript();
+        this.isBridgeInjected = true;
+        return;
+      }
+    } catch (e) {}
 
     const script = document.createElement("script");
     script.id = "cvat-3d-suite-main-bridge";
@@ -121,7 +130,7 @@ export class CVATBridge {
   }
 
   /**
-   * Tải toàn bộ danh sách các Track trong Job từ API CVAT.
+   * Tải toàn bộ danh sách các Track trong Job từ API CVAT (với phòng vệ lỗi mạng).
    */
   public static async fetchJobAnnotations(jobId: number, forceRefresh: boolean = false): Promise<any> {
     const now = Date.now();
@@ -129,34 +138,48 @@ export class CVATBridge {
       return this.cachedAnnotations;
     }
 
-    const url = `${window.location.origin}/api/jobs/${jobId}/annotations/`;
-    const response = await fetch(url, {
-      method: "GET",
-      headers: this.getApiHeaders(false),
-      credentials: "include",
-    });
+    try {
+      const url = `${window.location.origin}/api/jobs/${jobId}/annotations`;
+      let response = await fetch(url, {
+        method: "GET",
+        headers: this.getApiHeaders(false),
+        credentials: "include",
+      });
 
-    if (!response.ok) {
-      throw new Error(`Lỗi tải annotations Job #${jobId} (HTTP ${response.status})`);
+      if (!response.ok && (response.status === 404 || response.status === 301)) {
+        response = await fetch(`${url}/`, {
+          method: "GET",
+          headers: this.getApiHeaders(false),
+          credentials: "include",
+        });
+      }
+
+      if (response && response.ok) {
+        const data = await response.json();
+        this.cachedAnnotations = data;
+        this.cachedJobId = jobId;
+        this.lastFetchTime = now;
+        return data;
+      }
+    } catch (err) {
+      // Bỏ qua lỗi mạng/CORS nhẹ nhàng, dùng cache hoặc trả về tracks rỗng
     }
 
-    const data = await response.json();
-    this.cachedAnnotations = data;
-    this.cachedJobId = jobId;
-    this.lastFetchTime = now;
-    return data;
+    return this.cachedAnnotations || { tracks: [] };
   }
 
   /**
    * Lấy danh sách TẤT CẢ các Track ID CÓ MẶT TẠI FRAME HIỆN TẠI.
-   * Ưu tiên lấy trực tiếp từ Main World để có UI ID chuẩn (#1, #2), nếu chưa có thì fallback API.
+   * Ưu tiên 1: Main World Bridge (được phản hồi là trả về ngay, dù rỗng [] hay có xe).
+   * Ưu tiên 2: window.cvat SDK nội bộ của trang web.
+   * Ưu tiên 3: REST API fallback an toàn.
    */
   public static async getTracksInCurrentFrame(jobId: number, frame: number): Promise<FrameTrackItem[]> {
     this.ensureMainWorldBridge();
 
     // 1. Thử gọi Main-World Bridge qua CustomEvent
     const promise = new Promise<FrameTrackItem[] | null>((resolve) => {
-      const timeout = setTimeout(() => resolve(null), 700);
+      const timeout = setTimeout(() => resolve(null), 600);
 
       const onResponse = (e: any) => {
         clearTimeout(timeout);
@@ -173,11 +196,42 @@ export class CVATBridge {
     });
 
     const mainWorldList = await promise;
-    if (mainWorldList && mainWorldList.length > 0) {
+    // NẾU MAIN WORLD ĐÃ PHẢN HỒI: Dù là mảng rỗng [] (frame không có xe) cũng là kết quả CHUẨN XÁC!
+    if (Array.isArray(mainWorldList)) {
       return mainWorldList;
     }
 
-    // 2. Fallback: Lấy từ API và gán uiId = index + 1 (chuẩn 1, 2)
+    // 2. Thử truy cập trực tiếp window.cvat SDK nội bộ
+    try {
+      const win = window as any;
+      if (win.cvat?.jobs) {
+        const jobs = await win.cvat.jobs.get({ jobID: jobId });
+        if (jobs && jobs.length > 0) {
+          const states = await jobs[0].annotations.get(frame);
+          if (Array.isArray(states)) {
+            const list: FrameTrackItem[] = states
+              .filter((s: any) => s.shapeType === "cuboid" && Array.isArray(s.points) && s.points.length >= 9)
+              .map((s: any) => ({
+                uiId: s.clientID,
+                serverId: s.serverID,
+                label: s.label?.name || "Car",
+                x: Number(s.points[0].toFixed(2)),
+                y: Number(s.points[1].toFixed(2)),
+                z: Number(s.points[2].toFixed(3)),
+                yawDeg: Math.round((s.points[5] * 180) / Math.PI),
+                l: Number(s.points[6].toFixed(2)),
+                w: Number(s.points[7].toFixed(2)),
+                h: Number(s.points[8].toFixed(2)),
+              }));
+            return list;
+          }
+        }
+      }
+    } catch (sdkErr) {
+      // cvat SDK chưa sẵn sàng
+    }
+
+    // 3. Fallback: Lấy từ API và gán uiId = index + 1 (chuẩn 1, 2)
     try {
       const data = await this.fetchJobAnnotations(jobId);
       const tracks: any[] = data.tracks || [];
@@ -190,8 +244,8 @@ export class CVATBridge {
           const p = matchShape.points;
           const label = t.label_name || t.attributes?.label || `Track #${index + 1}`;
           result.push({
-            uiId: index + 1,        // SỐ 1, 2 KHỚP 100% VỚI MẮT NHÌN CỦA ANNOTATOR!
-            serverId: t.id,          // 31, 32 LƯU DƯỚI DATABASE
+            uiId: index + 1,
+            serverId: t.id,
             label,
             x: Number(p[0].toFixed(2)),
             y: Number(p[1].toFixed(2)),
@@ -206,7 +260,6 @@ export class CVATBridge {
 
       return result.sort((a, b) => a.uiId - b.uiId);
     } catch (err) {
-      console.warn("[CVATBridge] Lỗi lọc track theo frame:", err);
       return [];
     }
   }
@@ -501,6 +554,274 @@ export class CVATBridge {
   }
 
   /**
+   * FIT GÓC ĐÓN TIA EGO (RAY-CAST L-SHAPE FIT) & GHIM ĐẤT 3D (CẢ SIDE VIEW VÀ FRONT VIEW).
+   * Tia laser từ Ego chiếu tới góc nào thì mép box đón tia (Side View & Front View) ép sát điểm ngoài cùng,
+   * đồng thời đáy chạm khít mặt đất và góc trên của box ôm sát nóc xe!
+   */
+  public static async fitBoxToEgoRayAndGround(
+    jobId: number,
+    uiId: number,
+    serverId: number | null,
+    applyToTrack: boolean = false,
+    preserveDimensions: boolean = true,
+    fitStep: "all" | "top" | "side" | "front" = "all",
+    egoPos: { x: number; y: number; z: number } = { x: 0, y: 0, z: 0 }
+  ): Promise<{
+    success: boolean;
+    newX?: number;
+    newY?: number;
+    newZ?: number;
+    newYawRad?: number;
+    newYawDeg?: number;
+    deltaYawDeg?: number;
+    newL?: number;
+    newW?: number;
+    newH?: number;
+    pitchRad?: number;
+    rollRad?: number;
+    pitchDeg?: number;
+    rollDeg?: number;
+    visibleFaces?: { longitudinal: "front" | "rear"; lateral: "left" | "right" };
+    pointsCount?: number;
+    trackCount?: number;
+    message: string;
+  }> {
+    this.ensureMainWorldBridge();
+    const currentFrame = this.getCurrentFrame();
+
+    const mwPromise = new Promise<any>((resolve) => {
+      const timeout = setTimeout(() => resolve(null), 1500);
+
+      const onResponse = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_EGO_RAY_FIT", onResponse);
+        if (e.detail && e.detail.success) {
+          resolve(e.detail);
+        } else {
+          resolve(null);
+        }
+      };
+
+      window.addEventListener("CVAT_EXT_RES_EGO_RAY_FIT", onResponse);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_EGO_RAY_FIT", {
+          detail: {
+            jobId,
+            frame: currentFrame,
+            uiId,
+            serverId,
+            egoPos,
+            preserveDimensions,
+            applyToTrack,
+            fitStep,
+          },
+        })
+      );
+    });
+
+    const mwRes = await mwPromise;
+    if (!mwRes) {
+      return { success: false, message: "Không thể fit góc đón tia từ Main World" };
+    }
+
+    return {
+      success: true,
+      newX: mwRes.newX,
+      newY: mwRes.newY,
+      newZ: mwRes.newZ,
+      newYawRad: mwRes.newYawRad,
+      newYawDeg: mwRes.newYawDeg,
+      deltaYawDeg: mwRes.deltaYawDeg,
+      newL: mwRes.newL,
+      newW: mwRes.newW,
+      newH: mwRes.newH,
+      pitchRad: mwRes.pitchRad,
+      rollRad: mwRes.rollRad,
+      pitchDeg: mwRes.pitchDeg,
+      rollDeg: mwRes.rollDeg,
+      visibleFaces: mwRes.visibleFaces,
+      pointsCount: mwRes.pointsCount,
+      trackCount: mwRes.trackCount,
+      message: mwRes.message || "Đã fit góc đón tia Ego và ghim đất thành công",
+    };
+  }
+
+  /**
+   * Căn Top độc lập: Căn thẳng góc Yaw theo viền xe, lọc nóc & Auto Ghim Đất
+   */
+  public static async fitBoxTop(
+    jobId: number,
+    uiId: number,
+    serverId: number | null,
+    applyToTrack: boolean = false
+  ) {
+    return this.fitBoxToEgoRayAndGround(jobId, uiId, serverId, applyToTrack, true, "top");
+  }
+
+  /**
+   * Căn Side độc lập: Căn cản trước/sau theo trục dọc X & Auto Ghim Đất
+   */
+  public static async fitBoxSide(
+    jobId: number,
+    uiId: number,
+    serverId: number | null,
+    applyToTrack: boolean = false
+  ) {
+    return this.fitBoxToEgoRayAndGround(jobId, uiId, serverId, applyToTrack, true, "side");
+  }
+
+  /**
+   * Căn Front độc lập: Căn bức tường thành xe theo trục ngang Y/W & Auto Ghim Đất
+   */
+  public static async fitBoxFront(
+    jobId: number,
+    uiId: number,
+    serverId: number | null,
+    applyToTrack: boolean = false
+  ) {
+    return this.fitBoxToEgoRayAndGround(jobId, uiId, serverId, applyToTrack, true, "front");
+  }
+
+  /**
+   * FIT CHUYÊN BIỆT CHO NGƯỜI ĐI BỘ (PEDESTRIAN FIT).
+   * - Co giãn kích thước L, W linh hoạt theo sải bước
+   * - Khóa cứng Roll = 0°, Pitch = 0° (Người luôn đứng thẳng tuyệt đối)
+   * - Quét mặt đất siêu hẹp +15cm tránh dính vỉa hè, rào chắn
+   * - Bù đỉnh đầu +12cm chống cắt ngang trán người
+   */
+  public static async fitPedestrian(
+    jobId: number,
+    uiId: number,
+    serverId: number | null,
+    headBuffer: number = 0.12
+  ): Promise<{
+    success: boolean;
+    newX?: number;
+    newY?: number;
+    newZ?: number;
+    newL?: number;
+    newW?: number;
+    newH?: number;
+    pointsCount?: number;
+    message: string;
+  }> {
+    this.ensureMainWorldBridge();
+    const currentFrame = this.getCurrentFrame();
+
+    const mwPromise = new Promise<any>((resolve) => {
+      const timeout = setTimeout(() => resolve(null), 1500);
+
+      const onResponse = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_FIT_PEDESTRIAN", onResponse);
+        if (e.detail && e.detail.success) {
+          resolve(e.detail);
+        } else {
+          resolve(null);
+        }
+      };
+
+      window.addEventListener("CVAT_EXT_RES_FIT_PEDESTRIAN", onResponse);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_FIT_PEDESTRIAN", {
+          detail: { jobId, frame: currentFrame, uiId, serverId, headBuffer },
+        })
+      );
+    });
+
+    const mwRes = await mwPromise;
+    if (!mwRes) {
+      return { success: false, message: "Không thể fit Người Đi Bộ từ Main World" };
+    }
+
+    return {
+      success: true,
+      newX: mwRes.newX,
+      newY: mwRes.newY,
+      newZ: mwRes.newZ,
+      newL: mwRes.newL,
+      newW: mwRes.newW,
+      newH: mwRes.newH,
+      pointsCount: mwRes.pointsCount,
+      message: mwRes.message || "Đã fit Người Đi Bộ thành công",
+    };
+  }
+
+  /**
+   * FIT CHUYÊN BIỆT CHO XE 2 BÁNH (CYCLIST / MOTORCYCLE).
+   * Hỗ trợ 3 bước căn độc lập (TOP - SIDE - FRONT) hoặc toàn chu trình (ALL).
+   * Chiều dài L luôn được bảo toàn 100% không bị co ngắn.
+   */
+  public static async fitCyclist(
+    jobId: number,
+    uiId: number,
+    serverId: number | null,
+    headBuffer: number = 0.10,
+    step: "all" | "top" | "side" | "front" | "w" | "h" = "all",
+    applyToTrack: boolean = false
+  ): Promise<{
+    success: boolean;
+    newX?: number;
+    newY?: number;
+    newZ?: number;
+    newYaw?: number;
+    newYawDeg?: number;
+    deltaYawDeg?: number;
+    newL?: number;
+    newW?: number;
+    newH?: number;
+    pointsCount?: number;
+    step?: "all" | "top" | "side" | "front" | "w" | "h";
+    applyToTrack?: boolean;
+    message: string;
+  }> {
+    this.ensureMainWorldBridge();
+    const currentFrame = this.getCurrentFrame();
+
+    const mwPromise = new Promise<any>((resolve) => {
+      const timeout = setTimeout(() => resolve(null), 2500);
+
+      const onResponse = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_FIT_CYCLIST", onResponse);
+        if (e.detail && e.detail.success) {
+          resolve(e.detail);
+        } else {
+          resolve(null);
+        }
+      };
+
+      window.addEventListener("CVAT_EXT_RES_FIT_CYCLIST", onResponse);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_FIT_CYCLIST", {
+          detail: { jobId, frame: currentFrame, uiId, serverId, headBuffer, step, applyToTrack },
+        })
+      );
+    });
+
+    const mwRes = await mwPromise;
+    if (!mwRes) {
+      return { success: false, message: "Không thể fit Xe 2 Bánh từ Main World" };
+    }
+
+    return {
+      success: true,
+      newX: mwRes.newX,
+      newY: mwRes.newY,
+      newZ: mwRes.newZ,
+      newYaw: mwRes.newYaw,
+      newYawDeg: mwRes.newYawDeg,
+      deltaYawDeg: mwRes.deltaYawDeg,
+      newL: mwRes.newL,
+      newW: mwRes.newW,
+      newH: mwRes.newH,
+      pointsCount: mwRes.pointsCount,
+      step: mwRes.step || step,
+      message: mwRes.message || "Đã fit Xe 2 Bánh thành công",
+    };
+  }
+
+  /**
    * Quét mốc chuẩn đẹp nhất và tự động fit đồng bộ toàn bộ track.
    */
   public static async smartAnchorTrackFit(
@@ -512,7 +833,7 @@ export class CVATBridge {
     const currentFrame = this.getCurrentFrame();
 
     const mwPromise = new Promise<any>((resolve) => {
-      const timeout = setTimeout(() => resolve(null), 1200);
+      const timeout = setTimeout(() => resolve(null), 4500);
 
       const onResponse = (e: any) => {
         clearTimeout(timeout);
@@ -527,7 +848,7 @@ export class CVATBridge {
       window.addEventListener("CVAT_EXT_RES_MULTI_FRAME_ANCHOR_FIT", onResponse);
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_REQ_MULTI_FRAME_ANCHOR_FIT", {
-          detail: { jobId, frame: currentFrame, uiId, serverId },
+          detail: { jobId, frame: currentFrame, uiId, serverId, scanOnly: false },
         })
       );
     });
@@ -543,6 +864,131 @@ export class CVATBridge {
       optW: mwRes.optW,
       optH: mwRes.optH,
       framesSynced: mwRes.framesSynced,
+      message: mwRes.message,
+    };
+  }
+
+  /**
+   * Fit Box trực tiếp tại Frame Hiện Tại với Padding 5cm mỗi bên:
+   * +10cm cho L, +10cm cho W, +5cm cho H (nóc xe, đáy bám sàn cố định).
+   * Hỗ trợ đồng bộ toàn bộ track nếu applyToTrack = true.
+   */
+  public static async fitCurrentBox(
+    jobId: number,
+    uiId: number,
+    serverId: number | null,
+    applyToTrack: boolean = false
+  ): Promise<{
+    success: boolean;
+    newL?: number;
+    newW?: number;
+    newH?: number;
+    newZ?: number;
+    pointsCount?: number;
+    framesSynced?: number;
+    message: string;
+  }> {
+    this.ensureMainWorldBridge();
+    const currentFrame = this.getCurrentFrame();
+
+    const mwPromise = new Promise<any>((resolve) => {
+      const timeout = setTimeout(() => resolve(null), 6000);
+
+      const onResponse = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_FIT_CURRENT_BOX", onResponse);
+        if (e.detail && e.detail.success) {
+          resolve(e.detail);
+        } else {
+          resolve(e.detail || null);
+        }
+      };
+
+      window.addEventListener("CVAT_EXT_RES_FIT_CURRENT_BOX", onResponse);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_FIT_CURRENT_BOX", {
+          detail: { jobId, frame: currentFrame, uiId, serverId, applyToTrack },
+        })
+      );
+    });
+
+    const mwRes = await mwPromise;
+    if (!mwRes || !mwRes.success) {
+      return { success: false, message: mwRes?.error || "Không thể Fit Box với frame hiện tại!" };
+    }
+
+    return {
+      success: true,
+      newL: mwRes.newL,
+      newW: mwRes.newW,
+      newH: mwRes.newH,
+      newZ: mwRes.newZ,
+      pointsCount: mwRes.pointsCount,
+      framesSynced: mwRes.framesSynced,
+      message: mwRes.message,
+    };
+  }
+
+  /**
+   * Vi chỉnh Center theo trục cục bộ của xe (deltaXLocal dọc xe, deltaYLocal ngang xe).
+   * Hỗ trợ dịch chuyển dàn đều cho toàn bộ track (applyToTrack = true).
+   */
+  public static async shiftTrackCenter(
+    jobId: number,
+    uiId: number,
+    serverId: number | null,
+    deltaXLocal: number,
+    deltaYLocal: number,
+    applyToTrack: boolean
+  ): Promise<{
+    success: boolean;
+    newX?: number;
+    newY?: number;
+    framesShifted?: number;
+    message: string;
+  }> {
+    this.ensureMainWorldBridge();
+    const currentFrame = this.getCurrentFrame();
+
+    const mwPromise = new Promise<any>((resolve) => {
+      const timeout = setTimeout(() => resolve(null), 2500);
+
+      const onResponse = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_SHIFT_CENTER", onResponse);
+        if (e.detail && e.detail.success) {
+          resolve(e.detail);
+        } else {
+          resolve(null);
+        }
+      };
+
+      window.addEventListener("CVAT_EXT_RES_SHIFT_CENTER", onResponse);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_SHIFT_CENTER", {
+          detail: {
+            jobId,
+            frame: currentFrame,
+            uiId,
+            serverId,
+            deltaXLocal,
+            deltaYLocal,
+            applyToTrack,
+          },
+        })
+      );
+    });
+
+    const mwRes = await mwPromise;
+    if (!mwRes) {
+      return { success: false, message: "Không thể vi chỉnh Center của xe!" };
+    }
+
+    return {
+      success: true,
+      newX: mwRes.newX,
+      newY: mwRes.newY,
+      framesShifted: mwRes.framesShifted,
       message: mwRes.message,
     };
   }
@@ -781,5 +1227,116 @@ export class CVATBridge {
         detail: { frame },
       })
     );
+  }
+
+  /**
+   * Đánh dấu Outside (ẩn) hoặc Inside cho toàn bộ các frame của một Track.
+   */
+  public static async setTrackOutside(
+    jobId: number,
+    uiId: number,
+    serverId: number | null,
+    outside: boolean = true,
+    frame?: number
+  ): Promise<{
+    success: boolean;
+    count?: number;
+    previousStates?: any[];
+    message: string;
+  }> {
+    this.ensureMainWorldBridge();
+    const currentFrame = typeof frame === "number" ? frame : this.getCurrentFrame();
+
+    const mwPromise = new Promise<any>((resolve) => {
+      const timeout = setTimeout(() => resolve(null), 12000);
+
+      const onResponse = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_SET_TRACK_OUTSIDE", onResponse);
+        if (e.detail && e.detail.success) {
+          resolve(e.detail);
+        } else {
+          resolve(e.detail || null);
+        }
+      };
+
+      window.addEventListener("CVAT_EXT_RES_SET_TRACK_OUTSIDE", onResponse);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_SET_TRACK_OUTSIDE", {
+          detail: { jobId, frame: currentFrame, uiId, serverId, outside },
+        })
+      );
+    });
+
+    const mwRes = await mwPromise;
+    if (!mwRes || !mwRes.success) {
+      return { success: false, message: mwRes?.error || `Không thể đánh dấu Outside cho track #${uiId}!` };
+    }
+
+    return {
+      success: true,
+      count: mwRes.count,
+      previousStates: mwRes.previousStates,
+      message: mwRes.message,
+    };
+  }
+
+  /**
+   * Khôi phục (Undo / Pre) trạng thái trước đó của một Track hoặc Box ở frame hiện tại.
+   */
+  public static async restoreTrackSnapshot(
+    jobId: number,
+    uiId: number,
+    serverId: number | null,
+    snapshot: {
+      frame: number;
+      applyToTrack: boolean;
+      boxPoints?: number[];
+      trackShapesBackup?: Array<{ frame: number; outside?: boolean; points: number[] }>;
+    }
+  ): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    this.ensureMainWorldBridge();
+
+    const mwPromise = new Promise<any>((resolve) => {
+      const timeout = setTimeout(() => resolve(null), 8000);
+
+      const onResponse = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_RESTORE_BOX", onResponse);
+        if (e.detail && e.detail.success) {
+          resolve(e.detail);
+        } else {
+          resolve(null);
+        }
+      };
+
+      window.addEventListener("CVAT_EXT_RES_RESTORE_BOX", onResponse);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_RESTORE_BOX", {
+          detail: {
+            jobId,
+            uiId,
+            serverId,
+            frame: snapshot.frame,
+            applyToTrack: snapshot.applyToTrack,
+            boxPoints: snapshot.boxPoints,
+            trackShapesBackup: snapshot.trackShapesBackup,
+          },
+        })
+      );
+    });
+
+    const mwRes = await mwPromise;
+    if (!mwRes) {
+      return { success: false, message: `Không thể hoàn tác (Pre) cho xe #${uiId}!` };
+    }
+
+    return {
+      success: true,
+      message: mwRes.message,
+    };
   }
 }

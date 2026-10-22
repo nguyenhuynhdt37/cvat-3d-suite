@@ -1,8 +1,25 @@
 import { CVATContext } from "../../core/types";
 import { ICONS } from "../icons";
 import { CVATBridge, FrameTrackItem } from "../../cvat/bridge";
-import { findBestFitCatalog, STANDARD_VEHICLE_CATALOG } from "../../core/catalog";
+import {
+  findBestFitCatalog,
+  STANDARD_VEHICLE_CATALOG,
+  CAR_PRESETS,
+  CYCLIST_PRESETS,
+  PEDESTRIAN_PRESETS,
+  VehicleCatalogItem,
+} from "../../core/catalog";
 import { TrackStudioModal } from "./TrackStudioModal";
+
+export interface UndoSnapshot {
+  uiId: number;
+  serverId: number | null;
+  frame: number;
+  applyToTrack: boolean;
+  boxPoints: number[];
+  trackShapesBackup?: Array<{ frame: number; outside?: boolean; points: number[] }>;
+  actionName: string;
+}
 
 /**
  * Cửa sổ nổi (Floating Panel) chuẩn phong cách shadcn/ui:
@@ -22,8 +39,14 @@ export class FloatingPanel {
   private isMinimized: boolean = false;
   private trackStudioModal: TrackStudioModal = new TrackStudioModal();
 
-  // Module Tab đang mở: "dimensions" | "rotation" | "ground"
-  private activeTab: "dimensions" | "rotation" | "ground" = "dimensions";
+  // Ngăn xếp hoàn tác thao tác (Undo / Pre Stack)
+  private undoStack: UndoSnapshot[] = [];
+
+  // Chế độ phân loại đối tượng nhanh: "car" | "pedestrian" | "cyclist"
+  private selectedCategory: "car" | "pedestrian" | "cyclist" = "car";
+
+  // Trạng thái mở rộng accordion tinh chỉnh nâng cao
+  private isAdvancedOpen: boolean = false;
 
   // Phạm vi áp dụng kích thước: false = Chỉ Frame này, true = Toàn bộ Track
   private applyToTrack: boolean = false;
@@ -39,6 +62,7 @@ export class FloatingPanel {
   private currentL: number = 0;
   private currentW: number = 0;
   private currentH: number = 0;
+  private currentRawPoints: number[] | null = null; // Lưu trữ mảng điểm nguyên bản (16 điểm) từ CVAT
 
   // Giá trị đang chỉnh sửa trên ô input (L, W, H)
   private editL: number = 0;
@@ -64,6 +88,20 @@ export class FloatingPanel {
 
   private currentCtx: CVATContext | null = null;
   private pollInterval: any = null;
+  private updatePending: boolean = false;
+  private lastRenderedHash: string = "";
+
+  /**
+   * Lên lịch cập nhật giao diện bằng requestAnimationFrame (gộp nhiều lần gọi dồn dập, chống nháy DOM).
+   */
+  public scheduleUpdate(): void {
+    if (this.updatePending) return;
+    this.updatePending = true;
+    requestAnimationFrame(() => {
+      this.updatePending = false;
+      this.updateContent();
+    });
+  }
 
   public render(ctx: CVATContext): void {
     this.currentCtx = ctx;
@@ -82,12 +120,14 @@ export class FloatingPanel {
       this.startPollingLoop();
     }
 
-    this.updateContent();
+    this.scheduleUpdate();
   }
 
   private createContainer(): void {
     this.container = document.createElement("div");
     this.container.id = "cvat-3d-suite-floating";
+    this.container.setAttribute("translate", "no");
+    this.container.classList.add("notranslate");
     this.container.style.position = "fixed";
     this.container.style.top = "20px";
     this.container.style.right = "20px";
@@ -96,13 +136,13 @@ export class FloatingPanel {
     this.container.style.zIndex = "999995";
     this.container.style.fontFamily = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
-    // shadcn/ui Dark Card style
-    this.container.style.backgroundColor = "rgba(9, 9, 11, 0.95)";
+    // shadcn/ui Light Card style (Giao diện trắng hiện đại)
+    this.container.style.backgroundColor = "rgba(255, 255, 255, 0.98)";
     this.container.style.backdropFilter = "blur(16px)";
-    this.container.style.border = "1px solid rgba(255, 255, 255, 0.12)";
+    this.container.style.border = "1px solid #e4e4e7";
     this.container.style.borderRadius = "16px";
-    this.container.style.boxShadow = "0 20px 40px -15px rgba(0, 0, 0, 0.75), 0 0 1px 1px rgba(255, 255, 255, 0.05)";
-    this.container.style.color = "#f4f4f5";
+    this.container.style.boxShadow = "0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 1px 1px rgba(0, 0, 0, 0.04)";
+    this.container.style.color = "#09090b";
     this.container.style.display = "flex";
     this.container.style.flexDirection = "column";
     this.container.style.overflow = "hidden";
@@ -130,25 +170,25 @@ export class FloatingPanel {
     this.miniPill.style.right = "24px";
     this.miniPill.style.zIndex = "999996";
     this.miniPill.style.fontFamily = "ui-sans-serif, system-ui, sans-serif";
-    this.miniPill.style.backgroundColor = "rgba(9, 9, 11, 0.92)";
+    this.miniPill.style.backgroundColor = "rgba(255, 255, 255, 0.98)";
     this.miniPill.style.backdropFilter = "blur(12px)";
-    this.miniPill.style.border = "1px solid rgba(255, 255, 255, 0.14)";
+    this.miniPill.style.border = "1px solid #e4e4e7";
     this.miniPill.style.borderRadius = "9999px";
     this.miniPill.style.padding = "8px 14px";
-    this.miniPill.style.color = "#f4f4f5";
+    this.miniPill.style.color = "#09090b";
     this.miniPill.style.fontSize = "12px";
     this.miniPill.style.fontWeight = "600";
     this.miniPill.style.display = "none";
     this.miniPill.style.alignItems = "center";
     this.miniPill.style.gap = "8px";
-    this.miniPill.style.boxShadow = "0 10px 25px -5px rgba(0, 0, 0, 0.5)";
+    this.miniPill.style.boxShadow = "0 10px 25px -5px rgba(0, 0, 0, 0.08)";
     this.miniPill.style.cursor = "pointer";
     this.miniPill.style.userSelect = "none";
 
     this.miniPill.innerHTML = `
-      <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
       <span>3D Suite</span>
-      <span style="font-size: 10px; font-family: monospace; color: #71717a; background: #27272a; padding: 2px 6px; border-radius: 4px;">\`</span>
+      <span style="font-size: 10px; font-family: monospace; color: #71717a; background: #f4f4f5; border: 1px solid #e4e4e7; padding: 2px 6px; border-radius: 4px;">\`</span>
     `;
 
     this.miniPill.addEventListener("click", () => this.toggleMinimize());
@@ -192,19 +232,19 @@ export class FloatingPanel {
       this.toastTimer = null;
     }
 
-    let bgColor = "rgba(16, 185, 129, 0.95)";
+    let bgColor = "#059669";
     let textColor = "#ffffff";
     let iconSvg = ICONS.checkCircle;
 
     if (type === "info") {
-      bgColor = "rgba(14, 165, 233, 0.95)";
+      bgColor = "#0284c7";
       iconSvg = ICONS.infoCircle;
     } else if (type === "warning") {
-      bgColor = "rgba(245, 158, 11, 0.95)";
-      textColor = "#18181b";
+      bgColor = "#d97706";
+      textColor = "#ffffff";
       iconSvg = ICONS.alertCircle;
     } else if (type === "error") {
-      bgColor = "rgba(239, 68, 68, 0.95)";
+      bgColor = "#dc2626";
       iconSvg = ICONS.xCircle;
     }
 
@@ -219,7 +259,7 @@ export class FloatingPanel {
         display: flex;
         align-items: center;
         gap: 6px;
-        box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.6), 0 0 1px 1px rgba(255, 255, 255, 0.15);
+        box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.18), 0 0 1px 1px rgba(0, 0, 0, 0.06);
         backdrop-filter: blur(8px);
         font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
         letter-spacing: -0.2px;
@@ -324,6 +364,7 @@ export class FloatingPanel {
         this.editL = details.l;
         this.editW = details.w;
         this.editH = details.h;
+        this.currentRawPoints = Array.isArray(details.points) ? [...details.points] : null;
 
         // Cập nhật hoặc bổ sung ngay vào danh sách frameTracks
         const existingIdx = this.frameTracks.findIndex((t) => t.uiId === details.clientId);
@@ -345,10 +386,10 @@ export class FloatingPanel {
           this.frameTracks.push(item);
         }
 
-        this.updateContent();
+        this.scheduleUpdate();
       } else if (clientId && clientId !== this.selectedUiId) {
         console.log(`[CVAT 3D Suite] Tự động chọn xe #${clientId} từ click Canvas 3D`);
-        this.selectTrackByUiId(clientId);
+        this.selectTrackByUiId(clientId, undefined, false);
       }
     });
 
@@ -374,10 +415,10 @@ export class FloatingPanel {
         await this.syncFrameTracks();
       }
 
-      // 2. Quét xem có active item nào trên sidebar không
+      // 2. Quét xem có active item nào trên sidebar không (quét ngầm: không ép Three.js canvas activate)
       const active = CVATBridge.getActiveTrackId();
       if (active.id !== null && active.id !== this.selectedUiId) {
-        await this.selectTrackByUiId(active.id);
+        await this.selectTrackByUiId(active.id, undefined, false);
       }
     }, 800);
 
@@ -396,7 +437,8 @@ export class FloatingPanel {
 
     const isCurrentTrackInFrame = tracks.some((t) => t.uiId === this.selectedUiId);
     if (!isCurrentTrackInFrame && tracks.length > 0) {
-      await this.selectTrackByUiId(tracks[0].uiId);
+      // Khi mới F5 hoặc đổi frame, đồng bộ xe đầu tiên lên bảng điều khiển nhưng KHÔNG ép canvas activate/render (chống nháy)
+      await this.selectTrackByUiId(tracks[0].uiId, undefined, false);
     } else if (isCurrentTrackInFrame && this.selectedUiId) {
       const cur = tracks.find((t) => t.uiId === this.selectedUiId);
       if (cur) {
@@ -413,24 +455,65 @@ export class FloatingPanel {
         this.editW = cur.w;
         this.editH = cur.h;
       }
-      this.updateContent();
+      this.scheduleUpdate();
     } else {
-      this.updateContent();
+      this.scheduleUpdate();
+    }
+  }
+
+  private syncCategoryFromLabel(label: string): void {
+    const l = (label || "").toLowerCase();
+    if (l.includes("pedestrian") || l.includes("person") || l.includes("walker") || l.includes("human")) {
+      this.selectedCategory = "pedestrian";
+    } else if (
+      l.includes("cyclist") ||
+      l.includes("bicycle") ||
+      l.includes("motorcycle") ||
+      l.includes("motorbike") ||
+      l.includes("motobike") ||
+      l.includes("bike") ||
+      l.includes("rider") ||
+      l.includes("scooter") ||
+      l.includes("moped") ||
+      l.includes("two_wheeler") ||
+      l.includes("two-wheeler") ||
+      l.includes("twowheeler") ||
+      l.includes("2_wheeler") ||
+      l.includes("2-wheeler") ||
+      l.includes("2wheeler") ||
+      l.includes("motor") ||
+      l.includes("cycle") ||
+      l.includes("xe máy") ||
+      l.includes("xe_may") ||
+      l.includes("xemay") ||
+      l.includes("xe đạp") ||
+      l.includes("xe_dap") ||
+      l.includes("xedap") ||
+      l.includes("xe 2 bánh") ||
+      l.includes("xe_2_banh")
+    ) {
+      this.selectedCategory = "cyclist";
+    } else {
+      this.selectedCategory = "car";
     }
   }
 
   /**
    * Chọn xe theo UI ID (#1, #2...) và kích hoạt highlight trên Canvas
+   * @param activateCanvas Chỉ bật khi người dùng chủ động click hoặc dùng hotkey, không bật khi sync ngầm lúc F5!
    */
-  public async selectTrackByUiId(uiId: number, details?: any): Promise<void> {
+  public async selectTrackByUiId(uiId: number, details?: any, activateCanvas: boolean = true): Promise<void> {
     this.selectedUiId = uiId;
 
-    // Kích hoạt sáng viền đối tượng trên Three.js Canvas
-    CVATBridge.activateCanvasTrack(uiId);
+    // Chỉ kích hoạt Three.js Canvas nếu người dùng chủ động tương tác
+    if (activateCanvas) {
+      CVATBridge.activateCanvasTrack(uiId);
+    }
 
     if (details) {
       this.selectedServerId = details.serverId || null;
       this.currentLabel = details.label || `Xe #${uiId}`;
+      this.syncCategoryFromLabel(this.currentLabel);
       this.currentX = details.x;
       this.currentY = details.y;
       this.currentZ = details.z;
@@ -441,7 +524,8 @@ export class FloatingPanel {
       this.editL = details.l;
       this.editW = details.w;
       this.editH = details.h;
-      this.updateContent();
+      this.currentRawPoints = Array.isArray(details.points) ? [...details.points] : null;
+      this.scheduleUpdate();
       return;
     }
 
@@ -449,6 +533,7 @@ export class FloatingPanel {
     if (foundInFrame) {
       this.selectedServerId = foundInFrame.serverId;
       this.currentLabel = foundInFrame.label;
+      this.syncCategoryFromLabel(this.currentLabel);
       this.currentX = foundInFrame.x;
       this.currentY = foundInFrame.y;
       this.currentZ = foundInFrame.z;
@@ -459,7 +544,7 @@ export class FloatingPanel {
       this.editL = foundInFrame.l;
       this.editW = foundInFrame.w;
       this.editH = foundInFrame.h;
-      this.updateContent();
+      this.scheduleUpdate();
       return;
     }
 
@@ -471,9 +556,9 @@ export class FloatingPanel {
     if (this.frameTracks.length === 0) return;
     const idx = this.frameTracks.findIndex((t) => t.uiId === this.selectedUiId);
     if (idx > 0) {
-      this.selectTrackByUiId(this.frameTracks[idx - 1].uiId);
+      this.selectTrackByUiId(this.frameTracks[idx - 1].uiId, undefined, true);
     } else {
-      this.selectTrackByUiId(this.frameTracks[this.frameTracks.length - 1].uiId);
+      this.selectTrackByUiId(this.frameTracks[this.frameTracks.length - 1].uiId, undefined, true);
     }
   }
 
@@ -481,9 +566,182 @@ export class FloatingPanel {
     if (this.frameTracks.length === 0) return;
     const idx = this.frameTracks.findIndex((t) => t.uiId === this.selectedUiId);
     if (idx !== -1 && idx < this.frameTracks.length - 1) {
-      this.selectTrackByUiId(this.frameTracks[idx + 1].uiId);
+      this.selectTrackByUiId(this.frameTracks[idx + 1].uiId, undefined, true);
     } else {
-      this.selectTrackByUiId(this.frameTracks[0].uiId);
+      this.selectTrackByUiId(this.frameTracks[0].uiId, undefined, true);
+    }
+  }
+
+  /**
+   * Lưu snapshot trạng thái trước khi thực hiện thao tác để người dùng có thể bấm Hoàn Tác (Pre).
+   */
+  public async pushUndoSnapshot(actionName: string, forTrack: boolean = false): Promise<void> {
+    if (!this.currentCtx || !this.currentCtx.jobId || this.selectedUiId === null) return;
+
+    try {
+      let currentBoxPoints: number[];
+      if (Array.isArray(this.currentRawPoints) && this.currentRawPoints.length >= 16) {
+        currentBoxPoints = [...this.currentRawPoints];
+        currentBoxPoints[0] = this.currentX;
+        currentBoxPoints[1] = this.currentY;
+        currentBoxPoints[2] = this.currentZ;
+        currentBoxPoints[3] = 0;
+        currentBoxPoints[4] = 0;
+        currentBoxPoints[5] = (this.currentYawDeg * Math.PI) / 180;
+        currentBoxPoints[6] = this.currentL;
+        currentBoxPoints[7] = this.currentW;
+        currentBoxPoints[8] = this.currentH;
+      } else {
+        currentBoxPoints = [
+          this.currentX,
+          this.currentY,
+          this.currentZ,
+          0,
+          0,
+          (this.currentYawDeg * Math.PI) / 180,
+          this.currentL,
+          this.currentW,
+          this.currentH,
+        ];
+        // Đảm bảo đủ tối thiểu 16 giá trị cho cấu trúc cuboid (8 đỉnh x 2) để thỏa mãn cvat-core
+        while (currentBoxPoints.length < 16) {
+          currentBoxPoints.push(0);
+        }
+      }
+
+      let trackShapesBackup: Array<{ frame: number; outside?: boolean; points: number[] }> | undefined = undefined;
+
+      // Nếu thao tác tác động toàn bộ track: sao lưu toàn bộ shapes
+      if (forTrack || this.applyToTrack) {
+        const serverId = this.selectedServerId || this.selectedUiId;
+        const allFrames = await CVATBridge.getTrackAllFrames(this.currentCtx.jobId, this.selectedUiId, serverId);
+        if (allFrames && allFrames.length > 0) {
+          trackShapesBackup = allFrames.map((f) => ({
+            frame: f.frame,
+            outside: f.outside,
+            points: [...f.points],
+          }));
+        }
+      }
+
+      this.undoStack.push({
+        uiId: this.selectedUiId,
+        serverId: this.selectedServerId,
+        frame: this.currentFrameNumber,
+        applyToTrack: forTrack || this.applyToTrack,
+        boxPoints: currentBoxPoints,
+        trackShapesBackup,
+        actionName,
+      });
+
+      // Giới hạn độ sâu Undo tối đa 25 bước để tối ưu bộ nhớ
+      if (this.undoStack.length > 25) {
+        this.undoStack.shift();
+      }
+    } catch (err) {
+      console.warn("[CVAT 3D Suite] Lỗi lưu Undo Snapshot:", err);
+    }
+  }
+
+  /**
+   * Hoàn tác (Pre) thao tác vừa thực hiện
+   */
+  public async handleUndo(): Promise<void> {
+    if (this.undoStack.length === 0) {
+      this.showToast("Không có thao tác nào để hoàn tác (Pre)!", "info");
+      return;
+    }
+    if (this.isProcessing) return;
+    this.isProcessing = true;
+
+    const snapshot = this.undoStack.pop()!;
+    this.showToast(`Đang hoàn tác: ${snapshot.actionName}...`, "info");
+
+    try {
+      const res = await CVATBridge.restoreTrackSnapshot(
+        this.currentCtx!.jobId!,
+        snapshot.uiId,
+        snapshot.serverId,
+        {
+          frame: snapshot.frame,
+          applyToTrack: snapshot.applyToTrack,
+          boxPoints: snapshot.boxPoints,
+          trackShapesBackup: snapshot.trackShapesBackup,
+        }
+      );
+
+      if (res.success) {
+        // Đồng bộ tức thì các thông số hiển thị trên Panel về trạng thái vừa khôi phục
+        if (Array.isArray(snapshot.boxPoints) && snapshot.boxPoints.length >= 9) {
+          this.currentX = snapshot.boxPoints[0];
+          this.currentY = snapshot.boxPoints[1];
+          this.currentZ = snapshot.boxPoints[2];
+          this.currentYawDeg = Math.round((snapshot.boxPoints[5] * 180) / Math.PI);
+          this.currentL = snapshot.boxPoints[6];
+          this.currentW = snapshot.boxPoints[7];
+          this.currentH = snapshot.boxPoints[8];
+          this.editL = this.currentL;
+          this.editW = this.currentW;
+          this.editH = this.currentH;
+          this.currentRawPoints = [...snapshot.boxPoints];
+        }
+        this.showToast(`Đã hoàn tác: ${snapshot.actionName}`, "success");
+        await this.syncFrameTracks();
+      } else {
+        this.showToast(res.message || "Không thể hoàn tác!", "error");
+      }
+    } catch (err: any) {
+      this.showToast(`Lỗi hoàn tác: ${err.message || err}`, "error");
+    } finally {
+      this.isProcessing = false;
+      this.updateContent();
+    }
+  }
+
+  /**
+   * Đánh dấu Outside (ẩn) cho toàn bộ các frame của Track đang chọn
+   */
+  public async handleSetTrackOutside(outside: boolean = true): Promise<void> {
+    if (!this.currentCtx || !this.currentCtx.jobId) {
+      this.showToast("Chưa kết nối Job CVAT!", "warning");
+      return;
+    }
+    if (this.selectedUiId === null) {
+      this.showToast("Vui lòng chọn xe trước!", "warning");
+      return;
+    }
+    if (this.isProcessing) return;
+
+    // Lưu snapshot vào undo stack trước khi đổi trạng thái
+    await this.pushUndoSnapshot(`Outside Toàn Track #${this.selectedUiId}`, true);
+    this.isProcessing = true;
+
+    this.showToast(`Đang đánh dấu ${outside ? "Outside" : "Inside"} cho toàn bộ Track #${this.selectedUiId}...`, "info");
+
+    try {
+      const serverId = this.selectedServerId || this.selectedUiId;
+      const res = await CVATBridge.setTrackOutside(
+        this.currentCtx.jobId,
+        this.selectedUiId,
+        serverId,
+        outside,
+        this.currentFrameNumber
+      );
+
+      if (res.success) {
+        this.showToast(
+          `Đã đánh dấu ${outside ? "Outside" : "Inside"} cho ${res.count || "toàn bộ"} frame của Track #${this.selectedUiId}! Bấm Pre để hoàn tác.`,
+          "success"
+        );
+        await this.syncFrameTracks();
+      } else {
+        this.showToast(res.message || "Không thể đổi trạng thái Outside!", "error");
+      }
+    } catch (err: any) {
+      this.showToast(`Lỗi đánh dấu Outside: ${err.message || err}`, "error");
+    } finally {
+      this.isProcessing = false;
+      this.updateContent();
     }
   }
 
@@ -502,6 +760,7 @@ export class FloatingPanel {
     }
 
     if (this.isProcessing) return;
+    await this.pushUndoSnapshot(currentFrameOnly ? "Lật 180° Frame" : "Lật 180° Track", !currentFrameOnly);
     this.isProcessing = true;
     this.showToast(`Đang lật hướng 180° xe #${this.selectedUiId}...`, "info");
 
@@ -544,6 +803,7 @@ export class FloatingPanel {
     }
 
     if (this.isProcessing) return;
+    await this.pushUndoSnapshot("Cập nhật Kích Thước", applyToTrack);
     this.isProcessing = true;
     const scopeMsg = applyToTrack ? "toàn bộ track" : "frame này";
     this.showToast(`Đang lưu ${l}x${w}x${h}m cho ${scopeMsg}...`, "info");
@@ -600,6 +860,143 @@ export class FloatingPanel {
   }
 
   /**
+   * Fit Box trực tiếp tại Frame Hiện Tại với Padding 5cm mỗi bên (+10cm L, +10cm W, +5cm H, Đáy bám sàn cố định)
+   */
+  public async handleFitCurrentBox(): Promise<void> {
+    if (!this.currentCtx || !this.currentCtx.jobId) {
+      this.showToast("Chưa kết nối Job CVAT!", "warning");
+      return;
+    }
+    if (this.selectedUiId === null) {
+      this.showToast("Vui lòng chọn đối tượng trước!", "warning");
+      return;
+    }
+    if (this.isProcessing) return;
+
+    // Lưu snapshot vào undo stack trước khi đổi trạng thái
+    await this.pushUndoSnapshot("Fit Box Hiện Tại (+5cm Pad)", this.applyToTrack);
+    this.isProcessing = true;
+    this.showToast("Đang đo mây điểm & Fit Box hiện tại (+5cm Pad)...", "info");
+
+    try {
+      const serverId = this.selectedServerId || this.selectedUiId;
+      const res = await CVATBridge.fitCurrentBox(
+        this.currentCtx.jobId,
+        this.selectedUiId,
+        serverId,
+        this.applyToTrack
+      );
+
+      if (res.success && res.newL && res.newW && res.newH) {
+        this.currentL = res.newL;
+        this.currentW = res.newW;
+        this.currentH = res.newH;
+        this.editL = res.newL;
+        this.editW = res.newW;
+        this.editH = res.newH;
+        if (res.newZ !== undefined) this.currentZ = res.newZ;
+
+        const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
+        if (targetItem) {
+          targetItem.l = res.newL;
+          targetItem.w = res.newW;
+          targetItem.h = res.newH;
+          if (res.newZ !== undefined) targetItem.z = res.newZ;
+        }
+
+        // Cập nhật giá trị vào DOM input nếu đang hiển thị
+        const inputL = this.container?.querySelector<HTMLInputElement>("#input-dim-l");
+        const inputW = this.container?.querySelector<HTMLInputElement>("#input-dim-w");
+        const inputH = this.container?.querySelector<HTMLInputElement>("#input-dim-h");
+        if (inputL) inputL.value = String(res.newL);
+        if (inputW) inputW.value = String(res.newW);
+        if (inputH) inputH.value = String(res.newH);
+
+        this.showToast(res.message, "success");
+      } else {
+        this.showToast(res.message || "Không thể Fit Box với frame hiện tại!", "warning");
+      }
+    } catch (err: any) {
+      this.showToast(`Lỗi Fit Box: ${err.message || err}`, "error");
+    } finally {
+      this.isProcessing = false;
+      this.updateContent();
+    }
+  }
+
+  /**
+   * Áp dụng kích thước chuẩn từ Preset mẫu (1-click)
+   */
+  public async handleApplyPreset(preset: VehicleCatalogItem): Promise<void> {
+    if (!this.currentCtx || !this.currentCtx.jobId) {
+      this.showToast("Chưa kết nối Job CVAT!", "warning");
+      return;
+    }
+    if (this.selectedUiId === null) {
+      this.showToast("Vui lòng chọn đối tượng trước!", "warning");
+      return;
+    }
+
+    this.editL = preset.l;
+    this.editW = preset.w;
+    this.editH = preset.h;
+
+    this.showToast(`Áp dụng mẫu: ${preset.name} (${preset.l}x${preset.w}x${preset.h}m)...`, "info");
+    await this.handleUpdateDimensions(preset.l, preset.w, preset.h, this.applyToTrack);
+  }
+
+  /**
+   * Vi chỉnh Center theo trục cục bộ xe:
+   * deltaXLocal: Trục dọc xe (Side View, tiến/lùi)
+   * deltaYLocal: Trục ngang xe (Front View, trái/phải)
+   */
+  public async handleShiftCenter(deltaXLocal: number, deltaYLocal: number): Promise<void> {
+    if (!this.currentCtx || !this.currentCtx.jobId) {
+      this.showToast("Chưa kết nối Job CVAT!", "warning");
+      return;
+    }
+    if (this.selectedUiId === null) {
+      this.showToast("Vui lòng chọn xe trước!", "warning");
+      return;
+    }
+    if (this.isProcessing) return;
+    await this.pushUndoSnapshot("Vi Chỉnh Center", this.applyToTrack);
+    this.isProcessing = true;
+
+    try {
+      const serverId = this.selectedServerId || this.selectedUiId;
+      const res = await CVATBridge.shiftTrackCenter(
+        this.currentCtx.jobId,
+        this.selectedUiId,
+        serverId,
+        deltaXLocal,
+        deltaYLocal,
+        this.applyToTrack
+      );
+
+      if (res.success) {
+        if (res.newX !== undefined) this.currentX = res.newX;
+        if (res.newY !== undefined) this.currentY = res.newY;
+
+        const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
+        if (targetItem) {
+          if (res.newX !== undefined) targetItem.x = res.newX;
+          if (res.newY !== undefined) targetItem.y = res.newY;
+        }
+
+        this.showToast(res.message, "success");
+      } else {
+        this.showToast(res.message || "Lỗi khi vi chỉnh Center!", "error");
+      }
+    } catch (err: any) {
+      this.showToast(`Lỗi vi chỉnh Center: ${err.message || err}`, "error");
+    } finally {
+      this.isProcessing = false;
+      this.updateContent();
+    }
+  }
+
+  /**
    * Xử lý Ghim Mặt Đất & Địa Hình Vỉa Hè (Ground & Curb Snapping Realtime 100%, ZERO-F5)
    */
   public async handleSnapGround(
@@ -617,8 +1014,8 @@ export class FloatingPanel {
     }
 
     if (this.isProcessing) return;
+    await this.pushUndoSnapshot(`Ghim Đất (${mode})`, false);
     this.isProcessing = true;
-    this.showToast("Đang quét mặt đất LiDAR...", "info");
 
     try {
       const serverId = this.selectedServerId || this.selectedUiId;
@@ -646,6 +1043,257 @@ export class FloatingPanel {
   }
 
   /**
+   * Xử lý FIT XE: Hỗ trợ CĂN TOP, CĂN SIDE, CĂN FRONT hoặc GHÉP CHU TRÌNH HOÀN CHỈNH (TOP ➔ SIDE ➔ FRONT)
+   */
+  public async handleEgoRayFit(step: "all" | "top" | "side" | "front" = "all"): Promise<void> {
+    if (!this.currentCtx || !this.currentCtx.jobId) {
+      this.showToast("Chưa kết nối Job CVAT!", "warning");
+      return;
+    }
+
+    if (this.selectedUiId === null) {
+      this.showToast("Vui lòng chọn xe trước!", "warning");
+      return;
+    }
+
+    if (this.isProcessing) return;
+    await this.pushUndoSnapshot("Fit Toàn Track", true);
+    this.isProcessing = true;
+
+    const stepLabel = step === "top" ? "Căn TOP (Yaw & Nóc)" : step === "side" ? "Căn SIDE (Cản X)" : step === "front" ? "Căn FRONT (Sườn Y)" : "Fit toàn diện";
+    this.showToast(`Đang ${stepLabel}...`, "info");
+
+    try {
+      const serverId = this.selectedServerId || this.selectedUiId;
+      const res = await CVATBridge.fitBoxToEgoRayAndGround(
+        this.currentCtx.jobId,
+        this.selectedUiId,
+        serverId,
+        this.applyToTrack,
+        true, // BẢO TOÀN TUYỆT ĐỐI 100% KÍCH THƯỚC L, W, H THEO YÊU CẦU NGƯỜI DÙNG!
+        step
+      );
+
+      if (res.success) {
+        if (res.newX !== undefined) this.currentX = res.newX;
+        if (res.newY !== undefined) this.currentY = res.newY;
+        if (res.newZ !== undefined) this.currentZ = res.newZ;
+        if (res.newYawDeg !== undefined) this.currentYawDeg = res.newYawDeg;
+
+        const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
+        if (targetItem) {
+          if (res.newX !== undefined) targetItem.x = res.newX;
+          if (res.newY !== undefined) targetItem.y = res.newY;
+          if (res.newZ !== undefined) targetItem.z = res.newZ;
+          if (res.newYawDeg !== undefined) targetItem.yawDeg = res.newYawDeg;
+        }
+
+        this.showToast(res.message, "success");
+      } else {
+        this.showToast(res.message, "error");
+      }
+    } catch (err: any) {
+      this.showToast(`Lỗi ${stepLabel}: ${err.message || err}`, "error");
+    } finally {
+      this.isProcessing = false;
+      this.updateContent();
+    }
+  }
+
+  public async handleFitTop(): Promise<void> {
+    if (this.selectedCategory === "cyclist") {
+      await this.handleFitCyclist("top");
+    } else {
+      await this.handleEgoRayFit("top");
+    }
+  }
+
+  public async handleFitSide(): Promise<void> {
+    if (this.selectedCategory === "cyclist") {
+      await this.handleFitCyclist("side");
+    } else {
+      await this.handleEgoRayFit("side");
+    }
+  }
+
+  public async handleFitFront(): Promise<void> {
+    if (this.selectedCategory === "cyclist") {
+      await this.handleFitCyclist("front");
+    } else {
+      await this.handleEgoRayFit("front");
+    }
+  }
+
+  /**
+   * Xử lý FIT CHUYÊN BIỆT CHO NGƯỜI ĐI BỘ (PEDESTRIAN FIT)
+   * - Co giãn linh hoạt L, W, H theo người tại frame đó
+   * - Khóa thẳng đứng Roll = 0, Pitch = 0
+   * - Quét chân siêu hẹp +15cm tránh vỉa hè
+   * - Bù đỉnh đầu +12cm chống cắt ngang trán
+   */
+  public async handleFitPedestrian(): Promise<void> {
+    if (!this.currentCtx || !this.currentCtx.jobId) {
+      this.showToast("Chưa kết nối Job CVAT!", "warning");
+      return;
+    }
+
+    if (this.selectedUiId === null) {
+      this.showToast("Vui lòng chọn người trước!", "warning");
+      return;
+    }
+
+    if (this.isProcessing) return;
+    await this.pushUndoSnapshot("Fit Người Đi Bộ", false);
+    this.isProcessing = true;
+
+    try {
+      const serverId = this.selectedServerId || this.selectedUiId;
+      const res = await CVATBridge.fitPedestrian(
+        this.currentCtx.jobId,
+        this.selectedUiId,
+        serverId
+      );
+
+      if (res.success) {
+        if (res.newX !== undefined) this.currentX = res.newX;
+        if (res.newY !== undefined) this.currentY = res.newY;
+        if (res.newZ !== undefined) this.currentZ = res.newZ;
+        if (res.newL !== undefined) {
+          this.currentL = res.newL;
+          this.editL = res.newL;
+        }
+        if (res.newW !== undefined) {
+          this.currentW = res.newW;
+          this.editW = res.newW;
+        }
+        if (res.newH !== undefined) {
+          this.currentH = res.newH;
+          this.editH = res.newH;
+        }
+
+        const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
+        if (targetItem) {
+          if (res.newX !== undefined) targetItem.x = res.newX;
+          if (res.newY !== undefined) targetItem.y = res.newY;
+          if (res.newZ !== undefined) targetItem.z = res.newZ;
+          if (res.newL !== undefined) targetItem.l = res.newL;
+          if (res.newW !== undefined) targetItem.w = res.newW;
+          if (res.newH !== undefined) targetItem.h = res.newH;
+        }
+
+        this.showToast(res.message, "success");
+      } else {
+        this.showToast(res.message, "error");
+      }
+    } catch (err: any) {
+      this.showToast(`Lỗi Fit Người Đi Bộ: ${err.message || err}`, "error");
+    } finally {
+      this.isProcessing = false;
+      this.updateContent();
+    }
+  }
+
+  /**
+   * Xử lý FIT CHUYÊN BIỆT CHO XE 2 BÁNH (CYCLIST / TWO-WHEELER FIT)
+   * Hỗ trợ 3 chiều độc lập (TOP - SIDE - FRONT) hoặc toàn chu trình (ALL).
+   * Bảo toàn 100% kích thước L cố định theo quy chuẩn.
+   */
+  public async handleFitCyclist(step: "all" | "top" | "side" | "front" | "w" | "h" = "all"): Promise<void> {
+    if (!this.currentCtx || !this.currentCtx.jobId) {
+      this.showToast("Chưa kết nối Job CVAT!", "warning");
+      return;
+    }
+
+    if (this.selectedUiId === null) {
+      this.showToast("Vui lòng chọn xe trước!", "warning");
+      return;
+    }
+
+    if (this.isProcessing) return;
+    const stepLabel =
+      step === "top"
+        ? "Căn TOP (Yaw Đầu - Đuôi)"
+        : step === "side"
+        ? "Căn SIDE (Cản X & Sàn, Khóa L)"
+        : step === "front"
+        ? "Căn FRONT (Sườn Y đón tia, Giữ Size)"
+        : step === "w"
+        ? "Fit Rộng W (Bắt gương xe +5cm Pad)"
+        : step === "h"
+        ? "Fit Cao H (Bám sàn cố định, nở nóc)"
+        : "Fit Xe 2 Bánh toàn diện";
+
+    await this.pushUndoSnapshot(stepLabel, false);
+    this.isProcessing = true;
+    this.showToast(`Đang ${stepLabel}...`, "info");
+
+    try {
+      const serverId = this.selectedServerId || this.selectedUiId;
+      const res = await CVATBridge.fitCyclist(
+        this.currentCtx.jobId,
+        this.selectedUiId,
+        serverId,
+        0.10,
+        step,
+        this.applyToTrack
+      );
+
+      if (res.success) {
+        if (res.newX !== undefined) this.currentX = res.newX;
+        if (res.newY !== undefined) this.currentY = res.newY;
+        if (res.newZ !== undefined) this.currentZ = res.newZ;
+        if (res.newYawDeg !== undefined) this.currentYawDeg = res.newYawDeg;
+        if (res.newL !== undefined) {
+          this.currentL = res.newL;
+          this.editL = res.newL;
+        }
+        if (res.newW !== undefined) {
+          this.currentW = res.newW;
+          this.editW = res.newW;
+        }
+        if (res.newH !== undefined) {
+          this.currentH = res.newH;
+          this.editH = res.newH;
+        }
+
+        // Cập nhật DOM tức thì cho các ô input số đo (Zero-Delay)
+        const inputW = this.container.querySelector<HTMLInputElement>("#input-dim-w");
+        if (inputW && res.newW !== undefined) {
+          inputW.value = String(res.newW);
+        }
+        const inputH = this.container.querySelector<HTMLInputElement>("#input-dim-h");
+        if (inputH && res.newH !== undefined) {
+          inputH.value = String(res.newH);
+        }
+        const inputL = this.container.querySelector<HTMLInputElement>("#input-dim-l");
+        if (inputL && res.newL !== undefined) {
+          inputL.value = String(res.newL);
+        }
+
+        const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
+        if (targetItem) {
+          if (res.newX !== undefined) targetItem.x = res.newX;
+          if (res.newY !== undefined) targetItem.y = res.newY;
+          if (res.newZ !== undefined) targetItem.z = res.newZ;
+          if (res.newYawDeg !== undefined) targetItem.yawDeg = res.newYawDeg;
+          if (res.newL !== undefined) targetItem.l = res.newL;
+          if (res.newW !== undefined) targetItem.w = res.newW;
+          if (res.newH !== undefined) targetItem.h = res.newH;
+        }
+
+        this.showToast(res.message, "success");
+      } else {
+        this.showToast(res.message, "error");
+      }
+    } catch (err: any) {
+      this.showToast(`Lỗi ${stepLabel}: ${err.message || err}`, "error");
+    } finally {
+      this.isProcessing = false;
+      this.updateContent();
+    }
+  }
+
+  /**
    * Xử lý Căn Hộp Bám Cụm Điểm BẢO TOÀN KÍCH THƯỚC (Preserving Dimensions Alignment)
    * Tự động bay tới ôm khít cụm điểm mà TUYỆT ĐỐI GIỮ NGUYÊN kích thước L, W, H của xe.
    */
@@ -661,8 +1309,8 @@ export class FloatingPanel {
     }
 
     if (this.isProcessing) return;
+    await this.pushUndoSnapshot("Căn Hộp Bám Điểm", false);
     this.isProcessing = true;
-    this.showToast("Đang căn hộp bám cụm điểm & giữ nguyên kích thước...", "info");
 
     try {
       const serverId = this.selectedServerId || this.selectedUiId;
@@ -719,8 +1367,8 @@ export class FloatingPanel {
     }
 
     if (this.isProcessing) return;
+    await this.pushUndoSnapshot("Khớp Kích Thước Catalog", this.applyToTrack);
     this.isProcessing = true;
-    this.showToast("Đang đối chiếu và khớp kích thước Catalog...", "info");
 
     try {
       const serverId = this.selectedServerId || this.selectedUiId;
@@ -798,6 +1446,7 @@ export class FloatingPanel {
     }
 
     if (this.isProcessing) return;
+    await this.pushUndoSnapshot("Fit Toàn Track", true);
     this.isProcessing = true;
     this.showToast("Đang tìm mốc chuẩn và fit đồng bộ toàn track...", "info");
 
@@ -845,6 +1494,33 @@ export class FloatingPanel {
   private updateContent(): void {
     if (!this.container || !this.currentCtx) return;
 
+    // Snapshot trạng thái hiển thị (State Memoization chống nháy DOM):
+    const stateHash = [
+      this.selectedUiId,
+      this.currentFrameNumber,
+      this.currentX,
+      this.currentY,
+      this.currentZ,
+      this.currentYawDeg,
+      this.currentL,
+      this.currentW,
+      this.currentH,
+      this.editL,
+      this.editW,
+      this.editH,
+      this.frameTracks.length,
+      this.isDropdownOpen,
+      this.searchKeyword,
+      this.selectedCategory,
+      this.isAdvancedOpen,
+      this.applyToTrack,
+    ].join("|");
+
+    if (stateHash === this.lastRenderedHash && this.container.children.length > 0) {
+      return; // Dữ liệu hoàn toàn không thay đổi -> Giữ nguyên DOM, triệt tiêu 100% nhấp nháy!
+    }
+    this.lastRenderedHash = stateHash;
+
     const jobText = this.currentCtx.jobId ? `#${this.currentCtx.jobId}` : "OFFLINE";
 
     // Lọc danh sách xe theo từ khóa tìm kiếm
@@ -864,9 +1540,9 @@ export class FloatingPanel {
             <div class="dropdown-track-item" data-uiid="${t.uiId}" style="
               padding: 6px 10px;
               border-radius: 6px;
-              background: ${isSelected ? "rgba(16, 185, 129, 0.2)" : "transparent"};
-              border: 1px solid ${isSelected ? "rgba(16, 185, 129, 0.4)" : "transparent"};
-              color: ${isSelected ? "#6ee7b7" : "#e4e4e7"};
+              background: ${isSelected ? "#ecfdf5" : "transparent"};
+              border: 1px solid ${isSelected ? "#a7f3d0" : "transparent"};
+              color: ${isSelected ? "#047857" : "#0f172a"};
               cursor: pointer;
               display: flex;
               align-items: center;
@@ -876,12 +1552,12 @@ export class FloatingPanel {
               transition: background 0.12s;
             ">
               <span style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-weight: 700; color: ${isSelected ? "#10b981" : "#a1a1aa"};">#${t.uiId}</span>
-                <span style="color: #fafafa; font-weight: 500;">${t.label}</span>
+                <span style="font-weight: 700; color: ${isSelected ? "#059669" : "#64748b"};">#${t.uiId}</span>
+                <span style="color: ${isSelected ? "#047857" : "#0f172a"}; font-weight: 500;">${t.label}</span>
               </span>
-              <span style="font-size: 10px; color: #71717a;">
+              <span style="font-size: 10px; color: #64748b;">
                 Z: ${t.z}m • ${t.yawDeg}°
-                ${isSelected ? `<span style="color: #10b981; margin-left: 4px;">●</span>` : ""}
+                ${isSelected ? `<span style="color: #059669; margin-left: 4px;">●</span>` : ""}
               </span>
             </div>
           `;
@@ -889,7 +1565,7 @@ export class FloatingPanel {
         .join("");
     } else {
       dropdownItemsHtml = `
-        <div style="font-size: 11px; color: #71717a; padding: 8px; text-align: center; font-style: italic;">
+        <div style="font-size: 11px; color: #64748b; padding: 8px; text-align: center; font-style: italic;">
           Không tìm thấy xe nào khớp với "${this.searchKeyword}"
         </div>
       `;
@@ -903,346 +1579,125 @@ export class FloatingPanel {
       this.currentLabel
     );
 
-    // ==========================================
-    // RENDER NỘI DUNG TỪNG MODULE TAB (100% FLAT SVG ICONS, NO 3D EMOJI)
-    // ==========================================
-    let tabContentHtml = "";
+    // Danh sách Presets mẫu theo Category đang chọn (Ô tô, Xe 2 bánh, Người đi bộ)
+    const activePresets =
+      this.selectedCategory === "pedestrian"
+        ? PEDESTRIAN_PRESETS
+        : this.selectedCategory === "cyclist"
+        ? CYCLIST_PRESETS
+        : CAR_PRESETS;
 
-    // --- TAB 1: KÍCH THƯỚC (DIMENSIONS & TIGHT FIT & CATALOG) ---
-    if (this.activeTab === "dimensions") {
-      tabContentHtml = `
-        <!-- BỘ ĐIỀU CHỈNH KÍCH THƯỚC (L, W, H) -->
+    // ==========================================
+    // RENDER NỘI DUNG GIAO DIỆN MỚI: 1-CLICK WORKFLOW & TRỰC QUAN TOÀN DIỆN
+    // ==========================================
+
+    // 1. Cấu hình Hero Button theo phân loại đối tượng (100% Flat SVG Icons, Không dùng emoji 3D)
+    let heroTitle = "1-CLICK SMART FIT";
+    let heroSub = "Tự bám đất • Khóa Roll 0° • Lọc sạch gương & xe khác";
+    let heroKey = "T";
+    let heroGradient = "linear-gradient(135deg, #ecfdf5 0%, #e0f2fe 100%)";
+    let heroBorder = "#6ee7b7";
+    let heroColor = "#047857";
+    let heroIcon = ICONS.zap;
+
+    if (this.selectedCategory === "pedestrian") {
+      heroTitle = "FIT NGƯỜI ĐI BỘ";
+      heroSub = "Khóa đứng 0° • Bù đỉnh đầu +12cm • Co giãn dáng người";
+      heroKey = "P";
+      heroGradient = "linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)";
+      heroBorder = "#d8b4fe";
+      heroColor = "#6b21a8";
+      heroIcon = ICONS.user;
+    } else if (this.selectedCategory === "cyclist") {
+      heroTitle = "FIT XE ĐẠP / XE MÁY";
+      heroSub = "Khung xe chuẩn • Khóa thẳng đứng 0° • Bù nón bảo hiểm";
+      heroKey = "Shift+C";
+      heroGradient = "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)";
+      heroBorder = "#fcd34d";
+      heroColor = "#b45309";
+      heroIcon = ICONS.bicycle;
+    }
+
+    // 2. Nội dung Accordion Tinh chỉnh nâng cao (nếu mở)
+    let advancedContentHtml = "";
+    if (this.isAdvancedOpen) {
+      advancedContentHtml = `
         <div style="
-          background: rgba(24, 24, 27, 0.6);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
           border-radius: 10px;
-          padding: 8px 10px;
+          padding: 10px;
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 8px;
         ">
-          <!-- TOGGLE SWITCH: CHỈ FRAME NÀY VS TOÀN TRACK -->
-          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.06);">
-            <span style="font-size: 11px; font-weight: 600; color: #a1a1aa;">Phạm vi áp dụng:</span>
-            <div id="btn-toggle-scope" style="
-              background: #18181b;
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              border-radius: 6px;
-              display: flex;
-              padding: 2px;
-              cursor: pointer;
-              font-size: 10px;
-              font-family: ui-monospace, monospace;
-            ">
-              <span style="
-                padding: 3px 8px;
-                border-radius: 4px;
-                background: ${!this.applyToTrack ? "#27272a" : "transparent"};
-                color: ${!this.applyToTrack ? "#10b981" : "#71717a"};
-                font-weight: ${!this.applyToTrack ? "600" : "normal"};
-              ">Frame Này</span>
-              <span style="
-                padding: 3px 8px;
-                border-radius: 4px;
-                background: ${this.applyToTrack ? "rgba(239, 68, 68, 0.2)" : "transparent"};
-                color: ${this.applyToTrack ? "#fca5a5" : "#71717a"};
-                font-weight: ${this.applyToTrack ? "600" : "normal"};
-              ">Toàn Track</span>
+          <!-- VI CHỈNH ĐỘ CAO Z -->
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 10px; color: #64748b; font-family: ui-monospace, monospace; font-weight: 500;">Vi chỉnh Z (cm):</span>
+            <div style="display: flex; gap: 4px;">
+              <button class="btn-micro-z" data-delta="-5" title="Hạ 5cm" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 10px; font-family: monospace; padding: 4px 7px; border-radius: 5px; cursor: pointer;">-5</button>
+              <button class="btn-micro-z" data-delta="-1" title="Hạ 1cm" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 10px; font-family: monospace; padding: 4px 7px; border-radius: 5px; cursor: pointer;">-1</button>
+              <button class="btn-micro-z" data-delta="1" title="Nâng 1cm" style="background: #ffffff; border: 1px solid #a7f3d0; color: #059669; font-size: 10px; font-family: monospace; padding: 4px 7px; border-radius: 5px; cursor: pointer; font-weight: 600;">+1</button>
+              <button class="btn-micro-z" data-delta="5" title="Nâng 5cm" style="background: #ffffff; border: 1px solid #a7f3d0; color: #059669; font-size: 10px; font-family: monospace; padding: 4px 7px; border-radius: 5px; cursor: pointer; font-weight: 600;">+5</button>
             </div>
           </div>
 
-          <!-- 3 HÀNG STEPPER (L, W, H) -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
-            <!-- Chiều Dài L -->
-            <div style="display: flex; flex-direction: column; gap: 2px;">
-              <span style="font-size: 10px; color: #a1a1aa; font-family: monospace;">Dài (L):</span>
-              <div style="display: flex; align-items: center; background: #09090b; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;">
-                <button class="btn-step" data-axis="l" data-delta="-0.05" style="border: none; background: transparent; color: #71717a; padding: 4px; cursor: pointer;">-</button>
-                <input id="input-dim-l" type="number" step="0.05" value="${this.editL || this.currentL}" style="width: 100%; border: none; background: transparent; color: #38bdf8; font-size: 11px; font-weight: bold; text-align: center; outline: none; font-family: monospace;" />
-                <button class="btn-step" data-axis="l" data-delta="0.05" style="border: none; background: transparent; color: #71717a; padding: 4px; cursor: pointer;">+</button>
-              </div>
-            </div>
-
-            <!-- Chiều Rộng W -->
-            <div style="display: flex; flex-direction: column; gap: 2px;">
-              <span style="font-size: 10px; color: #a1a1aa; font-family: monospace;">Rộng (W):</span>
-              <div style="display: flex; align-items: center; background: #09090b; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;">
-                <button class="btn-step" data-axis="w" data-delta="-0.05" style="border: none; background: transparent; color: #71717a; padding: 4px; cursor: pointer;">-</button>
-                <input id="input-dim-w" type="number" step="0.05" value="${this.editW || this.currentW}" style="width: 100%; border: none; background: transparent; color: #38bdf8; font-size: 11px; font-weight: bold; text-align: center; outline: none; font-family: monospace;" />
-                <button class="btn-step" data-axis="w" data-delta="0.05" style="border: none; background: transparent; color: #71717a; padding: 4px; cursor: pointer;">+</button>
-              </div>
-            </div>
-
-            <!-- Chiều Cao H -->
-            <div style="display: flex; flex-direction: column; gap: 2px;">
-              <span style="font-size: 10px; color: #a1a1aa; font-family: monospace;">Cao (H):</span>
-              <div style="display: flex; align-items: center; background: #09090b; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;">
-                <button class="btn-step" data-axis="h" data-delta="-0.05" style="border: none; background: transparent; color: #71717a; padding: 4px; cursor: pointer;">-</button>
-                <input id="input-dim-h" type="number" step="0.05" value="${this.editH || this.currentH}" style="width: 100%; border: none; background: transparent; color: #38bdf8; font-size: 11px; font-weight: bold; text-align: center; outline: none; font-family: monospace;" />
-                <button class="btn-step" data-axis="h" data-delta="0.05" style="border: none; background: transparent; color: #71717a; padding: 4px; cursor: pointer;">+</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- NÚT ÁP DỤNG KÍCH THƯỚC ĐÃ NHẬP -->
-          <button id="btn-apply-dimensions" style="
-            background: #27272a;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #f4f4f5;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.15s;
-          ">
-            <span style="display: flex; align-items: center;">${ICONS.save}</span>
-            <span>Lưu Kích Thước (${this.applyToTrack ? "Toàn Track" : "Frame Này"})</span>
-          </button>
-        </div>
-
-        <!-- 3 NÚT HÀNH ĐỘNG FIT CHUYÊN BIỆT: ALIGN TO POINTS (GIỮ SIZE), CATALOG & QUÉT MỐC ĐA FRAME -->
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-          <!-- NÚT 1: CĂN HỘP BÁM CỤM ĐIỂM (BẢO TOÀN KÍCH THƯỚC L, W, H) -->
-          <button id="btn-tight-fit" title="Tự động dịch tâm và ôm trọn cụm điểm LiDAR, giữ nguyên 100% kích cỡ chuẩn" style="
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid #10b981;
-            color: #6ee7b7;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.12s;
-          ">
-            <span style="display: flex; align-items: center; gap: 7px;">
-              <span style="display: flex; align-items: center;">${ICONS.tightFit}</span>
-              <span>Căn Hộp Bám Cụm Điểm (Giữ Size)</span>
-            </span>
-            <kbd style="font-size: 9px; font-family: monospace; background: #18181b; padding: 1px 5px; border-radius: 4px; color: #a7f3d0;">T</kbd>
-          </button>
-
-          <!-- NÚT 2: QUÉT MỐC ĐA FRAME (CHỌN FRAME HIỂN THỊ TỐT NHẤT) -->
-          <button id="btn-smart-anchor-fit" title="Duyệt qua toàn bộ frame của xe trong track, chọn frame có cụm điểm đầy đủ nhất để đồng bộ kích thước" style="
-            background: rgba(168, 85, 247, 0.12);
-            border: 1px solid rgba(168, 85, 247, 0.35);
-            color: #d8b4fe;
-            padding: 7px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.15s;
-          ">
-            <span style="display: flex; align-items: center; gap: 7px;">
-              <span style="display: flex; align-items: center;">${ICONS.link}</span>
-              <span>Quét Mốc Đa Frame (Chọn Frame Đẹp)</span>
-            </span>
-            <span style="font-size: 9px; font-family: monospace; background: rgba(0,0,0,0.35); padding: 1px 5px; border-radius: 4px; color: #d8b4fe;">MULTI-SCAN</span>
-          </button>
-
-          <!-- NÚT 3: KHỚP KÍCH THƯỚC CHUẨN CATALOG -->
-          <button id="btn-catalog-fit" title="Gợi ý và khớp kích thước theo catalog phương tiện chuẩn" style="
-            background: rgba(14, 165, 233, 0.12);
-            border: 1px solid rgba(14, 165, 233, 0.35);
-            color: #7dd3fc;
-            padding: 7px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.12s;
-          ">
-            <span style="display: flex; align-items: center; gap: 7px;">
-              <span style="display: flex; align-items: center;">${ICONS.sparkles}</span>
-              <span>Khớp Chuẩn Catalog (Best-Fit)</span>
-            </span>
-            <kbd style="font-size: 9px; font-family: monospace; background: #18181b; padding: 1px 5px; border-radius: 4px; color: #7dd3fc;">⇧B</kbd>
-          </button>
-
-          <!-- GỢI Ý XE KHỚP TỪ CATALOG -->
-          <div style="
-            font-size: 10px;
-            color: #71717a;
-            padding: 2px 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-family: ui-monospace, monospace;
-          ">
-            <span>Dòng xe khớp: <strong style="color: #10b981;">${bestFit.matchedItem.name}</strong> (${bestFit.confidence}%)</span>
-            <button class="catalog-btn" data-l="${bestFit.recommendedL}" data-w="${bestFit.recommendedW}" data-h="${bestFit.recommendedH}" data-name="${bestFit.matchedItem.name}" style="
-              border: none;
-              background: transparent;
-              color: #38bdf8;
-              font-size: 10px;
-              cursor: pointer;
-              text-decoration: underline;
-            ">Áp dụng</button>
-          </div>
-        </div>
-
-        <!-- PRESET CATALOG NHANH -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-          ${STANDARD_VEHICLE_CATALOG.slice(0, 4)
-            .map(
-              (item) => `
-            <button class="catalog-btn" data-l="${item.l}" data-w="${item.w}" data-h="${item.h}" data-name="${item.name}" style="
-              background: #18181b;
-              border: 1px solid rgba(255,255,255,0.08);
-              color: #d4d4d8;
-              padding: 5px 8px;
-              border-radius: 6px;
-              font-size: 10px;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            ">
-              <span style="font-weight: 500;">${item.name}</span>
-              <span style="font-size: 8px; font-family: monospace; color: #71717a;">${item.l}x${item.w}m</span>
-            </button>
-          `
-            )
-            .join("")}
-        </div>
-      `;
-    }
-
-    // --- TAB 2: HƯỚNG & LẬT XE (ROTATION & FLIP) ---
-    else if (this.activeTab === "rotation") {
-      tabContentHtml = `
-        <!-- LẬT 180 ĐỘ -->
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #71717a;">Lật Đầu Xe 180°</div>
+          <!-- DỐC DỌC PITCH & NGHIÊNG NGANG ROLL -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-            <button id="btn-flip-frame" style="
-              background: #27272a;
-              border: 1px solid rgba(255, 255, 255, 0.08);
-              color: #f4f4f5;
-              padding: 8px 10px;
-              border-radius: 8px;
-              font-size: 11px;
-              font-weight: 500;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            ">
-              <span style="display: flex; align-items: center; gap: 6px;">
-                <span style="display: flex; align-items: center;">${ICONS.flip}</span>
-                <span>Lật Frame này</span>
+            <div style="background: #ffffff; padding: 6px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-size: 9px; color: #0284c7; font-family: monospace; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                ${ICONS.arrowUpDown}
+                <span>Dốc Side (Pitch)</span>
               </span>
-              <kbd style="font-size: 9px; font-family: monospace; background: #18181b; padding: 1px 4px; border-radius: 4px; color: #71717a;">F</kbd>
-            </button>
+              <div style="display: flex; gap: 3px;">
+                <button class="btn-micro-pitch" data-delta="-1" style="flex: 1; background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer;">-1°</button>
+                <button class="btn-micro-pitch" data-delta="1" style="flex: 1; background: #f0f9ff; border: 1px solid #bae6fd; color: #0284c7; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer; font-weight: 600;">+1°</button>
+              </div>
+            </div>
 
-            <button id="btn-flip-track" style="
-              background: rgba(239, 68, 68, 0.12);
-              border: 1px solid rgba(239, 68, 68, 0.3);
-              color: #fca5a5;
-              padding: 8px 10px;
-              border-radius: 8px;
-              font-size: 11px;
-              font-weight: 500;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            ">
-              <span style="display: flex; align-items: center; gap: 6px;">
-                <span style="display: flex; align-items: center;">${ICONS.flip}</span>
-                <span>Lật Toàn Track</span>
+            <div style="background: #ffffff; padding: 6px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-size: 9px; color: #e11d48; font-family: monospace; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                ${ICONS.arrowRightLeft}
+                <span>Nghiêng (Roll)</span>
               </span>
-              <kbd style="font-size: 9px; font-family: monospace; background: #18181b; padding: 1px 4px; border-radius: 4px; color: #71717a;">⇧F</kbd>
-            </button>
+              <div style="display: flex; gap: 3px;">
+                <button class="btn-micro-roll" data-delta="-1" style="flex: 1; background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer;">-1°</button>
+                <button class="btn-micro-roll" data-delta="1" style="flex: 1; background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer; font-weight: 600;">+1°</button>
+                <button id="btn-reset-slope" title="Đặt lại dốc phẳng 0°" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; padding: 3px 6px; border-radius: 4px; cursor: pointer; font-weight: 600;">0°</button>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <!-- VI CHỈNH GÓC XOAY -->
-        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
-          <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #71717a;">Vi Chỉnh Góc Yaw</div>
-          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
-            <button class="btn-rot" data-deg="-90" style="background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 10px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">-90°</button>
-            <button class="btn-rot" data-deg="-15" style="background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 10px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">-15°</button>
-            <button class="btn-rot" data-deg="-5" style="background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 10px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">-5°</button>
-            <button class="btn-rot" data-deg="5" style="background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #10b981; font-size: 10px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">+5°</button>
-            <button class="btn-rot" data-deg="15" style="background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #10b981; font-size: 10px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">+15°</button>
-            <button class="btn-rot" data-deg="90" style="background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #10b981; font-size: 10px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">+90°</button>
-          </div>
-        </div>
-      `;
-    }
-
-    // --- TAB 3: GHIM MẶT ĐẤT & VỈA HÈ (GROUND & CURB) ---
-    else if (this.activeTab === "ground") {
-      tabContentHtml = `
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <!-- GHIM MẶT ĐƯỜNG & VỈA HÈ -->
+          <!-- VỈA HÈ & GÁC LỀ -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-            <button id="btn-snap-road" title="Ghim sát mặt đường và tự động khớp góc dốc Pitch dọc & Roll ngang theo thực tế 3D" style="
-              background: #27272a;
-              border: 1px solid rgba(45, 212, 191, 0.3);
-              color: #2dd4bf;
-              padding: 8px 10px;
-              border-radius: 8px;
-              font-size: 11px;
-              font-weight: 500;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            ">
-              <span style="display: flex; align-items: center; gap: 6px;">
-                <span style="display: flex; align-items: center;">${ICONS.road}</span>
-                <span>Mặt Đường Bám Dốc 3D</span>
-              </span>
-              <kbd style="font-size: 9px; font-family: monospace; background: #18181b; padding: 1px 4px; border-radius: 4px; color: #71717a;">G</kbd>
-            </button>
-
             <button id="btn-snap-curb" style="
-              background: #27272a;
-              border: 1px solid rgba(245, 158, 11, 0.3);
-              color: #fbbf24;
-              padding: 8px 10px;
-              border-radius: 8px;
-              font-size: 11px;
-              font-weight: 500;
+              background: #fffbeb;
+              border: 1px solid #fde68a;
+              color: #b45309;
+              padding: 6px 8px;
+              border-radius: 6px;
+              font-size: 10px;
+              font-weight: 600;
               cursor: pointer;
               display: flex;
               align-items: center;
               justify-content: space-between;
             ">
-              <span style="display: flex; align-items: center; gap: 6px;">
+              <span style="display: flex; align-items: center; gap: 5px;">
                 <span style="display: flex; align-items: center;">${ICONS.curb}</span>
                 <span>Vỉa Hè +15cm</span>
               </span>
-              <kbd style="font-size: 9px; font-family: monospace; background: #18181b; padding: 1px 4px; border-radius: 4px; color: #71717a;">⌥G</kbd>
+              <kbd style="font-size: 8px; font-family: monospace; background: #fef3c7; border: 1px solid #fde68a; padding: 1px 4px; border-radius: 3px; color: #92400e;">⌥G</kbd>
             </button>
-          </div>
 
-          <!-- GÁC LỀ NGHIÊNG ROLL & VI CHỈNH CENTIMET -->
-          <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 6px;">
             <button id="btn-snap-half-curb" style="
-              background: rgba(244, 63, 94, 0.1);
-              border: 1px solid rgba(244, 63, 94, 0.25);
-              color: #fda4af;
+              background: #fff1f2;
+              border: 1px solid #fecdd3;
+              color: #be123c;
               padding: 6px 8px;
-              border-radius: 8px;
+              border-radius: 6px;
               font-size: 10px;
-              font-weight: 500;
+              font-weight: 600;
               cursor: pointer;
               display: flex;
               align-items: center;
@@ -1250,83 +1705,105 @@ export class FloatingPanel {
             ">
               <span style="display: flex; align-items: center; gap: 5px;">
                 <span style="display: flex; align-items: center;">${ICONS.layers}</span>
-                <span>Gác Lề Nghiêng Roll</span>
+                <span>Gác Lề Roll</span>
               </span>
-              <kbd style="font-size: 8px; font-family: monospace; background: #18181b; padding: 1px 3px; border-radius: 3px; color: #71717a;">⇧G</kbd>
+              <kbd style="font-size: 8px; font-family: monospace; background: #ffe4e6; border: 1px solid #fecdd3; padding: 1px 4px; border-radius: 3px; color: #9f1239;">⇧G</kbd>
             </button>
+          </div>
 
-            <div style="display: flex; gap: 3px; align-items: center;">
-              <button class="btn-micro-z" data-delta="-5" title="Hạ 5cm" style="flex: 1; background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 9px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">-5</button>
-              <button class="btn-micro-z" data-delta="-1" title="Hạ 1cm" style="flex: 1; background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 9px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">-1</button>
-              <button class="btn-micro-z" data-delta="1" title="Nâng 1cm" style="flex: 1; background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #2dd4bf; font-size: 9px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">+1</button>
-              <button class="btn-micro-z" data-delta="5" title="Nâng 5cm" style="flex: 1; background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #2dd4bf; font-size: 9px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">+5</button>
+          <!-- VI CHỈNH GÓC YAW -->
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 9px; color: #64748b; font-family: monospace; font-weight: 500;">Xoay góc Yaw:</span>
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;">
+              <button class="btn-rot" data-deg="-90" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer;">-90°</button>
+              <button class="btn-rot" data-deg="-15" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer;">-15°</button>
+              <button class="btn-rot" data-deg="-5" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer;">-5°</button>
+              <button class="btn-rot" data-deg="5" style="background: #ffffff; border: 1px solid #a7f3d0; color: #059669; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer; font-weight: 600;">+5°</button>
+              <button class="btn-rot" data-deg="15" style="background: #ffffff; border: 1px solid #a7f3d0; color: #059669; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer; font-weight: 600;">+15°</button>
+              <button class="btn-rot" data-deg="90" style="background: #ffffff; border: 1px solid #a7f3d0; color: #059669; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer; font-weight: 600;">+90°</button>
             </div>
           </div>
 
-          <!-- VI CHỈNH GÓC DỐC SIDE VIEW (PITCH) -->
-          <div style="display: flex; align-items: center; justify-content: space-between; background: #18181b; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
-            <span style="font-size: 10px; color: #a1a1aa; display: flex; align-items: center; gap: 4px;">
-              <span style="color: #38bdf8; font-weight: bold;">↕</span> Dốc Side (Pitch)
-            </span>
-            <div style="display: flex; gap: 3px; align-items: center;">
-              <button class="btn-micro-pitch" data-delta="-1" title="Chúc mũi xuống 1°" style="background: #27272a; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 9px; font-family: monospace; padding: 3px 6px; border-radius: 4px; cursor: pointer;">-1°</button>
-              <button class="btn-micro-pitch" data-delta="-0.5" title="Chúc mũi xuống 0.5°" style="background: #27272a; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 9px; font-family: monospace; padding: 3px 5px; border-radius: 4px; cursor: pointer;">-0.5°</button>
-              <button class="btn-micro-pitch" data-delta="0.5" title="Nâng mũi lên 0.5°" style="background: #27272a; border: 1px solid rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 9px; font-family: monospace; padding: 3px 5px; border-radius: 4px; cursor: pointer;">+0.5°</button>
-              <button class="btn-micro-pitch" data-delta="1" title="Nâng mũi lên 1°" style="background: #27272a; border: 1px solid rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 9px; font-family: monospace; padding: 3px 6px; border-radius: 4px; cursor: pointer;">+1°</button>
-            </div>
-          </div>
-
-          <!-- VI CHỈNH GÓC NGHIÊNG FRONT VIEW (ROLL) & RESET PHẲNG -->
-          <div style="display: flex; align-items: center; justify-content: space-between; background: #18181b; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
-            <span style="font-size: 10px; color: #a1a1aa; display: flex; align-items: center; gap: 4px;">
-              <span style="color: #f43f5e; font-weight: bold;">↔</span> Nghiêng Front (Roll)
-            </span>
-            <div style="display: flex; gap: 3px; align-items: center;">
-              <button class="btn-micro-roll" data-delta="-1" title="Nghiêng phải 1°" style="background: #27272a; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 9px; font-family: monospace; padding: 3px 6px; border-radius: 4px; cursor: pointer;">-1°</button>
-              <button class="btn-micro-roll" data-delta="-0.5" title="Nghiêng phải 0.5°" style="background: #27272a; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 9px; font-family: monospace; padding: 3px 5px; border-radius: 4px; cursor: pointer;">-0.5°</button>
-              <button class="btn-micro-roll" data-delta="0.5" title="Nghiêng trái 0.5°" style="background: #27272a; border: 1px solid rgba(244, 63, 94, 0.2); color: #fda4af; font-size: 9px; font-family: monospace; padding: 3px 5px; border-radius: 4px; cursor: pointer;">+0.5°</button>
-              <button class="btn-micro-roll" data-delta="1" title="Nghiêng trái 1°" style="background: #27272a; border: 1px solid rgba(244, 63, 94, 0.2); color: #fda4af; font-size: 9px; font-family: monospace; padding: 3px 6px; border-radius: 4px; cursor: pointer;">+1°</button>
-              <button id="btn-reset-slope" title="Đặt lại dốc phẳng 0° (Reset Pitch & Roll)" style="background: #27272a; border: 1px solid rgba(255,255,255,0.15); color: #e4e4e7; font-size: 9px; font-family: monospace; padding: 3px 5px; border-radius: 4px; cursor: pointer; margin-left: 1px;">0°</button>
-            </div>
+          <!-- PRESET CATALOG XE NHANH -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 2px;">
+            ${STANDARD_VEHICLE_CATALOG.slice(0, 4)
+              .map(
+                (item) => `
+              <button class="catalog-btn" data-l="${item.l}" data-w="${item.w}" data-h="${item.h}" data-name="${item.name}" style="
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
+                color: #1e293b;
+                padding: 4px 6px;
+                border-radius: 5px;
+                font-size: 9px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              ">
+                <span style="font-weight: 600;">${item.name}</span>
+                <span style="font-size: 8px; font-family: monospace; color: #64748b;">${item.l}x${item.w}m</span>
+              </button>
+            `
+              )
+              .join("")}
           </div>
         </div>
       `;
     }
 
     this.container.innerHTML = `
-      <!-- SHADCN CARD HEADER (DRAGGABLE HANDLE) -->
+      <!-- HEADER CHUẨN SHADCN (LIGHT) -->
       <div id="floating-drag-header" style="
-        padding: 10px 14px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(24, 24, 27, 0.75);
+        padding: 9px 12px;
+        border-bottom: 1px solid #e2e8f0;
+        background: #ffffff;
         display: flex;
         align-items: center;
         justify-content: space-between;
         cursor: grab;
       ">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="color: #71717a; display: flex;">${ICONS.grip}</span>
+        <div style="display: flex; align-items: center; gap: 7px;">
+          <span style="color: #94a3b8; display: flex;">${ICONS.grip}</span>
           <span style="color: #10b981; display: flex;">${ICONS.box}</span>
-          <span style="font-weight: 600; font-size: 13px; letter-spacing: -0.2px; color: #fafafa;">CVAT 3D Suite</span>
+          <span style="font-weight: 700; font-size: 13px; letter-spacing: -0.2px; color: #09090b;">CVAT 3D Suite</span>
           <span style="
-            font-size: 10px;
+            font-size: 9px;
             font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            background: #27272a;
-            color: #10b981;
-            padding: 2px 6px;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.06);
+            background: #f1f5f9;
+            color: #059669;
+            padding: 2px 5px;
+            border-radius: 5px;
+            border: 1px solid #e2e8f0;
             font-weight: 600;
           ">${jobText}</span>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 4px;">
-          <button id="floating-btn-fullscreen" title="Mở Rộng Toàn Màn Hình · Duyệt Toàn Bộ Track ID (Shift+F)" style="
-            background: rgba(37, 99, 235, 0.15);
-            border: 1px solid rgba(37, 99, 235, 0.3);
-            color: #60a5fa;
+        <div style="display: flex; align-items: center; gap: 3px;">
+          <button id="floating-btn-undo" title="Hoàn tác thao tác vừa thực hiện (Ctrl+Z / Cmd+Z)" style="
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #0f172a;
             cursor: pointer;
-            padding: 4px 6px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            transition: all 0.12s;
+          ">
+            <span style="display: flex; align-items: center;">${ICONS.undo}</span>
+            <span>Pre</span>
+          </button>
+          <button id="floating-btn-fullscreen" title="Mở Rộng Toàn Màn Hình · Duyệt Toàn Bộ Track ID (Shift+M)" style="
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #2563eb;
+            cursor: pointer;
+            padding: 3px 6px;
             border-radius: 4px;
             display: flex;
             align-items: center;
@@ -1334,15 +1811,15 @@ export class FloatingPanel {
             font-size: 10px;
             font-weight: 600;
           ">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
             <span>Full</span>
           </button>
           <button id="floating-btn-sync-frame" title="Quét lại xe frame này" style="
             background: transparent;
             border: none;
-            color: #71717a;
+            color: #64748b;
             cursor: pointer;
-            padding: 4px;
+            padding: 3px;
             border-radius: 4px;
             display: flex;
             align-items: center;
@@ -1352,9 +1829,9 @@ export class FloatingPanel {
           <button id="floating-btn-minimize" title="Thu nhỏ (\`)" style="
             background: transparent;
             border: none;
-            color: #71717a;
+            color: #64748b;
             cursor: pointer;
-            padding: 4px;
+            padding: 3px;
             border-radius: 4px;
             display: flex;
             align-items: center;
@@ -1364,52 +1841,36 @@ export class FloatingPanel {
         </div>
       </div>
 
-      <!-- MAIN CONTAINER BODY -->
+      <!-- MAIN CONTAINER BODY (LIGHT) -->
       <div style="
-        padding: 12px;
+        padding: 10px;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
+        max-height: calc(100vh - 120px);
       ">
-        <!-- KHỐI 1: DROPDOWN SELECT DANH SÁCH XE (SEARCHABLE COMBOBOX) -->
+        <!-- KHỐI 1: CHỌN XE & THÔNG SỐ TÓM TẮT -->
         <div style="
-          background: rgba(24, 24, 27, 0.7);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          padding: 10px 12px;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 8px 10px;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 6px;
           position: relative;
         ">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 11px; font-weight: 700; color: #f4f4f5; display: flex; align-items: center; gap: 5px;">
-              <span>Xe tại Frame #${this.currentFrameNumber}</span>
-              <span style="color: #71717a; font-weight: normal;">(${this.frameTracks.length})</span>
-            </span>
-            <span style="
-              font-size: 9px;
-              font-family: ui-monospace, monospace;
-              color: #10b981;
-              background: rgba(16, 185, 129, 0.12);
-              border: 1px solid rgba(16, 185, 129, 0.25);
-              padding: 1px 6px;
-              border-radius: 4px;
-              font-weight: 600;
-            ">CANVAS AUTO-SELECT</span>
-          </div>
-
-          <!-- HEADER SELECT BUTTON & PREV/NEXT -->
-          <div style="display: flex; gap: 6px; align-items: center;">
+          <!-- THANH CHỌN XE & PREV/NEXT -->
+          <div style="display: flex; gap: 5px; align-items: center;">
             <button id="btn-dropdown-toggle" style="
               flex: 1;
-              background: #18181b;
-              border: 1px solid ${this.isDropdownOpen ? "#10b981" : "rgba(255, 255, 255, 0.12)"};
-              color: #f4f4f5;
-              padding: 7px 10px;
-              border-radius: 8px;
-              font-size: 12px;
+              background: #ffffff;
+              border: 1px solid ${this.isDropdownOpen ? "#10b981" : "#e2e8f0"};
+              color: #09090b;
+              padding: 6px 10px;
+              border-radius: 7px;
+              font-size: 11px;
               font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
               font-weight: 600;
               cursor: pointer;
@@ -1419,17 +1880,17 @@ export class FloatingPanel {
               transition: all 0.15s;
             ">
               <span style="display: flex; align-items: center; gap: 6px;">
-                <span style="color: #10b981;">${this.selectedUiId ? `#${this.selectedUiId}` : "#0"}</span>
-                <span style="font-weight: 500; font-size: 11px; color: #e4e4e7;">${this.selectedUiId ? this.currentLabel : "Chưa chọn xe"}</span>
+                <span style="color: #059669; font-weight: 700;">${this.selectedUiId ? `#${this.selectedUiId}` : "#0"}</span>
+                <span style="font-weight: 600; font-size: 11px; color: #09090b;">${this.selectedUiId ? this.currentLabel : "Chưa chọn đối tượng"}</span>
               </span>
-              <span style="color: #71717a; font-size: 10px;">${this.isDropdownOpen ? "▲" : "▼"}</span>
+              <span style="color: #64748b; font-size: 9px;">${this.isDropdownOpen ? "▲" : "▼"}</span>
             </button>
 
             <!-- NÚT PREV / NEXT -->
-            <button id="btn-prev-frame-track" title="Xe trước (Phím [)" style="
-              background: #18181b;
-              border: 1px solid rgba(255,255,255,0.08);
-              color: #d4d4d8;
+            <button id="btn-prev-frame-track" title="Đối tượng trước (Phím [)" style="
+              background: #ffffff;
+              border: 1px solid #e2e8f0;
+              color: #334155;
               padding: 6px 8px;
               border-radius: 6px;
               cursor: pointer;
@@ -1438,10 +1899,10 @@ export class FloatingPanel {
             ">
               ${ICONS.chevronLeft}
             </button>
-            <button id="btn-next-frame-track" title="Xe kế (Phím ])" style="
-              background: #18181b;
-              border: 1px solid rgba(255,255,255,0.08);
-              color: #d4d4d8;
+            <button id="btn-next-frame-track" title="Đối tượng kế (Phím ])" style="
+              background: #ffffff;
+              border: 1px solid #e2e8f0;
+              color: #334155;
               padding: 6px 8px;
               border-radius: 6px;
               cursor: pointer;
@@ -1457,24 +1918,24 @@ export class FloatingPanel {
             this.isDropdownOpen
               ? `
             <div id="dropdown-menu-popover" style="
-              background: #18181b;
-              border: 1px solid rgba(255, 255, 255, 0.15);
+              background: #ffffff;
+              border: 1px solid #e2e8f0;
               border-radius: 8px;
               padding: 6px;
-              box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+              box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
               display: flex;
               flex-direction: column;
               gap: 4px;
-              max-height: 220px;
+              max-height: 200px;
               overflow-y: auto;
               z-index: 1000;
             ">
               <!-- Ô TÌM KIẾM NHANH -->
               <input id="input-dropdown-search" type="text" placeholder="Tìm ID (#1) hoặc loại xe..." value="${this.searchKeyword}" style="
-                background: #09090b;
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: #f8fafc;
+                border: 1px solid #cbd5e1;
                 border-radius: 6px;
-                color: #f4f4f5;
+                color: #09090b;
                 font-size: 11px;
                 padding: 5px 8px;
                 outline: none;
@@ -1490,32 +1951,665 @@ export class FloatingPanel {
           `
               : ""
           }
+
+          <!-- PHÂN LOẠI ĐỐI TƯỢNG (CATEGORY CHIPS) -->
+          <div style="
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 4px;
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 7px;
+            border: 1px solid #e2e8f0;
+          ">
+            <button class="btn-category-chip" data-cat="car" style="
+              background: ${this.selectedCategory === "car" ? "#ffffff" : "transparent"};
+              border: 1px solid ${this.selectedCategory === "car" ? "#10b981" : "transparent"};
+              color: ${this.selectedCategory === "car" ? "#059669" : "#64748b"};
+              box-shadow: ${this.selectedCategory === "car" ? "0 1px 3px rgba(0,0,0,0.06)" : "none"};
+              padding: 5px 6px;
+              border-radius: 5px;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 5px;
+              transition: all 0.12s;
+            ">
+              <span style="display: flex; align-items: center;">${ICONS.car}</span>
+              <span>Ô tô</span>
+            </button>
+
+            <button class="btn-category-chip" data-cat="pedestrian" style="
+              background: ${this.selectedCategory === "pedestrian" ? "#ffffff" : "transparent"};
+              border: 1px solid ${this.selectedCategory === "pedestrian" ? "#a855f7" : "transparent"};
+              color: ${this.selectedCategory === "pedestrian" ? "#7e22ce" : "#64748b"};
+              box-shadow: ${this.selectedCategory === "pedestrian" ? "0 1px 3px rgba(0,0,0,0.06)" : "none"};
+              padding: 5px 6px;
+              border-radius: 5px;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 5px;
+              transition: all 0.12s;
+            ">
+              <span style="display: flex; align-items: center;">${ICONS.user}</span>
+              <span>Người</span>
+            </button>
+
+            <button class="btn-category-chip" data-cat="cyclist" style="
+              background: ${this.selectedCategory === "cyclist" ? "#ffffff" : "transparent"};
+              border: 1px solid ${this.selectedCategory === "cyclist" ? "#f59e0b" : "transparent"};
+              color: ${this.selectedCategory === "cyclist" ? "#d97706" : "#64748b"};
+              box-shadow: ${this.selectedCategory === "cyclist" ? "0 1px 3px rgba(0,0,0,0.06)" : "none"};
+              padding: 5px 6px;
+              border-radius: 5px;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 5px;
+              transition: all 0.12s;
+            ">
+              <span style="display: flex; align-items: center;">${ICONS.bicycle}</span>
+              <span>Xe 2 bánh</span>
+            </button>
+          </div>
+
+          <!-- THÔNG SỐ TÓM TẮT X, Y, Z, YAW -->
+          <div style="
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            font-size: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            background: #f8fafc;
+            padding: 4px 6px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            text-align: center;
+          ">
+            <div><span style="color: #64748b;">X:</span> ${this.currentX}</div>
+            <div><span style="color: #64748b;">Y:</span> ${this.currentY}</div>
+            <div><span style="color: #64748b;">Z:</span> ${this.currentZ}</div>
+            <div><span style="color: #64748b;">Yaw:</span> <span style="color: #059669; font-weight: bold;">${this.currentYawDeg}°</span></div>
+          </div>
         </div>
 
-        <!-- THẺ THÔNG SỐ TÓM TẮT CỦA XE ĐANG CHỌN -->
+        <!-- KHỐI 2: ĐIỀU KHIỂN CĂN CHỈNH 2D/3D & THAO TÁC NHANH -->
         <div style="
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 4px;
-          font-size: 10px;
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          background: rgba(24, 24, 27, 0.55);
-          padding: 6px 8px;
-          border-radius: 8px;
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          color: #a1a1aa;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 8px 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
         ">
-          <div><span style="color: #71717a;">X:</span> ${this.currentX}</div>
-          <div><span style="color: #71717a;">Y:</span> ${this.currentY}</div>
-          <div><span style="color: #71717a;">Z:</span> ${this.currentZ}</div>
-          <div><span style="color: #71717a;">Yaw:</span> <span style="color: #10b981; font-weight: bold;">${this.currentYawDeg}°</span></div>
+          ${
+            this.selectedCategory === "car"
+              ? `
+            <!-- THANH 3 NÚT FIT ĐỘC LẬP THEO 3 CHIỀU (TOP - SIDE - FRONT) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+              <!-- 1. FIT TOP -->
+              <button id="btn-fit-top" title="Căn góc xoay Yaw quanh tâm xe & Auto Ghim Đất (Phím 1 hoặc T)" style="
+                background: #f0fdfa;
+                border: 1px solid #99f6e4;
+                color: #0f766e;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowUp}
+                    <span>TOP</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #ccfbf1; color: #0f766e;">1</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Thẳng Yaw</span>
+              </button>
+
+              <!-- 2. FIT SIDE -->
+              <button id="btn-fit-side" title="Căn cản trước/sau theo trục dọc X & Auto Ghim Đất (Phím 2 hoặc S)" style="
+                background: #eff6ff;
+                border: 1px solid #bfdbfe;
+                color: #1d4ed8;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowRightLeft}
+                    <span>SIDE</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #dbeafe; color: #1d4ed8;">2</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Cản đón tia X</span>
+              </button>
+
+              <!-- 3. FIT FRONT -->
+              <button id="btn-fit-front" title="Căn mép sườn xe ăn khít phương W (Giữ nguyên cao độ Z, không ghim đất) (Phím 3 hoặc W)" style="
+                background: #faf5ff;
+                border: 1px solid #e9d5ff;
+                color: #7e22ce;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowUpDown}
+                    <span>FRONT</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #f3e8ff; color: #7e22ce;">3</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Sườn xe W</span>
+              </button>
+            </div>
+          `
+              : this.selectedCategory === "cyclist"
+              ? `
+            <!-- THANH 3 NÚT FIT ĐỘC LẬP CHO XE 2 BÁNH (TOP - SIDE - FRONT) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+              <!-- 1. FIT TOP XE 2 BÁNH -->
+              <button id="btn-fit-top" title="Căn Yaw theo trục dài nối Cực Đuôi -> Cực Đầu (Bánh sau - Bánh trước), khóa tâm X/Y/Z và kích thước (Phím 1 hoặc T)" style="
+                background: #fffbeb;
+                border: 1px solid #fcd34d;
+                color: #b45309;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowUp}
+                    <span>TOP</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #fde68a; color: #b45309;">1</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Trục đầu-đuôi</span>
+              </button>
+
+              <!-- 2. FIT SIDE XE 2 BÁNH -->
+              <button id="btn-fit-side" title="Căn cản trước/sau đón tia theo trục dọc X & Ghim đất đáy xe. KHÓA 100% CHIỀU DÀI L (Phím 2 hoặc S)" style="
+                background: #fef3c7;
+                border: 1px solid #f59e0b;
+                color: #92400e;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowRightLeft}
+                    <span>SIDE</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #fcd34d; color: #92400e;">2</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Cản đón tia (Khóa L)</span>
+              </button>
+
+              <!-- 3. FIT FRONT XE 2 BÁNH (CHUẨN THEO CAR, GIỮ NGUYÊN CAO ĐỘ Z & KÍCH THƯỚC) -->
+              <button id="btn-fit-front" title="Căn sườn xe ăn khít phương W theo mép đón tia (Giữ nguyên cao độ Z & kích thước L, W, H) (Phím 3 hoặc W)" style="
+                background: #faf5ff;
+                border: 1px solid #e9d5ff;
+                color: #7e22ce;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowUpDown}
+                    <span>FRONT</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #f3e8ff; color: #7e22ce;">3</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Sườn xe W (Giữ Size)</span>
+              </button>
+            </div>
+
+            <!-- THANH 2 NÚT TÁCH BIỆT: FIT RỘNG (W) & FIT CAO (H) CHO XE 2 BÁNH -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+              <!-- 1. NÚT FIT RỘNG W -->
+              <button id="btn-fit-cyclist-w" title="Tự động đo mây điểm và fit riêng chiều rộng W (bắt trọn gương chiếu hậu, tay lái, đệm +5cm mỗi bên), giữ nguyên L, H và Z" style="
+                background: #fffbeb;
+                border: 1px solid #fcd34d;
+                color: #b45309;
+                padding: 6px 8px;
+                border-radius: 7px;
+                font-size: 10px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                transition: all 0.12s;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+              ">
+                <span style="display: flex; align-items: center; color: #d97706;">${ICONS.sparkles}</span>
+                <span>Fit Rộng (W) [+5cm Pad]</span>
+              </button>
+
+              <!-- 2. NÚT FIT CAO H -->
+              <button id="btn-fit-cyclist-h" title="Tự động đo đỉnh nón bảo hiểm và fit riêng chiều cao H (Mặt đáy tiếp đất giữ nguyên cố định 100%, nở lên nóc +12cm), giữ nguyên L, W và XY" style="
+                background: #fff7ed;
+                border: 1px solid #fdba74;
+                color: #c2410c;
+                padding: 6px 8px;
+                border-radius: 7px;
+                font-size: 10px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                transition: all 0.12s;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+              ">
+                <span style="display: flex; align-items: center; color: #ea580c;">${ICONS.arrowUpDown}</span>
+                <span>Fit Cao (H) [Nở Nóc]</span>
+              </button>
+            </div>
+
+            <!-- NÚT FIT TOÀN DIỆN CHO XE 2 BÁNH (1-CHẠM CHU TRÌNH HOÀN CHỈNH) -->
+            <button id="btn-fit-cyclist-all" title="Chạy chu trình fit hoàn chỉnh Xe 2 bánh: TOP ➔ SIDE ➔ FRONT (Khóa cứng L)" style="
+              width: 100%;
+              background: #fffbeb;
+              border: 1px dashed #f59e0b;
+              color: #b45309;
+              padding: 4px 8px;
+              border-radius: 6px;
+              font-size: 10px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
+            ">
+              <span style="display: flex; align-items: center; gap: 5px;">
+                ${ICONS.bicycle}
+                <span>Fit Toàn Diện Xe 2 Bánh (TOP ➔ SIDE ➔ FRONT)</span>
+              </span>
+              <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; border: 1px solid #fde68a; padding: 1px 4px; border-radius: 3px;">Shift+C</kbd>
+            </button>
+          `
+              : `
+            <!-- NÚT FIT CHUYÊN BIỆT CHO NGƯỜI HOẶC XE ĐẠP -->
+            <button id="btn-hero-smart-fit" title="${heroTitle}" style="
+              background: ${heroGradient};
+              border: 1px solid ${heroBorder};
+              color: ${heroColor};
+              padding: 9px 12px;
+              border-radius: 8px;
+              cursor: pointer;
+              display: flex;
+              flex-direction: column;
+              gap: 3px;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+              transition: all 0.15s ease;
+            ">
+              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <span style="display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; letter-spacing: -0.2px;">
+                  <span style="display: flex; align-items: center;">${heroIcon}</span>
+                  <span>${heroTitle}</span>
+                </span>
+                <kbd style="
+                  font-size: 9px;
+                  font-family: ui-monospace, monospace;
+                  background: #ffffff;
+                  padding: 1px 6px;
+                  border-radius: 4px;
+                  border: 1px solid ${heroBorder};
+                  color: ${heroColor};
+                ">${heroKey}</kbd>
+              </div>
+              <div style="font-size: 9.5px; opacity: 0.9; text-align: left; font-weight: 500;">
+                ${heroSub}
+              </div>
+            </button>
+          `
+          }
+
+          <!-- THAO TÁC 1-CHẠM THƯỜNG DÙNG: GHIM ĐẤT (G) & LẬT ĐẦU 180° (F) -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+            <!-- GHIM MẶT ĐẤT -->
+            <button id="btn-quick-ground" title="Đáy xe chạm sát mặt đường chuẩn xác 100%, khóa Roll 0° (Phím G)" style="
+              background: #f0fdf4;
+              border: 1px solid #bbf7d0;
+              color: #15803d;
+              padding: 6px 10px;
+              border-radius: 7px;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            ">
+              <span style="display: flex; align-items: center; gap: 5px;">
+                <span style="display: flex; align-items: center; color: #16a34a;">${ICONS.road}</span>
+                <span>Ghim Đất</span>
+              </span>
+              <kbd style="font-size: 9px; font-family: monospace; background: #dcfce7; border: 1px solid #bbf7d0; padding: 1px 4px; border-radius: 3px; color: #15803d;">G</kbd>
+            </button>
+
+            <!-- LẬT ĐẦU 180° -->
+            <button id="btn-quick-flip" title="Lật ngược đầu xe 180° tức thì (Phím F)" style="
+              background: #ffffff;
+              border: 1px solid #e2e8f0;
+              color: #0f172a;
+              padding: 6px 10px;
+              border-radius: 7px;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            ">
+              <span style="display: flex; align-items: center; gap: 5px;">
+                <span style="display: flex; align-items: center; color: #64748b;">${ICONS.flip}</span>
+                <span>Lật Đầu 180°</span>
+              </span>
+              <kbd style="font-size: 9px; font-family: monospace; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 1px 4px; border-radius: 3px; color: #64748b;">F</kbd>
+            </button>
+          </div>
         </div>
 
-        <!-- NÚT MỞ RỘNG FULLSCREEN TRACK EDITOR (CASE 2 - DUYỆT THEO ID) -->
-        <button id="btn-banner-fullscreen-editor" title="Mở Rộng Toàn Màn Hình · Duyệt Toàn Bộ Track ID (Shift+M)" style="
-          background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(30, 64, 175, 0.3));
-          border: 1px solid rgba(59, 130, 246, 0.4);
-          color: #93c5fd;
+        <!-- KHỐI 3: BỘ ĐIỀU CHỈNH KÍCH THƯỚC & CENTER (COMPACT STEPPER - LIGHT) -->
+        <div style="
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 8px 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        ">
+          <!-- HEADER & TOGGLE PHẠM VI -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px solid #f1f5f9;">
+            <span style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase;">Kích thước hộp & Center:</span>
+            <div id="btn-toggle-scope" style="
+              background: #f1f5f9;
+              border: 1px solid #e2e8f0;
+              border-radius: 5px;
+              display: flex;
+              padding: 2px;
+              cursor: pointer;
+              font-size: 9.5px;
+              font-family: ui-monospace, monospace;
+            ">
+              <span style="
+                padding: 2px 7px;
+                border-radius: 4px;
+                background: ${!this.applyToTrack ? "#ffffff" : "transparent"};
+                color: ${!this.applyToTrack ? "#059669" : "#64748b"};
+                font-weight: ${!this.applyToTrack ? "600" : "normal"};
+                box-shadow: ${!this.applyToTrack ? "0 1px 2px rgba(0,0,0,0.06)" : "none"};
+              ">Frame Này</span>
+              <span style="
+                padding: 2px 7px;
+                border-radius: 4px;
+                background: ${this.applyToTrack ? "#fee2e2" : "transparent"};
+                color: ${this.applyToTrack ? "#dc2626" : "#64748b"};
+                font-weight: ${this.applyToTrack ? "600" : "normal"};
+                box-shadow: ${this.applyToTrack ? "0 1px 2px rgba(0,0,0,0.06)" : "none"};
+              ">Toàn Track</span>
+            </div>
+          </div>
+
+          <!-- NÚT FIT BOX HIỆN TẠI VỚI PADDING 5CM (BÁM SÀN CỐ ĐỊNH) -->
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 5px;">
+            <button id="btn-fit-current-box" title="Fit kích thước L, W, H theo mây điểm tại frame này (Padding +5cm mỗi bên, ghim sàn giữ cố định đáy, chỉ nở lên nóc). ${this.applyToTrack ? 'Áp dụng Toàn Track' : 'Chỉ Frame Này'}" style="
+              width: 100%;
+              background: #f0fdf4;
+              border: 1px solid #86efac;
+              color: #15803d;
+              padding: 6px 10px;
+              border-radius: 7px;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            ">
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span style="display: flex; align-items: center; color: #16a34a;">${ICONS.sparkles}</span>
+                <span>Fit Box Hiện Tại (+5cm Pad)</span>
+              </span>
+              <span style="font-size: 9px; font-family: monospace; background: #dcfce7; border: 1px solid #bbf7d0; padding: 1px 5px; border-radius: 4px; color: #15803d; font-weight: 700;">
+                +5cm Pad
+              </span>
+            </button>
+          </div>
+
+          <!-- GỢI Ý MẪU KÍCH THƯỚC CHUẨN (1-CLICK ÁP DỤNG) -->
+          <div style="display: flex; flex-direction: column; gap: 4px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 7px; padding: 5px 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 9.5px; font-weight: 600; color: #475569;">
+                Mẫu ${this.selectedCategory === "pedestrian" ? "Người đi bộ" : this.selectedCategory === "cyclist" ? "Xe 2 bánh" : "Ô tô"} chuẩn:
+              </span>
+              <span style="font-size: 8.5px; color: #94a3b8; font-family: monospace;">1-Click áp dụng</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px; max-height: 80px; overflow-y: auto; padding-right: 2px;">
+              ${activePresets
+                .map(
+                  (preset, pIdx) => `
+                <button class="btn-preset-chip" data-idx="${pIdx}" title="${preset.name} - ${preset.description || ''} (${preset.l} x ${preset.w} x ${preset.h}m)" style="
+                  background: #ffffff;
+                  border: 1px solid #cbd5e1;
+                  color: #334155;
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  font-size: 9px;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  gap: 3px;
+                  transition: all 0.12s;
+                  white-space: nowrap;
+                ">
+                  <span style="font-weight: 600;">${preset.name}</span>
+                  <span style="font-size: 8px; font-family: monospace; color: #64748b;">${preset.l}x${preset.w}x${preset.h}</span>
+                </button>
+              `
+                )
+                .join("")}
+            </div>
+          </div>
+
+          <!-- NÚT ĐÁNH DẤU OUTSIDE TOÀN TRACK -->
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 5px;">
+            <button id="btn-outside-entire-track" title="Đánh dấu Outside (ẩn) cho toàn bộ frame của Track này (Shift+O)" style="
+              width: 100%;
+              background: #fff1f2;
+              border: 1px solid #fecdd3;
+              color: #e11d48;
+              padding: 5px 8px;
+              border-radius: 6px;
+              font-size: 10px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            ">
+              <span style="display: flex; align-items: center; gap: 5px;">
+                <span style="display: flex; align-items: center;">${ICONS.eyeOff}</span>
+                <span>Outside Toàn Track</span>
+              </span>
+              <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; border: 1px solid #fecdd3; padding: 1px 4px; border-radius: 3px; color: #e11d48;">⇧O</kbd>
+            </button>
+          </div>
+
+          <!-- 3 STEPPER: DÀI (L) [2D Side], RỘNG (W) [2D Front], CAO (H) [Đáy Ghim Sàn] -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+            <!-- Chiều Dài L -->
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 9px; color: ${this.selectedCategory === "cyclist" ? "#b45309" : "#64748b"}; font-family: monospace; font-weight: ${this.selectedCategory === "cyclist" ? "700" : "500"};">
+                ${this.selectedCategory === "cyclist" ? "Dài (L) [🔒 Khóa]:" : "Dài (L) [Side]:"}
+              </span>
+              <div style="display: flex; align-items: center; background: #f8fafc; border: 1px solid ${this.selectedCategory === "cyclist" ? "#fcd34d" : "#cbd5e1"}; border-radius: 6px;">
+                <button class="btn-step" data-axis="l" data-delta="-0.05" style="border: none; background: transparent; color: #475569; padding: 3px 5px; cursor: pointer; font-weight: bold;">-</button>
+                <input id="input-dim-l" type="number" step="0.05" value="${this.editL || this.currentL}" style="width: 100%; border: none; background: transparent; color: ${this.selectedCategory === "cyclist" ? "#b45309" : "#0284c7"}; font-size: 11px; font-weight: bold; text-align: center; outline: none; font-family: monospace;" />
+                <button class="btn-step" data-axis="l" data-delta="0.05" style="border: none; background: transparent; color: #475569; padding: 3px 5px; cursor: pointer; font-weight: bold;">+</button>
+              </div>
+            </div>
+
+            <!-- Chiều Rộng W -->
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 9px; color: #64748b; font-family: monospace; font-weight: 500;">Rộng (W) [Front]:</span>
+              <div style="display: flex; align-items: center; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px;">
+                <button class="btn-step" data-axis="w" data-delta="-0.05" style="border: none; background: transparent; color: #475569; padding: 3px 5px; cursor: pointer; font-weight: bold;">-</button>
+                <input id="input-dim-w" type="number" step="0.05" value="${this.editW || this.currentW}" style="width: 100%; border: none; background: transparent; color: #0284c7; font-size: 11px; font-weight: bold; text-align: center; outline: none; font-family: monospace;" />
+                <button class="btn-step" data-axis="w" data-delta="0.05" style="border: none; background: transparent; color: #475569; padding: 3px 5px; cursor: pointer; font-weight: bold;">+</button>
+              </div>
+            </div>
+
+            <!-- Chiều Cao H -->
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 9px; color: #64748b; font-family: monospace; font-weight: 500;">Cao (H) [Fit Lên]:</span>
+              <div style="display: flex; align-items: center; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px;">
+                <button class="btn-step" data-axis="h" data-delta="-0.05" style="border: none; background: transparent; color: #475569; padding: 3px 5px; cursor: pointer; font-weight: bold;">-</button>
+                <input id="input-dim-h" type="number" step="0.05" value="${this.editH || this.currentH}" style="width: 100%; border: none; background: transparent; color: #0284c7; font-size: 11px; font-weight: bold; text-align: center; outline: none; font-family: monospace;" />
+                <button class="btn-step" data-axis="h" data-delta="0.05" style="border: none; background: transparent; color: #475569; padding: 3px 5px; cursor: pointer; font-weight: bold;">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- BỘ VI CHỈNH CENTER 2D DÀN ĐỀU (TIẾN/LÙI DỌC X & TRÁI/PHẢI NGANG Y) -->
+          <div style="
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 5px 7px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+          ">
+            <!-- Trục Dọc X (Tiến / Lùi - Side View) -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 9px; font-weight: 600; color: #475569; font-family: monospace;">Tâm X (Side):</span>
+              <div style="display: flex; gap: 3px;">
+                <button class="btn-shift-center" data-dx="-0.05" data-dy="0" title="Lùi tâm 5cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">-5cm</button>
+                <button class="btn-shift-center" data-dx="-0.01" data-dy="0" title="Lùi tâm 1cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">-1cm</button>
+                <button class="btn-shift-center" data-dx="0.01" data-dy="0" title="Tiến tâm 1cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">+1cm</button>
+                <button class="btn-shift-center" data-dx="0.05" data-dy="0" title="Tiến tâm 5cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">+5cm</button>
+              </div>
+            </div>
+
+            <!-- Trục Ngang Y (Trái / Phải - Front View) -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 9px; font-weight: 600; color: #475569; font-family: monospace;">Tâm Y (Front):</span>
+              <div style="display: flex; gap: 3px;">
+                <button class="btn-shift-center" data-dx="0" data-dy="-0.05" title="Dời tâm sang phải 5cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">-5cm</button>
+                <button class="btn-shift-center" data-dx="0" data-dy="-0.01" title="Dời tâm sang phải 1cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">-1cm</button>
+                <button class="btn-shift-center" data-dx="0" data-dy="0.01" title="Dời tâm sang trái 1cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">+1cm</button>
+                <button class="btn-shift-center" data-dx="0" data-dy="0.05" title="Dời tâm sang trái 5cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">+5cm</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- GỢI Ý DÒNG XE CATALOG & NÚT LƯU KÍCH THƯỚC -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+            <span style="font-size: 9.5px; color: #64748b; font-family: ui-monospace, monospace;">
+              Khớp: <strong style="color: #059669;">${bestFit.matchedItem.name}</strong> (${bestFit.confidence}%)
+              <button class="catalog-btn" data-l="${bestFit.recommendedL}" data-w="${bestFit.recommendedW}" data-h="${bestFit.recommendedH}" data-name="${bestFit.matchedItem.name}" style="
+                border: none;
+                background: transparent;
+                color: #0284c7;
+                font-size: 9.5px;
+                cursor: pointer;
+                text-decoration: underline;
+                padding-left: 4px;
+                font-weight: 600;
+              ">Áp dụng</button>
+            </span>
+
+            <button id="btn-apply-dimensions" style="
+              background: #0f172a;
+              border: 1px solid #0f172a;
+              color: #ffffff;
+              padding: 4px 10px;
+              border-radius: 5px;
+              font-size: 10px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              transition: background 0.12s;
+            ">
+              ${ICONS.save}
+              <span>Lưu</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KHỐI 4: ACCORDION TINH CHỈNH NÂNG CAO (COLLAPSIBLE - LIGHT) -->
+        <button id="btn-toggle-advanced" style="
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          color: #334155;
           padding: 7px 10px;
           border-radius: 8px;
           font-size: 11px;
@@ -1527,100 +2621,54 @@ export class FloatingPanel {
           transition: all 0.15s;
         ">
           <span style="display: flex; align-items: center; gap: 6px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-            <span>Duyệt Toàn Track ID (Full Screen)</span>
+            <span style="display: flex; align-items: center; color: #64748b;">${ICONS.sliders}</span>
+            <span style="color: #09090b; font-weight: 600;">Tinh Chỉnh Nâng Cao</span>
           </span>
-          <kbd style="font-size: 9px; font-family: monospace; background: rgba(0,0,0,0.4); padding: 1px 4px; border-radius: 3px; color: #bfdbfe;">⇧M</kbd>
+          <span style="display: flex; align-items: center; gap: 4px; font-size: 10px; color: #64748b;">
+            <span>${this.isAdvancedOpen ? "Thu gọn" : "Mở rộng"}</span>
+            <span style="display: flex; align-items: center;">${this.isAdvancedOpen ? ICONS.chevronUp : ICONS.chevronDown}</span>
+          </span>
         </button>
 
-        <!-- THANH TAB NAVIGATION THEO MODULE CHUYÊN BIỆT -->
-        <div style="
-          display: flex;
-          background: #18181b;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 8px;
-          padding: 3px;
-          gap: 3px;
-        ">
-          <button class="nav-tab-btn" data-tab="dimensions" style="
-            flex: 1;
-            padding: 5px 6px;
-            border-radius: 6px;
-            border: none;
-            background: ${this.activeTab === "dimensions" ? "rgba(16, 185, 129, 0.2)" : "transparent"};
-            color: ${this.activeTab === "dimensions" ? "#6ee7b7" : "#71717a"};
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            transition: all 0.12s;
-          ">
-            <span style="display: flex; align-items: center;">${ICONS.ruler}</span>
-            <span>Kích Thước</span>
-          </button>
-          <button class="nav-tab-btn" data-tab="rotation" style="
-            flex: 1;
-            padding: 5px 6px;
-            border-radius: 6px;
-            border: none;
-            background: ${this.activeTab === "rotation" ? "rgba(16, 185, 129, 0.2)" : "transparent"};
-            color: ${this.activeTab === "rotation" ? "#6ee7b7" : "#71717a"};
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            transition: all 0.12s;
-          ">
-            <span style="display: flex; align-items: center;">${ICONS.compass}</span>
-            <span>Hướng Xoay</span>
-          </button>
-          <button class="nav-tab-btn" data-tab="ground" style="
-            flex: 1;
-            padding: 5px 6px;
-            border-radius: 6px;
-            border: none;
-            background: ${this.activeTab === "ground" ? "rgba(16, 185, 129, 0.2)" : "transparent"};
-            color: ${this.activeTab === "ground" ? "#6ee7b7" : "#71717a"};
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            transition: all 0.12s;
-          ">
-            <span style="display: flex; align-items: center;">${ICONS.alignBottom}</span>
-            <span>Ghim Đất</span>
-          </button>
-        </div>
+        ${advancedContentHtml}
 
-        <!-- NỘI DUNG MODULE ĐANG CHỌN -->
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          ${tabContentHtml}
-        </div>
+        <!-- KHỐI 5: NÚT MỞ RỘNG FULLSCREEN TRACK STUDIO (DUYỆT THEO ID) -->
+        <button id="btn-banner-fullscreen-editor" title="Mở Rộng Toàn Màn Hình · Duyệt Toàn Bộ Track ID (Shift+M)" style="
+          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+          border: 1px solid #bfdbfe;
+          color: #1d4ed8;
+          padding: 6px 10px;
+          border-radius: 8px;
+          font-size: 10.5px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          transition: all 0.15s;
+        ">
+          <span style="display: flex; align-items: center; gap: 6px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+            <span>Duyệt Toàn Track ID (Full Screen)</span>
+          </span>
+          <kbd style="font-size: 9px; font-family: monospace; background: #ffffff; border: 1px solid #bfdbfe; padding: 1px 4px; border-radius: 3px; color: #1d4ed8;">⇧M</kbd>
+        </button>
       </div>
 
-      <!-- CARD FOOTER -->
+      <!-- CARD FOOTER (LIGHT) -->
       <div style="
-        padding: 8px 14px;
-        background: rgba(24, 24, 27, 0.5);
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 6px 12px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 10px;
-        color: #71717a;
+        font-size: 9.5px;
+        color: #64748b;
         font-family: ui-monospace, monospace;
       ">
         <span>300K LIDAR FIT</span>
-        <span style="color: #10b981; display: flex; align-items: center; gap: 4px;">
+        <span style="color: #059669; display: flex; align-items: center; gap: 4px; font-weight: 600;">
           <span style="width: 5px; height: 5px; border-radius: 50%; background: #10b981;"></span>
           CANVAS AUTO-SELECT
         </span>
@@ -1636,19 +2684,79 @@ export class FloatingPanel {
     // GẮN SỰ KIỆN TƯƠNG TÁC
     // ==========================================
 
-    // 1. Gắn sự kiện chuyển Tab Navigation
-    const tabBtns = this.container.querySelectorAll<HTMLButtonElement>(".nav-tab-btn");
-    tabBtns.forEach((btn) => {
+    // 1. Gắn sự kiện chọn nhanh Loại đối tượng (Category Chips)
+    const catChips = this.container.querySelectorAll<HTMLButtonElement>(".btn-category-chip");
+    catChips.forEach((btn) => {
       btn.addEventListener("click", () => {
-        const tab = btn.dataset.tab as "dimensions" | "rotation" | "ground";
-        if (tab && tab !== this.activeTab) {
-          this.activeTab = tab;
+        const cat = btn.dataset.cat as "car" | "pedestrian" | "cyclist";
+        if (cat && cat !== this.selectedCategory) {
+          this.selectedCategory = cat;
           this.updateContent();
+          this.showToast(`Chế độ: ${cat === "car" ? "Ô tô" : cat === "pedestrian" ? "Người đi bộ" : "Xe 2 bánh"}`, "info");
         }
       });
     });
 
-    // 2. Gắn sự kiện nút Thu nhỏ & Quét Frame
+    // 2. Gắn sự kiện 3 Nút Fit độc lập (Top, Side, Front)
+    const fitTopBtn = this.container.querySelector("#btn-fit-top");
+    if (fitTopBtn) fitTopBtn.addEventListener("click", () => this.handleFitTop());
+
+    const fitSideBtn = this.container.querySelector("#btn-fit-side");
+    if (fitSideBtn) fitSideBtn.addEventListener("click", () => this.handleFitSide());
+
+    const fitFrontBtn = this.container.querySelector("#btn-fit-front");
+    if (fitFrontBtn) fitFrontBtn.addEventListener("click", () => this.handleFitFront());
+
+    // Nút Hero 1-Click Smart Fit (dành riêng cho Người Đi Bộ hoặc Xe 2 bánh)
+    const heroBtn = this.container.querySelector("#btn-hero-smart-fit");
+    if (heroBtn) {
+      heroBtn.addEventListener("click", () => {
+        if (this.selectedCategory === "pedestrian") {
+          this.handleFitPedestrian();
+        } else if (this.selectedCategory === "cyclist") {
+          this.handleFitCyclist();
+        }
+      });
+    }
+
+    // Nút Fit Toàn Diện cho Xe 2 Bánh (Chu trình hoàn chỉnh TOP ➔ SIDE ➔ FRONT)
+    const fitCyclistAllBtn = this.container.querySelector("#btn-fit-cyclist-all");
+    if (fitCyclistAllBtn) {
+      fitCyclistAllBtn.addEventListener("click", () => this.handleFitCyclist("all"));
+    }
+
+    // Nút Fit riêng Chiều Rộng W cho Xe 2 Bánh (+5cm đệm gương xe)
+    const fitCyclistWBtn = this.container.querySelector("#btn-fit-cyclist-w");
+    if (fitCyclistWBtn) {
+      fitCyclistWBtn.addEventListener("click", () => this.handleFitCyclist("w"));
+    }
+
+    // Nút Fit riêng Chiều Cao H cho Xe 2 Bánh (Mặt đáy tiếp đất giữ nguyên cố định, nở lên nóc)
+    const fitCyclistHBtn = this.container.querySelector("#btn-fit-cyclist-h");
+    if (fitCyclistHBtn) {
+      fitCyclistHBtn.addEventListener("click", () => this.handleFitCyclist("h"));
+    }
+
+    // 3. Gắn sự kiện Thao tác nhanh (1 Chạm: Lật đầu & Ghim đất)
+    const quickFlipBtn = this.container.querySelector("#btn-quick-flip");
+    if (quickFlipBtn) quickFlipBtn.addEventListener("click", () => this.handleFlipYaw(true));
+
+    const quickGroundBtn = this.container.querySelector("#btn-quick-ground");
+    if (quickGroundBtn) quickGroundBtn.addEventListener("click", () => this.handleSnapGround("road"));
+
+    // 4. Gắn sự kiện Mở rộng / Thu gọn Accordion Tinh chỉnh nâng cao
+    const toggleAdvancedBtn = this.container.querySelector("#btn-toggle-advanced");
+    if (toggleAdvancedBtn) {
+      toggleAdvancedBtn.addEventListener("click", () => {
+        this.isAdvancedOpen = !this.isAdvancedOpen;
+        this.updateContent();
+      });
+    }
+
+    // 5. Gắn sự kiện nút Hoàn Tác (Pre), Thu nhỏ & Quét Frame
+    const undoBtn = this.container.querySelector("#floating-btn-undo");
+    if (undoBtn) undoBtn.addEventListener("click", () => this.handleUndo());
+
     const minBtn = this.container.querySelector("#floating-btn-minimize");
     if (minBtn) minBtn.addEventListener("click", () => this.toggleMinimize());
 
@@ -1660,7 +2768,7 @@ export class FloatingPanel {
       });
     }
 
-    // 3. Gắn sự kiện Bật/Tắt Dropdown Select
+    // 6. Gắn sự kiện Bật/Tắt Dropdown Select
     const dropdownToggle = this.container.querySelector("#btn-dropdown-toggle");
     if (dropdownToggle) {
       dropdownToggle.addEventListener("click", () => {
@@ -1749,14 +2857,14 @@ export class FloatingPanel {
       });
     });
 
-    // 4. Gắn sự kiện Prev / Next
+    // 7. Gắn sự kiện Prev / Next
     const prevBtn = this.container.querySelector("#btn-prev-frame-track");
     if (prevBtn) prevBtn.addEventListener("click", () => this.selectPrevTrack());
 
     const nextBtn = this.container.querySelector("#btn-next-frame-track");
     if (nextBtn) nextBtn.addEventListener("click", () => this.selectNextTrack());
 
-    // 5. Gắn sự kiện Toggle Scope: Frame Này vs Toàn Track
+    // 8. Gắn sự kiện Toggle Scope: Frame Này vs Toàn Track
     const scopeToggle = this.container.querySelector("#btn-toggle-scope");
     if (scopeToggle) {
       scopeToggle.addEventListener("click", () => {
@@ -1766,7 +2874,7 @@ export class FloatingPanel {
       });
     }
 
-    // 6. Gắn sự kiện Stepper (L, W, H)
+    // 9. Gắn sự kiện Stepper (L, W, H)
     const stepBtns = this.container.querySelectorAll<HTMLButtonElement>(".btn-step");
     stepBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -1797,31 +2905,43 @@ export class FloatingPanel {
       });
     }
 
-    // 7. Gắn sự kiện Ôm Sát Cụm Điểm (Tight Fit)
-    const tightFitBtn = this.container.querySelector("#btn-tight-fit");
-    if (tightFitBtn) {
-      tightFitBtn.addEventListener("click", () => this.handleTightFit());
+    // Gắn sự kiện Fit Box Hiện Tại (+5cm Pad)
+    const fitCurrentBoxBtn = this.container.querySelector("#btn-fit-current-box");
+    if (fitCurrentBoxBtn) {
+      fitCurrentBoxBtn.addEventListener("click", () => this.handleFitCurrentBox());
     }
 
-    // Gắn sự kiện Khớp Chuẩn Catalog (Catalog Best-Fit)
-    const catalogFitBtn = this.container.querySelector("#btn-catalog-fit");
-    if (catalogFitBtn) {
-      catalogFitBtn.addEventListener("click", () => this.handleCatalogFit());
+    // Gắn sự kiện Chọn nhanh Preset mẫu kích thước chuẩn (Ô tô, Xe 2 bánh, Người đi bộ)
+    const presetChips = this.container.querySelectorAll<HTMLButtonElement>(".btn-preset-chip");
+    presetChips.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.dataset.idx || "0", 10);
+        const preset = activePresets[idx];
+        if (preset) {
+          this.handleApplyPreset(preset);
+        }
+      });
+    });
+
+    // Gắn sự kiện Đánh dấu Outside toàn bộ frame của Track (Shift+O)
+    const outsideTrackBtn = this.container.querySelector("#btn-outside-entire-track");
+    if (outsideTrackBtn) {
+      outsideTrackBtn.addEventListener("click", () => this.handleSetTrackOutside(true));
     }
 
-    // Tương thích ngược nút cũ nếu có
-    const autoFitBtn = this.container.querySelector("#btn-auto-fit-points");
-    if (autoFitBtn) {
-      autoFitBtn.addEventListener("click", () => this.handleTightFit());
-    }
+    // Gắn sự kiện Vi Chỉnh Center 2D Dàn Đều (deltaXLocal, deltaYLocal)
+    const shiftCenterBtns = this.container.querySelectorAll<HTMLButtonElement>(".btn-shift-center");
+    shiftCenterBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const dx = parseFloat(btn.dataset.dx || "0");
+        const dy = parseFloat(btn.dataset.dy || "0");
+        if (dx !== 0 || dy !== 0) {
+          this.handleShiftCenter(dx, dy);
+        }
+      });
+    });
 
-    // Gắn sự kiện Fit Mốc Toàn Track (Multi-Frame Anchor)
-    const smartAnchorBtn = this.container.querySelector("#btn-smart-anchor-fit");
-    if (smartAnchorBtn) {
-      smartAnchorBtn.addEventListener("click", () => this.handleSmartAnchorFit());
-    }
-
-    // 8. Gắn sự kiện Preset Catalog
+    // 10. Gắn sự kiện Preset Catalog
     const catalogBtns = this.container.querySelectorAll<HTMLButtonElement>(".catalog-btn");
     catalogBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -1834,20 +2954,12 @@ export class FloatingPanel {
       });
     });
 
-    // 9. Gắn sự kiện Lật xe
-    const flipFrameBtn = this.container.querySelector("#btn-flip-frame");
-    if (flipFrameBtn) flipFrameBtn.addEventListener("click", () => this.handleFlipYaw(true));
-
-    const flipTrackBtn = this.container.querySelector("#btn-flip-track");
-    if (flipTrackBtn) flipTrackBtn.addEventListener("click", () => this.handleFlipYaw(false));
-
-    // 10. Gắn sự kiện Xoay Vi Chỉnh Yaw
+    // 11. Gắn sự kiện Xoay Vi Chỉnh Yaw (nếu accordion đang mở)
     const rotBtns = this.container.querySelectorAll<HTMLButtonElement>(".btn-rot");
     rotBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
         const deg = parseInt(btn.dataset.deg || "0", 10);
         if (deg !== 0) {
-          // Tính góc mới
           let newDeg = Math.round(this.currentYawDeg + deg);
           while (newDeg > 180) newDeg -= 360;
           while (newDeg < -180) newDeg += 360;
@@ -1873,7 +2985,7 @@ export class FloatingPanel {
       });
     });
 
-    // 11. Gắn sự kiện Ghim Mặt Đất & Vỉa Hè (Side & Front View)
+    // 12. Gắn sự kiện Ghim Mặt Đất, Vỉa Hè, Dốc Pitch & Roll (trong accordion)
     const snapRoadBtn = this.container.querySelector("#btn-snap-road");
     if (snapRoadBtn) snapRoadBtn.addEventListener("click", () => this.handleSnapGround("road"));
 
@@ -1923,7 +3035,7 @@ export class FloatingPanel {
       });
     }
 
-    // 12. Gắn sự kiện Mở Rộng Full Màn Hình (Fullscreen Track Editor)
+    // 13. Gắn sự kiện Mở Rộng Full Màn Hình (Fullscreen Track Studio)
     const fullscreenHeaderBtn = this.container.querySelector("#floating-btn-fullscreen");
     if (fullscreenHeaderBtn) {
       fullscreenHeaderBtn.addEventListener("click", () => this.openFullscreenEditor());

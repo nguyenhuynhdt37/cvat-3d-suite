@@ -1,11 +1,12 @@
 import { defineConfig } from "vite";
 import fs from "fs";
 import path from "path";
+import { reloadChromeExtensions } from "./scripts/reload_chrome.mjs";
 
 function dualBuildPlugin() {
   return {
     name: "dual-build-plugin",
-    closeBundle() {
+    async closeBundle() {
       const headerPath = path.resolve(__dirname, "src/userscript.header.js");
       const distUserScriptPath = path.resolve(__dirname, "dist/cvat-3d-suite.user.js");
       const extensionDir = path.resolve(__dirname, "dist/extension");
@@ -31,6 +32,7 @@ function dualBuildPlugin() {
           version: "1.0.0",
           description: "CVAT 3D Point Cloud Annotation & Alignment Assistant",
           permissions: ["activeTab"],
+          host_permissions: ["http://*/*", "https://*/*"],
           content_scripts: [
             {
               matches: ["*://*/*"],
@@ -48,6 +50,9 @@ function dualBuildPlugin() {
         );
         fs.writeFileSync(path.join(extensionDir, "content.js"), bundleCode, "utf-8");
         console.log("✅ Đã xuất Chrome Extension (world: MAIN): dist/extension/");
+
+        // 3. Tự động reload các tab chrome://extensions/ trên Google Chrome
+        await reloadChromeExtensions();
       }
     },
   };

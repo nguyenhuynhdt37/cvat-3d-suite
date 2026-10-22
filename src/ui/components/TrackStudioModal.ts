@@ -2,6 +2,7 @@ import { CVATContext } from "../../core/types";
 import { CVATBridge, FrameTrackItem } from "../../cvat/bridge";
 import { JobAnnotationStore, TrackState, TrackData } from "../../core/track_store";
 import { resizeKeepBottom } from "../../core/geometry";
+import { ICONS } from "../icons";
 
 export type StudioTab = "batch_all" | "active_track";
 
@@ -63,12 +64,14 @@ export class TrackStudioModal {
 
     this.overlay = document.createElement("div");
     this.overlay.id = "cvat-3d-track-studio-modal";
+    this.overlay.setAttribute("translate", "no");
+    this.overlay.classList.add("notranslate");
     this.overlay.style.position = "fixed";
     this.overlay.style.inset = "0";
     this.overlay.style.zIndex = "999999";
-    this.overlay.style.background = "rgba(9, 9, 11, 0.95)"; // zinc-950
-    this.overlay.style.backdropFilter = "blur(8px)";
-    this.overlay.style.color = "#f4f4f5";
+    this.overlay.style.background = "rgba(255, 255, 255, 0.98)";
+    this.overlay.style.backdropFilter = "blur(12px)";
+    this.overlay.style.color = "#09090b";
     this.overlay.style.display = "none";
     this.overlay.style.flexDirection = "column";
     this.overlay.style.fontFamily =
@@ -182,9 +185,9 @@ export class TrackStudioModal {
   private renderLoading(): void {
     if (!this.overlay) return;
     this.overlay.innerHTML = `
-      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;">
-        <div style="width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-        <span style="font-size: 13px; color: #a1a1aa; font-family: monospace;">Đang đồng bộ dữ liệu xe từ Three.js CVAT native...</span>
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: #ffffff;">
+        <div style="width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #0284c7; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+        <span style="font-size: 13px; color: #64748b; font-family: monospace;">Đang đồng bộ dữ liệu xe từ Three.js CVAT native...</span>
       </div>
       <style>
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -201,10 +204,10 @@ export class TrackStudioModal {
     const dirtyCount = this.store.getDirtyTracks().length;
 
     this.overlay.innerHTML = `
-      <!-- 1. HEADER BAR CHUYÊN NGHIỆP -->
+      <!-- 1. HEADER BAR CHUYÊN NGHIỆP (LIGHT) -->
       <div style="
-        background: #141416;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
+        background: #ffffff;
+        border-bottom: 1px solid #e2e8f0;
         padding: 10px 20px;
         display: flex;
         align-items: center;
@@ -216,15 +219,16 @@ export class TrackStudioModal {
           <!-- Badge Studio -->
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="background: #2563eb; color: white; padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;">RETIME STUDIO</span>
-            <span style="font-size: 14px; font-weight: bold; color: #f4f4f5;">Job #${this.currentCtx.jobId}</span>
+            <span style="font-size: 14px; font-weight: bold; color: #09090b;">Job #${this.currentCtx.jobId}</span>
           </div>
 
           <!-- Tab Switcher -->
-          <div style="display: flex; background: #09090b; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 2px;">
+          <div style="display: flex; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; padding: 2px;">
             <button id="studio-tab-active" style="
               border: none;
-              background: ${this.currentTab === "active_track" ? "#2563eb" : "transparent"};
-              color: ${this.currentTab === "active_track" ? "white" : "#71717a"};
+              background: ${this.currentTab === "active_track" ? "#ffffff" : "transparent"};
+              color: ${this.currentTab === "active_track" ? "#09090b" : "#64748b"};
+              box-shadow: ${this.currentTab === "active_track" ? "0 1px 3px rgba(0,0,0,0.08)" : "none"};
               padding: 5px 14px;
               font-size: 12px;
               font-weight: 600;
@@ -235,8 +239,9 @@ export class TrackStudioModal {
 
             <button id="studio-tab-batch" style="
               border: none;
-              background: ${this.currentTab === "batch_all" ? "#2563eb" : "transparent"};
-              color: ${this.currentTab === "batch_all" ? "white" : "#71717a"};
+              background: ${this.currentTab === "batch_all" ? "#ffffff" : "transparent"};
+              color: ${this.currentTab === "batch_all" ? "#09090b" : "#64748b"};
+              box-shadow: ${this.currentTab === "batch_all" ? "0 1px 3px rgba(0,0,0,0.08)" : "none"};
               padding: 5px 14px;
               font-size: 12px;
               font-weight: 600;
@@ -247,12 +252,12 @@ export class TrackStudioModal {
           </div>
 
           <!-- Quick Track Selector Dropdown & Switcher -->
-          <div style="display: flex; align-items: center; gap: 4px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; padding: 2px 6px;">
-            <span style="font-size: 11px; color: #a1a1aa; font-weight: 600;">Track:</span>
+          <div style="display: flex; align-items: center; gap: 4px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 6px;">
+            <span style="font-size: 11px; color: #64748b; font-weight: 600;">Track:</span>
             <select id="studio-quick-track-select" style="
               background: transparent;
               border: none;
-              color: #38bdf8;
+              color: #0284c7;
               font-size: 12px;
               font-weight: bold;
               cursor: pointer;
@@ -263,7 +268,7 @@ export class TrackStudioModal {
               ${allTracks
                 .map(
                   (t) => `
-                <option value="${t.uiId}" ${t.uiId === this.activeTrackId ? "selected" : ""} style="background: #18181b; color: white;">
+                <option value="${t.uiId}" ${t.uiId === this.activeTrackId ? "selected" : ""} style="background: #ffffff; color: #09090b;">
                   #${t.uiId} · ${t.labelName} (${t.shapes.length}f)
                 </option>
               `
@@ -271,10 +276,10 @@ export class TrackStudioModal {
                 .join("")}
             </select>
             <button id="btn-quick-prev-track" title="Xe trước (phím [)" style="
-              background: #27272a; border: 1px solid rgba(255,255,255,0.1); color: #d4d4d8; font-size: 11px; padding: 2px 7px; border-radius: 4px; cursor: pointer;
+              background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 4px; cursor: pointer;
             ">◀</button>
             <button id="btn-quick-next-track" title="Xe sau (phím ])" style="
-              background: #27272a; border: 1px solid rgba(255,255,255,0.1); color: #d4d4d8; font-size: 11px; padding: 2px 7px; border-radius: 4px; cursor: pointer;
+              background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 4px; cursor: pointer;
             ">▶</button>
           </div>
 
@@ -282,16 +287,16 @@ export class TrackStudioModal {
           <span style="
             font-size: 11px;
             font-family: ui-monospace, monospace;
-            background: rgba(34, 197, 94, 0.12);
-            color: #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.25);
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
             padding: 2px 8px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             gap: 5px;
           ">
-            <span style="width: 6px; height: 6px; background: #22c55e; border-radius: 50%;"></span>
+            <span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%;"></span>
             <span>THREE.JS NATIVE CONNECTED</span>
           </span>
         </div>
@@ -300,8 +305,8 @@ export class TrackStudioModal {
         <div style="display: flex; align-items: center; gap: 10px;">
           <!-- Nút Lưu vào CVAT (TUYỆT ĐỐI KHÔNG TỰ ĐỘNG AUTOSAVE NGẦM) -->
           <button id="btn-studio-commit-save" style="
-            background: ${dirtyCount > 0 ? "#ea580c" : "#2563eb"};
-            border: 1px solid rgba(255,255,255,0.15);
+            background: ${dirtyCount > 0 ? "#ea580c" : "#059669"};
+            border: 1px solid ${dirtyCount > 0 ? "#ea580c" : "#059669"};
             color: white;
             font-size: 12px;
             font-weight: 600;
@@ -311,25 +316,31 @@ export class TrackStudioModal {
             display: flex;
             align-items: center;
             gap: 6px;
-            box-shadow: 0 2px 8px ${dirtyCount > 0 ? "rgba(234, 88, 12, 0.4)" : "rgba(37, 99, 235, 0.3)"};
+            box-shadow: 0 2px 8px ${dirtyCount > 0 ? "rgba(234, 88, 12, 0.25)" : "rgba(5, 150, 105, 0.25)"};
             transition: all 0.2s;
           ">
-            <span>💾</span>
+            <span style="display: flex; align-items: center;">${ICONS.save}</span>
             <span>${this.isSaving ? "Đang lưu..." : dirtyCount > 0 ? `Lưu vào CVAT (${dirtyCount} track)` : "Lưu vào CVAT"}</span>
-            <span style="font-size: 10px; opacity: 0.8; font-family: monospace;">(Ctrl+S)</span>
+            <span style="font-size: 10px; opacity: 0.85; font-family: monospace;">(Ctrl+S)</span>
           </button>
 
           <!-- Nút Đóng -->
           <button id="btn-studio-close" style="
-            background: #27272a;
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #a1a1aa;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #334155;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 600;
             padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
-          ">✕ Đóng (Esc)</button>
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          ">
+            <span style="display: flex; align-items: center;">${ICONS.close}</span>
+            <span>Đóng (Esc)</span>
+          </button>
         </div>
       </div>
 
@@ -381,16 +392,17 @@ export class TrackStudioModal {
 
         return `
           <tr class="studio-frame-row ${isSelected ? "selected-row" : ""}" data-frame="${f}" style="
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            background: ${isSelected ? "rgba(37, 99, 235, 0.15)" : sh.outside ? "rgba(24, 24, 27, 0.5)" : "transparent"};
+            border-bottom: 1px solid #f1f5f9;
+            background: ${isSelected ? "#eff6ff" : sh.outside ? "#f8fafc" : "transparent"};
             cursor: pointer;
             transition: background 0.12s;
           ">
             <!-- Cột 1: Frame Number -->
             <td style="padding: 10px 14px; font-weight: bold; font-family: monospace;">
               <span class="btn-jump-frame" data-frame="${f}" style="
-                background: ${isSelected ? "#2563eb" : "#27272a"};
-                color: ${isSelected ? "white" : "#38bdf8"};
+                background: ${isSelected ? "#2563eb" : "#f1f5f9"};
+                color: ${isSelected ? "white" : "#0284c7"};
+                border: 1px solid ${isSelected ? "#2563eb" : "#cbd5e1"};
                 padding: 3px 8px;
                 border-radius: 4px;
                 display: inline-flex;
@@ -404,15 +416,15 @@ export class TrackStudioModal {
 
             <!-- Cột 2: Keyframe Status -->
             <td style="padding: 10px 14px; text-align: center;">
-              <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px;">KF</span>
+              <span style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px;">KF</span>
             </td>
 
             <!-- Cột 3: Outside Toggle -->
             <td style="padding: 10px 14px;">
               <button class="btn-toggle-outside" data-frame="${f}" style="
-                border: 1px solid ${sh.outside ? "rgba(239, 68, 68, 0.4)" : "rgba(34, 197, 94, 0.4)"};
-                background: ${sh.outside ? "rgba(239, 68, 68, 0.12)" : "rgba(34, 197, 94, 0.12)"};
-                color: ${sh.outside ? "#f87171" : "#4ade80"};
+                border: 1px solid ${sh.outside ? "#fca5a5" : "#a7f3d0"};
+                background: ${sh.outside ? "#fee2e2" : "#ecfdf5"};
+                color: ${sh.outside ? "#dc2626" : "#059669"};
                 font-size: 10px;
                 font-weight: 600;
                 padding: 3px 8px;
@@ -424,42 +436,44 @@ export class TrackStudioModal {
             <!-- Cột 4: Kích Thước L / W / H (Nhập trực tiếp) -->
             <td style="padding: 10px 8px; font-family: monospace;">
               <div style="display: flex; align-items: center; gap: 4px;">
-                <input class="input-shape-l" data-frame="${f}" type="number" step="0.02" value="${curL.toFixed(2)}" style="width: 58px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: #38bdf8; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center;" />
-                <span style="color: #71717a;">×</span>
-                <input class="input-shape-w" data-frame="${f}" type="number" step="0.02" value="${curW.toFixed(2)}" style="width: 58px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: #38bdf8; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center;" />
-                <span style="color: #71717a;">×</span>
-                <input class="input-shape-h" data-frame="${f}" type="number" step="0.02" value="${curH.toFixed(2)}" title="Đổi H giữ nguyên mặt đáy" style="width: 58px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: #38bdf8; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center;" />
-                <span style="color: #a1a1aa; font-size: 10px;">m</span>
+                <input class="input-shape-l" data-frame="${f}" type="number" step="0.02" value="${curL.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
+                <span style="color: #94a3b8;">×</span>
+                <input class="input-shape-w" data-frame="${f}" type="number" step="0.02" value="${curW.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
+                <span style="color: #94a3b8;">×</span>
+                <input class="input-shape-h" data-frame="${f}" type="number" step="0.02" value="${curH.toFixed(2)}" title="Đổi H giữ nguyên mặt đáy" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
+                <span style="color: #64748b; font-size: 10px;">m</span>
               </div>
             </td>
 
             <!-- Cột 5: Cao độ Z & Góc Yaw -->
             <td style="padding: 10px 8px; font-family: monospace;">
               <div style="display: flex; align-items: center; gap: 6px; font-size: 11px;">
-                <span style="color: #a1a1aa;">Z:</span>
-                <input class="input-shape-z" data-frame="${f}" type="number" step="0.02" value="${curZ.toFixed(2)}" style="width: 54px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: white; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center;" />
-                <span style="color: #a1a1aa;">Yaw:</span>
-                <span style="color: #e4e4e7;">${curYawDeg}°</span>
+                <span style="color: #64748b;">Z:</span>
+                <input class="input-shape-z" data-frame="${f}" type="number" step="0.02" value="${curZ.toFixed(2)}" style="width: 54px; background: #f8fafc; border: 1px solid #cbd5e1; color: #09090b; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
+                <span style="color: #64748b;">Yaw:</span>
+                <span style="color: #059669; font-weight: bold;">${curYawDeg}°</span>
               </div>
             </td>
 
             <!-- Cột 6: Thao tác từng frame -->
             <td style="padding: 10px 14px; text-align: right;">
               <button class="btn-snap-ground-single" data-frame="${f}" title="Hút đáy xe bám sát mặt đất tại frame này" style="
-                background: #27272a;
-                border: 1px solid rgba(255,255,255,0.1);
-                color: #2dd4bf;
+                background: #f0fdf4;
+                border: 1px solid #bbf7d0;
+                color: #15803d;
                 font-size: 11px;
+                font-weight: 600;
                 padding: 4px 8px;
                 border-radius: 4px;
                 cursor: pointer;
               ">⇩ Đất</button>
 
               <button class="btn-apply-size-to-all" data-frame="${f}" title="Lấy kích thước L, W, H của frame này ép cho toàn bộ các frame khác" style="
-                background: #27272a;
-                border: 1px solid rgba(255,255,255,0.1);
-                color: #6ee7b7;
+                background: #ecfdf5;
+                border: 1px solid #a7f3d0;
+                color: #059669;
                 font-size: 11px;
+                font-weight: 600;
                 padding: 4px 8px;
                 border-radius: 4px;
                 cursor: pointer;
@@ -472,10 +486,10 @@ export class TrackStudioModal {
       .join("");
 
     return `
-      <!-- Studio Toolbar -->
+      <!-- Studio Toolbar (LIGHT) -->
       <div style="
-        background: #18181b;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
         padding: 10px 20px;
         display: flex;
         align-items: center;
@@ -487,21 +501,21 @@ export class TrackStudioModal {
         <div style="display: flex; align-items: center; gap: 12px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="width: 10px; height: 10px; border-radius: 50%; background: ${track.labelColor};"></span>
-            <span style="font-size: 14px; font-weight: bold; color: white;">${track.labelName} #${track.uiId}</span>
-            <span style="font-size: 11px; color: #a1a1aa; font-family: monospace;">(${track.firstFrame} ➔ ${track.lastFrame}, ${track.shapes.length} frames)</span>
+            <span style="font-size: 14px; font-weight: bold; color: #09090b;">${track.labelName} #${track.uiId}</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${track.firstFrame} ➔ ${track.lastFrame}, ${track.shapes.length} frames)</span>
           </div>
 
-          <div style="font-size: 12px; color: #d4d4d8; font-family: monospace; background: #09090b; padding: 4px 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.08);">
-            Trung vị: <b style="color: #38bdf8;">${medL.toFixed(2)} × ${medW.toFixed(2)} × ${medH.toFixed(2)}m</b>
+          <div style="font-size: 12px; color: #334155; font-family: monospace; background: #ffffff; padding: 4px 10px; border-radius: 5px; border: 1px solid #e2e8f0;">
+            Trung vị: <b style="color: #0284c7;">${medL.toFixed(2)} × ${medW.toFixed(2)} × ${medH.toFixed(2)}m</b>
           </div>
         </div>
 
-        <!-- Batch Action Buttons For Active Track -->
+        <!-- Batch Action Buttons For Active Track (FLAT ICONS) -->
         <div style="display: flex; align-items: center; gap: 8px;">
           <button id="btn-batch-snap-ground" style="
-            background: #27272a;
-            border: 1px solid rgba(255,255,255,0.12);
-            color: #2dd4bf;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
             font-size: 11px;
             font-weight: 600;
             padding: 5px 10px;
@@ -510,35 +524,59 @@ export class TrackStudioModal {
           ">⇩ Ghim Đất Toàn Track</button>
 
           <button id="btn-batch-flip-yaw" style="
-            background: #27272a;
-            border: 1px solid rgba(255,255,255,0.12);
-            color: #fbbf24;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #b45309;
             font-size: 11px;
             font-weight: 600;
             padding: 5px 10px;
             border-radius: 5px;
             cursor: pointer;
-          ">🔄 Lật 180° Toàn Track</button>
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          ">
+            <span style="display: flex; align-items: center;">${ICONS.rotate}</span>
+            <span>Lật 180° Toàn Track</span>
+          </button>
 
           <button id="btn-batch-median-size" style="
-            background: #27272a;
-            border: 1px solid rgba(255,255,255,0.12);
-            color: #a78bfa;
+            background: #faf5ff;
+            border: 1px solid #e9d5ff;
+            color: #7e22ce;
             font-size: 11px;
             font-weight: 600;
             padding: 5px 10px;
             border-radius: 5px;
             cursor: pointer;
-          ">⟲ Làm Mịn Kích Thước (Median)</button>
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          ">
+            <span style="display: flex; align-items: center;">${ICONS.filter}</span>
+            <span>Làm Mịn Kích Thước (Median)</span>
+          </button>
         </div>
       </div>
 
       <!-- Danh Sách Các Frame -->
-      <div style="flex: 1; overflow: auto; padding: 12px 20px;">
+      <div style="flex: 1; overflow: auto; padding: 12px 20px; background: #ffffff;">
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
           <thead>
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.12); color: #a1a1aa; font-weight: 600; font-size: 11px;">
+            <tr style="border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; font-size: 11px; background: #f8fafc;">
               <th style="padding: 8px 14px;">Frame</th>
+              <th style="padding: 8px 14px; text-align: center;">Loại</th>
+              <th style="padding: 8px 14px;">Hiển Thị</th>
+              <th style="padding: 8px 8px;">Kích Thước (L × W × H)</th>
+              <th style="padding: 8px 8px;">Tọa Độ & Hướng</th>
+              <th style="padding: 8px 14px; text-align: right;">Hành Động</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
               <th style="padding: 8px 14px; text-align: center;">Loại</th>
               <th style="padding: 8px 14px;">Hiển Thị</th>
               <th style="padding: 8px 8px;">Kích Thước (L × W × H)</th>
@@ -714,33 +752,33 @@ export class TrackStudioModal {
         const varies = maxL - minL > 0.01 || maxW - minW > 0.01 || maxH - minH > 0.01;
 
         return `
-          <tr class="batch-track-row" data-track-id="${t.uiId}" style="border-bottom: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: background 0.15s; background: ${t.uiId === this.activeTrackId ? "rgba(37, 99, 235, 0.15)" : t.dirty ? "rgba(34, 197, 94, 0.06)" : "transparent"};">
-            <td style="padding: 10px 14px; font-weight: bold; color: #38bdf8; font-family: monospace;">#${t.uiId}</td>
+          <tr class="batch-track-row" data-track-id="${t.uiId}" style="border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.15s; background: ${t.uiId === this.activeTrackId ? "#eff6ff" : t.dirty ? "#ecfdf5" : "transparent"};">
+            <td style="padding: 10px 14px; font-weight: bold; color: #0284c7; font-family: monospace;">#${t.uiId}</td>
             <td style="padding: 10px 14px;">
               <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${t.labelColor}; margin-right: 6px;"></span>
-              <span>${t.labelName}</span>
+              <span style="font-weight: 600; color: #09090b;">${t.labelName}</span>
             </td>
-            <td style="padding: 10px 14px; font-family: monospace; color: #a1a1aa;">f${t.firstFrame} ➔ f${t.lastFrame}</td>
-            <td style="padding: 10px 14px; font-family: monospace; text-align: center;">${t.shapes.length}</td>
-            <td style="padding: 10px 14px; font-family: monospace; color: #e4e4e7;">
+            <td style="padding: 10px 14px; font-family: monospace; color: #64748b;">f${t.firstFrame} ➔ f${t.lastFrame}</td>
+            <td style="padding: 10px 14px; font-family: monospace; text-align: center; color: #334155;">${t.shapes.length}</td>
+            <td style="padding: 10px 14px; font-family: monospace; color: #334155;">
               ${medL.toFixed(2)} / ${medW.toFixed(2)} / ${medH.toFixed(2)}m
-              ${varies ? '<span style="margin-left: 6px; font-size: 10px; background: rgba(234, 88, 12, 0.2); color: #fb923c; padding: 1px 4px; border-radius: 3px;">không đều</span>' : ""}
+              ${varies ? '<span style="margin-left: 6px; font-size: 10px; background: #ffedd5; color: #ea580c; border: 1px solid #fed7aa; padding: 1px 4px; border-radius: 3px; font-weight: 600;">không đều</span>' : ""}
             </td>
             <td style="padding: 10px 8px;">
-              <input class="batch-inp-l" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medL.toFixed(2)}" style="width: 58px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: #38bdf8; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center;" />
+              <input class="batch-inp-l" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medL.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
             </td>
             <td style="padding: 10px 8px;">
-              <input class="batch-inp-w" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medW.toFixed(2)}" style="width: 58px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: #38bdf8; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center;" />
+              <input class="batch-inp-w" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medW.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
             </td>
             <td style="padding: 10px 8px;">
-              <input class="batch-inp-h" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medH.toFixed(2)}" style="width: 58px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: #38bdf8; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center;" />
+              <input class="batch-inp-h" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medH.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
             </td>
             <td style="padding: 10px 14px;">
-              <button class="btn-batch-apply" data-track-id="${t.uiId}" style="background: #2563eb; border: none; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Áp dụng</button>
-              <button class="btn-batch-snap" data-track-id="${t.uiId}" style="margin-left: 4px; background: #27272a; border: 1px solid rgba(255,255,255,0.1); color: #2dd4bf; padding: 5px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">⇩ Đất</button>
+              <button class="btn-batch-apply" data-track-id="${t.uiId}" style="background: #059669; border: none; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Áp dụng</button>
+              <button class="btn-batch-snap" data-track-id="${t.uiId}" style="margin-left: 4px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">⇩ Đất</button>
             </td>
             <td style="padding: 10px 14px; text-align: right;">
-              <button class="btn-open-studio-track" data-track-id="${t.uiId}" style="background: #2563eb; border: 1px solid rgba(255,255,255,0.15); color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Duyệt Frame ➔</button>
+              <button class="btn-open-studio-track" data-track-id="${t.uiId}" style="background: #2563eb; border: 1px solid #2563eb; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Duyệt Frame ➔</button>
             </td>
           </tr>
         `;
@@ -748,22 +786,38 @@ export class TrackStudioModal {
       .join("");
 
     return `
-      <!-- Toolbar Tab 1 -->
-      <div style="background: #18181b; border-bottom: 1px solid rgba(255,255,255,0.06); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between;">
-        <span style="font-size: 12px; color: #a1a1aa;">
+      <!-- Toolbar Tab 1 (LIGHT) -->
+      <div style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 12px; color: #475569;">
           Áp dụng kích thước mới từ <b>Frame 0 ➔ Frame End</b> với <b>Ground-Lock 3D</b> (Đáy xe cố định tuyệt đối trên mặt đường).
         </span>
-        <span style="font-size: 11px; color: #71717a; font-family: monospace;">
+        <span style="font-size: 11px; color: #64748b; font-family: monospace;">
           Dữ liệu in-memory, chỉ lưu khi bấm nút "Lưu vào CVAT" (Ctrl+S)
         </span>
       </div>
 
-      <!-- Bảng Danh Sách Xe -->
-      <div style="flex: 1; overflow: auto; padding: 12px 20px;">
+      <!-- Bảng Danh Sách Xe (LIGHT) -->
+      <div style="flex: 1; overflow: auto; padding: 12px 20px; background: #ffffff;">
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
           <thead>
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.12); color: #a1a1aa; font-weight: 600; font-size: 11px;">
+            <tr style="border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; font-size: 11px; background: #f8fafc;">
               <th style="padding: 8px 14px;">ID</th>
+              <th style="padding: 8px 14px;">Label</th>
+              <th style="padding: 8px 14px;">Dải Frame</th>
+              <th style="padding: 8px 14px; text-align: center;">Keyframes</th>
+              <th style="padding: 8px 14px;">L / W / H (Trung vị)</th>
+              <th style="padding: 8px 8px;">L mới</th>
+              <th style="padding: 8px 8px;">W mới</th>
+              <th style="padding: 8px 8px;">H mới</th>
+              <th style="padding: 8px 14px;">Thao Tác</th>
+              <th style="padding: 8px 14px; text-align: right;">Chi Tiết</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
               <th style="padding: 8px 14px;">Label</th>
               <th style="padding: 8px 14px;">Dải Frame</th>
               <th style="padding: 8px 14px; text-align: center;">Keyframes</th>

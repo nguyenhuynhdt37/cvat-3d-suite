@@ -29,6 +29,8 @@ export class MainDrawer {
   private createContainer(): void {
     this.container = document.createElement("div");
     this.container.id = "cvat-3d-suite-drawer";
+    this.container.setAttribute("translate", "no");
+    this.container.classList.add("notranslate");
     this.container.style.position = "fixed";
     this.container.style.top = "0";
     this.container.style.right = "0";

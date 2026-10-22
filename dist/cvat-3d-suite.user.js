@@ -134,20 +134,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     grip: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>`,
     // Icon thẻ Tag / Bounding Box phẳng
     box: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>`,
-    // Module Tabs
-    ruler: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.3 15.3-7.6-7.6a2 2 0 0 0-2.8 0L2.7 15.9a2 2 0 0 0 0 2.8l2.6 2.6a2 2 0 0 0 2.8 0l8.2-8.2"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg>`,
-    compass: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>`,
-    alignBottom: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="12" x="8" y="4" rx="1"/><path d="M4 20h16"/></svg>`,
     // Điều hướng Track
     chevronLeft: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
     chevronRight: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`,
     refresh: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>`,
+    // Xoay / Lật Yaw
+    rotate: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>`,
     flip: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 5 5-5 5V7"/><path d="m21 7-5 5 5 5V7"/><path d="M12 20v2"/><path d="M12 14v2"/><path d="M12 8v2"/><path d="M12 2v2"/></svg>`,
     // Thao tác Kích thước & Fit
     save: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>`,
-    tightFit: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v6h6"/><path d="M20 10V4h-6"/><path d="m14 10 7-7"/><path d="m3 21 7-7"/></svg>`,
     sparkles: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>`,
-    link: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
     // Địa hình & Ghim mặt đất
     road: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19 8 5"/><path d="m16 5 4 14"/><path d="M12 8v2"/><path d="M12 14v2"/></svg>`,
     curb: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h6v-6h12"/><path d="M3 21h18"/></svg>`,
@@ -158,7 +154,24 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     checkCircle: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>`,
     infoCircle: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`,
     alertCircle: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>`,
-    xCircle: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`
+    xCircle: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`,
+    // Phân loại đối tượng & Tinh chỉnh
+    car: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>`,
+    user: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+    bicycle: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>`,
+    chevronDown: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`,
+    chevronUp: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>`,
+    sliders: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="17" x2="23" y1="16" y2="16"/></svg>`,
+    zap: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+    // Icon định hướng Fit phẳng 2D (Thay thế emoji 🔝, ↔️, ↕️)
+    arrowUp: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>`,
+    arrowRightLeft: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>`,
+    arrowUpDown: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/></svg>`,
+    // Điều khiển Modal & Lọc dữ liệu
+    close: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
+    filter: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>`,
+    undo: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>`,
+    eyeOff: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`
   };
   function flipYaw(currentYaw) {
     let newYaw = currentYaw + Math.PI;
@@ -170,8 +183,1401 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return newYaw;
   }
+  function normalizeAngle(rad) {
+    let angle = rad;
+    while (angle > Math.PI) {
+      angle -= 2 * Math.PI;
+    }
+    while (angle < -Math.PI) {
+      angle += 2 * Math.PI;
+    }
+    return angle;
+  }
   function radToDeg(rad) {
     return Number((rad * 180 / Math.PI).toFixed(2));
+  }
+  function filterDenseConnectedCluster1D(pts, axis, maxGap = 0.22, centerBias = 0) {
+    if (pts.length < 8) return pts;
+    const sorted = [...pts].sort((a, b) => a[axis] - b[axis]);
+    const clusters = [];
+    let currentCluster = [sorted[0]];
+    for (let i = 1; i < sorted.length; i++) {
+      const gap = sorted[i][axis] - sorted[i - 1][axis];
+      if (gap > maxGap) {
+        clusters.push(currentCluster);
+        currentCluster = [sorted[i]];
+      } else {
+        currentCluster.push(sorted[i]);
+      }
+    }
+    if (currentCluster.length > 0) {
+      clusters.push(currentCluster);
+    }
+    if (clusters.length === 1) {
+      return pts;
+    }
+    let bestCluster = clusters[0];
+    let minDistanceToCenter = Infinity;
+    for (const c of clusters) {
+      if (c.length < 2) continue;
+      let clusterMinDist = Infinity;
+      for (const p of c) {
+        const d = Math.abs(p[axis] - centerBias);
+        if (d < clusterMinDist) clusterMinDist = d;
+      }
+      if (clusterMinDist < minDistanceToCenter - 0.05) {
+        minDistanceToCenter = clusterMinDist;
+        bestCluster = c;
+      } else if (Math.abs(clusterMinDist - minDistanceToCenter) <= 0.05) {
+        if (c.length > bestCluster.length) {
+          bestCluster = c;
+        }
+      }
+    }
+    if (bestCluster.length >= 4) {
+      return bestCluster;
+    }
+    return pts;
+  }
+  function detectAdaptiveBounds(sortedValues, isYAxis = false) {
+    const n = sortedValues.length;
+    if (n < 8) {
+      return { min: sortedValues[0] ?? 0, max: sortedValues[n - 1] ?? 0 };
+    }
+    const pMinIdx = Math.max(0, Math.floor(n * 5e-3));
+    const pMaxIdx = Math.min(n - 1, Math.floor(n * 0.995));
+    let minVal = sortedValues[pMinIdx];
+    let maxVal = sortedValues[pMaxIdx];
+    const minGap = isYAxis ? 0.14 : 0.25;
+    const maxNoisePoints = Math.max(2, Math.min(12, Math.floor(n * 0.06)));
+    for (let i = n - 1; i >= Math.floor(n * 0.65); i--) {
+      const gap = sortedValues[i] - sortedValues[i - 1];
+      const pointsAfter = n - i;
+      if (gap >= minGap && pointsAfter <= maxNoisePoints) {
+        maxVal = sortedValues[i - 1];
+        break;
+      }
+    }
+    for (let i = 0; i <= Math.floor(n * 0.35); i++) {
+      const gap = sortedValues[i + 1] - sortedValues[i];
+      const pointsBefore = i + 1;
+      if (gap >= minGap && pointsBefore <= maxNoisePoints) {
+        minVal = sortedValues[i + 1];
+        break;
+      }
+    }
+    return {
+      min: Number(minVal.toFixed(2)),
+      max: Number(maxVal.toFixed(2))
+    };
+  }
+  function detectLateralWallBoundsWithStatus(pts, halfW, visibleLateral, binSize = 0.025) {
+    const isLeft = visibleLateral === "left";
+    const sidePts = pts.filter((p) => isLeft ? p.ly > 0 : p.ly < 0);
+    if (sidePts.length < 4) {
+      return { edge: isLeft ? halfW : -halfW, found: false, peakCount: 0 };
+    }
+    const minRange = Math.max(0.1, halfW - 0.35);
+    const maxRange = halfW + 0.35;
+    const numBins = Math.ceil(maxRange / binSize) + 1;
+    const bins = new Array(numBins).fill(0);
+    const binMaxLy = new Array(numBins).fill(-Infinity);
+    const binMinLy = new Array(numBins).fill(Infinity);
+    for (const p of sidePts) {
+      const absLy = Math.abs(p.ly);
+      if (absLy <= maxRange) {
+        const idx = Math.min(numBins - 1, Math.floor(absLy / binSize));
+        bins[idx]++;
+        if (p.ly > binMaxLy[idx]) binMaxLy[idx] = p.ly;
+        if (p.ly < binMinLy[idx]) binMinLy[idx] = p.ly;
+      }
+    }
+    const startBin = Math.floor(minRange / binSize);
+    const endBin = Math.min(numBins - 1, Math.floor(maxRange / binSize));
+    let peakCount = 0;
+    let peakIdx = startBin;
+    for (let i = startBin; i <= endBin; i++) {
+      if (bins[i] >= peakCount && bins[i] > 0) {
+        peakCount = bins[i];
+        peakIdx = i;
+      }
+    }
+    if (peakCount < 2) {
+      return { edge: isLeft ? halfW : -halfW, found: false, peakCount };
+    }
+    const minWallDensity = Math.max(2, Math.floor(peakCount * 0.12));
+    let wallIdx = peakIdx;
+    for (let i = peakIdx; i <= endBin; i++) {
+      if (bins[i] >= minWallDensity) {
+        wallIdx = i;
+      } else {
+        break;
+      }
+    }
+    const edge = isLeft ? binMaxLy[wallIdx] !== -Infinity ? Number(binMaxLy[wallIdx].toFixed(3)) : halfW : binMinLy[wallIdx] !== Infinity ? Number(binMinLy[wallIdx].toFixed(3)) : -halfW;
+    return { edge, found: true, peakCount };
+  }
+  function detectLateralWallBounds(pts, halfW, visibleLateral, binSize = 0.025) {
+    return detectLateralWallBoundsWithStatus(pts, halfW, visibleLateral, binSize).edge;
+  }
+  function detectDominantWallEdgeWithValleyCutoff(pts, axis, direction, nominalHalf, options = {}) {
+    const isPos = direction === "positive";
+    const orthAxis = axis === "ly" ? "lx" : "ly";
+    const binSize = options.binSize ?? 0.03;
+    const minSpanOrth = options.minSpanOrthogonal ?? (axis === "ly" ? 0.7 : 0.6);
+    const maxSearchExt = options.maxSearchExtension ?? 0.35;
+    const candidatePts = pts.filter((p) => isPos ? p[axis] > 0.02 : p[axis] < -0.02);
+    if (candidatePts.length < 3) {
+      return {
+        edge: isPos ? nominalHalf : -nominalHalf,
+        wallPoints: candidatePts,
+        peakDensity: candidatePts.length
+      };
+    }
+    const maxDist = nominalHalf + maxSearchExt;
+    const numBins = Math.ceil(maxDist / binSize) + 2;
+    const bins = Array.from(
+      { length: numBins },
+      () => []
+    );
+    for (const p of candidatePts) {
+      const dist = isPos ? p[axis] : -p[axis];
+      if (dist >= 0 && dist <= maxDist) {
+        const bIdx = Math.min(numBins - 1, Math.floor(dist / binSize));
+        bins[bIdx].push(p);
+      }
+    }
+    const nominalMinBin = Math.max(0, Math.floor((nominalHalf - 0.45) / binSize));
+    const nominalMaxBin = Math.min(numBins - 1, Math.floor((nominalHalf + maxSearchExt) / binSize));
+    let peakBin = nominalMinBin;
+    let maxCount = 0;
+    for (let b = nominalMinBin; b <= nominalMaxBin; b++) {
+      const count = bins[b].length;
+      if (count > maxCount) {
+        maxCount = count;
+        peakBin = b;
+      }
+    }
+    if (maxCount < 2) {
+      for (let b = 1; b < numBins - 1; b++) {
+        if (bins[b].length > maxCount) {
+          maxCount = bins[b].length;
+          peakBin = b;
+        }
+      }
+    }
+    if (maxCount === 0) {
+      return {
+        edge: isPos ? nominalHalf : -nominalHalf,
+        wallPoints: candidatePts,
+        peakDensity: 0
+      };
+    }
+    const minWallDensity = Math.max(2, Math.floor(maxCount * 0.15));
+    let outerWallBin = peakBin;
+    let consecutiveEmptyBins = 0;
+    for (let b = peakBin + 1; b < numBins; b++) {
+      const ptsInBin = bins[b];
+      const count = ptsInBin.length;
+      if (count === 0) {
+        consecutiveEmptyBins++;
+        if (consecutiveEmptyBins >= 2) {
+          break;
+        }
+        continue;
+      }
+      const distCenter = (b + 0.5) * binSize;
+      if (count < minWallDensity && distCenter > nominalHalf) {
+        consecutiveEmptyBins++;
+        if (consecutiveEmptyBins >= 2) {
+          break;
+        }
+        continue;
+      }
+      if (distCenter > nominalHalf - 0.05) {
+        const orthVals = ptsInBin.map((p) => p[orthAxis]);
+        const spanOrth = Math.max(...orthVals) - Math.min(...orthVals);
+        if (count <= 6 && spanOrth < minSpanOrth * 0.6) {
+          if (b > peakBin + 1) {
+            break;
+          }
+        }
+      }
+      consecutiveEmptyBins = 0;
+      outerWallBin = b;
+    }
+    const collectedWallPoints = [];
+    for (let b = 0; b <= outerWallBin; b++) {
+      for (const p of bins[b]) {
+        collectedWallPoints.push(p);
+      }
+    }
+    const outerEdgePts = [];
+    const edgeStartBin = Math.max(0, outerWallBin - 3);
+    for (let b = edgeStartBin; b <= outerWallBin; b++) {
+      for (const p of bins[b]) {
+        outerEdgePts.push(p);
+      }
+    }
+    if (outerEdgePts.length >= 3) {
+      const dists = outerEdgePts.map((p) => isPos ? p[axis] : -p[axis]).sort((a, b) => a - b);
+      const pIdx = Math.max(0, Math.min(dists.length - 1, Math.floor(dists.length * 0.95)));
+      const chosenDist = dists[pIdx];
+      const edge2 = isPos ? Number(chosenDist.toFixed(3)) : Number((-chosenDist).toFixed(3));
+      return {
+        edge: edge2,
+        wallPoints: collectedWallPoints,
+        peakDensity: maxCount
+      };
+    }
+    const fallbackDist = (outerWallBin + 1) * binSize;
+    const edge = isPos ? Number(fallbackDist.toFixed(3)) : Number((-fallbackDist).toFixed(3));
+    return {
+      edge,
+      wallPoints: collectedWallPoints.length > 0 ? collectedWallPoints : candidatePts,
+      peakDensity: maxCount
+    };
+  }
+  function straightenYawFromBoundaryEdge(pts, currentYaw, _L, _W, visibleLateral, options = {}) {
+    const maxAdjDeg = options.maxAdjustmentDeg ?? 8;
+    const maxAdjRad = maxAdjDeg * Math.PI / 180;
+    const leftPts = pts.filter((p) => p.ly > 0);
+    const rightPts = pts.filter((p) => p.ly < 0);
+    let sidePts;
+    let isTargetLeft;
+    if (leftPts.length >= 8 && leftPts.length > rightPts.length * 1.3) {
+      sidePts = leftPts;
+      isTargetLeft = true;
+    } else if (rightPts.length >= 8 && rightPts.length > leftPts.length * 1.3) {
+      sidePts = rightPts;
+      isTargetLeft = false;
+    } else {
+      const isLeft = visibleLateral === "left";
+      const preferredPts = isLeft ? leftPts : rightPts;
+      if (preferredPts.length >= 8) {
+        sidePts = preferredPts;
+        isTargetLeft = isLeft;
+      } else {
+        sidePts = pts;
+        isTargetLeft = isLeft;
+      }
+    }
+    if (sidePts.length < 8) {
+      return {
+        newYawRad: currentYaw,
+        newYawDeg: Number((currentYaw * 180 / Math.PI).toFixed(2)),
+        deltaYawDeg: 0,
+        slope: 0
+      };
+    }
+    const sortedLx = sidePts.map((p) => p.lx).sort((a, b) => a - b);
+    const minLxBound = sortedLx[Math.floor(sortedLx.length * 0.05)];
+    const maxLxBound = sortedLx[Math.min(sortedLx.length - 1, Math.floor(sortedLx.length * 0.95))];
+    const spanLx = maxLxBound - minLxBound;
+    if (spanLx < 0.5) {
+      return {
+        newYawRad: currentYaw,
+        newYawDeg: Number((currentYaw * 180 / Math.PI).toFixed(2)),
+        deltaYawDeg: 0,
+        slope: 0
+      };
+    }
+    const numSlices = 10;
+    const sliceWidth = spanLx / numSlices;
+    const slicePoints = [];
+    for (let s = 0; s < numSlices; s++) {
+      const sMin = minLxBound + s * sliceWidth;
+      const sMax = sMin + sliceWidth;
+      const inSlice = sidePts.filter((p) => p.lx >= sMin && p.lx < sMax);
+      if (inSlice.length >= 1) {
+        const sortedLy = inSlice.map((p) => p.ly).sort((a, b) => a - b);
+        if (isTargetLeft) {
+          const pIdx = Math.max(0, Math.floor(sortedLy.length * 0.9));
+          slicePoints.push({ lx: (sMin + sMax) / 2, ly: sortedLy[pIdx] });
+        } else {
+          const pIdx = Math.min(sortedLy.length - 1, Math.floor(sortedLy.length * 0.1));
+          slicePoints.push({ lx: (sMin + sMax) / 2, ly: sortedLy[pIdx] });
+        }
+      }
+    }
+    if (slicePoints.length < 4) {
+      return {
+        newYawRad: currentYaw,
+        newYawDeg: Number((currentYaw * 180 / Math.PI).toFixed(2)),
+        deltaYawDeg: 0,
+        slope: 0
+      };
+    }
+    const slopes = [];
+    for (let i = 0; i < slicePoints.length; i++) {
+      for (let j = i + 1; j < slicePoints.length; j++) {
+        const dx = slicePoints[j].lx - slicePoints[i].lx;
+        const dy = slicePoints[j].ly - slicePoints[i].ly;
+        if (Math.abs(dx) >= 0.25) {
+          slopes.push(dy / dx);
+        }
+      }
+    }
+    let slope = 0;
+    if (slopes.length >= 3) {
+      slopes.sort((a, b) => a - b);
+      slope = slopes[Math.floor(slopes.length / 2)];
+    } else {
+      let sumLx = 0;
+      let sumLy = 0;
+      let sumLxLy = 0;
+      let sumLx2 = 0;
+      const m = slicePoints.length;
+      for (const p of slicePoints) {
+        sumLx += p.lx;
+        sumLy += p.ly;
+        sumLxLy += p.lx * p.ly;
+        sumLx2 += p.lx * p.lx;
+      }
+      const denom = m * sumLx2 - sumLx * sumLx;
+      slope = Math.abs(denom) > 1e-6 ? (m * sumLxLy - sumLx * sumLy) / denom : 0;
+    }
+    let deltaYaw = Math.atan(slope);
+    deltaYaw = Math.max(-maxAdjRad, Math.min(maxAdjRad, deltaYaw));
+    let deltaYawDeg = Number((deltaYaw * 180 / Math.PI).toFixed(2));
+    if (Math.abs(deltaYawDeg) < 0.25) {
+      deltaYaw = 0;
+      deltaYawDeg = 0;
+    }
+    let newYaw = currentYaw + deltaYaw;
+    while (newYaw > Math.PI) newYaw -= 2 * Math.PI;
+    while (newYaw < -Math.PI) newYaw += 2 * Math.PI;
+    const newYawDeg = Number((newYaw * 180 / Math.PI).toFixed(2));
+    return {
+      newYawRad: Number(newYaw.toFixed(5)),
+      newYawDeg,
+      deltaYawDeg,
+      slope: Number(slope.toFixed(4))
+    };
+  }
+  function detectLongitudinalBumperBounds(pts, halfL, visibleLongitudinal) {
+    const isFront = visibleLongitudinal === "front";
+    if (pts.length < 4) {
+      return isFront ? halfL : -halfL;
+    }
+    const robustBounds = computeDensityRobustBounds(pts);
+    return isFront ? robustBounds.lxMax : robustBounds.lxMin;
+  }
+  function filterSparseNoiseByLocalDensity(pts, options = {}) {
+    if (pts.length < 8) return pts;
+    const radius = options.radius ?? 0.12;
+    const r2 = radius * radius;
+    const n = pts.length;
+    const densities = new Int32Array(n);
+    for (let i = 0; i < n; i++) {
+      const pi = pts[i];
+      let count = 0;
+      for (let j = 0; j < n; j++) {
+        const pj = pts[j];
+        const dx = pi.lx - pj.lx;
+        const dy = pi.ly - pj.ly;
+        const dz = pi.z - pj.z;
+        if (dx * dx + dy * dy + dz * dz <= r2) {
+          count++;
+        }
+      }
+      densities[i] = count;
+    }
+    const sortedDensities = Array.from(densities).sort((a, b) => a - b);
+    const medianDensity = sortedDensities[Math.floor(n / 2)];
+    const adaptiveRatio = options.adaptiveRatio ?? 0.25;
+    const userMin = options.minCoreNeighbors ?? 3;
+    const coreThreshold = Math.max(userMin, Math.floor(medianDensity * adaptiveRatio));
+    const corePts = [];
+    for (let i = 0; i < n; i++) {
+      if (densities[i] >= coreThreshold) {
+        corePts.push(pts[i]);
+      }
+    }
+    if (corePts.length >= 6 && corePts.length >= n * 0.4) {
+      return corePts;
+    }
+    return pts;
+  }
+  function detectRoofTopBounds(pts, expectedRoofZ) {
+    if (pts.length === 0) return expectedRoofZ ?? 0;
+    const zValues = pts.map((p) => p.z).sort((a, b) => a - b);
+    const n = zValues.length;
+    if (n < 6) {
+      return zValues[n - 1];
+    }
+    let maxRoofZ = zValues[n - 1];
+    const minGap = 0.22;
+    const maxNoisePoints = Math.max(2, Math.min(8, Math.floor(n * 0.08)));
+    for (let i = n - 1; i >= Math.floor(n * 0.55); i--) {
+      const gap = zValues[i] - zValues[i - 1];
+      const pointsAfter = n - i;
+      if (gap >= minGap && pointsAfter <= maxNoisePoints) {
+        maxRoofZ = zValues[i - 1];
+        break;
+      }
+    }
+    return Number(maxRoofZ.toFixed(3));
+  }
+  function computeDensityRobustBounds(pts, options = {}) {
+    if (pts.length === 0) {
+      return { lxMin: 0, lxMax: 0, lyMin: 0, lyMax: 0, zTop: 0, validPointsCount: 0 };
+    }
+    const cleanPts = filterSparseNoiseByLocalDensity(pts, {
+      radius: options.rorRadius ?? 0.25,
+      minCoreNeighbors: options.rorMinNeighbors ?? 2
+    });
+    const allLx = cleanPts.map((p) => p.lx).sort((a, b) => a - b);
+    const allLy = cleanPts.map((p) => p.ly).sort((a, b) => a - b);
+    const fallbackLxMin = allLx[0];
+    const fallbackLxMax = allLx[allLx.length - 1];
+    const fallbackLyMin = allLy[0];
+    const fallbackLyMax = allLy[allLy.length - 1];
+    const zTop = detectRoofTopBounds(cleanPts);
+    if (cleanPts.length < 10) {
+      return {
+        lxMin: fallbackLxMin,
+        lxMax: fallbackLxMax,
+        lyMin: fallbackLyMin,
+        lyMax: fallbackLyMax,
+        zTop,
+        validPointsCount: cleanPts.length
+      };
+    }
+    const boundsX = detectAdaptiveBounds(allLx, false);
+    const boundsY = detectAdaptiveBounds(allLy, true);
+    return {
+      lxMin: boundsX.min,
+      lxMax: boundsX.max,
+      lyMin: boundsY.min,
+      lyMax: boundsY.max,
+      zTop,
+      validPointsCount: cleanPts.length
+    };
+  }
+  function computeGroundSlopesAndZ(pts, cx, cy, cz, yaw, halfL, halfW, ceilingZ, options = {}) {
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+    const outerL = halfL + 0.55;
+    const outerW = halfW + 0.45;
+    const innerL = Math.max(0.15, halfL - 0.35);
+    const innerW = Math.max(0.15, halfW - 0.35);
+    const maxZ = ceilingZ !== void 0 ? ceilingZ : cz + 0.2;
+    const minZ = cz - 4.5;
+    const groundPts = [];
+    for (const p of pts) {
+      if (p.z > maxZ || p.z < minZ) continue;
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      const lx = dx * cosY - dy * sinY;
+      const ly = dx * sinY + dy * cosY;
+      const inOuter = Math.abs(lx) <= outerL && Math.abs(ly) <= outerW;
+      const inCore = Math.abs(lx) < innerL && Math.abs(ly) < innerW;
+      if (inOuter && !inCore) {
+        groundPts.push({ lx, ly, z: p.z });
+      }
+    }
+    if (groundPts.length < 8) {
+      const extOuterL = outerL + 0.25;
+      const extOuterW = outerW + 0.25;
+      for (const p of pts) {
+        if (p.z > maxZ || p.z < minZ) continue;
+        const dx = p.x - cx;
+        const dy = p.y - cy;
+        const lx = dx * cosY - dy * sinY;
+        const ly = dx * sinY + dy * cosY;
+        if (Math.abs(lx) <= extOuterL && Math.abs(ly) <= extOuterW) {
+          if (!groundPts.some((gp) => Math.abs(gp.lx - lx) < 1e-3 && Math.abs(gp.ly - ly) < 1e-3)) {
+            groundPts.push({ lx, ly, z: p.z });
+          }
+        }
+      }
+    }
+    if (groundPts.length < 6) {
+      return {
+        groundZ: 0,
+        pitchRad: 0,
+        rollRad: 0,
+        pitchDeg: 0,
+        rollDeg: 0,
+        groundPointsCount: groundPts.length,
+        isFallbackZeroGround: true
+      };
+    }
+    groundPts.sort((a, b) => a.z - b.z);
+    const cutLow = Math.floor(groundPts.length * 0.01);
+    const sorted = groundPts.slice(cutLow);
+    let validPts = sorted;
+    const seedCount = Math.max(6, Math.floor(sorted.length * 0.35));
+    const seedPts = sorted.slice(0, seedCount);
+    let sumSeedLx = 0, sumSeedLy = 0, sumSeedZ = 0;
+    for (const p of seedPts) {
+      sumSeedLx += p.lx;
+      sumSeedLy += p.ly;
+      sumSeedZ += p.z;
+    }
+    const meanSeedLx = sumSeedLx / seedCount;
+    const meanSeedLy = sumSeedLy / seedCount;
+    const meanSeedZ = sumSeedZ / seedCount;
+    let vSeedLx = 0, vSeedLy = 0, cSeedLxLy = 0, cSeedLxZ = 0, cSeedLyZ = 0;
+    for (const p of seedPts) {
+      const dlx = p.lx - meanSeedLx;
+      const dly = p.ly - meanSeedLy;
+      const dz = p.z - meanSeedZ;
+      vSeedLx += dlx * dlx;
+      vSeedLy += dly * dly;
+      cSeedLxLy += dlx * dly;
+      cSeedLxZ += dlx * dz;
+      cSeedLyZ += dly * dz;
+    }
+    const detSeed = vSeedLx * vSeedLy - cSeedLxLy * cSeedLxLy;
+    let aSeed = 0, bSeed = 0, c0Seed = meanSeedZ;
+    if (Math.abs(detSeed) > 1e-4) {
+      aSeed = (cSeedLxZ * vSeedLy - cSeedLyZ * cSeedLxLy) / detSeed;
+      bSeed = (cSeedLyZ * vSeedLx - cSeedLxZ * cSeedLxLy) / detSeed;
+      c0Seed = meanSeedZ - aSeed * meanSeedLx - bSeed * meanSeedLy;
+    }
+    const inliers = sorted.filter((p) => {
+      const expectedZ = aSeed * p.lx + bSeed * p.ly + c0Seed;
+      const diff = p.z - expectedZ;
+      return diff >= -0.08 && diff <= 0.08;
+    });
+    if (inliers.length >= 6 && inliers.length >= sorted.length * 0.2) {
+      validPts = inliers;
+    }
+    const qFL = [];
+    const qFR = [];
+    const qRL = [];
+    const qRR = [];
+    for (const p of validPts) {
+      if (p.lx >= 0 && p.ly >= 0) qFL.push(p);
+      else if (p.lx >= 0 && p.ly < 0) qFR.push(p);
+      else if (p.lx < 0 && p.ly >= 0) qRL.push(p);
+      else qRR.push(p);
+    }
+    const fitPts = [];
+    const takeRatio = 0.45;
+    const addLowestFromQuadrant = (q) => {
+      if (q.length === 0) return;
+      const count = Math.max(1, Math.floor(q.length * takeRatio));
+      fitPts.push(...q.slice(0, count));
+    };
+    addLowestFromQuadrant(qFL);
+    addLowestFromQuadrant(qFR);
+    addLowestFromQuadrant(qRL);
+    addLowestFromQuadrant(qRR);
+    const finalPts = fitPts.length >= 4 ? fitPts : validPts.slice(0, Math.max(4, Math.floor(validPts.length * 0.45)));
+    let sumLx = 0;
+    let sumLy = 0;
+    let sumZ = 0;
+    const N = finalPts.length;
+    for (const p of finalPts) {
+      sumLx += p.lx;
+      sumLy += p.ly;
+      sumZ += p.z;
+    }
+    const meanLx = sumLx / N;
+    const meanLy = sumLy / N;
+    const meanZ = sumZ / N;
+    let varLx = 0;
+    let varLy = 0;
+    let covLxLy = 0;
+    let covLxZ = 0;
+    let covLyZ = 0;
+    for (const p of finalPts) {
+      const dlx = p.lx - meanLx;
+      const dly = p.ly - meanLy;
+      const dz = p.z - meanZ;
+      varLx += dlx * dlx;
+      varLy += dly * dly;
+      covLxLy += dlx * dly;
+      covLxZ += dlx * dz;
+      covLyZ += dly * dz;
+    }
+    const det = varLx * varLy - covLxLy * covLxLy;
+    let pitchRad = 0;
+    let rollRad = 0;
+    let c0 = meanZ;
+    const maxPitchRad = 20 * Math.PI / 180;
+    const maxRollRad = 25 * Math.PI / 180;
+    if (Math.abs(det) > 1e-4) {
+      const a = (covLxZ * varLy - covLyZ * covLxLy) / det;
+      const b = (covLyZ * varLx - covLxZ * covLxLy) / det;
+      pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(a)));
+      rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, Math.atan(b)));
+      c0 = meanZ - a * meanLx - b * meanLy;
+    } else {
+      const pIdx = Math.floor(finalPts.length * 0.15);
+      c0 = finalPts[pIdx].z;
+    }
+    if (Math.abs(det) > 1e-4) {
+      let sumRes = 0;
+      for (const p of finalPts) {
+        const a = (covLxZ * varLy - covLyZ * covLxLy) / det;
+        const b = (covLyZ * varLx - covLxZ * covLxLy) / det;
+        const expectedZ = meanZ + a * (p.lx - meanLx) + b * (p.ly - meanLy);
+        sumRes += Math.abs(p.z - expectedZ);
+      }
+      sumRes / finalPts.length;
+    }
+    const p12Idx = Math.max(0, Math.floor(validPts.length * 0.12));
+    const lowestRoadZ = validPts[p12Idx].z;
+    const leftPtsZ = validPts.filter((p) => p.ly > 0.15).map((p) => p.z).sort((a, b) => a - b);
+    const rightPtsZ = validPts.filter((p) => p.ly < -0.15).map((p) => p.z).sort((a, b) => a - b);
+    let isCurbOrRamp = options.lockRollFlat === true;
+    if (!isCurbOrRamp && leftPtsZ.length >= 3 && rightPtsZ.length >= 3) {
+      const leftMedian = leftPtsZ[Math.floor(leftPtsZ.length * 0.25)];
+      const rightMedian = rightPtsZ[Math.floor(rightPtsZ.length * 0.25)];
+      const stepDeltaZ = Math.abs(leftMedian - rightMedian);
+      const lowerPts = leftMedian < rightMedian ? leftPtsZ : rightPtsZ;
+      const lowerSpread = lowerPts[Math.floor(lowerPts.length * 0.75)] - lowerPts[Math.floor(lowerPts.length * 0.25)];
+      if (stepDeltaZ >= 0.08 && lowerSpread < 0.05) {
+        isCurbOrRamp = true;
+      }
+    }
+    if (isCurbOrRamp) {
+      rollRad = 0;
+      c0 = lowestRoadZ;
+      const roadPts = validPts.filter((p) => p.z <= lowestRoadZ + 0.1);
+      if (roadPts.length >= 4) {
+        let sLx = 0;
+        let sZ = 0;
+        for (const p of roadPts) {
+          sLx += p.lx;
+          sZ += p.z;
+        }
+        const mLx = sLx / roadPts.length;
+        const mZ = sZ / roadPts.length;
+        let vLx = 0;
+        let cLxZ = 0;
+        for (const p of roadPts) {
+          const dlx = p.lx - mLx;
+          const dz = p.z - mZ;
+          vLx += dlx * dlx;
+          cLxZ += dlx * dz;
+        }
+        if (vLx > 1e-4) {
+          const aRoad = cLxZ / vLx;
+          pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(aRoad)));
+        }
+      }
+    }
+    let pitchRadVal = Number(pitchRad.toFixed(5));
+    let rollRadVal = Number(rollRad.toFixed(5));
+    let pitchDegVal = Number((pitchRad * 180 / Math.PI).toFixed(2));
+    let rollDegVal = Number((rollRad * 180 / Math.PI).toFixed(2));
+    if (Math.abs(pitchRadVal) < 1e-6) pitchRadVal = 0;
+    if (Math.abs(rollRadVal) < 1e-6) rollRadVal = 0;
+    if (Math.abs(pitchDegVal) < 1e-4) pitchDegVal = 0;
+    if (Math.abs(rollDegVal) < 1e-4) rollDegVal = 0;
+    return {
+      groundZ: Number(c0.toFixed(3)),
+      pitchRad: pitchRadVal,
+      rollRad: rollRadVal,
+      pitchDeg: pitchDegVal,
+      rollDeg: rollDegVal,
+      groundPointsCount: finalPts.length
+    };
+  }
+  function fitBoxToEgoRayAndGround(pts, cx, cy, cz, yaw, L, W, H, egoPos = { x: 0, y: 0, z: 0 }, options = {}) {
+    const ceilingZ = cz - Math.max(0.15, H / 2 * 0.4);
+    const groundInfo = computeGroundSlopesAndZ(pts, cx, cy, cz, yaw, L / 2, W / 2, ceilingZ, { lockRollFlat: false });
+    const groundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : 0;
+    const pitchRad = groundInfo.pitchRad;
+    const rollRad = groundInfo.rollRad;
+    const pitchDeg = groundInfo.pitchDeg;
+    const rollDeg = groundInfo.rollDeg;
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+    const minBodyZ = groundZ + 0.05;
+    const maxRoofZ = groundZ + H + 0.55;
+    const fitStep = options.fitStep ?? "all";
+    const outerL = L / 2 + 0.45;
+    const outerW = W / 2 + 0.35;
+    const rawBodyPts = [];
+    for (const p of pts) {
+      if (p.z < minBodyZ || p.z > maxRoofZ) continue;
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      const lx = dx * cosY - dy * sinY;
+      const ly = dx * sinY + dy * cosY;
+      if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
+        rawBodyPts.push({ lx, ly, z: p.z });
+      }
+    }
+    const denseCoreBodyPts = filterSparseNoiseByLocalDensity(rawBodyPts, { radius: 0.22, minCoreNeighbors: 2 });
+    const clusterLy = filterDenseConnectedCluster1D(denseCoreBodyPts, "ly", 0.22, 0);
+    const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", 0.22, 0);
+    const dxEgo = cx - egoPos.x;
+    const dyEgo = cy - egoPos.y;
+    const vLocalX = -dxEgo * cosY + dyEgo * sinY;
+    const vLocalY = -dxEgo * sinY - dyEgo * cosY;
+    let visibleLongitudinal = vLocalX >= 0 ? "front" : "rear";
+    let visibleLateral = vLocalY >= 0 ? "left" : "right";
+    let shiftLx = 0;
+    let shiftLy = 0;
+    let roofTopZ = groundZ + H;
+    let newH = H;
+    let newL = L;
+    let newW = W;
+    const preserveDimensions = options.preserveDimensions ?? true;
+    const alignMode = options.alignMode ?? "both";
+    const validBodyPts = bodyPts.length >= 4 ? bodyPts : denseCoreBodyPts.length >= 4 ? denseCoreBodyPts : rawBodyPts;
+    let straightYawResult = {
+      newYawRad: yaw,
+      newYawDeg: Number((yaw * 180 / Math.PI).toFixed(1)),
+      deltaYawDeg: 0
+    };
+    let finalYaw = yaw;
+    if (validBodyPts.length >= 4) {
+      if (fitStep === "top") {
+        const expectedRoofZ = groundZ + H;
+        roofTopZ = detectRoofTopBounds(validBodyPts, expectedRoofZ);
+        const wallDet = detectDominantWallEdgeWithValleyCutoff(
+          validBodyPts,
+          "ly",
+          visibleLateral === "left" ? "positive" : "negative",
+          W / 2,
+          { minSpanOrthogonal: 0.7 }
+        );
+        const activePtsForYaw = wallDet.wallPoints.length >= 6 ? wallDet.wallPoints : validBodyPts;
+        straightYawResult = straightenYawFromBoundaryEdge(activePtsForYaw, yaw, L, W, visibleLateral, { maxAdjustmentDeg: 12 });
+        finalYaw = straightYawResult.newYawRad;
+        shiftLx = 0;
+        shiftLy = 0;
+      } else if (fitStep === "side") {
+        finalYaw = yaw;
+        const toEgoX = egoPos.x - cx;
+        const toEgoY = egoPos.y - cy;
+        const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
+        const frontBumperPts = validBodyPts.filter((p) => p.lx > 0.05);
+        const rearBumperPts = validBodyPts.filter((p) => p.lx < -0.05);
+        let visibleBumper;
+        if (frontBumperPts.length >= rearBumperPts.length + 3) {
+          visibleBumper = "front";
+        } else if (rearBumperPts.length >= frontBumperPts.length + 3) {
+          visibleBumper = "rear";
+        } else {
+          visibleBumper = egoLocalX >= 0 ? "front" : "rear";
+        }
+        visibleLongitudinal = visibleBumper;
+        const targetBumperPts = validBodyPts.filter((p) => Math.abs(p.ly) <= W / 2 + 0.15);
+        const activePtsForL = targetBumperPts.length >= 4 ? targetBumperPts : validBodyPts;
+        const bumperCloudPts = activePtsForL.filter((p) => visibleBumper === "front" ? p.lx > 0 : p.lx < 0);
+        const cleanBumperPts = filterSparseNoiseByLocalDensity(bumperCloudPts, { radius: 0.15, minCoreNeighbors: 2 });
+        const finalBumperPts = cleanBumperPts.length >= 3 ? cleanBumperPts : bumperCloudPts;
+        let bumperEdge;
+        if (finalBumperPts.length >= 3) {
+          const wallDet = detectDominantWallEdgeWithValleyCutoff(
+            finalBumperPts,
+            "lx",
+            visibleBumper === "front" ? "positive" : "negative",
+            L / 2,
+            { minSpanOrthogonal: 0.6 }
+          );
+          bumperEdge = wallDet.edge;
+        } else {
+          bumperEdge = visibleBumper === "front" ? L / 2 : -L / 2;
+        }
+        const edgePadding = options.edgePadding ?? 0.05;
+        if (visibleBumper === "front") {
+          shiftLx = bumperEdge + edgePadding - L / 2;
+        } else {
+          shiftLx = bumperEdge - edgePadding + L / 2;
+        }
+        const maxShiftL = Math.min(0.4, L * 0.25);
+        shiftLx = Math.max(-maxShiftL, Math.min(maxShiftL, shiftLx));
+        if (Math.abs(shiftLx) < 0.01) shiftLx = 0;
+        shiftLy = 0;
+      } else if (fitStep === "front") {
+        finalYaw = yaw;
+        const toEgoX = egoPos.x - cx;
+        const toEgoY = egoPos.y - cy;
+        const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+        const leftSidePts = validBodyPts.filter((p) => p.ly > 0.05);
+        const rightSidePts = validBodyPts.filter((p) => p.ly < -0.05);
+        let visibleSide;
+        if (leftSidePts.length >= rightSidePts.length + 3) {
+          visibleSide = "left";
+        } else if (rightSidePts.length >= leftSidePts.length + 3) {
+          visibleSide = "right";
+        } else {
+          visibleSide = egoLocalY >= 0 ? "left" : "right";
+        }
+        visibleLateral = visibleSide;
+        const targetSidePts = validBodyPts.filter((p) => Math.abs(p.lx) <= L / 2 + 0.15);
+        const activePtsForW = targetSidePts.length >= 4 ? targetSidePts : validBodyPts;
+        const sideCloudPts = activePtsForW.filter((p) => visibleSide === "left" ? p.ly > 0 : p.ly < 0);
+        const cleanSidePts = filterSparseNoiseByLocalDensity(sideCloudPts, { radius: 0.15, minCoreNeighbors: 2 });
+        const finalSidePts = cleanSidePts.length >= 3 ? cleanSidePts : sideCloudPts;
+        let boundaryEdge;
+        if (finalSidePts.length >= 3) {
+          const wallDet = detectDominantWallEdgeWithValleyCutoff(
+            finalSidePts,
+            "ly",
+            visibleSide === "left" ? "positive" : "negative",
+            W / 2,
+            { minSpanOrthogonal: 0.7 }
+          );
+          boundaryEdge = wallDet.edge;
+        } else {
+          boundaryEdge = visibleSide === "left" ? W / 2 : -W / 2;
+        }
+        const edgePadding = options.edgePadding ?? 0.05;
+        if (visibleSide === "left") {
+          shiftLy = boundaryEdge + edgePadding - W / 2;
+        } else {
+          shiftLy = boundaryEdge - edgePadding + W / 2;
+        }
+        const maxShiftW = Math.min(0.4, W * 0.3);
+        shiftLy = Math.max(-maxShiftW, Math.min(maxShiftW, shiftLy));
+        if (Math.abs(shiftLy) < 0.01) shiftLy = 0;
+        shiftLx = 0;
+      } else {
+        const expectedRoofZ = groundZ + H;
+        const detectedRoofZ = detectRoofTopBounds(validBodyPts, expectedRoofZ);
+        roofTopZ = detectedRoofZ;
+        const cleanRoofBodyPts = validBodyPts.filter((p) => p.z <= roofTopZ + 0.05);
+        const activeBodyPts = cleanRoofBodyPts.length >= 4 ? cleanRoofBodyPts : validBodyPts;
+        straightYawResult = straightenYawFromBoundaryEdge(activeBodyPts, yaw, L, W, visibleLateral);
+        finalYaw = straightYawResult.newYawRad;
+        let alignedPts = activeBodyPts;
+        if (Math.abs(straightYawResult.deltaYawDeg) >= 0.05) {
+          const cosFinal = Math.cos(-finalYaw);
+          const sinFinal = Math.sin(-finalYaw);
+          const reprojected = [];
+          for (const p of pts) {
+            if (p.z < minBodyZ || p.z > roofTopZ + 0.05) continue;
+            const dx = p.x - cx;
+            const dy = p.y - cy;
+            const lx = dx * cosFinal - dy * sinFinal;
+            const ly = dx * sinFinal + dy * cosFinal;
+            if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
+              reprojected.push({ lx, ly, z: p.z });
+            }
+          }
+          if (reprojected.length >= 4) {
+            alignedPts = reprojected;
+          }
+        }
+        const distToEgo = Math.hypot(dxEgo, dyEgo);
+        if (distToEgo < 0.5) {
+          const meanLy = alignedPts.reduce((acc, p) => acc + p.ly, 0) / alignedPts.length;
+          const meanLx = alignedPts.reduce((acc, p) => acc + p.lx, 0) / alignedPts.length;
+          if (meanLy < -0.12) visibleLateral = "right";
+          else if (meanLy > 0.12) visibleLateral = "left";
+          if (meanLx > 0.2) visibleLongitudinal = "front";
+          else if (meanLx < -0.2) visibleLongitudinal = "rear";
+        }
+        const innerBodyPtsForW = alignedPts.filter((p) => Math.abs(p.lx) <= L / 2 - 0.05);
+        const targetSidePts = innerBodyPtsForW.length >= 4 ? innerBodyPtsForW : alignedPts;
+        const sideWallEdge = detectLateralWallBounds(targetSidePts, W / 2, visibleLateral);
+        if (visibleLateral === "left") {
+          shiftLy = sideWallEdge - W / 2;
+        } else {
+          shiftLy = sideWallEdge + W / 2;
+        }
+        if (alignMode === "w_only") {
+          shiftLx = 0;
+        } else {
+          const innerBodyPtsForX = alignedPts.filter((p) => Math.abs(p.ly) <= W / 2 + 0.1);
+          const targetBumperPts = innerBodyPtsForX.length >= 4 ? innerBodyPtsForX : alignedPts;
+          const bumperEdge = detectLongitudinalBumperBounds(targetBumperPts, L / 2, visibleLongitudinal);
+          if (visibleLongitudinal === "front") {
+            shiftLx = bumperEdge - L / 2;
+          } else {
+            shiftLx = bumperEdge + L / 2;
+          }
+        }
+      }
+      if (fitStep === "top") {
+        shiftLx = 0;
+        shiftLy = 0;
+      } else {
+        const maxShiftL = Math.max(0.65, L * 0.35);
+        const maxShiftW = Math.max(0.45, W * 0.35);
+        shiftLx = Math.max(-maxShiftL, Math.min(maxShiftL, shiftLx));
+        shiftLy = Math.max(-maxShiftW, Math.min(maxShiftW, shiftLy));
+      }
+      if (preserveDimensions !== true) {
+        const measuredH = roofTopZ - groundZ;
+        newH = Number(Math.max(1.35, Math.min(2.8, measuredH)).toFixed(2));
+      } else {
+        newH = H;
+        newL = L;
+        newW = W;
+      }
+    }
+    const cosWorld = Math.cos(finalYaw);
+    const sinWorld = Math.sin(finalYaw);
+    const newCenterX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
+    const newCenterY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
+    const cosPitch = Math.cos(pitchRad);
+    const cosRoll = Math.cos(rollRad);
+    let newCenterZ = Number((groundZ + newH / 2 * cosPitch * cosRoll).toFixed(3));
+    if (fitStep === "top" || fitStep === "side" || fitStep === "front") {
+      newCenterZ = cz;
+    }
+    const faceTextLong = visibleLongitudinal === "front" ? "Mặt Trước" : "Mặt Sau";
+    const faceTextLat = visibleLateral === "left" ? "Sườn Trái" : "Sườn Phải";
+    let msg = `Đã căn thẳng Top (Yaw: ${straightYawResult.newYawDeg}°), Side [${faceTextLong}], Front [${faceTextLat}] & Ghim Đất (Z: ${newCenterZ}m, H: ${newH}m)`;
+    if (fitStep === "top") {
+      const deltaSign = straightYawResult.deltaYawDeg >= 0 ? "+" : "";
+      msg = `Đã căn TOP: Xoay Yaw (${straightYawResult.newYawDeg}°, Δ=${deltaSign}${straightYawResult.deltaYawDeg}°) song song sườn đón tia [${faceTextLat}], khóa tâm X/Y/Z (giữ nguyên cao độ Z)`;
+    } else if (fitStep === "side") {
+      const deltaXSign = shiftLx >= 0 ? "+" : "";
+      msg = `Đã căn SIDE: Cản [${faceTextLong}] đón tia (ΔX: ${deltaXSign}${shiftLx.toFixed(2)}m, giữ nguyên cao độ Z)`;
+    } else if (fitStep === "front") {
+      const deltaYSign = shiftLy >= 0 ? "+" : "";
+      msg = `Đã căn FRONT: Mép sườn [${faceTextLat}] ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên cao độ Z)`;
+    }
+    return {
+      newCenterX,
+      newCenterY,
+      newCenterZ,
+      newYawRad: finalYaw,
+      newYawDeg: straightYawResult.newYawDeg,
+      deltaYawDeg: straightYawResult.deltaYawDeg,
+      newL,
+      newW,
+      newH,
+      pitchRad,
+      rollRad,
+      pitchDeg,
+      rollDeg,
+      groundZ,
+      roofTopZ,
+      shiftLx: Number(shiftLx.toFixed(3)),
+      shiftLy: Number(shiftLy.toFixed(3)),
+      visibleFaces: {
+        longitudinal: visibleLongitudinal,
+        lateral: visibleLateral
+      },
+      dominantEdge: {
+        edgeSide: visibleLateral,
+        bumperSide: visibleLongitudinal,
+        sideWallEdge: Number(shiftLy.toFixed(3)),
+        bumperEdge: Number(shiftLx.toFixed(3))
+      },
+      pointsCount: bodyPts.length,
+      message: msg
+    };
+  }
+  function fitPedestrianBox(pts, cx, cy, cz, yaw, curL = 0.65, curW = 0.65, curH = 1.7, options = {}) {
+    const headBuffer = options.headBuffer ?? 0.12;
+    const margin = options.margin ?? 0.15;
+    const footRadius = Math.max(0.35, Math.max(curL, curW) / 2 + margin);
+    const footGroundPts = [];
+    const maxFootGroundZ = cz - curH / 2 + 0.35;
+    const minFootGroundZ = cz - 4;
+    for (const p of pts) {
+      if (p.z > maxFootGroundZ || p.z < minFootGroundZ) continue;
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      if (dx * dx + dy * dy <= footRadius * footRadius) {
+        footGroundPts.push(p.z);
+      }
+    }
+    let groundZ = cz - curH / 2;
+    if (footGroundPts.length >= 3) {
+      footGroundPts.sort((a, b) => a - b);
+      groundZ = footGroundPts[Math.max(0, Math.floor(footGroundPts.length * 0.15))];
+    }
+    const minBodyZ = groundZ + 0.05;
+    const maxBodyZ = groundZ + 2.3;
+    const outerL = Math.max(0.45, curL / 2 + 0.25);
+    const outerW = Math.max(0.4, curW / 2 + 0.25);
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+    const bodyPts = [];
+    for (const p of pts) {
+      if (p.z < minBodyZ || p.z > maxBodyZ) continue;
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      const lx = dx * cosY - dy * sinY;
+      const ly = dx * sinY + dy * cosY;
+      if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
+        bodyPts.push({ lx, ly, z: p.z });
+      }
+    }
+    let newL = curL;
+    let newW = curW;
+    let newH = curH;
+    let shiftLx = 0;
+    let shiftLy = 0;
+    let roofTopZ = groundZ + curH;
+    if (bodyPts.length >= 3) {
+      const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
+      const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
+      const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
+      const pMinIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.02) : 0;
+      const pMaxIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.98) : bodyPts.length - 1;
+      const lxMin = allLx[pMinIdx];
+      const lxMax = allLx[pMaxIdx];
+      const lyMin = allLy[pMinIdx];
+      const lyMax = allLy[pMaxIdx];
+      const highestPtZ = allZ[allZ.length - 1];
+      newL = Number(Math.max(0.45, Math.min(1.3, lxMax - lxMin + 0.1)).toFixed(2));
+      newW = Number(Math.max(0.4, Math.min(1.1, lyMax - lyMin + 0.1)).toFixed(2));
+      roofTopZ = highestPtZ + headBuffer;
+      newH = Number(Math.max(1.05, Math.min(2.15, roofTopZ - groundZ)).toFixed(2));
+      shiftLx = (lxMin + lxMax) / 2;
+      shiftLy = (lyMin + lyMax) / 2;
+      const maxShift = 0.4;
+      shiftLx = Math.max(-maxShift, Math.min(maxShift, shiftLx));
+      shiftLy = Math.max(-maxShift, Math.min(maxShift, shiftLy));
+    }
+    const cosWorld = Math.cos(yaw);
+    const sinWorld = Math.sin(yaw);
+    const newCenterX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
+    const newCenterY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
+    const newCenterZ = Number((groundZ + newH / 2).toFixed(3));
+    const msg = `Đã fit Người Đi Bộ: ${newL}x${newW}x${newH}m (Khóa thẳng đứng 0°, Ghim đất Z: ${newCenterZ}m, Bù đỉnh đầu +${Math.round(headBuffer * 100)}cm)`;
+    return {
+      newCenterX,
+      newCenterY,
+      newCenterZ,
+      newL,
+      newW,
+      newH,
+      pitchRad: 0,
+      rollRad: 0,
+      pitchDeg: 0,
+      rollDeg: 0,
+      groundZ: Number(groundZ.toFixed(3)),
+      roofTopZ: Number(roofTopZ.toFixed(3)),
+      pointsCount: bodyPts.length,
+      message: msg
+    };
+  }
+  function estimateTwoWheelerHeading(bodyPts, curYaw) {
+    if (bodyPts.length < 4) {
+      return { deltaYawRad: 0, deltaYawDeg: 0, newYawRad: curYaw, newYawDeg: radToDeg(curYaw) };
+    }
+    const n = bodyPts.length;
+    let sumLx = 0;
+    let sumLy = 0;
+    for (const p of bodyPts) {
+      sumLx += p.lx;
+      sumLy += p.ly;
+    }
+    const meanLx = sumLx / n;
+    const meanLy = sumLy / n;
+    let sxx = 0;
+    let syy = 0;
+    let sxy = 0;
+    for (const p of bodyPts) {
+      const dx = p.lx - meanLx;
+      const dy = p.ly - meanLy;
+      sxx += dx * dx;
+      syy += dy * dy;
+      sxy += dx * dy;
+    }
+    sxx /= n;
+    syy /= n;
+    sxy /= n;
+    const deltaThetaPca = 0.5 * Math.atan2(2 * sxy, sxx - syy);
+    const sortedByLx = [...bodyPts].sort((a, b) => a.lx - b.lx);
+    const rearSlice = sortedByLx.slice(0, Math.max(1, Math.floor(n * 0.18)));
+    const frontSlice = sortedByLx.slice(Math.max(1, Math.floor(n * 0.82)));
+    const rearLx = rearSlice.reduce((s, p) => s + p.lx, 0) / rearSlice.length;
+    const rearLy = rearSlice.reduce((s, p) => s + p.ly, 0) / rearSlice.length;
+    const frontLx = frontSlice.reduce((s, p) => s + p.lx, 0) / frontSlice.length;
+    const frontLy = frontSlice.reduce((s, p) => s + p.ly, 0) / frontSlice.length;
+    const dLx = frontLx - rearLx;
+    const dLy = frontLy - rearLy;
+    let deltaThetaExt = deltaThetaPca;
+    if (dLx >= 0.35) {
+      deltaThetaExt = Math.atan2(dLy, dLx);
+    }
+    let deltaTheta = Math.abs(deltaThetaPca - deltaThetaExt) < 0.2 ? 0.7 * deltaThetaPca + 0.3 * deltaThetaExt : deltaThetaPca;
+    const maxDeltaRad = Math.PI / 4;
+    deltaTheta = Math.max(-maxDeltaRad, Math.min(maxDeltaRad, deltaTheta));
+    const newYawRad = normalizeAngle(curYaw + deltaTheta);
+    const deltaYawDeg = radToDeg(deltaTheta);
+    const newYawDeg = radToDeg(newYawRad);
+    return { deltaYawRad: deltaTheta, deltaYawDeg, newYawRad, newYawDeg };
+  }
+  function fitTwoWheelerBox(pts, cx, cy, cz, yaw, curL = 1.75, curW = 0.65, curH = 1.55, options = {}, step = "all") {
+    const headBuffer = options.headBuffer ?? 0.1;
+    const margin = options.margin ?? 0.2;
+    const footRadius = Math.max(0.6, curL / 2 + margin);
+    const groundPts = [];
+    const maxGroundZ = cz - curH / 2 + 0.35;
+    const minGroundZ = cz - 4;
+    for (const p of pts) {
+      if (p.z > maxGroundZ || p.z < minGroundZ) continue;
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      if (dx * dx + dy * dy <= footRadius * footRadius) {
+        groundPts.push(p.z);
+      }
+    }
+    let groundZ = cz - curH / 2;
+    if (groundPts.length >= 3) {
+      groundPts.sort((a, b) => a - b);
+      groundZ = groundPts[Math.max(0, Math.floor(groundPts.length * 0.15))];
+    }
+    const minBodyZ = groundZ + 0.05;
+    const maxBodyZ = groundZ + 2.3;
+    const outerL = curL / 2 + 0.45;
+    const outerW = Math.max(curW, 0.85) / 2 + 0.45;
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+    const bodyPts = [];
+    for (const p of pts) {
+      if (p.z < minBodyZ || p.z > maxBodyZ) continue;
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      const lx = dx * cosY - dy * sinY;
+      const ly = dx * sinY + dy * cosY;
+      if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
+        bodyPts.push({ lx, ly, z: p.z });
+      }
+    }
+    let newCenterX = cx;
+    let newCenterY = cy;
+    let newCenterZ = cz;
+    let newYawRad = yaw;
+    let newYawDeg = radToDeg(yaw);
+    let deltaYawDeg = 0;
+    let newL = curL;
+    let newW = curW;
+    let newH = curH;
+    let roofTopZ = groundZ + curH;
+    let msg = "";
+    if (bodyPts.length < 3) {
+      return {
+        newCenterX,
+        newCenterY,
+        newCenterZ,
+        newYawRad,
+        newYawDeg,
+        deltaYawDeg: 0,
+        newL,
+        newW,
+        newH,
+        pitchRad: 0,
+        rollRad: 0,
+        pitchDeg: 0,
+        rollDeg: 0,
+        groundZ: Number(groundZ.toFixed(3)),
+        roofTopZ: Number(roofTopZ.toFixed(3)),
+        pointsCount: bodyPts.length,
+        step,
+        message: `Không đủ điểm LiDAR xe 2 bánh (${bodyPts.length} điểm), giữ nguyên box`
+      };
+    }
+    const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
+    const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
+    const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
+    const pMinIdx = bodyPts.length >= 30 ? Math.floor(bodyPts.length * 0.015) : 0;
+    const pMaxIdx = bodyPts.length >= 30 ? Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.985)) : bodyPts.length - 1;
+    const lxMin = allLx[pMinIdx];
+    const lxMax = allLx[pMaxIdx];
+    const lyMin = allLy[pMinIdx];
+    const lyMax = allLy[pMaxIdx];
+    const highestPtZ = allZ[allZ.length - 1];
+    if (step === "top") {
+      const headingRes = estimateTwoWheelerHeading(bodyPts, yaw);
+      newYawRad = headingRes.newYawRad;
+      newYawDeg = headingRes.newYawDeg;
+      deltaYawDeg = headingRes.deltaYawDeg;
+      newCenterX = cx;
+      newCenterY = cy;
+      newCenterZ = cz;
+      newL = curL;
+      newW = curW;
+      newH = curH;
+      const deltaSign = deltaYawDeg >= 0 ? "+" : "";
+      msg = `Đã căn TOP Xe 2 bánh: Xoay Yaw (${newYawDeg}°, Δ=${deltaSign}${deltaYawDeg.toFixed(1)}°) theo trục Đầu - Đuôi, khóa tâm X/Y/Z và kích thước`;
+    } else if (step === "side") {
+      newYawRad = yaw;
+      newYawDeg = radToDeg(yaw);
+      deltaYawDeg = 0;
+      newL = curL;
+      newW = curW;
+      newH = curH;
+      let shiftLx = 0;
+      let bumperLabel = "Đón tia";
+      if (options.egoPos) {
+        const dxEgo = options.egoPos.x - cx;
+        const dyEgo = options.egoPos.y - cy;
+        const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
+        if (lxEgo > 0.4) {
+          shiftLx = lxMax - curL / 2;
+          bumperLabel = "Cản trước";
+        } else if (lxEgo < -0.4) {
+          shiftLx = lxMin + curL / 2;
+          bumperLabel = "Cản sau";
+        } else {
+          shiftLx = (lxMin + lxMax) / 2;
+          bumperLabel = "Cân đối";
+        }
+      } else {
+        const frontCount = bodyPts.filter((p) => p.lx > 0).length;
+        const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
+        if (frontCount > rearCount * 1.5) {
+          shiftLx = lxMax - curL / 2;
+          bumperLabel = "Cản trước";
+        } else if (rearCount > frontCount * 1.5) {
+          shiftLx = lxMin + curL / 2;
+          bumperLabel = "Cản sau";
+        } else {
+          shiftLx = (lxMin + lxMax) / 2;
+          bumperLabel = "Cân đối";
+        }
+      }
+      shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
+      newCenterZ = cz;
+      newCenterX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
+      newCenterY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
+      const deltaXSign = shiftLx >= 0 ? "+" : "";
+      msg = `Đã căn SIDE Xe 2 bánh: [${bumperLabel}] bám vệt lốp (ΔX: ${deltaXSign}${(shiftLx * 100).toFixed(1)}cm, giữ nguyên cao độ Z), Khóa L: ${newL}m`;
+    } else if (step === "front") {
+      newYawRad = yaw;
+      newYawDeg = radToDeg(yaw);
+      deltaYawDeg = 0;
+      newL = curL;
+      newW = curW;
+      newH = curH;
+      newCenterZ = cz;
+      let visibleSide;
+      if (options.egoPos) {
+        const toEgoX = options.egoPos.x - cx;
+        const toEgoY = options.egoPos.y - cy;
+        const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+        visibleSide = egoLocalY >= 0 ? "left" : "right";
+      } else {
+        const leftCount = bodyPts.filter((p) => p.ly > 0.05).length;
+        const rightCount = bodyPts.filter((p) => p.ly < -0.05).length;
+        visibleSide = leftCount >= rightCount ? "left" : "right";
+      }
+      const edgePadding = 0.05;
+      let shiftLy = 0;
+      if (lyMin <= -0.06 && lyMax >= 0.06) {
+        shiftLy = (lyMin + lyMax) / 2;
+      } else if (visibleSide === "left") {
+        shiftLy = lyMax + edgePadding - curW / 2;
+      } else {
+        shiftLy = lyMin - edgePadding + curW / 2;
+      }
+      shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
+      newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
+      const deltaYSign = shiftLy >= 0 ? "+" : "";
+      const sideText = visibleSide === "left" ? "Sườn Trái" : "Sườn Phải";
+      msg = `Đã căn FRONT Xe 2 bánh: [${sideText}] đón tia ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm), giữ nguyên cao độ Z và kích thước (chuẩn Car)`;
+    } else if (step === "w") {
+      newYawRad = yaw;
+      newYawDeg = radToDeg(yaw);
+      deltaYawDeg = 0;
+      newL = curL;
+      newH = curH;
+      newCenterZ = cz;
+      let shiftLy = 0;
+      let measuredW = curW;
+      if (lyMin <= -0.06 && lyMax >= 0.06) {
+        measuredW = lyMax - lyMin + 0.16;
+        shiftLy = (lyMin + lyMax) / 2;
+        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      } else if (lyMax > 0 && lyMin > -0.06) {
+        measuredW = 2 * (lyMax + 0.1);
+        shiftLy = 0;
+      } else if (lyMin < 0 && lyMax < 0.06) {
+        measuredW = 2 * (Math.abs(lyMin) + 0.1);
+        shiftLy = 0;
+      } else {
+        measuredW = lyMax - lyMin + 0.16;
+        shiftLy = (lyMin + lyMax) / 2;
+        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      }
+      newW = Number(Math.max(0.55, Math.min(1.45, measuredW)).toFixed(2));
+      newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
+      newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
+      const deltaYSign = shiftLy >= 0 ? "+" : "";
+      msg = `Đã fit Rộng (W) Xe 2 bánh: W=${newW}m (Đệm +5cm bắt trọn gương/tay lái), căn Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên L, H & Z`;
+    } else if (step === "h") {
+      newYawRad = yaw;
+      newYawDeg = radToDeg(yaw);
+      deltaYawDeg = 0;
+      newL = curL;
+      newW = curW;
+      newCenterX = cx;
+      newCenterY = cy;
+      const currentBaseZ = cz - curH / 2;
+      const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
+      const roofTopZ2 = highestPtZ + Math.max(0.12, headBuffer);
+      newH = Number(Math.max(1.15, Math.min(2.2, roofTopZ2 - effectiveBaseZ)).toFixed(2));
+      newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
+      msg = `Đã fit Cao (H) Xe 2 bánh: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên nóc +12cm), giữ nguyên L, W & XY`;
+    } else {
+      const headingRes = estimateTwoWheelerHeading(bodyPts, yaw);
+      newYawRad = headingRes.newYawRad;
+      newYawDeg = headingRes.newYawDeg;
+      deltaYawDeg = headingRes.deltaYawDeg;
+      newL = curL;
+      let shiftLx = 0;
+      const frontCount = bodyPts.filter((p) => p.lx > 0).length;
+      const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
+      if (frontCount > rearCount * 1.5) {
+        shiftLx = lxMax - curL / 2;
+      } else if (rearCount > frontCount * 1.5) {
+        shiftLx = lxMin + curL / 2;
+      } else {
+        shiftLx = (lxMin + lxMax) / 2;
+      }
+      shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
+      let shiftLy = 0;
+      let measuredW = curW;
+      if (lyMin <= -0.06 && lyMax >= 0.06) {
+        measuredW = lyMax - lyMin + 0.12;
+        shiftLy = (lyMin + lyMax) / 2;
+        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      } else if (lyMax > 0 && lyMin > -0.06) {
+        measuredW = 2 * (lyMax + 0.08);
+        shiftLy = 0;
+      } else if (lyMin < 0 && lyMax < 0.06) {
+        measuredW = 2 * (Math.abs(lyMin) + 0.08);
+        shiftLy = 0;
+      } else {
+        measuredW = lyMax - lyMin + 0.12;
+        shiftLy = (lyMin + lyMax) / 2;
+        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      }
+      newW = Number(Math.max(0.55, Math.min(1.35, measuredW)).toFixed(2));
+      roofTopZ = highestPtZ + headBuffer;
+      newH = Number(Math.max(1.15, Math.min(2.2, roofTopZ - groundZ)).toFixed(2));
+      newCenterZ = Number((groundZ + newH / 2).toFixed(3));
+      const cosWorld = Math.cos(newYawRad);
+      const sinWorld = Math.sin(newYawRad);
+      newCenterX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
+      newCenterY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
+      msg = `Đã fit toàn diện Xe 2 bánh: ${newL}x${newW}x${newH}m (Khóa L, Xoay Yaw ${newYawDeg}°, Ghim đất Z: ${newCenterZ}m)`;
+    }
+    return {
+      newCenterX,
+      newCenterY,
+      newCenterZ,
+      newYawRad,
+      newYawDeg,
+      deltaYawDeg,
+      newL,
+      newW,
+      newH,
+      pitchRad: 0,
+      rollRad: 0,
+      pitchDeg: 0,
+      rollDeg: 0,
+      groundZ: Number(groundZ.toFixed(3)),
+      roofTopZ: Number(roofTopZ.toFixed(3)),
+      pointsCount: bodyPts.length,
+      step,
+      message: msg
+    };
+  }
+  function fitCyclistBox(pts, cx, cy, cz, yaw, curL = 1.75, curW = 0.65, curH = 1.55, options = {}, step = "all") {
+    return fitTwoWheelerBox(pts, cx, cy, cz, yaw, curL, curW, curH, options, step);
   }
   function pointsToBox(points) {
     return {
@@ -290,10 +1696,20 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   if (typeof globalThis !== "undefined") {
     globalThis.boxCorners = boxCorners;
     globalThis.BOX_EDGES = BOX_EDGES;
+    globalThis.fitBoxToEgoRayAndGround = fitBoxToEgoRayAndGround;
+    globalThis.fitPedestrianBox = fitPedestrianBox;
+    globalThis.fitCyclistBox = fitCyclistBox;
+    globalThis.fitTwoWheelerBox = fitTwoWheelerBox;
+    globalThis.estimateTwoWheelerHeading = estimateTwoWheelerHeading;
   }
   if (typeof window !== "undefined") {
     window.boxCorners = boxCorners;
     window.BOX_EDGES = BOX_EDGES;
+    window.fitBoxToEgoRayAndGround = fitBoxToEgoRayAndGround;
+    window.fitPedestrianBox = fitPedestrianBox;
+    window.fitCyclistBox = fitCyclistBox;
+    window.fitTwoWheelerBox = fitTwoWheelerBox;
+    window.estimateTwoWheelerHeading = estimateTwoWheelerHeading;
   }
   function mainWorldScript() {
     if (window.__CVAT_3D_SUITE_INJECTED__) return;
@@ -357,23 +1773,32 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return null;
       }
     }
-    function detectAccurateGroundZ(cx, cy, cz, yaw, halfL, halfW, isInitialBox = false) {
+    function detectAccurateGroundZ(cx, cy, cz, yaw, halfL, halfW, halfH = 0.8, isInitialBox = false, lockRollFlat = false) {
       const lidar = getSceneLidarPoints();
       if (!lidar || lidar.count === 0) {
-        return { groundZ: null, pitchRad: 0, rollRad: 0, pitchDeg: 0, rollDeg: 0, groundPointsCount: 0 };
+        return {
+          groundZ: 0,
+          pitchRad: 0,
+          rollRad: 0,
+          pitchDeg: 0,
+          rollDeg: 0,
+          groundPointsCount: 0,
+          isFallbackZeroGround: true
+        };
       }
       const { count, array } = lidar;
       const cosY = Math.cos(-yaw);
       const sinY = Math.sin(-yaw);
       const groundPts = [];
-      const outerL = isInitialBox ? 3.5 : halfL + 1.3;
-      const outerW = isInitialBox ? 2.8 : halfW + 1.3;
-      const innerL = isInitialBox ? 0.3 : Math.max(0.4, halfL - 0.2);
-      const innerW = isInitialBox ? 0.3 : Math.max(0.3, halfW - 0.2);
-      const maxGroundZ = cz + 0.35;
+      const outerL = isInitialBox ? 3 : halfL + 0.55;
+      const outerW = isInitialBox ? 2 : halfW + 0.45;
+      const innerL = isInitialBox ? 0.2 : Math.max(0.15, halfL - 0.35);
+      const innerW = isInitialBox ? 0.2 : Math.max(0.15, halfW - 0.35);
+      const maxGroundZ = cz - Math.max(0.15, halfH * 0.4);
+      const minGroundZ = cz - 4.5;
       for (let i = 0; i < count; i++) {
         const z = array[i * 3 + 2];
-        if (z > maxGroundZ) continue;
+        if (z > maxGroundZ || z < minGroundZ) continue;
         const x = array[i * 3];
         const y = array[i * 3 + 1];
         const dx = x - cx;
@@ -386,25 +1811,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           groundPts.push({ lx, ly, z });
         }
       }
-      if (groundPts.length < 5) {
+      if (groundPts.length < 8) {
+        const extL = outerL + 0.25;
+        const extW = outerW + 0.25;
         for (let i = 0; i < count; i++) {
           const z = array[i * 3 + 2];
-          if (z > maxGroundZ) continue;
-          const dx = array[i * 3] - cx;
-          const dy = array[i * 3 + 1] - cy;
-          if (dx * dx + dy * dy <= outerL * outerL) {
-            const lx = dx * cosY - dy * sinY;
-            const ly = dx * sinY + dy * cosY;
-            groundPts.push({ lx, ly, z });
-          }
-        }
-      }
-      if (groundPts.length < 4) {
-        const extL = outerL + 1.8;
-        const extW = outerW + 1.8;
-        for (let i = 0; i < count; i++) {
-          const z = array[i * 3 + 2];
-          if (z > maxGroundZ) continue;
+          if (z > maxGroundZ || z < minGroundZ) continue;
           const dx = array[i * 3] - cx;
           const dy = array[i * 3 + 1] - cy;
           const lx = dx * cosY - dy * sinY;
@@ -414,36 +1826,85 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
       }
-      if (groundPts.length < 3) {
-        return { groundZ: null, pitchRad: 0, rollRad: 0, pitchDeg: 0, rollDeg: 0, groundPointsCount: groundPts.length };
+      if (groundPts.length < 6) {
+        return {
+          groundZ: 0,
+          pitchRad: 0,
+          rollRad: 0,
+          pitchDeg: 0,
+          rollDeg: 0,
+          groundPointsCount: groundPts.length,
+          isFallbackZeroGround: true
+        };
       }
-      const allZ = groundPts.map((p) => p.z).sort((a, b) => a - b);
-      const minZ = allZ[0];
-      const maxZ = allZ[allZ.length - 1];
-      const binSize = 0.02;
-      const binCount = Math.ceil((maxZ - minZ) / binSize) + 1;
-      const bins = new Float32Array(binCount);
-      for (const z of allZ) {
-        const idx = Math.min(binCount - 1, Math.max(0, Math.floor((z - minZ) / binSize)));
-        bins[idx] += 1;
+      groundPts.sort((a2, b2) => a2.z - b2.z);
+      const cutLow = Math.floor(groundPts.length * 0.01);
+      const sorted = groundPts.slice(cutLow);
+      let validPts = sorted;
+      const seedCount = Math.max(6, Math.floor(sorted.length * 0.35));
+      const seedPts = sorted.slice(0, seedCount);
+      let sumSeedLx = 0, sumSeedLy = 0, sumSeedZ = 0;
+      for (const p of seedPts) {
+        sumSeedLx += p.lx;
+        sumSeedLy += p.ly;
+        sumSeedZ += p.z;
       }
-      let bestBin = 0;
-      let bestScore = -1;
-      for (let i = 0; i < binCount; i++) {
-        const score = bins[i] + 0.5 * ((bins[i - 1] || 0) + (bins[i + 1] || 0));
-        if (score > bestScore) {
-          bestScore = score;
-          bestBin = i;
-        }
+      const meanSeedLx = sumSeedLx / seedCount;
+      const meanSeedLy = sumSeedLy / seedCount;
+      const meanSeedZ = sumSeedZ / seedCount;
+      let vSeedLx = 0, vSeedLy = 0, cSeedLxLy = 0, cSeedLxZ = 0, cSeedLyZ = 0;
+      for (const p of seedPts) {
+        const dlx = p.lx - meanSeedLx;
+        const dly = p.ly - meanSeedLy;
+        const dz = p.z - meanSeedZ;
+        vSeedLx += dlx * dlx;
+        vSeedLy += dly * dly;
+        cSeedLxLy += dlx * dly;
+        cSeedLxZ += dlx * dz;
+        cSeedLyZ += dly * dz;
       }
-      const peakZ = minZ + (bestBin + 0.5) * binSize;
-      const roadSurfacePts = groundPts.filter((p) => Math.abs(p.z - peakZ) <= 0.06);
-      const fitPts = roadSurfacePts.length >= 4 ? roadSurfacePts : groundPts;
+      const detSeed = vSeedLx * vSeedLy - cSeedLxLy * cSeedLxLy;
+      let aSeed = 0, bSeed = 0, c0Seed = meanSeedZ;
+      if (Math.abs(detSeed) > 1e-4) {
+        aSeed = (cSeedLxZ * vSeedLy - cSeedLyZ * cSeedLxLy) / detSeed;
+        bSeed = (cSeedLyZ * vSeedLx - cSeedLxZ * cSeedLxLy) / detSeed;
+        c0Seed = meanSeedZ - aSeed * meanSeedLx - bSeed * meanSeedLy;
+      }
+      const inliers = sorted.filter((p) => {
+        const expectedZ = aSeed * p.lx + bSeed * p.ly + c0Seed;
+        const diff = p.z - expectedZ;
+        return diff >= -0.08 && diff <= 0.08;
+      });
+      if (inliers.length >= 6 && inliers.length >= sorted.length * 0.2) {
+        validPts = inliers;
+      }
+      const qFL = [];
+      const qFR = [];
+      const qRL = [];
+      const qRR = [];
+      for (const p of validPts) {
+        if (p.lx >= 0 && p.ly >= 0) qFL.push(p);
+        else if (p.lx >= 0 && p.ly < 0) qFR.push(p);
+        else if (p.lx < 0 && p.ly >= 0) qRL.push(p);
+        else qRR.push(p);
+      }
+      const fitPts = [];
+      const takeRatio = 0.45;
+      const addLowestFromQuadrant = (q) => {
+        if (q.length === 0) return;
+        const count2 = Math.max(1, Math.floor(q.length * takeRatio));
+        fitPts.push(...q.slice(0, count2));
+      };
+      addLowestFromQuadrant(qFL);
+      addLowestFromQuadrant(qFR);
+      addLowestFromQuadrant(qRL);
+      addLowestFromQuadrant(qRR);
+      const finalPts = fitPts.length >= 4 ? fitPts : validPts.slice(0, Math.max(4, Math.floor(validPts.length * 0.45)));
       let sumLx = 0;
       let sumLy = 0;
       let sumZ = 0;
-      const N = fitPts.length;
-      for (const p of fitPts) {
+      const N = finalPts.length;
+      for (const p of finalPts) {
         sumLx += p.lx;
         sumLy += p.ly;
         sumZ += p.z;
@@ -456,7 +1917,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       let covLxLy = 0;
       let covLxZ = 0;
       let covLyZ = 0;
-      for (const p of fitPts) {
+      for (const p of finalPts) {
         const dlx = p.lx - meanLx;
         const dly = p.ly - meanLy;
         const dz = p.z - meanZ;
@@ -469,23 +1930,1340 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const det = varLx * varLy - covLxLy * covLxLy;
       let pitchRad = 0;
       let rollRad = 0;
-      let c0 = peakZ;
+      let c0 = meanZ;
+      let a = 0;
+      let b = 0;
+      const maxPitchRad = 20 * Math.PI / 180;
+      const maxRollRad = 25 * Math.PI / 180;
       if (Math.abs(det) > 1e-4) {
-        const a = (covLxZ * varLy - covLyZ * covLxLy) / det;
-        const b = (covLyZ * varLx - covLxZ * covLxLy) / det;
-        const maxPitchRad = 20 * Math.PI / 180;
-        const maxRollRad = 25 * Math.PI / 180;
+        a = (covLxZ * varLy - covLyZ * covLxLy) / det;
+        b = (covLyZ * varLx - covLxZ * covLxLy) / det;
         pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(a)));
         rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, Math.atan(b)));
         c0 = meanZ - a * meanLx - b * meanLy;
+      } else {
+        const pIdx = Math.floor(finalPts.length * 0.15);
+        c0 = finalPts[pIdx].z;
       }
+      if (Math.abs(det) > 1e-4) {
+        let sumRes = 0;
+        for (const p of finalPts) {
+          const expectedZ = a * p.lx + b * p.ly + c0;
+          sumRes += Math.abs(p.z - expectedZ);
+        }
+        sumRes / finalPts.length;
+      }
+      const p12Idx = Math.max(0, Math.floor(validPts.length * 0.12));
+      const lowestRoadZ = validPts[p12Idx].z;
+      const leftPtsZ = validPts.filter((p) => p.ly > 0.15).map((p) => p.z).sort((a2, b2) => a2 - b2);
+      const rightPtsZ = validPts.filter((p) => p.ly < -0.15).map((p) => p.z).sort((a2, b2) => a2 - b2);
+      let isCurbOrRamp = lockRollFlat === true;
+      if (!isCurbOrRamp && leftPtsZ.length >= 3 && rightPtsZ.length >= 3) {
+        const leftMedian = leftPtsZ[Math.floor(leftPtsZ.length * 0.25)];
+        const rightMedian = rightPtsZ[Math.floor(rightPtsZ.length * 0.25)];
+        const stepDeltaZ = Math.abs(leftMedian - rightMedian);
+        const lowerPts = leftMedian < rightMedian ? leftPtsZ : rightPtsZ;
+        const lowerSpread = lowerPts[Math.floor(lowerPts.length * 0.75)] - lowerPts[Math.floor(lowerPts.length * 0.25)];
+        if (stepDeltaZ >= 0.08 && lowerSpread < 0.05) {
+          isCurbOrRamp = true;
+        }
+      }
+      if (isCurbOrRamp) {
+        rollRad = 0;
+        c0 = lowestRoadZ;
+        const roadPts = validPts.filter((p) => p.z <= lowestRoadZ + 0.1);
+        if (roadPts.length >= 4) {
+          let sLx = 0;
+          let sZ = 0;
+          for (const p of roadPts) {
+            sLx += p.lx;
+            sZ += p.z;
+          }
+          const mLx = sLx / roadPts.length;
+          const mZ = sZ / roadPts.length;
+          let vLx = 0;
+          let cLxZ = 0;
+          for (const p of roadPts) {
+            const dlx = p.lx - mLx;
+            const dz = p.z - mZ;
+            vLx += dlx * dlx;
+            cLxZ += dlx * dz;
+          }
+          if (vLx > 1e-4) {
+            const aRoad = cLxZ / vLx;
+            pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(aRoad)));
+          }
+        }
+      }
+      let pitchRadVal = Number(pitchRad.toFixed(5));
+      let rollRadVal = Number(rollRad.toFixed(5));
+      let pitchDegVal = Number((pitchRad * 180 / Math.PI).toFixed(2));
+      let rollDegVal = Number((rollRad * 180 / Math.PI).toFixed(2));
+      if (Math.abs(pitchRadVal) < 1e-6) pitchRadVal = 0;
+      if (Math.abs(rollRadVal) < 1e-6) rollRadVal = 0;
+      if (Math.abs(pitchDegVal) < 1e-4) pitchDegVal = 0;
+      if (Math.abs(rollDegVal) < 1e-4) rollDegVal = 0;
       return {
         groundZ: Number(c0.toFixed(3)),
-        pitchRad: Number(pitchRad.toFixed(5)),
-        rollRad: Number(rollRad.toFixed(5)),
-        pitchDeg: Number((pitchRad * 180 / Math.PI).toFixed(2)),
-        rollDeg: Number((rollRad * 180 / Math.PI).toFixed(2)),
-        groundPointsCount: fitPts.length
+        pitchRad: pitchRadVal,
+        rollRad: rollRadVal,
+        pitchDeg: pitchDegVal,
+        rollDeg: rollDegVal,
+        groundPointsCount: finalPts.length
+      };
+    }
+    function detectCurbStepAndRollInMainWorld(cx, cy, cz, yaw, halfL, halfW, trackW) {
+      const lidar = getSceneLidarPoints();
+      if (!lidar || lidar.count === 0) {
+        return { hasCurb: false, side: "none", curbHeight: 0.15, curbHeightCm: 15, rollRad: 0, rollDeg: 0, roadGroundZ: cz - 0.7, deltaCenterZ: 0.075 };
+      }
+      const { count, array } = lidar;
+      const cosY = Math.cos(-yaw);
+      const sinY = Math.sin(-yaw);
+      const effectiveW = trackW !== void 0 ? trackW : halfW * 2;
+      const minLy = Math.max(0.2, halfW * 0.7);
+      const maxLy = halfW + 0.85;
+      const maxLx = halfL + 0.55;
+      const maxZ = cz - 0.15;
+      const minZ = cz - 4.5;
+      const leftPts = [];
+      const rightPts = [];
+      for (let i = 0; i < count; i++) {
+        const z = array[i * 3 + 2];
+        if (z > maxZ || z < minZ) continue;
+        const x = array[i * 3];
+        const y = array[i * 3 + 1];
+        const lx = (x - cx) * cosY - (y - cy) * sinY;
+        const ly = (x - cx) * sinY + (y - cy) * cosY;
+        if (Math.abs(lx) > maxLx) continue;
+        if (ly >= minLy && ly <= maxLy) {
+          leftPts.push(z);
+        } else if (ly <= -minLy && ly >= -maxLy) {
+          rightPts.push(z);
+        }
+      }
+      if (leftPts.length < 3 || rightPts.length < 3) {
+        return { hasCurb: false, side: "none", curbHeight: 0.15, curbHeightCm: 15, rollRad: 0, rollDeg: 0, roadGroundZ: cz - 0.7, deltaCenterZ: 0.075 };
+      }
+      leftPts.sort((a, b) => a - b);
+      rightPts.sort((a, b) => a - b);
+      const leftZ = leftPts[Math.floor(leftPts.length * 0.25)];
+      const rightZ = rightPts[Math.floor(rightPts.length * 0.25)];
+      const deltaZ = leftZ - rightZ;
+      const absDeltaZ = Math.abs(deltaZ);
+      if (absDeltaZ >= 0.07 && absDeltaZ <= 0.32) {
+        const curbHeight = Number(absDeltaZ.toFixed(3));
+        const curbHeightCm = Math.round(curbHeight * 100);
+        const side = deltaZ > 0 ? "left" : "right";
+        const ratio = Math.max(-0.6, Math.min(0.6, deltaZ / effectiveW));
+        const rollRad = Number(Math.asin(ratio).toFixed(5));
+        const rollDeg = Number((rollRad * 180 / Math.PI).toFixed(2));
+        const roadGroundZ = Number(Math.min(leftZ, rightZ).toFixed(3));
+        const deltaCenterZ = Number((curbHeight / 2).toFixed(3));
+        return {
+          hasCurb: true,
+          side,
+          curbHeight,
+          curbHeightCm,
+          rollRad,
+          rollDeg,
+          roadGroundZ,
+          deltaCenterZ
+        };
+      }
+      return {
+        hasCurb: false,
+        side: "none",
+        curbHeight: Number(absDeltaZ.toFixed(3)),
+        curbHeightCm: Math.round(absDeltaZ * 100),
+        rollRad: 0,
+        rollDeg: 0,
+        roadGroundZ: Number(Math.min(leftZ, rightZ).toFixed(3)),
+        deltaCenterZ: 0
+      };
+    }
+    function filterDenseConnectedCluster1D2(pts, axis, maxGap = 0.22, centerBias = 0) {
+      if (pts.length < 8) return pts;
+      const sorted = [...pts].sort((a, b) => a[axis] - b[axis]);
+      const clusters = [];
+      let currentCluster = [sorted[0]];
+      for (let i = 1; i < sorted.length; i++) {
+        const gap = sorted[i][axis] - sorted[i - 1][axis];
+        if (gap > maxGap) {
+          clusters.push(currentCluster);
+          currentCluster = [sorted[i]];
+        } else {
+          currentCluster.push(sorted[i]);
+        }
+      }
+      if (currentCluster.length > 0) {
+        clusters.push(currentCluster);
+      }
+      if (clusters.length === 1) {
+        return pts;
+      }
+      let bestCluster = clusters[0];
+      let minDistanceToCenter = Infinity;
+      for (const c of clusters) {
+        if (c.length < 2) continue;
+        let clusterMinDist = Infinity;
+        for (const p of c) {
+          const d = Math.abs(p[axis] - centerBias);
+          if (d < clusterMinDist) clusterMinDist = d;
+        }
+        if (clusterMinDist < minDistanceToCenter - 0.05) {
+          minDistanceToCenter = clusterMinDist;
+          bestCluster = c;
+        } else if (Math.abs(clusterMinDist - minDistanceToCenter) <= 0.05) {
+          if (c.length > bestCluster.length) {
+            bestCluster = c;
+          }
+        }
+      }
+      if (bestCluster.length >= 4) {
+        return bestCluster;
+      }
+      return pts;
+    }
+    function detectAdaptiveBounds2(sortedValues, isYAxis = false) {
+      const n = sortedValues.length;
+      if (n < 8) {
+        return { min: sortedValues[0] ?? 0, max: sortedValues[n - 1] ?? 0 };
+      }
+      const pMinIdx = Math.max(0, Math.floor(n * 5e-3));
+      const pMaxIdx = Math.min(n - 1, Math.floor(n * 0.995));
+      let minVal = sortedValues[pMinIdx];
+      let maxVal = sortedValues[pMaxIdx];
+      const minGap = isYAxis ? 0.14 : 0.25;
+      const maxNoisePoints = Math.max(2, Math.min(12, Math.floor(n * 0.06)));
+      for (let i = n - 1; i >= Math.floor(n * 0.65); i--) {
+        const gap = sortedValues[i] - sortedValues[i - 1];
+        const pointsAfter = n - i;
+        if (gap >= minGap && pointsAfter <= maxNoisePoints) {
+          maxVal = sortedValues[i - 1];
+          break;
+        }
+      }
+      for (let i = 0; i <= Math.floor(n * 0.35); i++) {
+        const gap = sortedValues[i + 1] - sortedValues[i];
+        const pointsBefore = i + 1;
+        if (gap >= minGap && pointsBefore <= maxNoisePoints) {
+          minVal = sortedValues[i + 1];
+          break;
+        }
+      }
+      return {
+        min: Number(minVal.toFixed(2)),
+        max: Number(maxVal.toFixed(2))
+      };
+    }
+    function computeDensityRobustBounds2(pts, options = {}) {
+      if (pts.length === 0) {
+        return { lxMin: 0, lxMax: 0, lyMin: 0, lyMax: 0, zTop: 0, validPointsCount: 0 };
+      }
+      const rorRadius = options.rorRadius ?? 0.35;
+      const rorMinNeighbors = options.rorMinNeighbors ?? 1;
+      let cleanPts = pts;
+      if (pts.length >= 12) {
+        const rorFiltered = [];
+        const r2 = rorRadius * rorRadius;
+        for (let i = 0; i < pts.length; i++) {
+          let neighbors = 0;
+          const pi = pts[i];
+          for (let j = 0; j < pts.length; j++) {
+            if (i === j) continue;
+            const pj = pts[j];
+            const dx = pi.lx - pj.lx;
+            const dy = pi.ly - pj.ly;
+            const dz = pi.z - pj.z;
+            if (dx * dx + dy * dy + dz * dz <= r2) {
+              neighbors++;
+              if (neighbors >= rorMinNeighbors) break;
+            }
+          }
+          if (neighbors >= rorMinNeighbors) {
+            rorFiltered.push(pi);
+          }
+        }
+        if (rorFiltered.length >= 8 && rorFiltered.length >= pts.length * 0.5) {
+          cleanPts = rorFiltered;
+        }
+      }
+      const allLx = cleanPts.map((p) => p.lx).sort((a, b) => a - b);
+      const allLy = cleanPts.map((p) => p.ly).sort((a, b) => a - b);
+      const allZ = cleanPts.map((p) => p.z).sort((a, b) => a - b);
+      const fallbackLxMin = allLx[0];
+      const fallbackLxMax = allLx[allLx.length - 1];
+      const fallbackLyMin = allLy[0];
+      const fallbackLyMax = allLy[allLy.length - 1];
+      const zTop = allZ[allZ.length - 1];
+      if (cleanPts.length < 10) {
+        return {
+          lxMin: fallbackLxMin,
+          lxMax: fallbackLxMax,
+          lyMin: fallbackLyMin,
+          lyMax: fallbackLyMax,
+          zTop,
+          validPointsCount: cleanPts.length
+        };
+      }
+      const boundsX = detectAdaptiveBounds2(allLx, false);
+      const boundsY = detectAdaptiveBounds2(allLy, true);
+      return {
+        lxMin: boundsX.min,
+        lxMax: boundsX.max,
+        lyMin: boundsY.min,
+        lyMax: boundsY.max,
+        zTop,
+        validPointsCount: cleanPts.length
+      };
+    }
+    function filterSparseNoiseByLocalDensity2(pts, options = {}) {
+      if (pts.length < 8) return pts;
+      const radius = options.radius ?? 0.12;
+      const r2 = radius * radius;
+      const n = pts.length;
+      const densities = new Int32Array(n);
+      for (let i = 0; i < n; i++) {
+        const pi = pts[i];
+        let count = 0;
+        for (let j = 0; j < n; j++) {
+          const pj = pts[j];
+          const dx = pi.lx - pj.lx;
+          const dy = pi.ly - pj.ly;
+          const dz = pi.z - pj.z;
+          if (dx * dx + dy * dy + dz * dz <= r2) count++;
+        }
+        densities[i] = count;
+      }
+      const sorted = Array.from(densities).sort((a, b) => a - b);
+      const medianDensity = sorted[Math.floor(n / 2)];
+      const adaptiveRatio = options.adaptiveRatio ?? 0.25;
+      const userMin = options.minCoreNeighbors ?? 3;
+      const coreThreshold = Math.max(userMin, Math.floor(medianDensity * adaptiveRatio));
+      const corePts = [];
+      for (let i = 0; i < n; i++) {
+        if (densities[i] >= coreThreshold) corePts.push(pts[i]);
+      }
+      if (corePts.length >= 6 && corePts.length >= n * 0.4) return corePts;
+      return pts;
+    }
+    function detectDominantWallEdgeWithValleyCutoff2(pts, axis, direction, nominalHalf, options = {}) {
+      const isPos = direction === "positive";
+      const orthAxis = axis === "ly" ? "lx" : "ly";
+      const binSize = options.binSize ?? 0.03;
+      const minSpanOrth = options.minSpanOrthogonal ?? (axis === "ly" ? 0.7 : 0.6);
+      const maxSearchExt = options.maxSearchExtension ?? 0.35;
+      const candidatePts = pts.filter((p) => isPos ? p[axis] > 0.02 : p[axis] < -0.02);
+      if (candidatePts.length < 3) {
+        return {
+          edge: isPos ? nominalHalf : -nominalHalf,
+          wallPoints: candidatePts,
+          peakDensity: candidatePts.length
+        };
+      }
+      const maxDist = nominalHalf + maxSearchExt;
+      const numBins = Math.ceil(maxDist / binSize) + 2;
+      const bins = Array.from({ length: numBins }, () => []);
+      for (const p of candidatePts) {
+        const dist = isPos ? p[axis] : -p[axis];
+        if (dist >= 0 && dist <= maxDist) {
+          const bIdx = Math.min(numBins - 1, Math.floor(dist / binSize));
+          bins[bIdx].push(p);
+        }
+      }
+      const nominalMinBin = Math.max(0, Math.floor((nominalHalf - 0.45) / binSize));
+      const nominalMaxBin = Math.min(numBins - 1, Math.floor((nominalHalf + maxSearchExt) / binSize));
+      let peakBin = nominalMinBin;
+      let maxCount = 0;
+      for (let b = nominalMinBin; b <= nominalMaxBin; b++) {
+        const count = bins[b].length;
+        if (count > maxCount) {
+          maxCount = count;
+          peakBin = b;
+        }
+      }
+      if (maxCount < 2) {
+        for (let b = 1; b < numBins - 1; b++) {
+          if (bins[b].length > maxCount) {
+            maxCount = bins[b].length;
+            peakBin = b;
+          }
+        }
+      }
+      if (maxCount === 0) {
+        return {
+          edge: isPos ? nominalHalf : -nominalHalf,
+          wallPoints: candidatePts,
+          peakDensity: 0
+        };
+      }
+      const minWallDensity = Math.max(2, Math.floor(maxCount * 0.15));
+      let outerWallBin = peakBin;
+      let consecutiveEmptyBins = 0;
+      for (let b = peakBin + 1; b < numBins; b++) {
+        const ptsInBin = bins[b];
+        const count = ptsInBin.length;
+        if (count === 0) {
+          consecutiveEmptyBins++;
+          if (consecutiveEmptyBins >= 2) {
+            break;
+          }
+          continue;
+        }
+        const distCenter = (b + 0.5) * binSize;
+        if (count < minWallDensity && distCenter > nominalHalf) {
+          consecutiveEmptyBins++;
+          if (consecutiveEmptyBins >= 2) {
+            break;
+          }
+          continue;
+        }
+        if (distCenter > nominalHalf - 0.05) {
+          const orthVals = ptsInBin.map((p) => p[orthAxis]);
+          const spanOrth = Math.max(...orthVals) - Math.min(...orthVals);
+          if (count <= 6 && spanOrth < minSpanOrth * 0.6) {
+            if (b > peakBin + 1) {
+              break;
+            }
+          }
+        }
+        consecutiveEmptyBins = 0;
+        outerWallBin = b;
+      }
+      const collectedWallPoints = [];
+      for (let b = 0; b <= outerWallBin; b++) {
+        for (const p of bins[b]) {
+          collectedWallPoints.push(p);
+        }
+      }
+      const outerEdgePts = [];
+      const edgeStartBin = Math.max(0, outerWallBin - 3);
+      for (let b = edgeStartBin; b <= outerWallBin; b++) {
+        for (const p of bins[b]) {
+          outerEdgePts.push(p);
+        }
+      }
+      if (outerEdgePts.length >= 3) {
+        const dists = outerEdgePts.map((p) => isPos ? p[axis] : -p[axis]).sort((a, b) => a - b);
+        const pIdx = Math.max(0, Math.min(dists.length - 1, Math.floor(dists.length * 0.95)));
+        const chosenDist = dists[pIdx];
+        const edge2 = isPos ? Number(chosenDist.toFixed(3)) : Number((-chosenDist).toFixed(3));
+        return {
+          edge: edge2,
+          wallPoints: collectedWallPoints,
+          peakDensity: maxCount
+        };
+      }
+      const fallbackDist = (outerWallBin + 1) * binSize;
+      const edge = isPos ? Number(fallbackDist.toFixed(3)) : Number((-fallbackDist).toFixed(3));
+      return {
+        edge,
+        wallPoints: collectedWallPoints.length > 0 ? collectedWallPoints : candidatePts,
+        peakDensity: maxCount
+      };
+    }
+    function detectRoofTopBounds2(pts, expectedRoofZ) {
+      if (pts.length === 0) return expectedRoofZ ?? 0;
+      const zValues = pts.map((p) => p.z).sort((a, b) => a - b);
+      const n = zValues.length;
+      if (n < 6) return zValues[n - 1];
+      let maxRoofZ = zValues[n - 1];
+      const minGap = 0.22;
+      const maxNoisePoints = Math.max(2, Math.min(8, Math.floor(n * 0.08)));
+      for (let i = n - 1; i >= Math.floor(n * 0.55); i--) {
+        const gap = zValues[i] - zValues[i - 1];
+        const pointsAfter = n - i;
+        if (gap >= minGap && pointsAfter <= maxNoisePoints) {
+          maxRoofZ = zValues[i - 1];
+          break;
+        }
+      }
+      return Number(maxRoofZ.toFixed(3));
+    }
+    function straightenYawFromBoundaryEdge2(pts, currentYaw, L, _W, visibleLateral, options = {}) {
+      const maxAdjDeg = options.maxAdjustmentDeg ?? 8;
+      const maxAdjRad = maxAdjDeg * Math.PI / 180;
+      const isLeft = visibleLateral === "left";
+      const sidePts = pts.filter((p) => (isLeft ? p.ly > 0 : p.ly < 0) && Math.abs(p.lx) <= L / 2);
+      if (sidePts.length < 8) {
+        return {
+          newYawRad: currentYaw,
+          newYawDeg: Number((currentYaw * 180 / Math.PI).toFixed(2)),
+          deltaYawDeg: 0,
+          slope: 0
+        };
+      }
+      const numSlices = 10;
+      const sliceWidth = L / numSlices;
+      const slicePoints = [];
+      for (let s = 0; s < numSlices; s++) {
+        const minLx = -L / 2 + s * sliceWidth;
+        const maxLx = minLx + sliceWidth;
+        const inSlice = sidePts.filter((p) => p.lx >= minLx && p.lx < maxLx);
+        if (inSlice.length >= 1) {
+          if (isLeft) {
+            const sortedLy = inSlice.map((p) => p.ly).sort((a, b) => a - b);
+            const pIdx = Math.max(0, Math.floor(sortedLy.length * 0.9));
+            const medianLx = (minLx + maxLx) / 2;
+            slicePoints.push({ lx: medianLx, ly: sortedLy[pIdx] });
+          } else {
+            const sortedLy = inSlice.map((p) => p.ly).sort((a, b) => a - b);
+            const pIdx = Math.min(sortedLy.length - 1, Math.floor(sortedLy.length * 0.1));
+            const medianLx = (minLx + maxLx) / 2;
+            slicePoints.push({ lx: medianLx, ly: sortedLy[pIdx] });
+          }
+        }
+      }
+      if (slicePoints.length < 4) {
+        return {
+          newYawRad: currentYaw,
+          newYawDeg: Number((currentYaw * 180 / Math.PI).toFixed(2)),
+          deltaYawDeg: 0,
+          slope: 0
+        };
+      }
+      const slopes = [];
+      for (let i = 0; i < slicePoints.length; i++) {
+        for (let j = i + 1; j < slicePoints.length; j++) {
+          const dx = slicePoints[j].lx - slicePoints[i].lx;
+          const dy = slicePoints[j].ly - slicePoints[i].ly;
+          if (Math.abs(dx) >= 0.25) {
+            slopes.push(dy / dx);
+          }
+        }
+      }
+      let slope = 0;
+      if (slopes.length >= 3) {
+        slopes.sort((a, b) => a - b);
+        slope = slopes[Math.floor(slopes.length / 2)];
+      } else {
+        let sumLx = 0, sumLy = 0, sumLxLy = 0, sumLx2 = 0;
+        const m = slicePoints.length;
+        for (const p of slicePoints) {
+          sumLx += p.lx;
+          sumLy += p.ly;
+          sumLxLy += p.lx * p.ly;
+          sumLx2 += p.lx * p.lx;
+        }
+        const denom = m * sumLx2 - sumLx * sumLx;
+        slope = Math.abs(denom) > 1e-6 ? (m * sumLxLy - sumLx * sumLy) / denom : 0;
+      }
+      let deltaYaw = Math.atan(slope);
+      deltaYaw = Math.max(-maxAdjRad, Math.min(maxAdjRad, deltaYaw));
+      let deltaYawDeg = Number((deltaYaw * 180 / Math.PI).toFixed(2));
+      if (Math.abs(deltaYawDeg) < 0.25) {
+        deltaYaw = 0;
+        deltaYawDeg = 0;
+      }
+      let newYaw = currentYaw + deltaYaw;
+      while (newYaw > Math.PI) newYaw -= 2 * Math.PI;
+      while (newYaw < -Math.PI) newYaw += 2 * Math.PI;
+      return {
+        newYawRad: Number(newYaw.toFixed(5)),
+        newYawDeg: Number((newYaw * 180 / Math.PI).toFixed(2)),
+        deltaYawDeg,
+        slope: Number(slope.toFixed(4))
+      };
+    }
+    function fitBoxToEgoRayAndGroundInMainWorld(points, egoPos = { x: 0, y: 0, z: 0 }, options = {}) {
+      const cx = points[0];
+      const cy = points[1];
+      const cz = points[2];
+      const yaw = points[5];
+      const L = points[6];
+      const W = points[7];
+      const H = points[8];
+      const lidar = getSceneLidarPoints();
+      if (!lidar || lidar.count === 0) {
+        return {
+          newX: cx,
+          newY: cy,
+          newZ: cz,
+          newYawRad: yaw,
+          newYawDeg: Number((yaw * 180 / Math.PI).toFixed(2)),
+          deltaYawDeg: 0,
+          newL: L,
+          newW: W,
+          newH: H,
+          pitchRad: 0,
+          rollRad: 0,
+          pitchDeg: 0,
+          rollDeg: 0,
+          groundZ: cz - H / 2,
+          roofTopZ: cz + H / 2,
+          visibleFaces: { longitudinal: "front", lateral: "left" },
+          pointsCount: 0,
+          message: "Không tìm thấy điểm LiDAR trong scene"
+        };
+      }
+      const { count, array } = lidar;
+      const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, L / 2, W / 2, H / 2, false, false);
+      const groundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : 0;
+      const pitchRad = groundInfo.pitchRad;
+      const rollRad = groundInfo.rollRad;
+      const cosY = Math.cos(-yaw);
+      const sinY = Math.sin(-yaw);
+      const minBodyZ = groundZ + 0.05;
+      const maxRoofZ = groundZ + H + 0.55;
+      const fitStep = options.fitStep ?? "all";
+      const outerL = L / 2 + 0.45;
+      const outerW = W / 2 + 0.35;
+      const rawBodyPts = [];
+      for (let i = 0; i < count; i++) {
+        const z = array[i * 3 + 2];
+        if (z < minBodyZ || z > maxRoofZ) continue;
+        const x = array[i * 3];
+        const y = array[i * 3 + 1];
+        const dx = x - cx;
+        const dy = y - cy;
+        const lx = dx * cosY - dy * sinY;
+        const ly = dx * sinY + dy * cosY;
+        if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
+          rawBodyPts.push({ x, y, z, lx, ly });
+        }
+      }
+      const denseCorePts = filterSparseNoiseByLocalDensity2(rawBodyPts, { radius: 0.12, minCoreNeighbors: 2 });
+      const clusterLy = filterDenseConnectedCluster1D2(denseCorePts, "ly", 0.22, 0);
+      const bodyPts = filterDenseConnectedCluster1D2(clusterLy, "lx", 0.22, 0);
+      const dxEgo = cx - egoPos.x;
+      const dyEgo = cy - egoPos.y;
+      const vLocalX = -dxEgo * cosY + dyEgo * sinY;
+      const vLocalY = -dxEgo * sinY - dyEgo * cosY;
+      let visibleLongitudinal = vLocalX >= 0 ? "front" : "rear";
+      let visibleLateral = vLocalY >= 0 ? "left" : "right";
+      let shiftLx = 0;
+      let shiftLy = 0;
+      let roofTopZ = groundZ + H;
+      let newH = H;
+      let newL = L;
+      let newW = W;
+      let finalYaw = yaw;
+      let straightYawDeg = Number((yaw * 180 / Math.PI).toFixed(2));
+      let deltaYawDeg = 0;
+      const preserveDimensions = options.preserveDimensions ?? true;
+      const validBodyPts = bodyPts.length >= 4 ? bodyPts : denseCorePts.length >= 4 ? denseCorePts : rawBodyPts;
+      if (validBodyPts.length >= 4) {
+        const computeSideShift = (pts, targetL, targetW, currentYaw, center_x, center_y, ego_pos) => {
+          const toEgoX = ego_pos.x - center_x;
+          const toEgoY = ego_pos.y - center_y;
+          const egoLocalX = toEgoX * Math.cos(currentYaw) + toEgoY * Math.sin(currentYaw);
+          const frontBumperPts = pts.filter((p) => p.lx > 0.05);
+          const rearBumperPts = pts.filter((p) => p.lx < -0.05);
+          let visibleBumper;
+          if (frontBumperPts.length >= rearBumperPts.length + 3) {
+            visibleBumper = "front";
+          } else if (rearBumperPts.length >= frontBumperPts.length + 3) {
+            visibleBumper = "rear";
+          } else {
+            visibleBumper = egoLocalX >= 0 ? "front" : "rear";
+          }
+          const targetBumperPts = pts.filter((p) => Math.abs(p.ly) <= targetW / 2 + 0.15);
+          const activePtsForL = targetBumperPts.length >= 4 ? targetBumperPts : pts;
+          const bumperCloudPts = activePtsForL.filter((p) => visibleBumper === "front" ? p.lx > 0 : p.lx < 0);
+          const cleanBumperPts = filterSparseNoiseByLocalDensity2(bumperCloudPts, { radius: 0.15, minCoreNeighbors: 2 });
+          const finalBumperPts = cleanBumperPts.length >= 3 ? cleanBumperPts : bumperCloudPts;
+          let bumperEdge;
+          if (finalBumperPts.length >= 3) {
+            const wallDet = detectDominantWallEdgeWithValleyCutoff2(
+              finalBumperPts,
+              "lx",
+              visibleBumper === "front" ? "positive" : "negative",
+              targetL / 2,
+              { minSpanOrthogonal: 0.6 }
+            );
+            bumperEdge = wallDet.edge;
+          } else {
+            bumperEdge = visibleBumper === "front" ? targetL / 2 : -targetL / 2;
+          }
+          const edgePadding = options.edgePadding ?? 0.05;
+          let sLx = 0;
+          if (visibleBumper === "front") {
+            sLx = bumperEdge + edgePadding - targetL / 2;
+          } else {
+            sLx = bumperEdge - edgePadding + targetL / 2;
+          }
+          const maxShiftL = Math.min(0.4, targetL * 0.25);
+          sLx = Math.max(-maxShiftL, Math.min(maxShiftL, sLx));
+          if (Math.abs(sLx) < 0.01) sLx = 0;
+          return { shiftLx: sLx, visibleBumper };
+        };
+        const computeTopYaw = (pts, currentYaw, targetL, targetW, visibleSide) => {
+          const wallDet = detectDominantWallEdgeWithValleyCutoff2(
+            pts,
+            "ly",
+            visibleSide === "left" ? "positive" : "negative",
+            targetW / 2,
+            { minSpanOrthogonal: 0.7 }
+          );
+          const activePtsForYaw = wallDet.wallPoints.length >= 6 ? wallDet.wallPoints : pts;
+          return straightenYawFromBoundaryEdge2(activePtsForYaw, currentYaw, targetL, targetW, visibleSide, { maxAdjustmentDeg: 12 });
+        };
+        const computeFrontShift = (pts, targetW, targetL, currentYaw, center_x, center_y, ego_pos) => {
+          const toEgoX = ego_pos.x - center_x;
+          const toEgoY = ego_pos.y - center_y;
+          const egoLocalY = -toEgoX * Math.sin(currentYaw) + toEgoY * Math.cos(currentYaw);
+          const leftSidePts = pts.filter((p) => p.ly > 0.05);
+          const rightSidePts = pts.filter((p) => p.ly < -0.05);
+          let visibleSide;
+          if (leftSidePts.length >= rightSidePts.length + 3) {
+            visibleSide = "left";
+          } else if (rightSidePts.length >= leftSidePts.length + 3) {
+            visibleSide = "right";
+          } else {
+            visibleSide = egoLocalY >= 0 ? "left" : "right";
+          }
+          const targetSidePts = pts.filter((p) => Math.abs(p.lx) <= targetL / 2 + 0.15);
+          const activePtsForW = targetSidePts.length >= 4 ? targetSidePts : pts;
+          const sideCloudPts = activePtsForW.filter((p) => visibleSide === "left" ? p.ly > 0 : p.ly < 0);
+          const cleanSidePts = filterSparseNoiseByLocalDensity2(sideCloudPts, { radius: 0.15, minCoreNeighbors: 2 });
+          const finalSidePts = cleanSidePts.length >= 3 ? cleanSidePts : sideCloudPts;
+          let boundaryEdge;
+          if (finalSidePts.length >= 3) {
+            const wallDet = detectDominantWallEdgeWithValleyCutoff2(
+              finalSidePts,
+              "ly",
+              visibleSide === "left" ? "positive" : "negative",
+              targetW / 2,
+              { minSpanOrthogonal: 0.7 }
+            );
+            boundaryEdge = wallDet.edge;
+          } else {
+            boundaryEdge = visibleSide === "left" ? targetW / 2 : -targetW / 2;
+          }
+          const edgePadding = options.edgePadding ?? 0.05;
+          let sLy = 0;
+          if (visibleSide === "left") {
+            sLy = boundaryEdge + edgePadding - targetW / 2;
+          } else {
+            sLy = boundaryEdge - edgePadding + targetW / 2;
+          }
+          const maxShiftW = Math.min(0.4, targetW * 0.3);
+          sLy = Math.max(-maxShiftW, Math.min(maxShiftW, sLy));
+          if (Math.abs(sLy) < 0.01) sLy = 0;
+          return { shiftLy: sLy, visibleSide };
+        };
+        if (fitStep === "top") {
+          const expectedRoofZ = groundZ + H;
+          roofTopZ = detectRoofTopBounds2(validBodyPts, expectedRoofZ);
+          const frontDet = computeFrontShift(validBodyPts, W, L, yaw, cx, cy, egoPos);
+          visibleLateral = frontDet.visibleSide;
+          const straightYawResult = computeTopYaw(validBodyPts, yaw, L, W, visibleLateral);
+          finalYaw = straightYawResult.newYawRad;
+          straightYawDeg = straightYawResult.newYawDeg;
+          deltaYawDeg = straightYawResult.deltaYawDeg;
+          shiftLx = 0;
+          shiftLy = 0;
+        } else if (fitStep === "side") {
+          finalYaw = yaw;
+          straightYawDeg = Number((yaw * 180 / Math.PI).toFixed(2));
+          deltaYawDeg = 0;
+          const sideRes = computeSideShift(validBodyPts, L, W, yaw, cx, cy, egoPos);
+          shiftLx = sideRes.shiftLx;
+          visibleLongitudinal = sideRes.visibleBumper;
+          shiftLy = 0;
+        } else if (fitStep === "front") {
+          finalYaw = yaw;
+          straightYawDeg = Number((yaw * 180 / Math.PI).toFixed(2));
+          deltaYawDeg = 0;
+          const frontRes = computeFrontShift(validBodyPts, W, L, yaw, cx, cy, egoPos);
+          shiftLy = frontRes.shiftLy;
+          visibleLateral = frontRes.visibleSide;
+          shiftLx = 0;
+        } else {
+          const expectedRoofZ = groundZ + H;
+          roofTopZ = detectRoofTopBounds2(validBodyPts, expectedRoofZ);
+          let curCx = cx;
+          let curCy = cy;
+          let curYaw = yaw;
+          const toLocalPts = (cCenter_x, cCenter_y, cYaw) => {
+            const cY = Math.cos(-cYaw);
+            const sY = Math.sin(-cYaw);
+            return validBodyPts.map((p) => {
+              const dx = p.x - cCenter_x;
+              const dy = p.y - cCenter_y;
+              return {
+                x: p.x,
+                y: p.y,
+                z: p.z,
+                lx: dx * cY - dy * sY,
+                ly: dx * sY + dy * cY
+              };
+            });
+          };
+          const applyShift = (sLx, sLy, cYaw) => {
+            const cW = Math.cos(cYaw);
+            const sW = Math.sin(cYaw);
+            curCx = Number((curCx + sLx * cW - sLy * sW).toFixed(3));
+            curCy = Number((curCy + sLx * sW + sLy * cW).toFixed(3));
+          };
+          let localPts = toLocalPts(curCx, curCy, curYaw);
+          const side1 = computeSideShift(localPts, L, W, curYaw, curCx, curCy, egoPos);
+          applyShift(side1.shiftLx, 0, curYaw);
+          visibleLongitudinal = side1.visibleBumper;
+          localPts = toLocalPts(curCx, curCy, curYaw);
+          const frontDet1 = computeFrontShift(localPts, W, L, curYaw, curCx, curCy, egoPos);
+          const top1 = computeTopYaw(localPts, curYaw, L, W, frontDet1.visibleSide);
+          curYaw = top1.newYawRad;
+          localPts = toLocalPts(curCx, curCy, curYaw);
+          const front1 = computeFrontShift(localPts, W, L, curYaw, curCx, curCy, egoPos);
+          applyShift(0, front1.shiftLy, curYaw);
+          visibleLateral = front1.visibleSide;
+          localPts = toLocalPts(curCx, curCy, curYaw);
+          const side2 = computeSideShift(localPts, L, W, curYaw, curCx, curCy, egoPos);
+          applyShift(side2.shiftLx, 0, curYaw);
+          visibleLongitudinal = side2.visibleBumper;
+          localPts = toLocalPts(curCx, curCy, curYaw);
+          const top2 = computeTopYaw(localPts, curYaw, L, W, visibleLateral);
+          curYaw = top2.newYawRad;
+          localPts = toLocalPts(curCx, curCy, curYaw);
+          const front2 = computeFrontShift(localPts, W, L, curYaw, curCx, curCy, egoPos);
+          applyShift(0, front2.shiftLy, curYaw);
+          visibleLateral = front2.visibleSide;
+          finalYaw = curYaw;
+          straightYawDeg = Number((finalYaw * 180 / Math.PI).toFixed(2));
+          deltaYawDeg = Number(((finalYaw - yaw) * 180 / Math.PI).toFixed(2));
+          while (deltaYawDeg > 180) deltaYawDeg -= 360;
+          while (deltaYawDeg < -180) deltaYawDeg += 360;
+          const cFinal = Math.cos(-finalYaw);
+          const sFinal = Math.sin(-finalYaw);
+          const totalDx = curCx - cx;
+          const totalDy = curCy - cy;
+          shiftLx = Number((totalDx * cFinal - totalDy * sFinal).toFixed(3));
+          shiftLy = Number((totalDx * sFinal + totalDy * cFinal).toFixed(3));
+        }
+        if (fitStep === "top") {
+          shiftLx = 0;
+          shiftLy = 0;
+        } else {
+          const maxShiftL = Math.min(0.4, L * 0.25);
+          const maxShiftW = Math.min(0.4, W * 0.3);
+          shiftLx = Math.max(-maxShiftL, Math.min(maxShiftL, shiftLx));
+          shiftLy = Math.max(-maxShiftW, Math.min(maxShiftW, shiftLy));
+        }
+        if (preserveDimensions !== true) {
+          const measuredH = roofTopZ - groundZ;
+          newH = Number(Math.max(1.35, Math.min(2.8, measuredH)).toFixed(2));
+        } else {
+          newH = H;
+          newL = L;
+          newW = W;
+        }
+      }
+      const cosWorld = Math.cos(finalYaw);
+      const sinWorld = Math.sin(finalYaw);
+      const newX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
+      const newY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
+      const cosPitch = Math.cos(pitchRad);
+      const cosRoll = Math.cos(rollRad);
+      let newZ = Number((groundZ + newH / 2 * cosPitch * cosRoll).toFixed(3));
+      let finalPitch = pitchRad;
+      let finalRoll = rollRad;
+      if (fitStep === "top" || fitStep === "side" || fitStep === "front") {
+        newZ = cz;
+        finalPitch = points[4] || 0;
+        finalRoll = points[3] || 0;
+      }
+      const faceTextLong = visibleLongitudinal === "front" ? "Mặt Trước" : "Mặt Sau";
+      const faceTextLat = visibleLateral === "left" ? "Sườn Trái" : "Sườn Phải";
+      let msg = `Đã ghép chu trình (Đất ➔ Side ➔ Top ➔ Front ➔ Side ➔ Top ➔ Front): Yaw ${straightYawDeg}°, Cản [${faceTextLong}], Sườn [${faceTextLat}] & Ghim Đất (Z: ${newZ}m)`;
+      if (fitStep === "top") {
+        const deltaSign = deltaYawDeg >= 0 ? "+" : "";
+        msg = `Đã căn TOP: Xoay Yaw (${straightYawDeg}°, Δ=${deltaSign}${deltaYawDeg}°) song song sườn đón tia [${faceTextLat}], khóa tâm X/Y (giữ nguyên cao độ Z)`;
+      } else if (fitStep === "side") {
+        const deltaXSign = shiftLx >= 0 ? "+" : "";
+        msg = `Đã căn SIDE: Cản [${faceTextLong}] đón tia (ΔX: ${deltaXSign}${shiftLx.toFixed(2)}m, giữ nguyên cao độ Z)`;
+      } else if (fitStep === "front") {
+        const deltaYSign = shiftLy >= 0 ? "+" : "";
+        msg = `Đã căn FRONT: Mép sườn [${faceTextLat}] ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên cao độ Z)`;
+      }
+      return {
+        newX,
+        newY,
+        newZ,
+        newYawRad: finalYaw,
+        newYawDeg: straightYawDeg,
+        deltaYawDeg,
+        newL,
+        newW,
+        newH,
+        pitchRad: finalPitch,
+        rollRad: finalRoll,
+        pitchDeg: Number((finalPitch * 180 / Math.PI).toFixed(2)),
+        rollDeg: Number((finalRoll * 180 / Math.PI).toFixed(2)),
+        groundZ,
+        roofTopZ,
+        shiftLx: Number(shiftLx.toFixed(3)),
+        shiftLy: Number(shiftLy.toFixed(3)),
+        visibleFaces: {
+          longitudinal: visibleLongitudinal,
+          lateral: visibleLateral
+        },
+        dominantEdge: {
+          edgeSide: visibleLateral,
+          bumperSide: visibleLongitudinal,
+          sideWallEdge: Number(shiftLy.toFixed(3)),
+          bumperEdge: Number(shiftLx.toFixed(3))
+        },
+        pointsCount: bodyPts.length,
+        message: msg
+      };
+    }
+    function fitPedestrianInMainWorld(points, options = {}) {
+      const cx = points[0];
+      const cy = points[1];
+      const cz = points[2];
+      const yaw = points[5];
+      const curL = points[6] || 0.65;
+      const curW = points[7] || 0.65;
+      const curH = points[8] || 1.7;
+      const lidar = getSceneLidarPoints();
+      if (!lidar || lidar.count === 0) {
+        return {
+          newX: cx,
+          newY: cy,
+          newZ: cz,
+          newL: curL,
+          newW: curW,
+          newH: curH,
+          groundZ: cz - curH / 2,
+          pointsCount: 0,
+          message: "Không tìm thấy điểm LiDAR trong scene"
+        };
+      }
+      const { count, array } = lidar;
+      const headBuffer = options.headBuffer ?? 0.12;
+      const margin = options.margin ?? 0.15;
+      const footRadius = Math.max(0.35, Math.max(curL, curW) / 2 + margin);
+      const footGroundPts = [];
+      const maxFootGroundZ = cz - curH / 2 + 0.35;
+      const minFootGroundZ = cz - 4;
+      for (let i = 0; i < count; i++) {
+        const z = array[i * 3 + 2];
+        if (z > maxFootGroundZ || z < minFootGroundZ) continue;
+        const x = array[i * 3];
+        const y = array[i * 3 + 1];
+        const dx = x - cx;
+        const dy = y - cy;
+        if (dx * dx + dy * dy <= footRadius * footRadius) {
+          footGroundPts.push(z);
+        }
+      }
+      let groundZ = cz - curH / 2;
+      if (footGroundPts.length >= 3) {
+        footGroundPts.sort((a, b) => a - b);
+        groundZ = footGroundPts[Math.max(0, Math.floor(footGroundPts.length * 0.15))];
+      }
+      const minBodyZ = groundZ + 0.05;
+      const maxBodyZ = groundZ + 2.3;
+      const outerL = Math.max(0.45, curL / 2 + 0.25);
+      const outerW = Math.max(0.4, curW / 2 + 0.25);
+      const cosY = Math.cos(-yaw);
+      const sinY = Math.sin(-yaw);
+      const bodyPts = [];
+      for (let i = 0; i < count; i++) {
+        const z = array[i * 3 + 2];
+        if (z < minBodyZ || z > maxBodyZ) continue;
+        const x = array[i * 3];
+        const y = array[i * 3 + 1];
+        const dx = x - cx;
+        const dy = y - cy;
+        const lx = dx * cosY - dy * sinY;
+        const ly = dx * sinY + dy * cosY;
+        if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
+          bodyPts.push({ lx, ly, z });
+        }
+      }
+      let newL = curL;
+      let newW = curW;
+      let newH = curH;
+      let shiftLx = 0;
+      let shiftLy = 0;
+      let roofTopZ = groundZ + curH;
+      if (bodyPts.length >= 3) {
+        const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
+        const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
+        const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
+        const pMinIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.02) : 0;
+        const pMaxIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.98) : bodyPts.length - 1;
+        const lxMin = allLx[pMinIdx];
+        const lxMax = allLx[pMaxIdx];
+        const lyMin = allLy[pMinIdx];
+        const lyMax = allLy[pMaxIdx];
+        const highestPtZ = allZ[allZ.length - 1];
+        newL = Number(Math.max(0.45, Math.min(1.3, lxMax - lxMin + 0.1)).toFixed(2));
+        newW = Number(Math.max(0.4, Math.min(1.1, lyMax - lyMin + 0.1)).toFixed(2));
+        roofTopZ = highestPtZ + headBuffer;
+        newH = Number(Math.max(1.05, Math.min(2.15, roofTopZ - groundZ)).toFixed(2));
+        shiftLx = (lxMin + lxMax) / 2;
+        shiftLy = (lyMin + lyMax) / 2;
+        const maxShift = 0.4;
+        shiftLx = Math.max(-maxShift, Math.min(maxShift, shiftLx));
+        shiftLy = Math.max(-maxShift, Math.min(maxShift, shiftLy));
+      }
+      const cosWorld = Math.cos(yaw);
+      const sinWorld = Math.sin(yaw);
+      const newX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
+      const newY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
+      const newZ = Number((groundZ + newH / 2).toFixed(3));
+      const msg = `Đã fit Người Đi Bộ: ${newL}x${newW}x${newH}m (Khóa thẳng đứng 0°, Ghim đất Z: ${newZ}m, Bù đỉnh đầu +${Math.round(headBuffer * 100)}cm)`;
+      return {
+        newX,
+        newY,
+        newZ,
+        newL,
+        newW,
+        newH,
+        groundZ: Number(groundZ.toFixed(3)),
+        pointsCount: bodyPts.length,
+        message: msg
+      };
+    }
+    function fitCyclistInMainWorld(points, options = {}) {
+      const cx = points[0];
+      const cy = points[1];
+      const cz = points[2];
+      const yaw = points[5];
+      const curL = points[6] || 1.75;
+      const curW = points[7] || 0.65;
+      const curH = points[8] || 1.55;
+      const step = options.step ?? "all";
+      const curYawDeg = Number((yaw * 180 / Math.PI).toFixed(2));
+      const lidar = getSceneLidarPoints();
+      if (!lidar || lidar.count === 0) {
+        return {
+          newX: cx,
+          newY: cy,
+          newZ: cz,
+          newYaw: yaw,
+          newYawDeg: curYawDeg,
+          deltaYawDeg: 0,
+          newL: curL,
+          newW: curW,
+          newH: curH,
+          groundZ: cz - curH / 2,
+          pointsCount: 0,
+          step,
+          message: "Không tìm thấy điểm LiDAR trong scene"
+        };
+      }
+      const { count, array } = lidar;
+      const headBuffer = options.headBuffer ?? 0.1;
+      const margin = options.margin ?? 0.2;
+      const footRadius = Math.max(0.6, curL / 2 + margin);
+      const groundPts = [];
+      const maxGroundZ = cz - curH / 2 + 0.35;
+      const minGroundZ = cz - 4;
+      for (let i = 0; i < count; i++) {
+        const z = array[i * 3 + 2];
+        if (z > maxGroundZ || z < minGroundZ) continue;
+        const x = array[i * 3];
+        const y = array[i * 3 + 1];
+        const dx = x - cx;
+        const dy = y - cy;
+        if (dx * dx + dy * dy <= footRadius * footRadius) {
+          groundPts.push(z);
+        }
+      }
+      let groundZ = cz - curH / 2;
+      if (groundPts.length >= 3) {
+        groundPts.sort((a, b) => a - b);
+        groundZ = groundPts[Math.max(0, Math.floor(groundPts.length * 0.15))];
+      }
+      const minBodyZ = groundZ + 0.05;
+      const maxBodyZ = groundZ + 2.3;
+      const outerL = curL / 2 + 0.45;
+      const outerW = Math.max(curW, 0.85) / 2 + 0.45;
+      const cosY = Math.cos(-yaw);
+      const sinY = Math.sin(-yaw);
+      const bodyPts = [];
+      for (let i = 0; i < count; i++) {
+        const z = array[i * 3 + 2];
+        if (z < minBodyZ || z > maxBodyZ) continue;
+        const x = array[i * 3];
+        const y = array[i * 3 + 1];
+        const dx = x - cx;
+        const dy = y - cy;
+        const lx = dx * cosY - dy * sinY;
+        const ly = dx * sinY + dy * cosY;
+        if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
+          bodyPts.push({ lx, ly, z });
+        }
+      }
+      let newX = cx;
+      let newY = cy;
+      let newZ = cz;
+      let newYaw = yaw;
+      let newYawDeg = curYawDeg;
+      let deltaYawDeg = 0;
+      let newL = curL;
+      let newW = curW;
+      let newH = curH;
+      let msg = "";
+      if (bodyPts.length < 3) {
+        return {
+          newX,
+          newY,
+          newZ,
+          newYaw,
+          newYawDeg,
+          deltaYawDeg: 0,
+          newL,
+          newW,
+          newH,
+          groundZ: Number(groundZ.toFixed(3)),
+          pointsCount: bodyPts.length,
+          step,
+          message: `Không đủ điểm LiDAR xe 2 bánh (${bodyPts.length} điểm)`
+        };
+      }
+      const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
+      const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
+      const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
+      const pMinIdx = bodyPts.length >= 30 ? Math.floor(bodyPts.length * 0.015) : 0;
+      const pMaxIdx = bodyPts.length >= 30 ? Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.985)) : bodyPts.length - 1;
+      const lxMin = allLx[pMinIdx];
+      const lxMax = allLx[pMaxIdx];
+      const lyMin = allLy[pMinIdx];
+      const lyMax = allLy[pMaxIdx];
+      const highestPtZ = allZ[allZ.length - 1];
+      const normalizeRad = (r) => {
+        let a = r;
+        while (a > Math.PI) a -= 2 * Math.PI;
+        while (a < -Math.PI) a += 2 * Math.PI;
+        return a;
+      };
+      const calcHeadingDelta = () => {
+        const n = bodyPts.length;
+        let sumLx = 0;
+        let sumLy = 0;
+        for (const p of bodyPts) {
+          sumLx += p.lx;
+          sumLy += p.ly;
+        }
+        const meanLx = sumLx / n;
+        const meanLy = sumLy / n;
+        let sxx = 0;
+        let syy = 0;
+        let sxy = 0;
+        for (const p of bodyPts) {
+          const dx = p.lx - meanLx;
+          const dy = p.ly - meanLy;
+          sxx += dx * dx;
+          syy += dy * dy;
+          sxy += dx * dy;
+        }
+        sxx /= n;
+        syy /= n;
+        sxy /= n;
+        const deltaThetaPca = 0.5 * Math.atan2(2 * sxy, sxx - syy);
+        const sorted = [...bodyPts].sort((a, b) => a.lx - b.lx);
+        const rearSlice = sorted.slice(0, Math.max(1, Math.floor(n * 0.18)));
+        const frontSlice = sorted.slice(Math.max(1, Math.floor(n * 0.82)));
+        const rearLx = rearSlice.reduce((s, p) => s + p.lx, 0) / rearSlice.length;
+        const rearLy = rearSlice.reduce((s, p) => s + p.ly, 0) / rearSlice.length;
+        const frontLx = frontSlice.reduce((s, p) => s + p.lx, 0) / frontSlice.length;
+        const frontLy = frontSlice.reduce((s, p) => s + p.ly, 0) / frontSlice.length;
+        const dLx = frontLx - rearLx;
+        const dLy = frontLy - rearLy;
+        let deltaThetaExt = deltaThetaPca;
+        if (dLx >= 0.35) {
+          deltaThetaExt = Math.atan2(dLy, dLx);
+        }
+        let dTheta = Math.abs(deltaThetaPca - deltaThetaExt) < 0.2 ? 0.7 * deltaThetaPca + 0.3 * deltaThetaExt : deltaThetaPca;
+        return Math.max(-Math.PI / 4, Math.min(Math.PI / 4, dTheta));
+      };
+      if (step === "top") {
+        const dTheta = calcHeadingDelta();
+        newYaw = normalizeRad(yaw + dTheta);
+        newYawDeg = Number((newYaw * 180 / Math.PI).toFixed(2));
+        deltaYawDeg = Number((dTheta * 180 / Math.PI).toFixed(2));
+        newX = cx;
+        newY = cy;
+        newZ = cz;
+        newL = curL;
+        newW = curW;
+        newH = curH;
+        const sign = deltaYawDeg >= 0 ? "+" : "";
+        msg = `Đã căn TOP Xe 2 bánh: Xoay Yaw (${newYawDeg}°, Δ=${sign}${deltaYawDeg}°) theo trục Đầu - Đuôi, khóa tâm X/Y/Z & L/W/H`;
+      } else if (step === "side") {
+        newYaw = yaw;
+        newYawDeg = curYawDeg;
+        deltaYawDeg = 0;
+        newL = curL;
+        newW = curW;
+        newH = curH;
+        let shiftLx = 0;
+        let bumperName = "Đón tia";
+        if (options.egoPos) {
+          const dxEgo = options.egoPos.x - cx;
+          const dyEgo = options.egoPos.y - cy;
+          const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
+          if (lxEgo > 0.4) {
+            shiftLx = lxMax - curL / 2;
+            bumperName = "Cản trước";
+          } else if (lxEgo < -0.4) {
+            shiftLx = lxMin + curL / 2;
+            bumperName = "Cản sau";
+          } else {
+            shiftLx = (lxMin + lxMax) / 2;
+            bumperName = "Cân đối";
+          }
+        } else {
+          const frontCount = bodyPts.filter((p) => p.lx > 0).length;
+          const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
+          if (frontCount > rearCount * 1.5) {
+            shiftLx = lxMax - curL / 2;
+            bumperName = "Cản trước";
+          } else if (rearCount > frontCount * 1.5) {
+            shiftLx = lxMin + curL / 2;
+            bumperName = "Cản sau";
+          } else {
+            shiftLx = (lxMin + lxMax) / 2;
+            bumperName = "Cân đối";
+          }
+        }
+        shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
+        newZ = cz;
+        newX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
+        newY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
+        const signX = shiftLx >= 0 ? "+" : "";
+        msg = `Đã căn SIDE Xe 2 bánh: [${bumperName}] bám vệt lốp (ΔX: ${signX}${(shiftLx * 100).toFixed(1)}cm, giữ nguyên cao độ Z), Khóa L: ${newL}m`;
+      } else if (step === "front") {
+        newYaw = yaw;
+        newYawDeg = curYawDeg;
+        deltaYawDeg = 0;
+        newL = curL;
+        newW = curW;
+        newH = curH;
+        newZ = cz;
+        let visibleSide;
+        if (options.egoPos) {
+          const toEgoX = options.egoPos.x - cx;
+          const toEgoY = options.egoPos.y - cy;
+          const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+          visibleSide = egoLocalY >= 0 ? "left" : "right";
+        } else {
+          const leftCount = bodyPts.filter((p) => p.ly > 0.05).length;
+          const rightCount = bodyPts.filter((p) => p.ly < -0.05).length;
+          visibleSide = leftCount >= rightCount ? "left" : "right";
+        }
+        const edgePadding = 0.05;
+        let shiftLy = 0;
+        if (lyMin <= -0.06 && lyMax >= 0.06) {
+          shiftLy = (lyMin + lyMax) / 2;
+        } else if (visibleSide === "left") {
+          shiftLy = lyMax + edgePadding - curW / 2;
+        } else {
+          shiftLy = lyMin - edgePadding + curW / 2;
+        }
+        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+        newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
+        newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
+        const signY = shiftLy >= 0 ? "+" : "";
+        const sideText = visibleSide === "left" ? "Sườn Trái" : "Sườn Phải";
+        msg = `Đã căn FRONT Xe 2 bánh: [${sideText}] đón tia ăn khít phương W (ΔY: ${signY}${(shiftLy * 100).toFixed(1)}cm), giữ nguyên cao độ Z và kích thước (chuẩn Car)`;
+      } else if (step === "w") {
+        newYaw = yaw;
+        newYawDeg = curYawDeg;
+        deltaYawDeg = 0;
+        newL = curL;
+        newH = curH;
+        newZ = cz;
+        let shiftLy = 0;
+        let measuredW = curW;
+        if (lyMin <= -0.06 && lyMax >= 0.06) {
+          measuredW = lyMax - lyMin + 0.16;
+          shiftLy = (lyMin + lyMax) / 2;
+          shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+        } else if (lyMax > 0 && lyMin > -0.06) {
+          measuredW = 2 * (lyMax + 0.1);
+          shiftLy = 0;
+        } else if (lyMin < 0 && lyMax < 0.06) {
+          measuredW = 2 * (Math.abs(lyMin) + 0.1);
+          shiftLy = 0;
+        } else {
+          measuredW = lyMax - lyMin + 0.16;
+          shiftLy = (lyMin + lyMax) / 2;
+          shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+        }
+        newW = Number(Math.max(0.55, Math.min(1.45, measuredW)).toFixed(2));
+        newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
+        newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
+        const signY = shiftLy >= 0 ? "+" : "";
+        msg = `Đã fit Rộng (W) Xe 2 bánh: W=${newW}m (Đệm +5cm bắt trọn gương/tay lái), căn Y: ${signY}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên L, H & Z`;
+      } else if (step === "h") {
+        newYaw = yaw;
+        newYawDeg = curYawDeg;
+        deltaYawDeg = 0;
+        newL = curL;
+        newW = curW;
+        newX = cx;
+        newY = cy;
+        const currentBaseZ = cz - curH / 2;
+        const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
+        const roofTopZ = highestPtZ + Math.max(0.12, headBuffer);
+        newH = Number(Math.max(1.15, Math.min(2.2, roofTopZ - effectiveBaseZ)).toFixed(2));
+        newZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
+        msg = `Đã fit Cao (H) Xe 2 bánh: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên nóc +12cm), giữ nguyên L, W & XY`;
+      } else {
+        const dTheta = calcHeadingDelta();
+        newYaw = normalizeRad(yaw + dTheta);
+        newYawDeg = Number((newYaw * 180 / Math.PI).toFixed(2));
+        deltaYawDeg = Number((dTheta * 180 / Math.PI).toFixed(2));
+        newL = curL;
+        let shiftLx = 0;
+        const frontCount = bodyPts.filter((p) => p.lx > 0).length;
+        const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
+        if (frontCount > rearCount * 1.5) {
+          shiftLx = lxMax - curL / 2;
+        } else if (rearCount > frontCount * 1.5) {
+          shiftLx = lxMin + curL / 2;
+        } else {
+          shiftLx = (lxMin + lxMax) / 2;
+        }
+        shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
+        let shiftLy = 0;
+        let measuredW = curW;
+        if (lyMin <= -0.06 && lyMax >= 0.06) {
+          measuredW = lyMax - lyMin + 0.12;
+          shiftLy = (lyMin + lyMax) / 2;
+          shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+        } else if (lyMax > 0 && lyMin > -0.06) {
+          measuredW = 2 * (lyMax + 0.08);
+          shiftLy = 0;
+        } else if (lyMin < 0 && lyMax < 0.06) {
+          measuredW = 2 * (Math.abs(lyMin) + 0.08);
+          shiftLy = 0;
+        } else {
+          measuredW = lyMax - lyMin + 0.12;
+          shiftLy = (lyMin + lyMax) / 2;
+          shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+        }
+        newW = Number(Math.max(0.55, Math.min(1.35, measuredW)).toFixed(2));
+        const roofTopZ = highestPtZ + headBuffer;
+        newH = Number(Math.max(1.15, Math.min(2.2, roofTopZ - groundZ)).toFixed(2));
+        newZ = Number((groundZ + newH / 2).toFixed(3));
+        const cosW = Math.cos(newYaw);
+        const sinW = Math.sin(newYaw);
+        newX = Number((cx + shiftLx * cosW - shiftLy * sinW).toFixed(3));
+        newY = Number((cy + shiftLx * sinW + shiftLy * cosW).toFixed(3));
+        msg = `Đã fit toàn diện Xe 2 bánh: ${newL}x${newW}x${newH}m (Khóa L, Xoay Yaw ${newYawDeg}°, Ghim đất Z: ${newZ}m)`;
+      }
+      return {
+        newX,
+        newY,
+        newZ,
+        newYaw,
+        newYawDeg,
+        deltaYawDeg,
+        newL,
+        newW,
+        newH,
+        groundZ: Number(groundZ.toFixed(3)),
+        pointsCount: bodyPts.length,
+        step,
+        message: msg
       };
     }
     function computeLidarGroundAndFit(points, fitMode = "tight") {
@@ -514,9 +3292,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const isInitialBox = l <= 2.2 || w <= 1.3;
       const halfL = isInitialBox ? 3 : l / 2 + 0.35;
       const halfW = isInitialBox ? 2 : w / 2 + 0.35;
-      const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, l / 2, w / 2, isInitialBox);
+      const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, l / 2, w / 2, h / 2, isInitialBox, false);
       const detectedGroundZ = groundInfo.groundZ;
-      const effectiveGroundZ = detectedGroundZ !== null ? detectedGroundZ : cz - h / 2;
+      const effectiveGroundZ = detectedGroundZ !== null ? detectedGroundZ : 0;
       let cosY = Math.cos(-yaw);
       let sinY = Math.sin(-yaw);
       const candidateBodyPts = [];
@@ -570,24 +3348,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         sinY = Math.sin(-newYaw);
       }
       if (candidateBodyPts.length >= 10) {
-        const localBodyPts = [];
+        const rawLocalBodyPts = [];
         for (const p of candidateBodyPts) {
           const dx = p.x - cx;
           const dy = p.y - cy;
           const lx = dx * cosY - dy * sinY;
           const ly = dx * sinY + dy * cosY;
-          localBodyPts.push({ lx, ly, z: p.z });
+          rawLocalBodyPts.push({ lx, ly, z: p.z });
         }
-        const allLx = localBodyPts.map((p) => p.lx).sort((a, b) => a - b);
-        const allLy = localBodyPts.map((p) => p.ly).sort((a, b) => a - b);
-        const allZ = localBodyPts.map((p) => p.z).sort((a, b) => a - b);
-        const pMinIdx = Math.max(0, Math.floor(localBodyPts.length * 0.01));
-        const pMaxIdx = Math.min(localBodyPts.length - 1, Math.floor(localBodyPts.length * 0.99));
-        const lxMin = allLx[pMinIdx];
-        const lxMax = allLx[pMaxIdx];
-        const lyMin = allLy[pMinIdx];
-        const lyMax = allLy[pMaxIdx];
-        const zTop = allZ[pMaxIdx];
+        const filteredLy = filterDenseConnectedCluster1D2(rawLocalBodyPts, "ly", 0.22, 0);
+        const localBodyPts = filterDenseConnectedCluster1D2(filteredLy, "lx", 0.22, 0);
+        const robustBounds = computeDensityRobustBounds2(localBodyPts);
+        const lxMin = robustBounds.lxMin;
+        const lxMax = robustBounds.lxMax;
+        const lyMin = robustBounds.lyMin;
+        const lyMax = robustBounds.lyMax;
+        const zTop = robustBounds.zTop;
         const measuredL = lxMax - lxMin;
         const measuredW = lyMax - lyMin;
         const measuredH = zTop - effectiveGroundZ;
@@ -744,6 +3520,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       return null;
     }
+    function ensureCuboidPoints(newValues, existingPoints) {
+      let result;
+      if (Array.isArray(existingPoints) && existingPoints.length >= 16) {
+        result = [...existingPoints];
+        for (let i = 0; i < Math.min(newValues.length, 9); i++) {
+          result[i] = newValues[i];
+        }
+      } else {
+        result = [...newValues];
+        while (result.length < 16) {
+          result.push(0);
+        }
+      }
+      return result;
+    }
     async function findTargetSafely(job, frame, uiId, serverId) {
       var _a, _b, _c, _d, _e;
       if (job && job.annotations) {
@@ -801,21 +3592,44 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     async function findTrackInJob(job, uiId, serverId, parentID) {
       if (!job) return null;
+      if (!parentID && job.annotations) {
+        try {
+          const curFrame = typeof job.frame === "number" ? job.frame : 0;
+          const curStates = await job.annotations.get(curFrame);
+          if (Array.isArray(curStates)) {
+            const curSt = curStates.find(
+              (s) => Number(s.clientID) === Number(uiId) || serverId && Number(s.serverID) === Number(serverId)
+            );
+            if (curSt) {
+              parentID = curSt.parentID || curSt.trackID || curSt.parent && curSt.parent.clientID;
+            }
+          }
+        } catch (e) {
+        }
+      }
       const tracks = getJobTrackCollection(job);
       if (tracks && tracks.length > 0) {
-        let found = tracks.find((t) => t.clientID === uiId);
+        let found = tracks.find(
+          (t) => Number(t.clientID) === Number(uiId) || Number(t.id) === Number(uiId) || String(t.clientID) === String(uiId)
+        );
         if (found) return found;
         if (serverId) {
-          found = tracks.find((t) => t.serverID === serverId);
+          found = tracks.find(
+            (t) => Number(t.serverID) === Number(serverId) || String(t.serverID) === String(serverId)
+          );
           if (found) return found;
         }
         if (parentID) {
-          found = tracks.find((t) => t.clientID === parentID);
+          found = tracks.find(
+            (t) => Number(t.clientID) === Number(parentID) || Number(t.id) === Number(parentID) || String(t.clientID) === String(parentID)
+          );
           if (found) return found;
         }
         found = tracks.find((t) => {
-          const shList = toArray(t.shapes || t.keyframes);
-          return shList.some((sh) => sh.clientID === uiId);
+          const shList = toArray(t.shapes || t.keyframes || t._shapes);
+          return shList.some(
+            (sh) => Number(sh.clientID) === Number(uiId) || serverId && Number(sh.serverID) === Number(serverId) || sh.parentID && Number(sh.parentID) === Number(uiId)
+          );
         });
         if (found) return found;
       }
@@ -823,37 +3637,41 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         try {
           const allObjects = await job.annotations.get(null, true);
           if (Array.isArray(allObjects)) {
-            let found = allObjects.find((t) => t.clientID === uiId);
+            let found = allObjects.find(
+              (t) => Number(t.clientID) === Number(uiId) || Number(t.id) === Number(uiId) || serverId && Number(t.serverID) === Number(serverId) || parentID && (Number(t.clientID) === Number(parentID) || Number(t.id) === Number(parentID))
+            );
             if (found) return found;
-            if (serverId) {
-              found = allObjects.find((t) => t.serverID === serverId);
-              if (found) return found;
-            }
-            if (parentID) {
-              found = allObjects.find((t) => t.clientID === parentID);
-              if (found) return found;
-            }
           }
         } catch (e) {
         }
         try {
           const defaultTracks = await job.annotations.get();
           if (Array.isArray(defaultTracks)) {
-            let found = defaultTracks.find((t) => t.clientID === uiId);
+            let found = defaultTracks.find(
+              (t) => Number(t.clientID) === Number(uiId) || Number(t.id) === Number(uiId) || serverId && Number(t.serverID) === Number(serverId) || parentID && (Number(t.clientID) === Number(parentID) || Number(t.id) === Number(parentID))
+            );
             if (found) return found;
-            if (serverId) {
-              found = defaultTracks.find((t) => t.serverID === serverId);
-              if (found) return found;
-            }
-            if (parentID) {
-              found = defaultTracks.find((t) => t.clientID === parentID);
-              if (found) return found;
-            }
           }
         } catch (e) {
         }
       }
       return null;
+    }
+    function markCvatSaveButtonUnsaved() {
+      try {
+        window.__CVAT_HAS_UNSAVED_CHANGES__ = true;
+        const cvatSaveBtn = document.querySelector(
+          "button.cvat-annotation-header-save-button, .cvat-annotation-header-save-button, button[aria-label='Save annotations']"
+        );
+        if (cvatSaveBtn) {
+          cvatSaveBtn.disabled = false;
+          cvatSaveBtn.removeAttribute("disabled");
+          cvatSaveBtn.classList.remove("cvat-disabled-button");
+          cvatSaveBtn.style.opacity = "1";
+          cvatSaveBtn.style.cursor = "pointer";
+        }
+      } catch (e) {
+      }
     }
     async function persistJobAnnotations(job) {
       try {
@@ -877,7 +3695,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }, 120);
     }
+    let isCanvasAutoSelectAttached = false;
     function setupCanvasAutoSelect() {
+      if (isCanvasAutoSelectAttached) return;
+      isCanvasAutoSelectAttached = true;
       const canvasContainers = document.querySelectorAll(
         ".cvat-canvas-container, .cvat-canvas3d-orthographic-view"
       );
@@ -927,6 +3748,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (store) {
           let prevActiveId = null;
           let prevStatesLen = 0;
+          let activeDebounceTimer = null;
+          let dirtyDebounceTimer = null;
           store.subscribe(() => {
             var _a, _b, _c, _d;
             try {
@@ -936,17 +3759,25 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               if (curActiveId !== prevActiveId) {
                 prevActiveId = curActiveId;
                 if (curActiveId !== null && curActiveId !== void 0) {
-                  const details = extractObjectDetails(Number(curActiveId));
-                  window.dispatchEvent(
-                    new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-                      detail: { clientId: Number(curActiveId), details }
-                    })
-                  );
+                  if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
+                  activeDebounceTimer = setTimeout(() => {
+                    activeDebounceTimer = null;
+                    const details = extractObjectDetails(Number(curActiveId));
+                    window.dispatchEvent(
+                      new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+                        detail: { clientId: Number(curActiveId), details }
+                      })
+                    );
+                  }, 80);
                 }
               }
               if (curStatesLen !== prevStatesLen) {
                 prevStatesLen = curStatesLen;
-                window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS_DIRTY"));
+                if (dirtyDebounceTimer) clearTimeout(dirtyDebounceTimer);
+                dirtyDebounceTimer = setTimeout(() => {
+                  dirtyDebounceTimer = null;
+                  window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS_DIRTY"));
+                }, 400);
               }
             } catch (err) {
             }
@@ -955,15 +3786,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       } catch (sErr) {
       }
       window.addEventListener("CVAT_EXT_REQ_ACTIVATE_OBJECT", (e) => {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e, _f, _g;
         const { clientId } = e.detail || {};
+        if (!clientId) return;
         try {
           const store = getReduxStore();
           const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
           if (canvas && typeof canvas.activate === "function") {
-            canvas.activate(clientId);
-            if (typeof canvas.render === "function") {
-              canvas.render();
+            const curActive = ((_d = canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
+            if (curActive !== clientId) {
+              canvas.activate(clientId);
+              if (typeof canvas.render === "function") {
+                canvas.render();
+              }
             }
           }
         } catch (err) {
@@ -1159,9 +3994,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (job) {
           const { target } = await findTargetSafely(job, frame, uiId, serverId);
           if (target) {
-            target.points = [...points];
+            target.points = ensureCuboidPoints(points, target.points);
             if (isFinal && typeof target.save === "function") {
-              await target.save();
+              try {
+                await target.save();
+              } catch (sErr) {
+                console.warn("[CVAT 3D Suite] Cảnh báo target.save trong UPDATE_LIVE_BOX:", sErr);
+              }
             }
           }
         }
@@ -1312,7 +4151,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             console.warn("[CVAT 3D Suite] Lưu Yaw cho các frame khác trong track:", tErr);
           }
         }
-        window.__CVAT_HAS_UNSAVED_CHANGES__ = true;
+        markCvatSaveButtonUnsaved();
         const newYawDeg = Math.round(newYaw * 180 / Math.PI);
         console.log(`[CVAT 3D Suite] Đã cập nhật xe #${uiId} sang Yaw: ${newYawDeg}° (Three.js Realtime: ${threeUpdated})`);
         window.dispatchEvent(
@@ -1426,7 +4265,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             console.warn("[CVAT 3D Suite] Lưu các frame khác trong track:", tErr);
           }
         }
-        window.__CVAT_HAS_UNSAVED_CHANGES__ = true;
+        markCvatSaveButtonUnsaved();
         const scopeText = applyToTrack ? `toàn bộ track (từ Frame #${startF} ➔ #${stopF}, ${trackCount} frames, Realtime)` : `chỉ frame #${frame}`;
         const msg = `Đã cập nhật xe #${uiId} kích thước ${l}x${w}x${h}m cho ${scopeText}`;
         console.log(`[CVAT 3D Suite] ${msg} (Three.js Re-rendered Realtime)`);
@@ -1450,7 +4289,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       window.dispatchEvent(new CustomEvent("CVAT_EXT_REQ_UPDATE_DIMENSIONS", { detail }));
     });
     window.addEventListener("CVAT_EXT_REQ_SNAP_GROUND", async (e) => {
-      const { jobId, frame, uiId, serverId, mode, deltaCm, deltaDeg, curbHeight, targetGroundZ } = e.detail || {};
+      const { jobId, frame, uiId, serverId, mode, deltaCm, deltaDeg, curbHeight, targetGroundZ: _targetGroundZ } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
@@ -1470,33 +4309,50 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (mode === "road") {
           const curL = newPoints[6] || 4.6;
           const curW2 = newPoints[7] || 1.85;
-          const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW2 / 2, false);
-          if (groundInfo.groundZ !== null) {
-            const cosSlope = Math.cos(groundInfo.rollRad) * Math.cos(groundInfo.pitchRad);
-            newZ = Number((groundInfo.groundZ + curH / 2 * cosSlope).toFixed(3));
-            newRotX = groundInfo.rollRad;
-            newRotY = groundInfo.pitchRad;
-            msg = `Đã ghim đáy xe #${uiId} bám dốc mặt đường (Z: ${newZ}m, Dốc dọc Pitch: ${groundInfo.pitchDeg}°, Dốc ngang Roll: ${groundInfo.rollDeg}°)`;
-          } else {
-            const roadBottomZ = targetGroundZ !== void 0 ? targetGroundZ : curZ - curH / 2;
-            newZ = Number((roadBottomZ + curH / 2).toFixed(3));
+          const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW2 / 2, curH / 2, false, false);
+          if (groundInfo.isFallbackZeroGround || groundInfo.groundPointsCount < 6) {
             newRotX = 0;
             newRotY = 0;
-            msg = `Đã ghim đáy xe #${uiId} sát mặt đường (Z: ${newZ}m)`;
+            newZ = Number((0 + curH / 2).toFixed(3));
+            msg = `Dưới chân ít điểm LiDAR (${groundInfo.groundPointsCount} điểm) ➔ Lấy mốc Ego Z = 0, đặt phẳng đáy xe tại Z = 0 (Tâm Z: ${newZ}m, Roll 0°, Pitch 0°)`;
+          } else if (groundInfo.groundZ !== null) {
+            const cosPitch = Math.cos(groundInfo.pitchRad);
+            const cosRoll = Math.cos(groundInfo.rollRad);
+            newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch * cosRoll).toFixed(3));
+            newRotX = groundInfo.rollRad;
+            newRotY = groundInfo.pitchRad;
+            msg = `Đã ghim đáy xe #${uiId} bám sát mặt đường (Z: ${newZ}m, Roll: ${groundInfo.rollDeg}°, Pitch: ${groundInfo.pitchDeg}°)`;
+          } else {
+            newRotX = 0;
+            newRotY = 0;
+            newZ = Number((0 + curH / 2).toFixed(3));
+            msg = `Không có điểm mặt đất ➔ Lấy mốc Ego Z = 0, đặt phẳng đáy xe tại Z = 0 (Tâm Z: ${newZ}m)`;
           }
         } else if (mode === "curb") {
-          const offset = curbHeight !== void 0 ? curbHeight : 0.15;
+          const curL = newPoints[6] || 4.6;
+          const autoCurb = detectCurbStepAndRollInMainWorld(curX, curY, curZ, curRz, curL / 2, curW / 2, curW);
+          const offset = curbHeight !== void 0 ? curbHeight : autoCurb.hasCurb ? autoCurb.curbHeight : 0.15;
           newZ = Number((curZ + offset).toFixed(3));
-          msg = `Đã ghim đáy xe #${uiId} lên nền vỉa hè (+${Math.round(offset * 100)}cm ➔ Z: ${newZ}m)`;
+          msg = autoCurb.hasCurb ? `Đã tự động nhận diện nền vỉa hè cao +${autoCurb.curbHeightCm}cm từ LiDAR ➔ Z: ${newZ}m` : `Đã nâng đáy xe #${uiId} lên nền vỉa hè (+${Math.round(offset * 100)}cm ➔ Z: ${newZ}m)`;
         } else if (mode === "half_curb") {
-          const cH = curbHeight !== void 0 ? curbHeight : 0.15;
-          const ratio = Math.max(-1, Math.min(1, cH / curW));
-          const rollRad = Math.asin(ratio);
-          const deltaZ = cH / 2;
-          newZ = Number((curZ + deltaZ).toFixed(3));
-          newRotX = Number(rollRad.toFixed(5));
-          const rollDeg = Math.round(rollRad * 180 / Math.PI);
-          msg = `Đã gác lề xe #${uiId} (Nghiêng Roll: ${rollDeg}°, Nâng Z: +${Math.round(deltaZ * 100)}cm)`;
+          const curL = newPoints[6] || 4.6;
+          const autoCurb = detectCurbStepAndRollInMainWorld(curX, curY, curZ, curRz, curL / 2, curW / 2, curW);
+          if (autoCurb.hasCurb && autoCurb.side !== "none") {
+            newRotX = autoCurb.rollRad;
+            const deltaZ = autoCurb.deltaCenterZ;
+            newZ = Number((curZ + deltaZ).toFixed(3));
+            const sideText = autoCurb.side === "left" ? "bên TRÁI" : "bên PHẢI";
+            msg = `Đã tự động nhận diện gác lề ${sideText} (Bậc vỉa hè: +${autoCurb.curbHeightCm}cm, Nghiêng Front Roll: ${autoCurb.rollDeg}°, Nâng Z: +${Math.round(deltaZ * 100)}cm)`;
+          } else {
+            const cH = curbHeight !== void 0 ? curbHeight : 0.15;
+            const ratio = Math.max(-1, Math.min(1, cH / curW));
+            const rollRad = Math.asin(ratio);
+            const deltaZ = cH / 2;
+            newZ = Number((curZ + deltaZ).toFixed(3));
+            newRotX = Number(rollRad.toFixed(5));
+            const rollDeg = Math.round(rollRad * 180 / Math.PI);
+            msg = `Đã gác lề xe #${uiId} (Nghiêng Roll: ${rollDeg}°, Nâng Z: +${Math.round(deltaZ * 100)}cm)`;
+          }
         } else if (mode === "micro_adjust") {
           const dCm = deltaCm !== void 0 ? deltaCm : 1;
           newZ = Number((curZ + dCm / 100).toFixed(3));
@@ -1532,7 +4388,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           void 0,
           { rx: newRotX, ry: newRotY, rz: curRz }
         );
-        window.__CVAT_HAS_UNSAVED_CHANGES__ = true;
+        markCvatSaveButtonUnsaved();
         console.log(`[CVAT 3D Suite] ${msg} (Three.js Side/Front Re-rendered Realtime)`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_SNAP_GROUND", {
@@ -1562,6 +4418,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newPoints[0] = fit.newX;
         newPoints[1] = fit.newY;
         newPoints[2] = fit.newZ;
+        newPoints[3] = 0;
         if (fit.newYaw !== void 0) {
           newPoints[5] = fit.newYaw;
         }
@@ -1634,7 +4491,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             console.warn("[CVAT 3D Suite] Lưu các frame khác trong track:", tErr);
           }
         }
-        window.__CVAT_HAS_UNSAVED_CHANGES__ = true;
+        markCvatSaveButtonUnsaved();
         const scopeText = applyToTrack ? `toàn bộ track (từ Frame #${startF} ➔ #${stopF}, ${trackCount} frames, Realtime)` : `chỉ frame #${frame}`;
         const modeText = resolvedMode === "tight" ? "ôm sát cụm điểm" : "chuẩn catalog";
         const msg = `Đã fit box xe #${uiId} ${modeText} (${fit.pointsCount} điểm LiDAR, Ground: ${fit.detectedGroundZ}m, ${fit.newL}x${fit.newW}x${fit.newH}m cho ${scopeText})`;
@@ -1684,13 +4541,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (!lidar || lidar.count === 0) {
           throw new Error(`Không tìm thấy điểm LiDAR nào trong Scene`);
         }
-        const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curYaw, curL / 2, curW / 2, false);
-        const effectiveGroundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : curZ - curH / 2;
+        const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curYaw, curL / 2, curW / 2, curH / 2, false, false);
+        const effectiveGroundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : 0;
         const { count, array } = lidar;
         const cosY = Math.cos(-curYaw);
         const sinY = Math.sin(-curYaw);
         const halfL = curL / 2 + 0.35;
-        const halfW = curW / 2 + 0.35;
+        const halfW = curW / 2 + 0.3;
         const minBodyZ = effectiveGroundZ + 0.03;
         const maxRoofZ = effectiveGroundZ + curH + 0.25;
         const bodyPts = [];
@@ -1707,17 +4564,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             bodyPts.push({ x, y, z, lx, ly });
           }
         }
-        if (bodyPts.length < 4) {
-          throw new Error(`Không đủ điểm LiDAR trên thân xe #${uiId} (tìm thấy ${bodyPts.length} điểm)`);
+        const filteredLy = filterDenseConnectedCluster1D2(bodyPts, "ly", 0.22, 0);
+        const cleanBodyPts = filterDenseConnectedCluster1D2(filteredLy, "lx", 0.22, 0);
+        if (cleanBodyPts.length < 4) {
+          throw new Error(`Không đủ điểm LiDAR trên thân xe #${uiId} (tìm thấy ${cleanBodyPts.length} điểm)`);
         }
-        const sortedLx = [...bodyPts].sort((a, b) => a.lx - b.lx);
-        const sortedLy = [...bodyPts].sort((a, b) => a.ly - b.ly);
-        const pMinIdx = Math.max(0, Math.floor(bodyPts.length * 0.02));
-        const pMaxIdx = Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.98));
-        const lxMin = sortedLx[pMinIdx].lx;
-        const lxMax = sortedLx[pMaxIdx].lx;
-        const lyMin = sortedLy[pMinIdx].ly;
-        const lyMax = sortedLy[pMaxIdx].ly;
+        const robustBounds = computeDensityRobustBounds2(cleanBodyPts);
+        const lxMin = robustBounds.lxMin;
+        const lxMax = robustBounds.lxMax;
+        const lyMin = robustBounds.lyMin;
+        const lyMax = robustBounds.lyMax;
         const spanL = lxMax - lxMin;
         const spanW = lyMax - lyMin;
         let midLx = 0;
@@ -1755,7 +4611,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const newX = Number((curX + midLx * cosWorld - midLy * sinWorld).toFixed(2));
         const newY = Number((curY + midLx * sinWorld + midLy * cosWorld).toFixed(2));
         const newZ = Number((effectiveGroundZ + curH / 2).toFixed(3));
-        const newRotX = groundInfo.rollRad;
+        const newRotX = 0;
         const newRotY = groundInfo.pitchRad;
         const newPoints = [...target.points];
         newPoints[0] = newX;
@@ -1777,7 +4633,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           void 0,
           { rx: newRotX, ry: newRotY, rz: curYaw }
         );
-        window.__CVAT_HAS_UNSAVED_CHANGES__ = true;
+        markCvatSaveButtonUnsaved();
         const msg = `Đã căn hộp ôm trọn cụm điểm (${bodyPts.length} điểm), bám dốc mặt đường (Pitch: ${groundInfo.pitchDeg}°, Roll: ${groundInfo.rollDeg}°) và BẢO TOÀN 100% kích thước chuẩn ${curL}x${curW}x${curH}m`;
         console.log(`[CVAT 3D Suite] ${msg}`);
         window.dispatchEvent(
@@ -1807,129 +4663,695 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         );
       }
     });
-    window.addEventListener("CVAT_EXT_REQ_MULTI_FRAME_ANCHOR_FIT", async (e) => {
-      const { jobId, frame, uiId, serverId } = e.detail || {};
+    window.addEventListener("CVAT_EXT_REQ_EGO_RAY_FIT", async (e) => {
+      const { jobId, frame, uiId, serverId, egoPos, preserveDimensions, applyToTrack, fitStep } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
-        const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
-        let bestFrame = frame;
-        let optL = target.points[6] || 4.65;
-        let optW = target.points[7] || 1.85;
-        let optH = target.points[8] || 1.45;
-        let bestScore = 0;
-        let framesSynced = 1;
-        const currentFit = computeLidarGroundAndFit(target.points, "catalog");
-        if (currentFit.pointsCount > 0) {
-          optL = currentFit.newL;
-          optW = currentFit.newW;
-          optH = currentFit.newH;
-          bestScore = currentFit.pointsCount;
+        const fit = fitBoxToEgoRayAndGroundInMainWorld(
+          target.points,
+          egoPos || { x: 0, y: 0, z: 0 },
+          { preserveDimensions, fitStep }
+        );
+        if (fit.pointsCount === 0) {
+          throw new Error(`Không tìm thấy điểm LiDAR nào trong vùng xe #${uiId}`);
         }
-        if (parentTrack && Array.isArray(parentTrack.shapes) && parentTrack.shapes.length > 1) {
-          const cuboidShapes = parentTrack.shapes.filter(
-            (s) => s.shapeType === "cuboid" && Array.isArray(s.points) && s.points.length >= 9
-          );
-          const trackFrames = cuboidShapes.map((s) => s.frame).sort((a, b) => a - b);
-          console.log(`[CVAT 3D Suite] Đang khảo sát ${trackFrames.length} frames của xe #${uiId} (Frames: ${trackFrames.join(", ")})...`);
-          const switchFrameDom = async (f) => {
-            const frameInput = document.querySelector(
-              ".cvat-player-frame-input input, input.cvat-player-frame-input"
-            );
-            if (frameInput) {
-              frameInput.focus();
-              frameInput.value = String(f);
-              frameInput.dispatchEvent(new Event("input", { bubbles: true }));
-              frameInput.dispatchEvent(new Event("change", { bubbles: true }));
-              frameInput.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", code: "Enter", keyCode: 13, bubbles: true }));
-              await new Promise((r) => setTimeout(r, 220));
-            }
-          };
-          const sampleFrames = [];
-          if (trackFrames.length <= 6) {
-            sampleFrames.push(...trackFrames);
-          } else {
-            sampleFrames.push(trackFrames[0]);
-            const step = Math.floor(trackFrames.length / 5);
-            for (let i = 1; i < 5; i++) {
-              sampleFrames.push(trackFrames[i * step]);
-            }
-            sampleFrames.push(trackFrames[trackFrames.length - 1]);
-          }
-          for (const f of sampleFrames) {
-            if (f === frame) continue;
-            try {
-              await switchFrameDom(f);
-              const lidarF = getSceneLidarPoints();
-              if (lidarF && lidarF.count > 0) {
-                const shapeF = cuboidShapes.find((s) => s.frame === f);
-                if (shapeF) {
-                  const fitF = computeLidarGroundAndFit(shapeF.points, "catalog");
-                  if (fitF.pointsCount > bestScore) {
-                    bestScore = fitF.pointsCount;
-                    bestFrame = f;
-                    optL = fitF.newL;
-                    optW = fitF.newW;
-                    optH = fitF.newH;
-                    console.log(`[CVAT 3D Suite] Tìm thấy Frame #${f} hiển thị tốt hơn (${fitF.pointsCount} điểm, ${optL}x${optW}x${optH}m)`);
+        const newYaw = fit.newYawRad !== void 0 ? fit.newYawRad : target.points[5];
+        const newPoints = [...target.points];
+        newPoints[0] = fit.newX;
+        newPoints[1] = fit.newY;
+        newPoints[2] = fit.newZ;
+        newPoints[3] = fit.rollRad;
+        newPoints[4] = fit.pitchRad;
+        newPoints[5] = newYaw;
+        newPoints[6] = fit.newL;
+        newPoints[7] = fit.newW;
+        newPoints[8] = fit.newH;
+        target.points = newPoints;
+        if (!isDrawn && typeof target.save === "function") {
+          await target.save();
+        }
+        updateThreeJsCuboid(
+          uiId,
+          newYaw,
+          { x: fit.newX, y: fit.newY, z: fit.newZ },
+          { l: fit.newL, w: fit.newW, h: fit.newH },
+          { rx: fit.rollRad, ry: fit.pitchRad, rz: newYaw }
+        );
+        markCvatSaveButtonUnsaved();
+        let trackCount = 1;
+        if (applyToTrack === true && job) {
+          try {
+            const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+            if (parentTrack) {
+              const shapes = toArray(parentTrack.shapes || parentTrack.keyframes);
+              for (const sh of shapes) {
+                if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+                  const shPoints = [...sh.points];
+                  const sOldZ = shPoints[2];
+                  const sOldH = shPoints[8];
+                  shPoints[2] = Number((sOldZ + (fit.newH - sOldH) / 2).toFixed(3));
+                  shPoints[6] = fit.newL;
+                  shPoints[7] = fit.newW;
+                  shPoints[8] = fit.newH;
+                  sh.points = shPoints;
+                  if (sh.frame !== frame) {
+                    trackCount++;
                   }
                 }
               }
-            } catch (scanErr) {
-              console.warn(`[CVAT 3D Suite] Lỗi quét Frame #${f}:`, scanErr);
+              if (typeof parentTrack.save === "function") {
+                await parentTrack.save();
+              }
             }
+          } catch (tErr) {
+            console.warn("[CVAT 3D Suite] Cảnh báo đồng bộ track trong Ego Ray Fit:", tErr);
           }
-          if (bestFrame !== frame) {
-            await switchFrameDom(frame);
-          }
-          for (const sh of cuboidShapes) {
-            const shPoints = [...sh.points];
-            const sOldZ = shPoints[2];
-            const sOldH = shPoints[8];
-            shPoints[2] = Number((sOldZ + (optH - sOldH) / 2).toFixed(3));
-            shPoints[6] = optL;
-            shPoints[7] = optW;
-            shPoints[8] = optH;
-            sh.points = shPoints;
-            framesSynced++;
-          }
-          await parentTrack.save();
         }
-        const finalPoints = [...target.points];
-        finalPoints[6] = optL;
-        finalPoints[7] = optW;
-        finalPoints[8] = optH;
-        target.points = finalPoints;
+        console.log(`[CVAT 3D Suite] ${fit.message}`);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_EGO_RAY_FIT", {
+            detail: {
+              success: true,
+              uiId,
+              newX: fit.newX,
+              newY: fit.newY,
+              newZ: fit.newZ,
+              newYawRad: newYaw,
+              newYawDeg: fit.newYawDeg,
+              deltaYawDeg: fit.deltaYawDeg,
+              newL: fit.newL,
+              newW: fit.newW,
+              newH: fit.newH,
+              pitchRad: fit.pitchRad,
+              rollRad: fit.rollRad,
+              pitchDeg: fit.pitchDeg,
+              rollDeg: fit.rollDeg,
+              visibleFaces: fit.visibleFaces,
+              pointsCount: fit.pointsCount,
+              trackCount,
+              message: fit.message
+            }
+          })
+        );
+      } catch (err) {
+        console.error("[CVAT 3D Suite] Lỗi Ego Ray Fit:", err);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_EGO_RAY_FIT", {
+            detail: { success: false, error: err.message || String(err) }
+          })
+        );
+      }
+    });
+    window.addEventListener("CVAT_EXT_REQ_FIT_PEDESTRIAN", async (e) => {
+      const { jobId, frame, uiId, serverId, headBuffer } = e.detail || {};
+      try {
+        const job = await getActiveJobInstance(jobId);
+        const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+        const fit = fitPedestrianInMainWorld(target.points, { headBuffer });
+        if (fit.pointsCount === 0) {
+          throw new Error(`Không tìm thấy điểm LiDAR nào thuộc người #${uiId}`);
+        }
+        const newPoints = [...target.points];
+        newPoints[0] = fit.newX;
+        newPoints[1] = fit.newY;
+        newPoints[2] = fit.newZ;
+        newPoints[3] = 0;
+        newPoints[4] = 0;
+        newPoints[6] = fit.newL;
+        newPoints[7] = fit.newW;
+        newPoints[8] = fit.newH;
+        target.points = newPoints;
         if (!isDrawn && typeof target.save === "function") {
           await target.save();
         }
         updateThreeJsCuboid(
           uiId,
           target.points[5],
-          { x: target.points[0], y: target.points[1], z: target.points[2] },
-          { l: optL, w: optW, h: optH }
+          { x: fit.newX, y: fit.newY, z: fit.newZ },
+          { l: fit.newL, w: fit.newW, h: fit.newH },
+          { rx: 0, ry: 0, rz: target.points[5] }
         );
-        window.__CVAT_HAS_UNSAVED_CHANGES__ = true;
-        const msg = `Đã quét chọn Frame #${bestFrame} hiển thị tốt nhất (${bestScore} điểm LiDAR), lấy kích thước chuẩn ${optL}x${optW}x${optH}m đồng bộ cho ${framesSynced} frames trong track`;
-        console.log(`[CVAT 3D Suite] ${msg}`);
+        markCvatSaveButtonUnsaved();
+        console.log(`[CVAT 3D Suite] ${fit.message}`);
         window.dispatchEvent(
-          new CustomEvent("CVAT_EXT_RES_MULTI_FRAME_ANCHOR_FIT", {
+          new CustomEvent("CVAT_EXT_RES_FIT_PEDESTRIAN", {
             detail: {
               success: true,
               uiId,
-              anchorFrame: bestFrame,
-              optL,
-              optW,
-              optH,
+              newX: fit.newX,
+              newY: fit.newY,
+              newZ: fit.newZ,
+              newL: fit.newL,
+              newW: fit.newW,
+              newH: fit.newH,
+              pointsCount: fit.pointsCount,
+              message: fit.message
+            }
+          })
+        );
+      } catch (err) {
+        console.error("[CVAT 3D Suite] Lỗi Fit Pedestrian:", err);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_FIT_PEDESTRIAN", {
+            detail: { success: false, error: err.message || String(err) }
+          })
+        );
+      }
+    });
+    window.addEventListener("CVAT_EXT_REQ_FIT_CYCLIST", async (e) => {
+      const { jobId, frame, uiId, serverId, headBuffer, egoPos, step, applyToTrack } = e.detail || {};
+      try {
+        const job = await getActiveJobInstance(jobId);
+        const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+        const fit = fitCyclistInMainWorld(target.points, { headBuffer, egoPos, step });
+        if (fit.pointsCount === 0) {
+          throw new Error(`Không tìm thấy điểm LiDAR nào thuộc xe 2 bánh #${uiId}`);
+        }
+        const newPoints = [...target.points];
+        newPoints[0] = fit.newX;
+        newPoints[1] = fit.newY;
+        newPoints[2] = fit.newZ;
+        newPoints[3] = 0;
+        newPoints[4] = 0;
+        if (fit.newYaw !== void 0) {
+          newPoints[5] = fit.newYaw;
+        }
+        newPoints[6] = fit.newL;
+        newPoints[7] = fit.newW;
+        newPoints[8] = fit.newH;
+        target.points = newPoints;
+        if (!isDrawn && typeof target.save === "function") {
+          await target.save();
+        }
+        let trackCount = 1;
+        const startF = typeof (job == null ? void 0 : job.startFrame) === "number" ? job.startFrame : 0;
+        const stopF = typeof (job == null ? void 0 : job.stopFrame) === "number" ? job.stopFrame : startF + 100;
+        try {
+          const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+          if (parentTrack) {
+            const shapes = toArray(parentTrack.shapes || parentTrack.keyframes);
+            for (const sh of shapes) {
+              if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+                if (sh.frame === frame) {
+                  sh.points = [...newPoints];
+                } else if (applyToTrack === true) {
+                  const shPoints = [...sh.points];
+                  const sOldH = shPoints[8] || fit.newH;
+                  const dh = (fit.newH - sOldH) / 2;
+                  shPoints[2] = Number((shPoints[2] + dh).toFixed(3));
+                  shPoints[6] = fit.newL;
+                  shPoints[7] = fit.newW;
+                  shPoints[8] = fit.newH;
+                  sh.points = shPoints;
+                  trackCount++;
+                }
+              }
+            }
+            if (typeof parentTrack.save === "function") {
+              await parentTrack.save();
+            }
+          }
+          if (applyToTrack === true && job) {
+            for (let f = startF; f <= stopF; f++) {
+              if (f === frame) continue;
+              try {
+                const states = await job.annotations.get(f);
+                if (Array.isArray(states)) {
+                  const st = states.find(
+                    (s) => s.clientID === uiId || serverId && s.serverID === serverId
+                  );
+                  if (st && Array.isArray(st.points) && st.points.length >= 9) {
+                    const p = [...st.points];
+                    const sOldH = p[8] || fit.newH;
+                    const dh = (fit.newH - sOldH) / 2;
+                    p[2] = Number((p[2] + dh).toFixed(3));
+                    p[6] = fit.newL;
+                    p[7] = fit.newW;
+                    p[8] = fit.newH;
+                    st.points = p;
+                    if (typeof st.save === "function") {
+                      await st.save();
+                    }
+                    trackCount++;
+                  }
+                }
+              } catch (e2) {
+              }
+            }
+          }
+        } catch (tErr) {
+          console.warn("[CVAT 3D Suite] Lưu parentTrack khi fit xe 2 bánh:", tErr);
+        }
+        updateThreeJsCuboid(
+          uiId,
+          newPoints[5],
+          { x: fit.newX, y: fit.newY, z: fit.newZ },
+          { l: fit.newL, w: fit.newW, h: fit.newH },
+          { rx: 0, ry: 0, rz: newPoints[5] }
+        );
+        markCvatSaveButtonUnsaved();
+        console.log(`[CVAT 3D Suite] ${fit.message}`);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_FIT_CYCLIST", {
+            detail: {
+              success: true,
+              uiId,
+              newX: fit.newX,
+              newY: fit.newY,
+              newZ: fit.newZ,
+              newYaw: fit.newYaw,
+              newYawDeg: fit.newYawDeg,
+              deltaYawDeg: fit.deltaYawDeg,
+              newL: fit.newL,
+              newW: fit.newW,
+              newH: fit.newH,
+              pointsCount: fit.pointsCount,
+              step: fit.step,
+              applyToTrack: !!applyToTrack,
+              message: fit.message
+            }
+          })
+        );
+      } catch (err) {
+        console.error("[CVAT 3D Suite] Lỗi Fit Cyclist:", err);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_FIT_CYCLIST", {
+            detail: { success: false, error: err.message || String(err) }
+          })
+        );
+      }
+    });
+    function fitBoxWithPadding5cm(points) {
+      const cx = points[0];
+      const cy = points[1];
+      const cz = points[2];
+      const yaw = points[5];
+      const l = points[6] || 4.65;
+      const w = points[7] || 1.85;
+      const h = points[8] || 1.45;
+      const lidar = getSceneLidarPoints();
+      if (!lidar || lidar.count === 0) {
+        throw new Error("Không trích xuất được điểm LiDAR từ Three.js scene!");
+      }
+      const { count, array } = lidar;
+      const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, l / 2, w / 2, h / 2, false, false);
+      const groundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : cz - h / 2;
+      const cosY = Math.cos(-yaw);
+      const sinY = Math.sin(-yaw);
+      const minBodyZ = groundZ + 0.04;
+      const maxRoofZ = groundZ + 3.5;
+      const searchHalfL = l / 2 + 0.55;
+      const searchHalfW = w / 2 + 0.45;
+      const rawBodyPts = [];
+      for (let i = 0; i < count; i++) {
+        const z = array[i * 3 + 2];
+        if (z < minBodyZ || z > maxRoofZ) continue;
+        const x = array[i * 3];
+        const y = array[i * 3 + 1];
+        const dx = x - cx;
+        const dy = y - cy;
+        const lx = dx * cosY - dy * sinY;
+        const ly = dx * sinY + dy * cosY;
+        if (Math.abs(lx) <= searchHalfL && Math.abs(ly) <= searchHalfW) {
+          rawBodyPts.push({ lx, ly, z });
+        }
+      }
+      if (rawBodyPts.length < 5) {
+        throw new Error(`Cụm điểm quá thưa (${rawBodyPts.length} điểm), không đủ để fit tự động!`);
+      }
+      const clLy = filterDenseConnectedCluster1D2(rawBodyPts, "ly", 0.2, 0);
+      const bodyPts = filterDenseConnectedCluster1D2(clLy, "lx", 0.2, 0);
+      const finalPts = bodyPts.length >= 5 ? bodyPts : rawBodyPts;
+      const frontWall = detectDominantWallEdgeWithValleyCutoff2(finalPts, "lx", "positive", l / 2, { binSize: 0.04 });
+      const rearWall = detectDominantWallEdgeWithValleyCutoff2(finalPts, "lx", "negative", l / 2, { binSize: 0.04 });
+      const measuredL = Math.max(0.5, Math.min(15, Number((frontWall.edge - rearWall.edge).toFixed(3))));
+      const leftWall = detectDominantWallEdgeWithValleyCutoff2(finalPts, "ly", "positive", w / 2, { binSize: 0.03 });
+      const rightWall = detectDominantWallEdgeWithValleyCutoff2(finalPts, "ly", "negative", w / 2, { binSize: 0.03 });
+      const measuredW = Math.max(0.4, Math.min(3.5, Number((leftWall.edge - rightWall.edge).toFixed(3))));
+      const zList = finalPts.map((p) => p.z).sort((a, b) => a - b);
+      const zRoof = zList[Math.floor(zList.length * 0.95)];
+      const measuredH = Math.max(0.4, Math.min(4, Number((zRoof - groundZ).toFixed(3))));
+      const newL = Number((measuredL + 0.1).toFixed(2));
+      const newW = Number((measuredW + 0.1).toFixed(2));
+      const newH = Number((measuredH + 0.05).toFixed(2));
+      const newZ = Number((groundZ + newH / 2).toFixed(3));
+      return {
+        newL,
+        newW,
+        newH,
+        newZ,
+        pointsCount: finalPts.length,
+        measuredL,
+        measuredW,
+        measuredH,
+        groundZ
+      };
+    }
+    window.addEventListener("CVAT_EXT_REQ_FIT_CURRENT_BOX", async (e) => {
+      const { jobId, frame, uiId, serverId, applyToTrack = false } = e.detail || {};
+      try {
+        const job = await getActiveJobInstance(jobId);
+        const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+        const fit = fitBoxWithPadding5cm(target.points);
+        const newPoints = [...target.points];
+        newPoints[2] = fit.newZ;
+        newPoints[6] = fit.newL;
+        newPoints[7] = fit.newW;
+        newPoints[8] = fit.newH;
+        target.points = newPoints;
+        if (!isDrawn && typeof target.save === "function") {
+          await target.save();
+        }
+        let framesSynced = 1;
+        if (applyToTrack) {
+          const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+          if (parentTrack) {
+            const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || parentTrack._shapes);
+            for (const sh of shapesList) {
+              if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+                const pts = [...sh.points];
+                const sOldZ = pts[2];
+                const sOldH = pts[8];
+                pts[2] = Number((sOldZ + (fit.newH - sOldH) / 2).toFixed(3));
+                pts[6] = fit.newL;
+                pts[7] = fit.newW;
+                pts[8] = fit.newH;
+                sh.points = pts;
+                framesSynced++;
+              }
+            }
+            if (typeof parentTrack.save === "function") {
+              await parentTrack.save();
+            }
+          }
+        }
+        updateThreeJsCuboid(
+          uiId,
+          newPoints[5],
+          { x: newPoints[0], y: newPoints[1], z: fit.newZ },
+          { l: fit.newL, w: fit.newW, h: fit.newH },
+          { rx: newPoints[3] || 0, ry: newPoints[4] || 0, rz: newPoints[5] }
+        );
+        markCvatSaveButtonUnsaved();
+        const scopeText = applyToTrack ? `toàn bộ ${framesSynced} frames trong track` : `frame #${frame}`;
+        const msg = `Đã Fit Box với padding 5cm (L=${fit.newL}m, W=${fit.newW}m, H=${fit.newH}m, ${fit.pointsCount} điểm LiDAR) cho ${scopeText}`;
+        console.log(`[CVAT 3D Suite] ${msg}`);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_FIT_CURRENT_BOX", {
+            detail: {
+              success: true,
+              uiId,
+              newL: fit.newL,
+              newW: fit.newW,
+              newH: fit.newH,
+              newZ: fit.newZ,
+              pointsCount: fit.pointsCount,
               framesSynced,
               message: msg
             }
           })
         );
       } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi Multi-Frame Anchor Fit:", err);
+        console.error("[CVAT 3D Suite] Lỗi Fit Box Hiện Tại:", err);
         window.dispatchEvent(
-          new CustomEvent("CVAT_EXT_RES_MULTI_FRAME_ANCHOR_FIT", {
+          new CustomEvent("CVAT_EXT_RES_FIT_CURRENT_BOX", {
+            detail: { success: false, error: err.message || String(err) }
+          })
+        );
+      }
+    });
+    window.addEventListener("CVAT_EXT_REQ_SET_TRACK_OUTSIDE", async (e) => {
+      var _a, _b, _c;
+      const { jobId, frame, uiId, serverId, outside = true } = e.detail || {};
+      try {
+        const job = await getActiveJobInstance(jobId);
+        if (!job) throw new Error("Không tìm thấy Job Instance của CVAT");
+        const currentFrame = typeof frame === "number" ? frame : typeof job.frame === "number" ? job.frame : 0;
+        let currentTarget = null;
+        try {
+          const res = await findTargetSafely(job, currentFrame, uiId, serverId);
+          currentTarget = res.target;
+        } catch (e2) {
+        }
+        const parentID = (currentTarget == null ? void 0 : currentTarget.parentID) || (currentTarget == null ? void 0 : currentTarget.trackID) || (currentTarget == null ? void 0 : currentTarget.parent) && currentTarget.parent.clientID;
+        let parentTrack = await findTrackInJob(job, uiId, serverId, parentID);
+        const previousStates = [];
+        let countModified = 0;
+        if (parentTrack) {
+          const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || parentTrack._shapes);
+          if (shapesList.length > 0) {
+            for (const sh of shapesList) {
+              previousStates.push({
+                frame: sh.frame,
+                outside: !!sh.outside,
+                points: Array.isArray(sh.points) ? [...sh.points] : []
+              });
+              sh.outside = !!outside;
+              countModified++;
+            }
+            if (typeof parentTrack.save === "function") {
+              await parentTrack.save();
+            }
+          }
+        }
+        if (countModified === 0) {
+          const startF = typeof job.startFrame === "number" ? job.startFrame : 0;
+          const stopF = typeof job.stopFrame === "number" ? job.stopFrame : startF + 300;
+          for (let f = startF; f <= stopF; f++) {
+            try {
+              const states = await job.annotations.get(f);
+              if (Array.isArray(states)) {
+                const st = states.find(
+                  (s) => Number(s.clientID) === Number(uiId) || serverId && Number(s.serverID) === Number(serverId) || parentID && (Number(s.clientID) === Number(parentID) || Number(s.parentID) === Number(parentID))
+                );
+                if (st) {
+                  previousStates.push({
+                    frame: f,
+                    outside: !!st.outside,
+                    points: Array.isArray(st.points) ? [...st.points] : []
+                  });
+                  st.outside = !!outside;
+                  if (typeof st.save === "function") {
+                    await st.save();
+                  }
+                  countModified++;
+                }
+              }
+            } catch (e2) {
+            }
+          }
+        }
+        if (countModified === 0 && currentTarget) {
+          previousStates.push({
+            frame: currentFrame,
+            outside: !!currentTarget.outside,
+            points: Array.isArray(currentTarget.points) ? [...currentTarget.points] : []
+          });
+          currentTarget.outside = !!outside;
+          if (typeof currentTarget.save === "function") {
+            await currentTarget.save();
+          }
+          countModified = 1;
+        }
+        if (countModified === 0) {
+          throw new Error(`Không tìm thấy Track hoặc Shape #${uiId} trong toàn bộ Job`);
+        }
+        markCvatSaveButtonUnsaved();
+        const store = getReduxStore();
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (canvas && typeof canvas.render === "function") {
+          canvas.render();
+        }
+        const msg = `Đã đánh dấu ${outside ? "Outside" : "Inside"} cho ${countModified} frame của xe #${uiId}`;
+        console.log(`[CVAT 3D Suite] ${msg}`);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_SET_TRACK_OUTSIDE", {
+            detail: {
+              success: true,
+              uiId,
+              outside,
+              count: countModified,
+              previousStates,
+              message: msg
+            }
+          })
+        );
+      } catch (err) {
+        console.error("[CVAT 3D Suite] Lỗi Set Track Outside:", err);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_SET_TRACK_OUTSIDE", {
+            detail: { success: false, error: err.message || String(err) }
+          })
+        );
+      }
+    });
+    window.addEventListener("CVAT_EXT_REQ_RESTORE_BOX", async (e) => {
+      var _a, _b, _c;
+      const { jobId, frame, uiId, serverId, applyToTrack, boxPoints, trackShapesBackup } = e.detail || {};
+      try {
+        const job = await getActiveJobInstance(jobId);
+        if (!job) throw new Error("Không tìm thấy Job Instance của CVAT");
+        const currentFrame = typeof frame === "number" ? frame : typeof job.frame === "number" ? job.frame : 0;
+        let currentTarget = null;
+        try {
+          const res = await findTargetSafely(job, currentFrame, uiId, serverId);
+          currentTarget = res.target;
+        } catch (e2) {
+        }
+        const parentID = (currentTarget == null ? void 0 : currentTarget.parentID) || (currentTarget == null ? void 0 : currentTarget.trackID) || (currentTarget == null ? void 0 : currentTarget.parent) && currentTarget.parent.clientID;
+        const parentTrack = await findTrackInJob(job, uiId, serverId, parentID);
+        if (applyToTrack && Array.isArray(trackShapesBackup) && trackShapesBackup.length > 0) {
+          if (parentTrack) {
+            const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || parentTrack._shapes);
+            for (const bk of trackShapesBackup) {
+              const sh = shapesList.find((s) => s.frame === bk.frame);
+              if (sh) {
+                if (bk.outside !== void 0) sh.outside = bk.outside;
+                if (Array.isArray(bk.points)) sh.points = ensureCuboidPoints(bk.points, sh.points);
+              }
+            }
+            if (typeof parentTrack.save === "function") {
+              try {
+                await parentTrack.save();
+              } catch (tSaveErr) {
+                console.warn("[CVAT 3D Suite] Cảnh báo parentTrack.save trong RESTORE_BOX:", tSaveErr);
+              }
+            }
+          }
+          for (const bk of trackShapesBackup) {
+            try {
+              const states = await job.annotations.get(bk.frame);
+              if (Array.isArray(states)) {
+                const st = states.find(
+                  (s) => Number(s.clientID) === Number(uiId) || serverId && Number(s.serverID) === Number(serverId) || parentID && (Number(s.clientID) === Number(parentID) || Number(s.parentID) === Number(parentID))
+                );
+                if (st) {
+                  if (bk.outside !== void 0) st.outside = bk.outside;
+                  if (Array.isArray(bk.points)) st.points = ensureCuboidPoints(bk.points, st.points);
+                  if (typeof st.save === "function") {
+                    try {
+                      await st.save();
+                    } catch (stSaveErr) {
+                      console.warn("[CVAT 3D Suite] Cảnh báo st.save trong RESTORE_BOX:", stSaveErr);
+                    }
+                  }
+                }
+              }
+            } catch (e2) {
+            }
+          }
+        }
+        if (Array.isArray(boxPoints) && boxPoints.length >= 9) {
+          try {
+            const { target, isDrawn } = await findTargetSafely(job, currentFrame, uiId, serverId);
+            target.points = ensureCuboidPoints(boxPoints, target.points);
+            if (!isDrawn && typeof target.save === "function") {
+              try {
+                await target.save();
+              } catch (curSaveErr) {
+                console.warn("[CVAT 3D Suite] Cảnh báo target.save trong RESTORE_BOX:", curSaveErr);
+              }
+            }
+            updateThreeJsCuboid(
+              uiId,
+              boxPoints[5],
+              { x: boxPoints[0], y: boxPoints[1], z: boxPoints[2] },
+              { l: boxPoints[6], w: boxPoints[7], h: boxPoints[8] },
+              { rx: boxPoints[3] || 0, ry: boxPoints[4] || 0, rz: boxPoints[5] }
+            );
+          } catch (curErr) {
+            console.warn("[CVAT 3D Suite] Khôi phục frame hiện tại:", curErr);
+          }
+        }
+        markCvatSaveButtonUnsaved();
+        const store = getReduxStore();
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (canvas && typeof canvas.render === "function") {
+          canvas.render();
+        }
+        const msg = `Đã hoàn tác (Pre) thành công trạng thái trước đó của xe #${uiId}`;
+        console.log(`[CVAT 3D Suite] ${msg}`);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_RESTORE_BOX", {
+            detail: {
+              success: true,
+              uiId,
+              message: msg
+            }
+          })
+        );
+      } catch (err) {
+        console.error("[CVAT 3D Suite] Lỗi Restore Box (Pre):", err);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_RESTORE_BOX", {
+            detail: { success: false, error: err.message || String(err) }
+          })
+        );
+      }
+    });
+    window.addEventListener("CVAT_EXT_REQ_SHIFT_CENTER", async (e) => {
+      const { jobId, frame, uiId, serverId, deltaXLocal = 0, deltaYLocal = 0, applyToTrack = false } = e.detail || {};
+      try {
+        const job = await getActiveJobInstance(jobId);
+        const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+        const yaw = target.points[5] || 0;
+        const cosYaw = Math.cos(yaw);
+        const sinYaw = Math.sin(yaw);
+        const deltaXWorld = deltaXLocal * cosYaw - deltaYLocal * sinYaw;
+        const deltaYWorld = deltaXLocal * sinYaw + deltaYLocal * cosYaw;
+        let framesShifted = 1;
+        if (applyToTrack) {
+          const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+          if (parentTrack && Array.isArray(parentTrack.shapes)) {
+            for (const sh of parentTrack.shapes) {
+              if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+                const pts = [...sh.points];
+                pts[0] = Number((pts[0] + deltaXWorld).toFixed(3));
+                pts[1] = Number((pts[1] + deltaYWorld).toFixed(3));
+                sh.points = pts;
+                framesShifted++;
+              }
+            }
+            await parentTrack.save();
+          }
+        }
+        const currentPts = [...target.points];
+        currentPts[0] = Number((currentPts[0] + deltaXWorld).toFixed(3));
+        currentPts[1] = Number((currentPts[1] + deltaYWorld).toFixed(3));
+        target.points = currentPts;
+        if (!isDrawn && typeof target.save === "function") {
+          await target.save();
+        }
+        updateThreeJsCuboid(
+          uiId,
+          yaw,
+          { x: currentPts[0], y: currentPts[1], z: currentPts[2] },
+          { l: currentPts[6], w: currentPts[7], h: currentPts[8] },
+          { rx: 0, ry: 0, rz: yaw }
+        );
+        markCvatSaveButtonUnsaved();
+        const scopeText = applyToTrack ? `toàn bộ ${framesShifted} frames trong track` : `frame #${frame}`;
+        const msg = `Đã vi chỉnh Center (ΔX: ${deltaXLocal > 0 ? "+" : ""}${(deltaXLocal * 100).toFixed(0)}cm, ΔY: ${deltaYLocal > 0 ? "+" : ""}${(deltaYLocal * 100).toFixed(0)}cm) cho ${scopeText}`;
+        console.log(`[CVAT 3D Suite] ${msg}`);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_SHIFT_CENTER", {
+            detail: {
+              success: true,
+              uiId,
+              newX: currentPts[0],
+              newY: currentPts[1],
+              deltaXLocal,
+              deltaYLocal,
+              framesShifted,
+              message: msg
+            }
+          })
+        );
+      } catch (err) {
+        console.error("[CVAT 3D Suite] Lỗi vi chỉnh Center:", err);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_SHIFT_CENTER", {
             detail: { success: false, error: err.message || String(err) }
           })
         );
@@ -1941,9 +5363,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
      * Khởi tạo cầu nối vào Main World của CVAT
      */
     static ensureMainWorldBridge() {
-      if (this.isBridgeInjected || document.getElementById("cvat-3d-suite-main-bridge")) {
+      if (this.isBridgeInjected || window.__CVAT_3D_SUITE_INJECTED__ || document.getElementById("cvat-3d-suite-main-bridge")) {
         this.isBridgeInjected = true;
         return;
+      }
+      try {
+        if (typeof mainWorldScript === "function") {
+          mainWorldScript();
+          this.isBridgeInjected = true;
+          return;
+        }
+      } catch (e) {
       }
       const script = document.createElement("script");
       script.id = "cvat-3d-suite-main-bridge";
@@ -2011,36 +5441,49 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return 0;
     }
     /**
-     * Tải toàn bộ danh sách các Track trong Job từ API CVAT.
+     * Tải toàn bộ danh sách các Track trong Job từ API CVAT (với phòng vệ lỗi mạng).
      */
     static async fetchJobAnnotations(jobId, forceRefresh = false) {
       const now = Date.now();
       if (!forceRefresh && this.cachedAnnotations && this.cachedJobId === jobId && now - this.lastFetchTime < 3e3) {
         return this.cachedAnnotations;
       }
-      const url = `${window.location.origin}/api/jobs/${jobId}/annotations/`;
-      const response = await fetch(url, {
-        method: "GET",
-        headers: this.getApiHeaders(false),
-        credentials: "include"
-      });
-      if (!response.ok) {
-        throw new Error(`Lỗi tải annotations Job #${jobId} (HTTP ${response.status})`);
+      try {
+        const url = `${window.location.origin}/api/jobs/${jobId}/annotations`;
+        let response = await fetch(url, {
+          method: "GET",
+          headers: this.getApiHeaders(false),
+          credentials: "include"
+        });
+        if (!response.ok && (response.status === 404 || response.status === 301)) {
+          response = await fetch(`${url}/`, {
+            method: "GET",
+            headers: this.getApiHeaders(false),
+            credentials: "include"
+          });
+        }
+        if (response && response.ok) {
+          const data = await response.json();
+          this.cachedAnnotations = data;
+          this.cachedJobId = jobId;
+          this.lastFetchTime = now;
+          return data;
+        }
+      } catch (err) {
       }
-      const data = await response.json();
-      this.cachedAnnotations = data;
-      this.cachedJobId = jobId;
-      this.lastFetchTime = now;
-      return data;
+      return this.cachedAnnotations || { tracks: [] };
     }
     /**
      * Lấy danh sách TẤT CẢ các Track ID CÓ MẶT TẠI FRAME HIỆN TẠI.
-     * Ưu tiên lấy trực tiếp từ Main World để có UI ID chuẩn (#1, #2), nếu chưa có thì fallback API.
+     * Ưu tiên 1: Main World Bridge (được phản hồi là trả về ngay, dù rỗng [] hay có xe).
+     * Ưu tiên 2: window.cvat SDK nội bộ của trang web.
+     * Ưu tiên 3: REST API fallback an toàn.
      */
     static async getTracksInCurrentFrame(jobId, frame) {
+      var _a;
       this.ensureMainWorldBridge();
       const promise = new Promise((resolve) => {
-        const timeout = setTimeout(() => resolve(null), 700);
+        const timeout = setTimeout(() => resolve(null), 600);
         const onResponse = (e) => {
           clearTimeout(timeout);
           window.removeEventListener("CVAT_EXT_RES_FRAME_TRACKS", onResponse);
@@ -2054,25 +5497,51 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         window.dispatchEvent(new CustomEvent("CVAT_EXT_REQ_FRAME_TRACKS", { detail: { jobId, frame } }));
       });
       const mainWorldList = await promise;
-      if (mainWorldList && mainWorldList.length > 0) {
+      if (Array.isArray(mainWorldList)) {
         return mainWorldList;
+      }
+      try {
+        const win = window;
+        if ((_a = win.cvat) == null ? void 0 : _a.jobs) {
+          const jobs = await win.cvat.jobs.get({ jobID: jobId });
+          if (jobs && jobs.length > 0) {
+            const states = await jobs[0].annotations.get(frame);
+            if (Array.isArray(states)) {
+              const list = states.filter((s) => s.shapeType === "cuboid" && Array.isArray(s.points) && s.points.length >= 9).map((s) => {
+                var _a2;
+                return {
+                  uiId: s.clientID,
+                  serverId: s.serverID,
+                  label: ((_a2 = s.label) == null ? void 0 : _a2.name) || "Car",
+                  x: Number(s.points[0].toFixed(2)),
+                  y: Number(s.points[1].toFixed(2)),
+                  z: Number(s.points[2].toFixed(3)),
+                  yawDeg: Math.round(s.points[5] * 180 / Math.PI),
+                  l: Number(s.points[6].toFixed(2)),
+                  w: Number(s.points[7].toFixed(2)),
+                  h: Number(s.points[8].toFixed(2))
+                };
+              });
+              return list;
+            }
+          }
+        }
+      } catch (sdkErr) {
       }
       try {
         const data = await this.fetchJobAnnotations(jobId);
         const tracks = data.tracks || [];
         const result = [];
         tracks.forEach((t, index) => {
-          var _a;
+          var _a2;
           const shapes = Array.isArray(t.shapes) ? t.shapes : [];
           const matchShape = shapes.find((s) => s.frame === frame && s.type === "cuboid");
           if (matchShape && Array.isArray(matchShape.points) && matchShape.points.length >= 9) {
             const p = matchShape.points;
-            const label = t.label_name || ((_a = t.attributes) == null ? void 0 : _a.label) || `Track #${index + 1}`;
+            const label = t.label_name || ((_a2 = t.attributes) == null ? void 0 : _a2.label) || `Track #${index + 1}`;
             result.push({
               uiId: index + 1,
-              // SỐ 1, 2 KHỚP 100% VỚI MẮT NHÌN CỦA ANNOTATOR!
               serverId: t.id,
-              // 31, 32 LƯU DƯỚI DATABASE
               label,
               x: Number(p[0].toFixed(2)),
               y: Number(p[1].toFixed(2)),
@@ -2086,7 +5555,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         });
         return result.sort((a, b) => a.uiId - b.uiId);
       } catch (err) {
-        console.warn("[CVATBridge] Lỗi lọc track theo frame:", err);
         return [];
       }
     }
@@ -2298,13 +5766,181 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       };
     }
     /**
+     * FIT GÓC ĐÓN TIA EGO (RAY-CAST L-SHAPE FIT) & GHIM ĐẤT 3D (CẢ SIDE VIEW VÀ FRONT VIEW).
+     * Tia laser từ Ego chiếu tới góc nào thì mép box đón tia (Side View & Front View) ép sát điểm ngoài cùng,
+     * đồng thời đáy chạm khít mặt đất và góc trên của box ôm sát nóc xe!
+     */
+    static async fitBoxToEgoRayAndGround(jobId, uiId, serverId, applyToTrack = false, preserveDimensions = true, fitStep = "all", egoPos = { x: 0, y: 0, z: 0 }) {
+      this.ensureMainWorldBridge();
+      const currentFrame = this.getCurrentFrame();
+      const mwPromise = new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(null), 1500);
+        const onResponse = (e) => {
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_EGO_RAY_FIT", onResponse);
+          if (e.detail && e.detail.success) {
+            resolve(e.detail);
+          } else {
+            resolve(null);
+          }
+        };
+        window.addEventListener("CVAT_EXT_RES_EGO_RAY_FIT", onResponse);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_EGO_RAY_FIT", {
+            detail: {
+              jobId,
+              frame: currentFrame,
+              uiId,
+              serverId,
+              egoPos,
+              preserveDimensions,
+              applyToTrack,
+              fitStep
+            }
+          })
+        );
+      });
+      const mwRes = await mwPromise;
+      if (!mwRes) {
+        return { success: false, message: "Không thể fit góc đón tia từ Main World" };
+      }
+      return {
+        success: true,
+        newX: mwRes.newX,
+        newY: mwRes.newY,
+        newZ: mwRes.newZ,
+        newYawRad: mwRes.newYawRad,
+        newYawDeg: mwRes.newYawDeg,
+        deltaYawDeg: mwRes.deltaYawDeg,
+        newL: mwRes.newL,
+        newW: mwRes.newW,
+        newH: mwRes.newH,
+        pitchRad: mwRes.pitchRad,
+        rollRad: mwRes.rollRad,
+        pitchDeg: mwRes.pitchDeg,
+        rollDeg: mwRes.rollDeg,
+        visibleFaces: mwRes.visibleFaces,
+        pointsCount: mwRes.pointsCount,
+        trackCount: mwRes.trackCount,
+        message: mwRes.message || "Đã fit góc đón tia Ego và ghim đất thành công"
+      };
+    }
+    /**
+     * Căn Top độc lập: Căn thẳng góc Yaw theo viền xe, lọc nóc & Auto Ghim Đất
+     */
+    static async fitBoxTop(jobId, uiId, serverId, applyToTrack = false) {
+      return this.fitBoxToEgoRayAndGround(jobId, uiId, serverId, applyToTrack, true, "top");
+    }
+    /**
+     * Căn Side độc lập: Căn cản trước/sau theo trục dọc X & Auto Ghim Đất
+     */
+    static async fitBoxSide(jobId, uiId, serverId, applyToTrack = false) {
+      return this.fitBoxToEgoRayAndGround(jobId, uiId, serverId, applyToTrack, true, "side");
+    }
+    /**
+     * Căn Front độc lập: Căn bức tường thành xe theo trục ngang Y/W & Auto Ghim Đất
+     */
+    static async fitBoxFront(jobId, uiId, serverId, applyToTrack = false) {
+      return this.fitBoxToEgoRayAndGround(jobId, uiId, serverId, applyToTrack, true, "front");
+    }
+    /**
+     * FIT CHUYÊN BIỆT CHO NGƯỜI ĐI BỘ (PEDESTRIAN FIT).
+     * - Co giãn kích thước L, W linh hoạt theo sải bước
+     * - Khóa cứng Roll = 0°, Pitch = 0° (Người luôn đứng thẳng tuyệt đối)
+     * - Quét mặt đất siêu hẹp +15cm tránh dính vỉa hè, rào chắn
+     * - Bù đỉnh đầu +12cm chống cắt ngang trán người
+     */
+    static async fitPedestrian(jobId, uiId, serverId, headBuffer = 0.12) {
+      this.ensureMainWorldBridge();
+      const currentFrame = this.getCurrentFrame();
+      const mwPromise = new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(null), 1500);
+        const onResponse = (e) => {
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_FIT_PEDESTRIAN", onResponse);
+          if (e.detail && e.detail.success) {
+            resolve(e.detail);
+          } else {
+            resolve(null);
+          }
+        };
+        window.addEventListener("CVAT_EXT_RES_FIT_PEDESTRIAN", onResponse);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_FIT_PEDESTRIAN", {
+            detail: { jobId, frame: currentFrame, uiId, serverId, headBuffer }
+          })
+        );
+      });
+      const mwRes = await mwPromise;
+      if (!mwRes) {
+        return { success: false, message: "Không thể fit Người Đi Bộ từ Main World" };
+      }
+      return {
+        success: true,
+        newX: mwRes.newX,
+        newY: mwRes.newY,
+        newZ: mwRes.newZ,
+        newL: mwRes.newL,
+        newW: mwRes.newW,
+        newH: mwRes.newH,
+        pointsCount: mwRes.pointsCount,
+        message: mwRes.message || "Đã fit Người Đi Bộ thành công"
+      };
+    }
+    /**
+     * FIT CHUYÊN BIỆT CHO XE 2 BÁNH (CYCLIST / MOTORCYCLE).
+     * Hỗ trợ 3 bước căn độc lập (TOP - SIDE - FRONT) hoặc toàn chu trình (ALL).
+     * Chiều dài L luôn được bảo toàn 100% không bị co ngắn.
+     */
+    static async fitCyclist(jobId, uiId, serverId, headBuffer = 0.1, step = "all", applyToTrack = false) {
+      this.ensureMainWorldBridge();
+      const currentFrame = this.getCurrentFrame();
+      const mwPromise = new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(null), 2500);
+        const onResponse = (e) => {
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_FIT_CYCLIST", onResponse);
+          if (e.detail && e.detail.success) {
+            resolve(e.detail);
+          } else {
+            resolve(null);
+          }
+        };
+        window.addEventListener("CVAT_EXT_RES_FIT_CYCLIST", onResponse);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_FIT_CYCLIST", {
+            detail: { jobId, frame: currentFrame, uiId, serverId, headBuffer, step, applyToTrack }
+          })
+        );
+      });
+      const mwRes = await mwPromise;
+      if (!mwRes) {
+        return { success: false, message: "Không thể fit Xe 2 Bánh từ Main World" };
+      }
+      return {
+        success: true,
+        newX: mwRes.newX,
+        newY: mwRes.newY,
+        newZ: mwRes.newZ,
+        newYaw: mwRes.newYaw,
+        newYawDeg: mwRes.newYawDeg,
+        deltaYawDeg: mwRes.deltaYawDeg,
+        newL: mwRes.newL,
+        newW: mwRes.newW,
+        newH: mwRes.newH,
+        pointsCount: mwRes.pointsCount,
+        step: mwRes.step || step,
+        message: mwRes.message || "Đã fit Xe 2 Bánh thành công"
+      };
+    }
+    /**
      * Quét mốc chuẩn đẹp nhất và tự động fit đồng bộ toàn bộ track.
      */
     static async smartAnchorTrackFit(jobId, uiId, serverId) {
       this.ensureMainWorldBridge();
       const currentFrame = this.getCurrentFrame();
       const mwPromise = new Promise((resolve) => {
-        const timeout = setTimeout(() => resolve(null), 1200);
+        const timeout = setTimeout(() => resolve(null), 4500);
         const onResponse = (e) => {
           clearTimeout(timeout);
           window.removeEventListener("CVAT_EXT_RES_MULTI_FRAME_ANCHOR_FIT", onResponse);
@@ -2317,7 +5953,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         window.addEventListener("CVAT_EXT_RES_MULTI_FRAME_ANCHOR_FIT", onResponse);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_REQ_MULTI_FRAME_ANCHOR_FIT", {
-            detail: { jobId, frame: currentFrame, uiId, serverId }
+            detail: { jobId, frame: currentFrame, uiId, serverId, scanOnly: false }
           })
         );
       });
@@ -2331,6 +5967,92 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         optW: mwRes.optW,
         optH: mwRes.optH,
         framesSynced: mwRes.framesSynced,
+        message: mwRes.message
+      };
+    }
+    /**
+     * Fit Box trực tiếp tại Frame Hiện Tại với Padding 5cm mỗi bên:
+     * +10cm cho L, +10cm cho W, +5cm cho H (nóc xe, đáy bám sàn cố định).
+     * Hỗ trợ đồng bộ toàn bộ track nếu applyToTrack = true.
+     */
+    static async fitCurrentBox(jobId, uiId, serverId, applyToTrack = false) {
+      this.ensureMainWorldBridge();
+      const currentFrame = this.getCurrentFrame();
+      const mwPromise = new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(null), 6e3);
+        const onResponse = (e) => {
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_FIT_CURRENT_BOX", onResponse);
+          if (e.detail && e.detail.success) {
+            resolve(e.detail);
+          } else {
+            resolve(e.detail || null);
+          }
+        };
+        window.addEventListener("CVAT_EXT_RES_FIT_CURRENT_BOX", onResponse);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_FIT_CURRENT_BOX", {
+            detail: { jobId, frame: currentFrame, uiId, serverId, applyToTrack }
+          })
+        );
+      });
+      const mwRes = await mwPromise;
+      if (!mwRes || !mwRes.success) {
+        return { success: false, message: (mwRes == null ? void 0 : mwRes.error) || "Không thể Fit Box với frame hiện tại!" };
+      }
+      return {
+        success: true,
+        newL: mwRes.newL,
+        newW: mwRes.newW,
+        newH: mwRes.newH,
+        newZ: mwRes.newZ,
+        pointsCount: mwRes.pointsCount,
+        framesSynced: mwRes.framesSynced,
+        message: mwRes.message
+      };
+    }
+    /**
+     * Vi chỉnh Center theo trục cục bộ của xe (deltaXLocal dọc xe, deltaYLocal ngang xe).
+     * Hỗ trợ dịch chuyển dàn đều cho toàn bộ track (applyToTrack = true).
+     */
+    static async shiftTrackCenter(jobId, uiId, serverId, deltaXLocal, deltaYLocal, applyToTrack) {
+      this.ensureMainWorldBridge();
+      const currentFrame = this.getCurrentFrame();
+      const mwPromise = new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(null), 2500);
+        const onResponse = (e) => {
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_SHIFT_CENTER", onResponse);
+          if (e.detail && e.detail.success) {
+            resolve(e.detail);
+          } else {
+            resolve(null);
+          }
+        };
+        window.addEventListener("CVAT_EXT_RES_SHIFT_CENTER", onResponse);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_SHIFT_CENTER", {
+            detail: {
+              jobId,
+              frame: currentFrame,
+              uiId,
+              serverId,
+              deltaXLocal,
+              deltaYLocal,
+              applyToTrack
+            }
+          })
+        );
+      });
+      const mwRes = await mwPromise;
+      if (!mwRes) {
+        return { success: false, message: "Không thể vi chỉnh Center của xe!" };
+      }
+      return {
+        success: true,
+        newX: mwRes.newX,
+        newY: mwRes.newY,
+        framesShifted: mwRes.framesShifted,
         message: mwRes.message
       };
     }
@@ -2524,12 +6246,87 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         })
       );
     }
+    /**
+     * Đánh dấu Outside (ẩn) hoặc Inside cho toàn bộ các frame của một Track.
+     */
+    static async setTrackOutside(jobId, uiId, serverId, outside = true, frame) {
+      this.ensureMainWorldBridge();
+      const currentFrame = typeof frame === "number" ? frame : this.getCurrentFrame();
+      const mwPromise = new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(null), 12e3);
+        const onResponse = (e) => {
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_SET_TRACK_OUTSIDE", onResponse);
+          if (e.detail && e.detail.success) {
+            resolve(e.detail);
+          } else {
+            resolve(e.detail || null);
+          }
+        };
+        window.addEventListener("CVAT_EXT_RES_SET_TRACK_OUTSIDE", onResponse);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_SET_TRACK_OUTSIDE", {
+            detail: { jobId, frame: currentFrame, uiId, serverId, outside }
+          })
+        );
+      });
+      const mwRes = await mwPromise;
+      if (!mwRes || !mwRes.success) {
+        return { success: false, message: (mwRes == null ? void 0 : mwRes.error) || `Không thể đánh dấu Outside cho track #${uiId}!` };
+      }
+      return {
+        success: true,
+        count: mwRes.count,
+        previousStates: mwRes.previousStates,
+        message: mwRes.message
+      };
+    }
+    /**
+     * Khôi phục (Undo / Pre) trạng thái trước đó của một Track hoặc Box ở frame hiện tại.
+     */
+    static async restoreTrackSnapshot(jobId, uiId, serverId, snapshot) {
+      this.ensureMainWorldBridge();
+      const mwPromise = new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(null), 8e3);
+        const onResponse = (e) => {
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_RESTORE_BOX", onResponse);
+          if (e.detail && e.detail.success) {
+            resolve(e.detail);
+          } else {
+            resolve(null);
+          }
+        };
+        window.addEventListener("CVAT_EXT_RES_RESTORE_BOX", onResponse);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_RESTORE_BOX", {
+            detail: {
+              jobId,
+              uiId,
+              serverId,
+              frame: snapshot.frame,
+              applyToTrack: snapshot.applyToTrack,
+              boxPoints: snapshot.boxPoints,
+              trackShapesBackup: snapshot.trackShapesBackup
+            }
+          })
+        );
+      });
+      const mwRes = await mwPromise;
+      if (!mwRes) {
+        return { success: false, message: `Không thể hoàn tác (Pre) cho xe #${uiId}!` };
+      }
+      return {
+        success: true,
+        message: mwRes.message
+      };
+    }
   }
   __publicField(CVATBridge, "cachedAnnotations", null);
   __publicField(CVATBridge, "cachedJobId", null);
   __publicField(CVATBridge, "lastFetchTime", 0);
   __publicField(CVATBridge, "isBridgeInjected", false);
-  const STANDARD_VEHICLE_CATALOG = [
+  const CAR_PRESETS = [
     {
       id: "compact_car",
       name: "Compact Car",
@@ -2537,61 +6334,70 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       l: 4.4,
       w: 1.78,
       h: 1.43,
-      description: "Xe cỡ nhỏ (Honda Civic, Mazda 3, Kia Cerato)"
+      description: "Xe cỡ nhỏ (Civic, Mazda 3, Vios, i10)"
     },
     {
       id: "mid_sedan",
-      name: "Mid Sedan",
+      name: "Sedan",
       category: "car",
-      l: 4.75,
-      w: 1.84,
+      l: 4.7,
+      w: 1.82,
       h: 1.45,
-      description: "Sedan hạng D (Toyota Camry, Honda Accord, Mercedes C-Class)"
+      description: "Sedan thông dụng (Camry, Accord, C-Class)"
     },
     {
       id: "mid_suv",
-      name: "Mid-size SUV",
+      name: "SUV 5 Chỗ",
       category: "suv",
       l: 4.65,
-      w: 1.86,
+      w: 1.85,
       h: 1.68,
-      description: "Crossover/SUV 5 chỗ (Honda CR-V, Mazda CX-5, Hyundai Tucson)"
+      description: "Crossover/SUV 5 chỗ (CR-V, CX-5, Tucson)"
     },
     {
       id: "full_suv",
-      name: "Full-size SUV",
+      name: "SUV 7 Chỗ",
       category: "suv",
-      l: 5.05,
-      w: 1.98,
-      h: 1.85,
-      description: "SUV 7 chỗ cỡ lớn (Toyota Land Cruiser, Ford Everest, BMW X7)"
+      l: 5,
+      w: 1.95,
+      h: 1.8,
+      description: "SUV 7 chỗ cỡ lớn (Land Cruiser, Everest, Fortuner)"
     },
     {
       id: "pickup",
-      name: "Pickup Truck",
+      name: "Bán Tải",
       category: "truck",
       l: 5.35,
       w: 1.9,
       h: 1.82,
-      description: "Xe bán tải (Ford Ranger, Toyota Hilux, Mitsubishi Triton)"
+      description: "Xe bán tải (Ford Ranger, Hilux, Triton)"
     },
     {
       id: "van",
-      name: "Minivan / MPV",
+      name: "Van / MPV",
       category: "van",
-      l: 5.1,
+      l: 5.15,
       w: 1.95,
-      h: 1.78,
-      description: "Xe gia đình 7 chỗ / Van (Kia Carnival, Toyota Sienna)"
+      h: 1.85,
+      description: "Xe 7 chỗ / Van (Carnival, Transit, Innova)"
+    },
+    {
+      id: "small_truck",
+      name: "Tải Nhỏ",
+      category: "truck",
+      l: 4.8,
+      w: 1.85,
+      h: 2.1,
+      description: "Xe tải nhỏ 1-2.5 tấn (Kia K200, Porter)"
     },
     {
       id: "box_truck",
-      name: "Box Truck",
+      name: "Tải Thùng",
       category: "truck",
-      l: 6.2,
-      w: 2.2,
-      h: 2.75,
-      description: "Xe tải thùng trung bình"
+      l: 6.5,
+      w: 2.25,
+      h: 2.8,
+      description: "Xe tải thùng trung bình (Hino, Isuzu 5 tấn)"
     },
     {
       id: "bus",
@@ -2601,25 +6407,115 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       w: 2.5,
       h: 3.2,
       description: "Xe buýt đô thị"
-    },
+    }
+  ];
+  const CYCLIST_PRESETS = [
     {
-      id: "motorcycle",
-      name: "Motorcycle / Cyclist",
+      id: "motorcycle_only",
+      name: "Xe Máy",
       category: "cycle",
-      l: 1.85,
-      w: 0.75,
-      h: 1.45,
-      description: "Xe máy / Xe đạp"
+      l: 1.9,
+      w: 0.7,
+      h: 1.15,
+      description: "Xe máy dựng chân chống (Vision, Wave, Lead)"
     },
     {
-      id: "pedestrian",
-      name: "Pedestrian",
+      id: "motorcycle_rider",
+      name: "Xe Máy + Người",
+      category: "cycle",
+      l: 1.95,
+      w: 0.75,
+      h: 1.55,
+      description: "Người ngồi lái xe máy (Đội nón bảo hiểm)"
+    },
+    {
+      id: "bicycle_only",
+      name: "Xe Đạp",
+      category: "cycle",
+      l: 1.75,
+      w: 0.5,
+      h: 1.05,
+      description: "Xe đạp khung tiêu chuẩn"
+    },
+    {
+      id: "bicycle_rider",
+      name: "Xe Đạp + Người",
+      category: "cycle",
+      l: 1.75,
+      w: 0.6,
+      h: 1.65,
+      description: "Người đang đạp xe đạp"
+    },
+    {
+      id: "big_moto",
+      name: "Mô Tô Lớn",
+      category: "cycle",
+      l: 2.15,
+      w: 0.85,
+      h: 1.25,
+      description: "Xe phân khối lớn / Cruiser / Touring"
+    },
+    {
+      id: "delivery_moto",
+      name: "Xe Chở Hàng",
+      category: "cycle",
+      l: 2.05,
+      w: 0.8,
+      h: 1.6,
+      description: "Shipper xe máy có thùng hàng phía sau"
+    }
+  ];
+  const PEDESTRIAN_PRESETS = [
+    {
+      id: "ped_standing",
+      name: "Người Đứng",
       category: "pedestrian",
-      l: 0.6,
+      l: 0.55,
+      w: 0.5,
+      h: 1.7,
+      description: "Người lớn đứng yên"
+    },
+    {
+      id: "ped_walking",
+      name: "Người Đi Bộ",
+      category: "pedestrian",
+      l: 0.8,
       w: 0.6,
       h: 1.7,
-      description: "Người đi bộ"
+      description: "Người lớn sải chân bước đi"
+    },
+    {
+      id: "ped_child",
+      name: "Trẻ Em",
+      category: "pedestrian",
+      l: 0.45,
+      w: 0.4,
+      h: 1.2,
+      description: "Trẻ em chiều cao thấp"
+    },
+    {
+      id: "ped_backpack",
+      name: "Mang Balo / Vali",
+      category: "pedestrian",
+      l: 0.75,
+      w: 0.65,
+      h: 1.72,
+      description: "Người mang balo to hoặc kéo vali"
+    },
+    {
+      id: "ped_sitting",
+      name: "Khom / Ngồi",
+      category: "pedestrian",
+      l: 0.7,
+      w: 0.6,
+      h: 1.25,
+      description: "Người ngồi ghế hoặc khom cúi người"
     }
+  ];
+  const STANDARD_VEHICLE_CATALOG = [
+    ...CAR_PRESETS,
+    ...CYCLIST_PRESETS,
+    ...PEDESTRIAN_PRESETS
   ];
   function findBestFitCatalog(measuredL, measuredW, measuredH, labelHint) {
     let candidates = STANDARD_VEHICLE_CATALOG;
@@ -2950,12 +6846,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (document.getElementById("cvat-3d-track-studio-modal")) return;
       this.overlay = document.createElement("div");
       this.overlay.id = "cvat-3d-track-studio-modal";
+      this.overlay.setAttribute("translate", "no");
+      this.overlay.classList.add("notranslate");
       this.overlay.style.position = "fixed";
       this.overlay.style.inset = "0";
       this.overlay.style.zIndex = "999999";
-      this.overlay.style.background = "rgba(9, 9, 11, 0.95)";
-      this.overlay.style.backdropFilter = "blur(8px)";
-      this.overlay.style.color = "#f4f4f5";
+      this.overlay.style.background = "rgba(255, 255, 255, 0.98)";
+      this.overlay.style.backdropFilter = "blur(12px)";
+      this.overlay.style.color = "#09090b";
       this.overlay.style.display = "none";
       this.overlay.style.flexDirection = "column";
       this.overlay.style.fontFamily = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
@@ -3050,9 +6948,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     renderLoading() {
       if (!this.overlay) return;
       this.overlay.innerHTML = `
-      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;">
-        <div style="width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-        <span style="font-size: 13px; color: #a1a1aa; font-family: monospace;">Đang đồng bộ dữ liệu xe từ Three.js CVAT native...</span>
+      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: #ffffff;">
+        <div style="width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #0284c7; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+        <span style="font-size: 13px; color: #64748b; font-family: monospace;">Đang đồng bộ dữ liệu xe từ Three.js CVAT native...</span>
       </div>
       <style>
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -3065,10 +6963,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const activeTrack = this.store.getTrack(this.activeTrackId) || allTracks[0];
       const dirtyCount = this.store.getDirtyTracks().length;
       this.overlay.innerHTML = `
-      <!-- 1. HEADER BAR CHUYÊN NGHIỆP -->
+      <!-- 1. HEADER BAR CHUYÊN NGHIỆP (LIGHT) -->
       <div style="
-        background: #141416;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
+        background: #ffffff;
+        border-bottom: 1px solid #e2e8f0;
         padding: 10px 20px;
         display: flex;
         align-items: center;
@@ -3080,15 +6978,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           <!-- Badge Studio -->
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="background: #2563eb; color: white; padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;">RETIME STUDIO</span>
-            <span style="font-size: 14px; font-weight: bold; color: #f4f4f5;">Job #${this.currentCtx.jobId}</span>
+            <span style="font-size: 14px; font-weight: bold; color: #09090b;">Job #${this.currentCtx.jobId}</span>
           </div>
 
           <!-- Tab Switcher -->
-          <div style="display: flex; background: #09090b; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 2px;">
+          <div style="display: flex; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; padding: 2px;">
             <button id="studio-tab-active" style="
               border: none;
-              background: ${this.currentTab === "active_track" ? "#2563eb" : "transparent"};
-              color: ${this.currentTab === "active_track" ? "white" : "#71717a"};
+              background: ${this.currentTab === "active_track" ? "#ffffff" : "transparent"};
+              color: ${this.currentTab === "active_track" ? "#09090b" : "#64748b"};
+              box-shadow: ${this.currentTab === "active_track" ? "0 1px 3px rgba(0,0,0,0.08)" : "none"};
               padding: 5px 14px;
               font-size: 12px;
               font-weight: 600;
@@ -3099,8 +6998,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
 
             <button id="studio-tab-batch" style="
               border: none;
-              background: ${this.currentTab === "batch_all" ? "#2563eb" : "transparent"};
-              color: ${this.currentTab === "batch_all" ? "white" : "#71717a"};
+              background: ${this.currentTab === "batch_all" ? "#ffffff" : "transparent"};
+              color: ${this.currentTab === "batch_all" ? "#09090b" : "#64748b"};
+              box-shadow: ${this.currentTab === "batch_all" ? "0 1px 3px rgba(0,0,0,0.08)" : "none"};
               padding: 5px 14px;
               font-size: 12px;
               font-weight: 600;
@@ -3111,12 +7011,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           </div>
 
           <!-- Quick Track Selector Dropdown & Switcher -->
-          <div style="display: flex; align-items: center; gap: 4px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; padding: 2px 6px;">
-            <span style="font-size: 11px; color: #a1a1aa; font-weight: 600;">Track:</span>
+          <div style="display: flex; align-items: center; gap: 4px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 6px;">
+            <span style="font-size: 11px; color: #64748b; font-weight: 600;">Track:</span>
             <select id="studio-quick-track-select" style="
               background: transparent;
               border: none;
-              color: #38bdf8;
+              color: #0284c7;
               font-size: 12px;
               font-weight: bold;
               cursor: pointer;
@@ -3126,17 +7026,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             ">
               ${allTracks.map(
         (t) => `
-                <option value="${t.uiId}" ${t.uiId === this.activeTrackId ? "selected" : ""} style="background: #18181b; color: white;">
+                <option value="${t.uiId}" ${t.uiId === this.activeTrackId ? "selected" : ""} style="background: #ffffff; color: #09090b;">
                   #${t.uiId} · ${t.labelName} (${t.shapes.length}f)
                 </option>
               `
       ).join("")}
             </select>
             <button id="btn-quick-prev-track" title="Xe trước (phím [)" style="
-              background: #27272a; border: 1px solid rgba(255,255,255,0.1); color: #d4d4d8; font-size: 11px; padding: 2px 7px; border-radius: 4px; cursor: pointer;
+              background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 4px; cursor: pointer;
             ">◀</button>
             <button id="btn-quick-next-track" title="Xe sau (phím ])" style="
-              background: #27272a; border: 1px solid rgba(255,255,255,0.1); color: #d4d4d8; font-size: 11px; padding: 2px 7px; border-radius: 4px; cursor: pointer;
+              background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 4px; cursor: pointer;
             ">▶</button>
           </div>
 
@@ -3144,16 +7044,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           <span style="
             font-size: 11px;
             font-family: ui-monospace, monospace;
-            background: rgba(34, 197, 94, 0.12);
-            color: #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.25);
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
             padding: 2px 8px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             gap: 5px;
           ">
-            <span style="width: 6px; height: 6px; background: #22c55e; border-radius: 50%;"></span>
+            <span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%;"></span>
             <span>THREE.JS NATIVE CONNECTED</span>
           </span>
         </div>
@@ -3162,8 +7062,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         <div style="display: flex; align-items: center; gap: 10px;">
           <!-- Nút Lưu vào CVAT (TUYỆT ĐỐI KHÔNG TỰ ĐỘNG AUTOSAVE NGẦM) -->
           <button id="btn-studio-commit-save" style="
-            background: ${dirtyCount > 0 ? "#ea580c" : "#2563eb"};
-            border: 1px solid rgba(255,255,255,0.15);
+            background: ${dirtyCount > 0 ? "#ea580c" : "#059669"};
+            border: 1px solid ${dirtyCount > 0 ? "#ea580c" : "#059669"};
             color: white;
             font-size: 12px;
             font-weight: 600;
@@ -3173,25 +7073,31 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             display: flex;
             align-items: center;
             gap: 6px;
-            box-shadow: 0 2px 8px ${dirtyCount > 0 ? "rgba(234, 88, 12, 0.4)" : "rgba(37, 99, 235, 0.3)"};
+            box-shadow: 0 2px 8px ${dirtyCount > 0 ? "rgba(234, 88, 12, 0.25)" : "rgba(5, 150, 105, 0.25)"};
             transition: all 0.2s;
           ">
-            <span>💾</span>
+            <span style="display: flex; align-items: center;">${ICONS.save}</span>
             <span>${this.isSaving ? "Đang lưu..." : dirtyCount > 0 ? `Lưu vào CVAT (${dirtyCount} track)` : "Lưu vào CVAT"}</span>
-            <span style="font-size: 10px; opacity: 0.8; font-family: monospace;">(Ctrl+S)</span>
+            <span style="font-size: 10px; opacity: 0.85; font-family: monospace;">(Ctrl+S)</span>
           </button>
 
           <!-- Nút Đóng -->
           <button id="btn-studio-close" style="
-            background: #27272a;
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #a1a1aa;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #334155;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 600;
             padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
-          ">✕ Đóng (Esc)</button>
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          ">
+            <span style="display: flex; align-items: center;">${ICONS.close}</span>
+            <span>Đóng (Esc)</span>
+          </button>
         </div>
       </div>
 
@@ -3234,16 +7140,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const isSelected = f === this.selectedFrame;
         return `
           <tr class="studio-frame-row ${isSelected ? "selected-row" : ""}" data-frame="${f}" style="
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            background: ${isSelected ? "rgba(37, 99, 235, 0.15)" : sh.outside ? "rgba(24, 24, 27, 0.5)" : "transparent"};
+            border-bottom: 1px solid #f1f5f9;
+            background: ${isSelected ? "#eff6ff" : sh.outside ? "#f8fafc" : "transparent"};
             cursor: pointer;
             transition: background 0.12s;
           ">
             <!-- Cột 1: Frame Number -->
             <td style="padding: 10px 14px; font-weight: bold; font-family: monospace;">
               <span class="btn-jump-frame" data-frame="${f}" style="
-                background: ${isSelected ? "#2563eb" : "#27272a"};
-                color: ${isSelected ? "white" : "#38bdf8"};
+                background: ${isSelected ? "#2563eb" : "#f1f5f9"};
+                color: ${isSelected ? "white" : "#0284c7"};
+                border: 1px solid ${isSelected ? "#2563eb" : "#cbd5e1"};
                 padding: 3px 8px;
                 border-radius: 4px;
                 display: inline-flex;
@@ -3257,15 +7164,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
 
             <!-- Cột 2: Keyframe Status -->
             <td style="padding: 10px 14px; text-align: center;">
-              <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px;">KF</span>
+              <span style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px;">KF</span>
             </td>
 
             <!-- Cột 3: Outside Toggle -->
             <td style="padding: 10px 14px;">
               <button class="btn-toggle-outside" data-frame="${f}" style="
-                border: 1px solid ${sh.outside ? "rgba(239, 68, 68, 0.4)" : "rgba(34, 197, 94, 0.4)"};
-                background: ${sh.outside ? "rgba(239, 68, 68, 0.12)" : "rgba(34, 197, 94, 0.12)"};
-                color: ${sh.outside ? "#f87171" : "#4ade80"};
+                border: 1px solid ${sh.outside ? "#fca5a5" : "#a7f3d0"};
+                background: ${sh.outside ? "#fee2e2" : "#ecfdf5"};
+                color: ${sh.outside ? "#dc2626" : "#059669"};
                 font-size: 10px;
                 font-weight: 600;
                 padding: 3px 8px;
@@ -3277,42 +7184,44 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             <!-- Cột 4: Kích Thước L / W / H (Nhập trực tiếp) -->
             <td style="padding: 10px 8px; font-family: monospace;">
               <div style="display: flex; align-items: center; gap: 4px;">
-                <input class="input-shape-l" data-frame="${f}" type="number" step="0.02" value="${curL.toFixed(2)}" style="width: 58px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: #38bdf8; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center;" />
-                <span style="color: #71717a;">×</span>
-                <input class="input-shape-w" data-frame="${f}" type="number" step="0.02" value="${curW.toFixed(2)}" style="width: 58px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: #38bdf8; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center;" />
-                <span style="color: #71717a;">×</span>
-                <input class="input-shape-h" data-frame="${f}" type="number" step="0.02" value="${curH.toFixed(2)}" title="Đổi H giữ nguyên mặt đáy" style="width: 58px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: #38bdf8; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center;" />
-                <span style="color: #a1a1aa; font-size: 10px;">m</span>
+                <input class="input-shape-l" data-frame="${f}" type="number" step="0.02" value="${curL.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
+                <span style="color: #94a3b8;">×</span>
+                <input class="input-shape-w" data-frame="${f}" type="number" step="0.02" value="${curW.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
+                <span style="color: #94a3b8;">×</span>
+                <input class="input-shape-h" data-frame="${f}" type="number" step="0.02" value="${curH.toFixed(2)}" title="Đổi H giữ nguyên mặt đáy" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
+                <span style="color: #64748b; font-size: 10px;">m</span>
               </div>
             </td>
 
             <!-- Cột 5: Cao độ Z & Góc Yaw -->
             <td style="padding: 10px 8px; font-family: monospace;">
               <div style="display: flex; align-items: center; gap: 6px; font-size: 11px;">
-                <span style="color: #a1a1aa;">Z:</span>
-                <input class="input-shape-z" data-frame="${f}" type="number" step="0.02" value="${curZ.toFixed(2)}" style="width: 54px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: white; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center;" />
-                <span style="color: #a1a1aa;">Yaw:</span>
-                <span style="color: #e4e4e7;">${curYawDeg}°</span>
+                <span style="color: #64748b;">Z:</span>
+                <input class="input-shape-z" data-frame="${f}" type="number" step="0.02" value="${curZ.toFixed(2)}" style="width: 54px; background: #f8fafc; border: 1px solid #cbd5e1; color: #09090b; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
+                <span style="color: #64748b;">Yaw:</span>
+                <span style="color: #059669; font-weight: bold;">${curYawDeg}°</span>
               </div>
             </td>
 
             <!-- Cột 6: Thao tác từng frame -->
             <td style="padding: 10px 14px; text-align: right;">
               <button class="btn-snap-ground-single" data-frame="${f}" title="Hút đáy xe bám sát mặt đất tại frame này" style="
-                background: #27272a;
-                border: 1px solid rgba(255,255,255,0.1);
-                color: #2dd4bf;
+                background: #f0fdf4;
+                border: 1px solid #bbf7d0;
+                color: #15803d;
                 font-size: 11px;
+                font-weight: 600;
                 padding: 4px 8px;
                 border-radius: 4px;
                 cursor: pointer;
               ">⇩ Đất</button>
 
               <button class="btn-apply-size-to-all" data-frame="${f}" title="Lấy kích thước L, W, H của frame này ép cho toàn bộ các frame khác" style="
-                background: #27272a;
-                border: 1px solid rgba(255,255,255,0.1);
-                color: #6ee7b7;
+                background: #ecfdf5;
+                border: 1px solid #a7f3d0;
+                color: #059669;
                 font-size: 11px;
+                font-weight: 600;
                 padding: 4px 8px;
                 border-radius: 4px;
                 cursor: pointer;
@@ -3323,10 +7232,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         `;
       }).join("");
       return `
-      <!-- Studio Toolbar -->
+      <!-- Studio Toolbar (LIGHT) -->
       <div style="
-        background: #18181b;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
         padding: 10px 20px;
         display: flex;
         align-items: center;
@@ -3338,21 +7247,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         <div style="display: flex; align-items: center; gap: 12px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="width: 10px; height: 10px; border-radius: 50%; background: ${track.labelColor};"></span>
-            <span style="font-size: 14px; font-weight: bold; color: white;">${track.labelName} #${track.uiId}</span>
-            <span style="font-size: 11px; color: #a1a1aa; font-family: monospace;">(${track.firstFrame} ➔ ${track.lastFrame}, ${track.shapes.length} frames)</span>
+            <span style="font-size: 14px; font-weight: bold; color: #09090b;">${track.labelName} #${track.uiId}</span>
+            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${track.firstFrame} ➔ ${track.lastFrame}, ${track.shapes.length} frames)</span>
           </div>
 
-          <div style="font-size: 12px; color: #d4d4d8; font-family: monospace; background: #09090b; padding: 4px 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.08);">
-            Trung vị: <b style="color: #38bdf8;">${medL.toFixed(2)} × ${medW.toFixed(2)} × ${medH.toFixed(2)}m</b>
+          <div style="font-size: 12px; color: #334155; font-family: monospace; background: #ffffff; padding: 4px 10px; border-radius: 5px; border: 1px solid #e2e8f0;">
+            Trung vị: <b style="color: #0284c7;">${medL.toFixed(2)} × ${medW.toFixed(2)} × ${medH.toFixed(2)}m</b>
           </div>
         </div>
 
-        <!-- Batch Action Buttons For Active Track -->
+        <!-- Batch Action Buttons For Active Track (FLAT ICONS) -->
         <div style="display: flex; align-items: center; gap: 8px;">
           <button id="btn-batch-snap-ground" style="
-            background: #27272a;
-            border: 1px solid rgba(255,255,255,0.12);
-            color: #2dd4bf;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
             font-size: 11px;
             font-weight: 600;
             padding: 5px 10px;
@@ -3361,35 +7270,59 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           ">⇩ Ghim Đất Toàn Track</button>
 
           <button id="btn-batch-flip-yaw" style="
-            background: #27272a;
-            border: 1px solid rgba(255,255,255,0.12);
-            color: #fbbf24;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #b45309;
             font-size: 11px;
             font-weight: 600;
             padding: 5px 10px;
             border-radius: 5px;
             cursor: pointer;
-          ">🔄 Lật 180° Toàn Track</button>
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          ">
+            <span style="display: flex; align-items: center;">${ICONS.rotate}</span>
+            <span>Lật 180° Toàn Track</span>
+          </button>
 
           <button id="btn-batch-median-size" style="
-            background: #27272a;
-            border: 1px solid rgba(255,255,255,0.12);
-            color: #a78bfa;
+            background: #faf5ff;
+            border: 1px solid #e9d5ff;
+            color: #7e22ce;
             font-size: 11px;
             font-weight: 600;
             padding: 5px 10px;
             border-radius: 5px;
             cursor: pointer;
-          ">⟲ Làm Mịn Kích Thước (Median)</button>
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          ">
+            <span style="display: flex; align-items: center;">${ICONS.filter}</span>
+            <span>Làm Mịn Kích Thước (Median)</span>
+          </button>
         </div>
       </div>
 
       <!-- Danh Sách Các Frame -->
-      <div style="flex: 1; overflow: auto; padding: 12px 20px;">
+      <div style="flex: 1; overflow: auto; padding: 12px 20px; background: #ffffff;">
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
           <thead>
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.12); color: #a1a1aa; font-weight: 600; font-size: 11px;">
+            <tr style="border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; font-size: 11px; background: #f8fafc;">
               <th style="padding: 8px 14px;">Frame</th>
+              <th style="padding: 8px 14px; text-align: center;">Loại</th>
+              <th style="padding: 8px 14px;">Hiển Thị</th>
+              <th style="padding: 8px 8px;">Kích Thước (L × W × H)</th>
+              <th style="padding: 8px 8px;">Tọa Độ & Hướng</th>
+              <th style="padding: 8px 14px; text-align: right;">Hành Động</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
               <th style="padding: 8px 14px; text-align: center;">Loại</th>
               <th style="padding: 8px 14px;">Hiển Thị</th>
               <th style="padding: 8px 8px;">Kích Thước (L × W × H)</th>
@@ -3525,54 +7458,70 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const maxH = Math.max(...sizes.map((s) => s[2]));
         const varies = maxL - minL > 0.01 || maxW - minW > 0.01 || maxH - minH > 0.01;
         return `
-          <tr class="batch-track-row" data-track-id="${t.uiId}" style="border-bottom: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: background 0.15s; background: ${t.uiId === this.activeTrackId ? "rgba(37, 99, 235, 0.15)" : t.dirty ? "rgba(34, 197, 94, 0.06)" : "transparent"};">
-            <td style="padding: 10px 14px; font-weight: bold; color: #38bdf8; font-family: monospace;">#${t.uiId}</td>
+          <tr class="batch-track-row" data-track-id="${t.uiId}" style="border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.15s; background: ${t.uiId === this.activeTrackId ? "#eff6ff" : t.dirty ? "#ecfdf5" : "transparent"};">
+            <td style="padding: 10px 14px; font-weight: bold; color: #0284c7; font-family: monospace;">#${t.uiId}</td>
             <td style="padding: 10px 14px;">
               <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${t.labelColor}; margin-right: 6px;"></span>
-              <span>${t.labelName}</span>
+              <span style="font-weight: 600; color: #09090b;">${t.labelName}</span>
             </td>
-            <td style="padding: 10px 14px; font-family: monospace; color: #a1a1aa;">f${t.firstFrame} ➔ f${t.lastFrame}</td>
-            <td style="padding: 10px 14px; font-family: monospace; text-align: center;">${t.shapes.length}</td>
-            <td style="padding: 10px 14px; font-family: monospace; color: #e4e4e7;">
+            <td style="padding: 10px 14px; font-family: monospace; color: #64748b;">f${t.firstFrame} ➔ f${t.lastFrame}</td>
+            <td style="padding: 10px 14px; font-family: monospace; text-align: center; color: #334155;">${t.shapes.length}</td>
+            <td style="padding: 10px 14px; font-family: monospace; color: #334155;">
               ${medL.toFixed(2)} / ${medW.toFixed(2)} / ${medH.toFixed(2)}m
-              ${varies ? '<span style="margin-left: 6px; font-size: 10px; background: rgba(234, 88, 12, 0.2); color: #fb923c; padding: 1px 4px; border-radius: 3px;">không đều</span>' : ""}
+              ${varies ? '<span style="margin-left: 6px; font-size: 10px; background: #ffedd5; color: #ea580c; border: 1px solid #fed7aa; padding: 1px 4px; border-radius: 3px; font-weight: 600;">không đều</span>' : ""}
             </td>
             <td style="padding: 10px 8px;">
-              <input class="batch-inp-l" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medL.toFixed(2)}" style="width: 58px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: #38bdf8; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center;" />
+              <input class="batch-inp-l" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medL.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
             </td>
             <td style="padding: 10px 8px;">
-              <input class="batch-inp-w" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medW.toFixed(2)}" style="width: 58px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: #38bdf8; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center;" />
+              <input class="batch-inp-w" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medW.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
             </td>
             <td style="padding: 10px 8px;">
-              <input class="batch-inp-h" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medH.toFixed(2)}" style="width: 58px; background: #09090b; border: 1px solid rgba(255,255,255,0.12); color: #38bdf8; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center;" />
+              <input class="batch-inp-h" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medH.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
             </td>
             <td style="padding: 10px 14px;">
-              <button class="btn-batch-apply" data-track-id="${t.uiId}" style="background: #2563eb; border: none; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Áp dụng</button>
-              <button class="btn-batch-snap" data-track-id="${t.uiId}" style="margin-left: 4px; background: #27272a; border: 1px solid rgba(255,255,255,0.1); color: #2dd4bf; padding: 5px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">⇩ Đất</button>
+              <button class="btn-batch-apply" data-track-id="${t.uiId}" style="background: #059669; border: none; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Áp dụng</button>
+              <button class="btn-batch-snap" data-track-id="${t.uiId}" style="margin-left: 4px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">⇩ Đất</button>
             </td>
             <td style="padding: 10px 14px; text-align: right;">
-              <button class="btn-open-studio-track" data-track-id="${t.uiId}" style="background: #2563eb; border: 1px solid rgba(255,255,255,0.15); color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Duyệt Frame ➔</button>
+              <button class="btn-open-studio-track" data-track-id="${t.uiId}" style="background: #2563eb; border: 1px solid #2563eb; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Duyệt Frame ➔</button>
             </td>
           </tr>
         `;
       }).join("");
       return `
-      <!-- Toolbar Tab 1 -->
-      <div style="background: #18181b; border-bottom: 1px solid rgba(255,255,255,0.06); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between;">
-        <span style="font-size: 12px; color: #a1a1aa;">
+      <!-- Toolbar Tab 1 (LIGHT) -->
+      <div style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 12px; color: #475569;">
           Áp dụng kích thước mới từ <b>Frame 0 ➔ Frame End</b> với <b>Ground-Lock 3D</b> (Đáy xe cố định tuyệt đối trên mặt đường).
         </span>
-        <span style="font-size: 11px; color: #71717a; font-family: monospace;">
+        <span style="font-size: 11px; color: #64748b; font-family: monospace;">
           Dữ liệu in-memory, chỉ lưu khi bấm nút "Lưu vào CVAT" (Ctrl+S)
         </span>
       </div>
 
-      <!-- Bảng Danh Sách Xe -->
-      <div style="flex: 1; overflow: auto; padding: 12px 20px;">
+      <!-- Bảng Danh Sách Xe (LIGHT) -->
+      <div style="flex: 1; overflow: auto; padding: 12px 20px; background: #ffffff;">
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
           <thead>
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.12); color: #a1a1aa; font-weight: 600; font-size: 11px;">
+            <tr style="border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; font-size: 11px; background: #f8fafc;">
               <th style="padding: 8px 14px;">ID</th>
+              <th style="padding: 8px 14px;">Label</th>
+              <th style="padding: 8px 14px;">Dải Frame</th>
+              <th style="padding: 8px 14px; text-align: center;">Keyframes</th>
+              <th style="padding: 8px 14px;">L / W / H (Trung vị)</th>
+              <th style="padding: 8px 8px;">L mới</th>
+              <th style="padding: 8px 8px;">W mới</th>
+              <th style="padding: 8px 8px;">H mới</th>
+              <th style="padding: 8px 14px;">Thao Tác</th>
+              <th style="padding: 8px 14px; text-align: right;">Chi Tiết</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      </div>
               <th style="padding: 8px 14px;">Label</th>
               <th style="padding: 8px 14px;">Dải Frame</th>
               <th style="padding: 8px 14px; text-align: center;">Keyframes</th>
@@ -3803,8 +7752,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       __publicField(this, "toastTimer", null);
       __publicField(this, "isMinimized", false);
       __publicField(this, "trackStudioModal", new TrackStudioModal());
-      // Module Tab đang mở: "dimensions" | "rotation" | "ground"
-      __publicField(this, "activeTab", "dimensions");
+      // Ngăn xếp hoàn tác thao tác (Undo / Pre Stack)
+      __publicField(this, "undoStack", []);
+      // Chế độ phân loại đối tượng nhanh: "car" | "pedestrian" | "cyclist"
+      __publicField(this, "selectedCategory", "car");
+      // Trạng thái mở rộng accordion tinh chỉnh nâng cao
+      __publicField(this, "isAdvancedOpen", false);
       // Phạm vi áp dụng kích thước: false = Chỉ Frame này, true = Toàn bộ Track
       __publicField(this, "applyToTrack", false);
       // Dữ liệu đối tượng đang chọn
@@ -3820,6 +7773,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       __publicField(this, "currentL", 0);
       __publicField(this, "currentW", 0);
       __publicField(this, "currentH", 0);
+      __publicField(this, "currentRawPoints", null);
+      // Lưu trữ mảng điểm nguyên bản (16 điểm) từ CVAT
       // Giá trị đang chỉnh sửa trên ô input (L, W, H)
       __publicField(this, "editL", 0);
       __publicField(this, "editW", 0);
@@ -3839,6 +7794,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       __publicField(this, "startY", 0);
       __publicField(this, "currentCtx", null);
       __publicField(this, "pollInterval", null);
+      __publicField(this, "updatePending", false);
+      __publicField(this, "lastRenderedHash", "");
+    }
+    /**
+     * Lên lịch cập nhật giao diện bằng requestAnimationFrame (gộp nhiều lần gọi dồn dập, chống nháy DOM).
+     */
+    scheduleUpdate() {
+      if (this.updatePending) return;
+      this.updatePending = true;
+      requestAnimationFrame(() => {
+        this.updatePending = false;
+        this.updateContent();
+      });
     }
     render(ctx) {
       this.currentCtx = ctx;
@@ -3854,11 +7822,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.setupCanvasAutoSelectListener();
         this.startPollingLoop();
       }
-      this.updateContent();
+      this.scheduleUpdate();
     }
     createContainer() {
       this.container = document.createElement("div");
       this.container.id = "cvat-3d-suite-floating";
+      this.container.setAttribute("translate", "no");
+      this.container.classList.add("notranslate");
       this.container.style.position = "fixed";
       this.container.style.top = "20px";
       this.container.style.right = "20px";
@@ -3866,12 +7836,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.container.style.maxHeight = "calc(100vh - 40px)";
       this.container.style.zIndex = "999995";
       this.container.style.fontFamily = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-      this.container.style.backgroundColor = "rgba(9, 9, 11, 0.95)";
+      this.container.style.backgroundColor = "rgba(255, 255, 255, 0.98)";
       this.container.style.backdropFilter = "blur(16px)";
-      this.container.style.border = "1px solid rgba(255, 255, 255, 0.12)";
+      this.container.style.border = "1px solid #e4e4e7";
       this.container.style.borderRadius = "16px";
-      this.container.style.boxShadow = "0 20px 40px -15px rgba(0, 0, 0, 0.75), 0 0 1px 1px rgba(255, 255, 255, 0.05)";
-      this.container.style.color = "#f4f4f5";
+      this.container.style.boxShadow = "0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 1px 1px rgba(0, 0, 0, 0.04)";
+      this.container.style.color = "#09090b";
       this.container.style.display = "flex";
       this.container.style.flexDirection = "column";
       this.container.style.overflow = "hidden";
@@ -3895,24 +7865,24 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.miniPill.style.right = "24px";
       this.miniPill.style.zIndex = "999996";
       this.miniPill.style.fontFamily = "ui-sans-serif, system-ui, sans-serif";
-      this.miniPill.style.backgroundColor = "rgba(9, 9, 11, 0.92)";
+      this.miniPill.style.backgroundColor = "rgba(255, 255, 255, 0.98)";
       this.miniPill.style.backdropFilter = "blur(12px)";
-      this.miniPill.style.border = "1px solid rgba(255, 255, 255, 0.14)";
+      this.miniPill.style.border = "1px solid #e4e4e7";
       this.miniPill.style.borderRadius = "9999px";
       this.miniPill.style.padding = "8px 14px";
-      this.miniPill.style.color = "#f4f4f5";
+      this.miniPill.style.color = "#09090b";
       this.miniPill.style.fontSize = "12px";
       this.miniPill.style.fontWeight = "600";
       this.miniPill.style.display = "none";
       this.miniPill.style.alignItems = "center";
       this.miniPill.style.gap = "8px";
-      this.miniPill.style.boxShadow = "0 10px 25px -5px rgba(0, 0, 0, 0.5)";
+      this.miniPill.style.boxShadow = "0 10px 25px -5px rgba(0, 0, 0, 0.08)";
       this.miniPill.style.cursor = "pointer";
       this.miniPill.style.userSelect = "none";
       this.miniPill.innerHTML = `
-      <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
+      <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
       <span>3D Suite</span>
-      <span style="font-size: 10px; font-family: monospace; color: #71717a; background: #27272a; padding: 2px 6px; border-radius: 4px;">\`</span>
+      <span style="font-size: 10px; font-family: monospace; color: #71717a; background: #f4f4f5; border: 1px solid #e4e4e7; padding: 2px 6px; border-radius: 4px;">\`</span>
     `;
       this.miniPill.addEventListener("click", () => this.toggleMinimize());
       document.body.appendChild(this.miniPill);
@@ -3949,18 +7919,18 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         clearTimeout(this.toastTimer);
         this.toastTimer = null;
       }
-      let bgColor = "rgba(16, 185, 129, 0.95)";
+      let bgColor = "#059669";
       let textColor = "#ffffff";
       let iconSvg = ICONS.checkCircle;
       if (type === "info") {
-        bgColor = "rgba(14, 165, 233, 0.95)";
+        bgColor = "#0284c7";
         iconSvg = ICONS.infoCircle;
       } else if (type === "warning") {
-        bgColor = "rgba(245, 158, 11, 0.95)";
-        textColor = "#18181b";
+        bgColor = "#d97706";
+        textColor = "#ffffff";
         iconSvg = ICONS.alertCircle;
       } else if (type === "error") {
-        bgColor = "rgba(239, 68, 68, 0.95)";
+        bgColor = "#dc2626";
         iconSvg = ICONS.xCircle;
       }
       this.toastOverlay.innerHTML = `
@@ -3974,7 +7944,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         display: flex;
         align-items: center;
         gap: 6px;
-        box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.6), 0 0 1px 1px rgba(255, 255, 255, 0.15);
+        box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.18), 0 0 1px 1px rgba(0, 0, 0, 0.06);
         backdrop-filter: blur(8px);
         font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
         letter-spacing: -0.2px;
@@ -4063,6 +8033,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           this.editL = details.l;
           this.editW = details.w;
           this.editH = details.h;
+          this.currentRawPoints = Array.isArray(details.points) ? [...details.points] : null;
           const existingIdx = this.frameTracks.findIndex((t) => t.uiId === details.clientId);
           const item = {
             uiId: details.clientId,
@@ -4081,10 +8052,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           } else {
             this.frameTracks.push(item);
           }
-          this.updateContent();
+          this.scheduleUpdate();
         } else if (clientId && clientId !== this.selectedUiId) {
           console.log(`[CVAT 3D Suite] Tự động chọn xe #${clientId} từ click Canvas 3D`);
-          this.selectTrackByUiId(clientId);
+          this.selectTrackByUiId(clientId, void 0, false);
         }
       });
       window.addEventListener("CVAT_EXT_RES_FRAME_TRACKS_DIRTY", () => {
@@ -4105,7 +8076,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         const active = CVATBridge.getActiveTrackId();
         if (active.id !== null && active.id !== this.selectedUiId) {
-          await this.selectTrackByUiId(active.id);
+          await this.selectTrackByUiId(active.id, void 0, false);
         }
       }, 800);
       setTimeout(() => this.syncFrameTracks(), 250);
@@ -4120,7 +8091,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.frameTracks = tracks;
       const isCurrentTrackInFrame = tracks.some((t) => t.uiId === this.selectedUiId);
       if (!isCurrentTrackInFrame && tracks.length > 0) {
-        await this.selectTrackByUiId(tracks[0].uiId);
+        await this.selectTrackByUiId(tracks[0].uiId, void 0, false);
       } else if (isCurrentTrackInFrame && this.selectedUiId) {
         const cur = tracks.find((t) => t.uiId === this.selectedUiId);
         if (cur) {
@@ -4137,20 +8108,34 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           this.editW = cur.w;
           this.editH = cur.h;
         }
-        this.updateContent();
+        this.scheduleUpdate();
       } else {
-        this.updateContent();
+        this.scheduleUpdate();
+      }
+    }
+    syncCategoryFromLabel(label) {
+      const l = (label || "").toLowerCase();
+      if (l.includes("pedestrian") || l.includes("person") || l.includes("walker") || l.includes("human")) {
+        this.selectedCategory = "pedestrian";
+      } else if (l.includes("cyclist") || l.includes("bicycle") || l.includes("motorcycle") || l.includes("motorbike") || l.includes("motobike") || l.includes("bike") || l.includes("rider") || l.includes("scooter") || l.includes("moped") || l.includes("two_wheeler") || l.includes("two-wheeler") || l.includes("twowheeler") || l.includes("2_wheeler") || l.includes("2-wheeler") || l.includes("2wheeler") || l.includes("motor") || l.includes("cycle") || l.includes("xe máy") || l.includes("xe_may") || l.includes("xemay") || l.includes("xe đạp") || l.includes("xe_dap") || l.includes("xedap") || l.includes("xe 2 bánh") || l.includes("xe_2_banh")) {
+        this.selectedCategory = "cyclist";
+      } else {
+        this.selectedCategory = "car";
       }
     }
     /**
      * Chọn xe theo UI ID (#1, #2...) và kích hoạt highlight trên Canvas
+     * @param activateCanvas Chỉ bật khi người dùng chủ động click hoặc dùng hotkey, không bật khi sync ngầm lúc F5!
      */
-    async selectTrackByUiId(uiId, details) {
+    async selectTrackByUiId(uiId, details, activateCanvas = true) {
       this.selectedUiId = uiId;
-      CVATBridge.activateCanvasTrack(uiId);
+      if (activateCanvas) {
+        CVATBridge.activateCanvasTrack(uiId);
+      }
       if (details) {
         this.selectedServerId = details.serverId || null;
         this.currentLabel = details.label || `Xe #${uiId}`;
+        this.syncCategoryFromLabel(this.currentLabel);
         this.currentX = details.x;
         this.currentY = details.y;
         this.currentZ = details.z;
@@ -4161,13 +8146,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.editL = details.l;
         this.editW = details.w;
         this.editH = details.h;
-        this.updateContent();
+        this.currentRawPoints = Array.isArray(details.points) ? [...details.points] : null;
+        this.scheduleUpdate();
         return;
       }
       const foundInFrame = this.frameTracks.find((t) => t.uiId === uiId);
       if (foundInFrame) {
         this.selectedServerId = foundInFrame.serverId;
         this.currentLabel = foundInFrame.label;
+        this.syncCategoryFromLabel(this.currentLabel);
         this.currentX = foundInFrame.x;
         this.currentY = foundInFrame.y;
         this.currentZ = foundInFrame.z;
@@ -4178,7 +8165,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.editL = foundInFrame.l;
         this.editW = foundInFrame.w;
         this.editH = foundInFrame.h;
-        this.updateContent();
+        this.scheduleUpdate();
         return;
       }
       await this.syncFrameTracks();
@@ -4187,18 +8174,171 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (this.frameTracks.length === 0) return;
       const idx = this.frameTracks.findIndex((t) => t.uiId === this.selectedUiId);
       if (idx > 0) {
-        this.selectTrackByUiId(this.frameTracks[idx - 1].uiId);
+        this.selectTrackByUiId(this.frameTracks[idx - 1].uiId, void 0, true);
       } else {
-        this.selectTrackByUiId(this.frameTracks[this.frameTracks.length - 1].uiId);
+        this.selectTrackByUiId(this.frameTracks[this.frameTracks.length - 1].uiId, void 0, true);
       }
     }
     selectNextTrack() {
       if (this.frameTracks.length === 0) return;
       const idx = this.frameTracks.findIndex((t) => t.uiId === this.selectedUiId);
       if (idx !== -1 && idx < this.frameTracks.length - 1) {
-        this.selectTrackByUiId(this.frameTracks[idx + 1].uiId);
+        this.selectTrackByUiId(this.frameTracks[idx + 1].uiId, void 0, true);
       } else {
-        this.selectTrackByUiId(this.frameTracks[0].uiId);
+        this.selectTrackByUiId(this.frameTracks[0].uiId, void 0, true);
+      }
+    }
+    /**
+     * Lưu snapshot trạng thái trước khi thực hiện thao tác để người dùng có thể bấm Hoàn Tác (Pre).
+     */
+    async pushUndoSnapshot(actionName, forTrack = false) {
+      if (!this.currentCtx || !this.currentCtx.jobId || this.selectedUiId === null) return;
+      try {
+        let currentBoxPoints;
+        if (Array.isArray(this.currentRawPoints) && this.currentRawPoints.length >= 16) {
+          currentBoxPoints = [...this.currentRawPoints];
+          currentBoxPoints[0] = this.currentX;
+          currentBoxPoints[1] = this.currentY;
+          currentBoxPoints[2] = this.currentZ;
+          currentBoxPoints[3] = 0;
+          currentBoxPoints[4] = 0;
+          currentBoxPoints[5] = this.currentYawDeg * Math.PI / 180;
+          currentBoxPoints[6] = this.currentL;
+          currentBoxPoints[7] = this.currentW;
+          currentBoxPoints[8] = this.currentH;
+        } else {
+          currentBoxPoints = [
+            this.currentX,
+            this.currentY,
+            this.currentZ,
+            0,
+            0,
+            this.currentYawDeg * Math.PI / 180,
+            this.currentL,
+            this.currentW,
+            this.currentH
+          ];
+          while (currentBoxPoints.length < 16) {
+            currentBoxPoints.push(0);
+          }
+        }
+        let trackShapesBackup = void 0;
+        if (forTrack || this.applyToTrack) {
+          const serverId = this.selectedServerId || this.selectedUiId;
+          const allFrames = await CVATBridge.getTrackAllFrames(this.currentCtx.jobId, this.selectedUiId, serverId);
+          if (allFrames && allFrames.length > 0) {
+            trackShapesBackup = allFrames.map((f) => ({
+              frame: f.frame,
+              outside: f.outside,
+              points: [...f.points]
+            }));
+          }
+        }
+        this.undoStack.push({
+          uiId: this.selectedUiId,
+          serverId: this.selectedServerId,
+          frame: this.currentFrameNumber,
+          applyToTrack: forTrack || this.applyToTrack,
+          boxPoints: currentBoxPoints,
+          trackShapesBackup,
+          actionName
+        });
+        if (this.undoStack.length > 25) {
+          this.undoStack.shift();
+        }
+      } catch (err) {
+        console.warn("[CVAT 3D Suite] Lỗi lưu Undo Snapshot:", err);
+      }
+    }
+    /**
+     * Hoàn tác (Pre) thao tác vừa thực hiện
+     */
+    async handleUndo() {
+      if (this.undoStack.length === 0) {
+        this.showToast("Không có thao tác nào để hoàn tác (Pre)!", "info");
+        return;
+      }
+      if (this.isProcessing) return;
+      this.isProcessing = true;
+      const snapshot = this.undoStack.pop();
+      this.showToast(`Đang hoàn tác: ${snapshot.actionName}...`, "info");
+      try {
+        const res = await CVATBridge.restoreTrackSnapshot(
+          this.currentCtx.jobId,
+          snapshot.uiId,
+          snapshot.serverId,
+          {
+            frame: snapshot.frame,
+            applyToTrack: snapshot.applyToTrack,
+            boxPoints: snapshot.boxPoints,
+            trackShapesBackup: snapshot.trackShapesBackup
+          }
+        );
+        if (res.success) {
+          if (Array.isArray(snapshot.boxPoints) && snapshot.boxPoints.length >= 9) {
+            this.currentX = snapshot.boxPoints[0];
+            this.currentY = snapshot.boxPoints[1];
+            this.currentZ = snapshot.boxPoints[2];
+            this.currentYawDeg = Math.round(snapshot.boxPoints[5] * 180 / Math.PI);
+            this.currentL = snapshot.boxPoints[6];
+            this.currentW = snapshot.boxPoints[7];
+            this.currentH = snapshot.boxPoints[8];
+            this.editL = this.currentL;
+            this.editW = this.currentW;
+            this.editH = this.currentH;
+            this.currentRawPoints = [...snapshot.boxPoints];
+          }
+          this.showToast(`Đã hoàn tác: ${snapshot.actionName}`, "success");
+          await this.syncFrameTracks();
+        } else {
+          this.showToast(res.message || "Không thể hoàn tác!", "error");
+        }
+      } catch (err) {
+        this.showToast(`Lỗi hoàn tác: ${err.message || err}`, "error");
+      } finally {
+        this.isProcessing = false;
+        this.updateContent();
+      }
+    }
+    /**
+     * Đánh dấu Outside (ẩn) cho toàn bộ các frame của Track đang chọn
+     */
+    async handleSetTrackOutside(outside = true) {
+      if (!this.currentCtx || !this.currentCtx.jobId) {
+        this.showToast("Chưa kết nối Job CVAT!", "warning");
+        return;
+      }
+      if (this.selectedUiId === null) {
+        this.showToast("Vui lòng chọn xe trước!", "warning");
+        return;
+      }
+      if (this.isProcessing) return;
+      await this.pushUndoSnapshot(`Outside Toàn Track #${this.selectedUiId}`, true);
+      this.isProcessing = true;
+      this.showToast(`Đang đánh dấu ${outside ? "Outside" : "Inside"} cho toàn bộ Track #${this.selectedUiId}...`, "info");
+      try {
+        const serverId = this.selectedServerId || this.selectedUiId;
+        const res = await CVATBridge.setTrackOutside(
+          this.currentCtx.jobId,
+          this.selectedUiId,
+          serverId,
+          outside,
+          this.currentFrameNumber
+        );
+        if (res.success) {
+          this.showToast(
+            `Đã đánh dấu ${outside ? "Outside" : "Inside"} cho ${res.count || "toàn bộ"} frame của Track #${this.selectedUiId}! Bấm Pre để hoàn tác.`,
+            "success"
+          );
+          await this.syncFrameTracks();
+        } else {
+          this.showToast(res.message || "Không thể đổi trạng thái Outside!", "error");
+        }
+      } catch (err) {
+        this.showToast(`Lỗi đánh dấu Outside: ${err.message || err}`, "error");
+      } finally {
+        this.isProcessing = false;
+        this.updateContent();
       }
     }
     /**
@@ -4214,6 +8354,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return;
       }
       if (this.isProcessing) return;
+      await this.pushUndoSnapshot(currentFrameOnly ? "Lật 180° Frame" : "Lật 180° Track", !currentFrameOnly);
       this.isProcessing = true;
       this.showToast(`Đang lật hướng 180° xe #${this.selectedUiId}...`, "info");
       try {
@@ -4249,6 +8390,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return;
       }
       if (this.isProcessing) return;
+      await this.pushUndoSnapshot("Cập nhật Kích Thước", applyToTrack);
       this.isProcessing = true;
       const scopeMsg = applyToTrack ? "toàn bộ track" : "frame này";
       this.showToast(`Đang lưu ${l}x${w}x${h}m cho ${scopeMsg}...`, "info");
@@ -4299,6 +8441,127 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.handleUpdateDimensions(this.editL, this.editW, this.editH, this.applyToTrack);
     }
     /**
+     * Fit Box trực tiếp tại Frame Hiện Tại với Padding 5cm mỗi bên (+10cm L, +10cm W, +5cm H, Đáy bám sàn cố định)
+     */
+    async handleFitCurrentBox() {
+      var _a, _b, _c;
+      if (!this.currentCtx || !this.currentCtx.jobId) {
+        this.showToast("Chưa kết nối Job CVAT!", "warning");
+        return;
+      }
+      if (this.selectedUiId === null) {
+        this.showToast("Vui lòng chọn đối tượng trước!", "warning");
+        return;
+      }
+      if (this.isProcessing) return;
+      await this.pushUndoSnapshot("Fit Box Hiện Tại (+5cm Pad)", this.applyToTrack);
+      this.isProcessing = true;
+      this.showToast("Đang đo mây điểm & Fit Box hiện tại (+5cm Pad)...", "info");
+      try {
+        const serverId = this.selectedServerId || this.selectedUiId;
+        const res = await CVATBridge.fitCurrentBox(
+          this.currentCtx.jobId,
+          this.selectedUiId,
+          serverId,
+          this.applyToTrack
+        );
+        if (res.success && res.newL && res.newW && res.newH) {
+          this.currentL = res.newL;
+          this.currentW = res.newW;
+          this.currentH = res.newH;
+          this.editL = res.newL;
+          this.editW = res.newW;
+          this.editH = res.newH;
+          if (res.newZ !== void 0) this.currentZ = res.newZ;
+          const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
+          if (targetItem) {
+            targetItem.l = res.newL;
+            targetItem.w = res.newW;
+            targetItem.h = res.newH;
+            if (res.newZ !== void 0) targetItem.z = res.newZ;
+          }
+          const inputL = (_a = this.container) == null ? void 0 : _a.querySelector("#input-dim-l");
+          const inputW = (_b = this.container) == null ? void 0 : _b.querySelector("#input-dim-w");
+          const inputH = (_c = this.container) == null ? void 0 : _c.querySelector("#input-dim-h");
+          if (inputL) inputL.value = String(res.newL);
+          if (inputW) inputW.value = String(res.newW);
+          if (inputH) inputH.value = String(res.newH);
+          this.showToast(res.message, "success");
+        } else {
+          this.showToast(res.message || "Không thể Fit Box với frame hiện tại!", "warning");
+        }
+      } catch (err) {
+        this.showToast(`Lỗi Fit Box: ${err.message || err}`, "error");
+      } finally {
+        this.isProcessing = false;
+        this.updateContent();
+      }
+    }
+    /**
+     * Áp dụng kích thước chuẩn từ Preset mẫu (1-click)
+     */
+    async handleApplyPreset(preset) {
+      if (!this.currentCtx || !this.currentCtx.jobId) {
+        this.showToast("Chưa kết nối Job CVAT!", "warning");
+        return;
+      }
+      if (this.selectedUiId === null) {
+        this.showToast("Vui lòng chọn đối tượng trước!", "warning");
+        return;
+      }
+      this.editL = preset.l;
+      this.editW = preset.w;
+      this.editH = preset.h;
+      this.showToast(`Áp dụng mẫu: ${preset.name} (${preset.l}x${preset.w}x${preset.h}m)...`, "info");
+      await this.handleUpdateDimensions(preset.l, preset.w, preset.h, this.applyToTrack);
+    }
+    /**
+     * Vi chỉnh Center theo trục cục bộ xe:
+     * deltaXLocal: Trục dọc xe (Side View, tiến/lùi)
+     * deltaYLocal: Trục ngang xe (Front View, trái/phải)
+     */
+    async handleShiftCenter(deltaXLocal, deltaYLocal) {
+      if (!this.currentCtx || !this.currentCtx.jobId) {
+        this.showToast("Chưa kết nối Job CVAT!", "warning");
+        return;
+      }
+      if (this.selectedUiId === null) {
+        this.showToast("Vui lòng chọn xe trước!", "warning");
+        return;
+      }
+      if (this.isProcessing) return;
+      await this.pushUndoSnapshot("Vi Chỉnh Center", this.applyToTrack);
+      this.isProcessing = true;
+      try {
+        const serverId = this.selectedServerId || this.selectedUiId;
+        const res = await CVATBridge.shiftTrackCenter(
+          this.currentCtx.jobId,
+          this.selectedUiId,
+          serverId,
+          deltaXLocal,
+          deltaYLocal,
+          this.applyToTrack
+        );
+        if (res.success) {
+          if (res.newX !== void 0) this.currentX = res.newX;
+          if (res.newY !== void 0) this.currentY = res.newY;
+          const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
+          if (targetItem) {
+            if (res.newX !== void 0) targetItem.x = res.newX;
+            if (res.newY !== void 0) targetItem.y = res.newY;
+          }
+          this.showToast(res.message, "success");
+        } else {
+          this.showToast(res.message || "Lỗi khi vi chỉnh Center!", "error");
+        }
+      } catch (err) {
+        this.showToast(`Lỗi vi chỉnh Center: ${err.message || err}`, "error");
+      } finally {
+        this.isProcessing = false;
+        this.updateContent();
+      }
+    }
+    /**
      * Xử lý Ghim Mặt Đất & Địa Hình Vỉa Hè (Ground & Curb Snapping Realtime 100%, ZERO-F5)
      */
     async handleSnapGround(mode, params) {
@@ -4311,8 +8574,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return;
       }
       if (this.isProcessing) return;
+      await this.pushUndoSnapshot(`Ghim Đất (${mode})`, false);
       this.isProcessing = true;
-      this.showToast("Đang quét mặt đất LiDAR...", "info");
       try {
         const serverId = this.selectedServerId || this.selectedUiId;
         const res = await CVATBridge.snapTrackToGround(
@@ -4336,6 +8599,219 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
     /**
+     * Xử lý FIT XE: Hỗ trợ CĂN TOP, CĂN SIDE, CĂN FRONT hoặc GHÉP CHU TRÌNH HOÀN CHỈNH (TOP ➔ SIDE ➔ FRONT)
+     */
+    async handleEgoRayFit(step = "all") {
+      if (!this.currentCtx || !this.currentCtx.jobId) {
+        this.showToast("Chưa kết nối Job CVAT!", "warning");
+        return;
+      }
+      if (this.selectedUiId === null) {
+        this.showToast("Vui lòng chọn xe trước!", "warning");
+        return;
+      }
+      if (this.isProcessing) return;
+      await this.pushUndoSnapshot("Fit Toàn Track", true);
+      this.isProcessing = true;
+      const stepLabel = step === "top" ? "Căn TOP (Yaw & Nóc)" : step === "side" ? "Căn SIDE (Cản X)" : step === "front" ? "Căn FRONT (Sườn Y)" : "Fit toàn diện";
+      this.showToast(`Đang ${stepLabel}...`, "info");
+      try {
+        const serverId = this.selectedServerId || this.selectedUiId;
+        const res = await CVATBridge.fitBoxToEgoRayAndGround(
+          this.currentCtx.jobId,
+          this.selectedUiId,
+          serverId,
+          this.applyToTrack,
+          true,
+          // BẢO TOÀN TUYỆT ĐỐI 100% KÍCH THƯỚC L, W, H THEO YÊU CẦU NGƯỜI DÙNG!
+          step
+        );
+        if (res.success) {
+          if (res.newX !== void 0) this.currentX = res.newX;
+          if (res.newY !== void 0) this.currentY = res.newY;
+          if (res.newZ !== void 0) this.currentZ = res.newZ;
+          if (res.newYawDeg !== void 0) this.currentYawDeg = res.newYawDeg;
+          const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
+          if (targetItem) {
+            if (res.newX !== void 0) targetItem.x = res.newX;
+            if (res.newY !== void 0) targetItem.y = res.newY;
+            if (res.newZ !== void 0) targetItem.z = res.newZ;
+            if (res.newYawDeg !== void 0) targetItem.yawDeg = res.newYawDeg;
+          }
+          this.showToast(res.message, "success");
+        } else {
+          this.showToast(res.message, "error");
+        }
+      } catch (err) {
+        this.showToast(`Lỗi ${stepLabel}: ${err.message || err}`, "error");
+      } finally {
+        this.isProcessing = false;
+        this.updateContent();
+      }
+    }
+    async handleFitTop() {
+      if (this.selectedCategory === "cyclist") {
+        await this.handleFitCyclist("top");
+      } else {
+        await this.handleEgoRayFit("top");
+      }
+    }
+    async handleFitSide() {
+      if (this.selectedCategory === "cyclist") {
+        await this.handleFitCyclist("side");
+      } else {
+        await this.handleEgoRayFit("side");
+      }
+    }
+    async handleFitFront() {
+      if (this.selectedCategory === "cyclist") {
+        await this.handleFitCyclist("front");
+      } else {
+        await this.handleEgoRayFit("front");
+      }
+    }
+    /**
+     * Xử lý FIT CHUYÊN BIỆT CHO NGƯỜI ĐI BỘ (PEDESTRIAN FIT)
+     * - Co giãn linh hoạt L, W, H theo người tại frame đó
+     * - Khóa thẳng đứng Roll = 0, Pitch = 0
+     * - Quét chân siêu hẹp +15cm tránh vỉa hè
+     * - Bù đỉnh đầu +12cm chống cắt ngang trán
+     */
+    async handleFitPedestrian() {
+      if (!this.currentCtx || !this.currentCtx.jobId) {
+        this.showToast("Chưa kết nối Job CVAT!", "warning");
+        return;
+      }
+      if (this.selectedUiId === null) {
+        this.showToast("Vui lòng chọn người trước!", "warning");
+        return;
+      }
+      if (this.isProcessing) return;
+      await this.pushUndoSnapshot("Fit Người Đi Bộ", false);
+      this.isProcessing = true;
+      try {
+        const serverId = this.selectedServerId || this.selectedUiId;
+        const res = await CVATBridge.fitPedestrian(
+          this.currentCtx.jobId,
+          this.selectedUiId,
+          serverId
+        );
+        if (res.success) {
+          if (res.newX !== void 0) this.currentX = res.newX;
+          if (res.newY !== void 0) this.currentY = res.newY;
+          if (res.newZ !== void 0) this.currentZ = res.newZ;
+          if (res.newL !== void 0) {
+            this.currentL = res.newL;
+            this.editL = res.newL;
+          }
+          if (res.newW !== void 0) {
+            this.currentW = res.newW;
+            this.editW = res.newW;
+          }
+          if (res.newH !== void 0) {
+            this.currentH = res.newH;
+            this.editH = res.newH;
+          }
+          const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
+          if (targetItem) {
+            if (res.newX !== void 0) targetItem.x = res.newX;
+            if (res.newY !== void 0) targetItem.y = res.newY;
+            if (res.newZ !== void 0) targetItem.z = res.newZ;
+            if (res.newL !== void 0) targetItem.l = res.newL;
+            if (res.newW !== void 0) targetItem.w = res.newW;
+            if (res.newH !== void 0) targetItem.h = res.newH;
+          }
+          this.showToast(res.message, "success");
+        } else {
+          this.showToast(res.message, "error");
+        }
+      } catch (err) {
+        this.showToast(`Lỗi Fit Người Đi Bộ: ${err.message || err}`, "error");
+      } finally {
+        this.isProcessing = false;
+        this.updateContent();
+      }
+    }
+    /**
+     * Xử lý FIT CHUYÊN BIỆT CHO XE 2 BÁNH (CYCLIST / TWO-WHEELER FIT)
+     * Hỗ trợ 3 chiều độc lập (TOP - SIDE - FRONT) hoặc toàn chu trình (ALL).
+     * Bảo toàn 100% kích thước L cố định theo quy chuẩn.
+     */
+    async handleFitCyclist(step = "all") {
+      if (!this.currentCtx || !this.currentCtx.jobId) {
+        this.showToast("Chưa kết nối Job CVAT!", "warning");
+        return;
+      }
+      if (this.selectedUiId === null) {
+        this.showToast("Vui lòng chọn xe trước!", "warning");
+        return;
+      }
+      if (this.isProcessing) return;
+      const stepLabel = step === "top" ? "Căn TOP (Yaw Đầu - Đuôi)" : step === "side" ? "Căn SIDE (Cản X & Sàn, Khóa L)" : step === "front" ? "Căn FRONT (Sườn Y đón tia, Giữ Size)" : step === "w" ? "Fit Rộng W (Bắt gương xe +5cm Pad)" : step === "h" ? "Fit Cao H (Bám sàn cố định, nở nóc)" : "Fit Xe 2 Bánh toàn diện";
+      await this.pushUndoSnapshot(stepLabel, false);
+      this.isProcessing = true;
+      this.showToast(`Đang ${stepLabel}...`, "info");
+      try {
+        const serverId = this.selectedServerId || this.selectedUiId;
+        const res = await CVATBridge.fitCyclist(
+          this.currentCtx.jobId,
+          this.selectedUiId,
+          serverId,
+          0.1,
+          step,
+          this.applyToTrack
+        );
+        if (res.success) {
+          if (res.newX !== void 0) this.currentX = res.newX;
+          if (res.newY !== void 0) this.currentY = res.newY;
+          if (res.newZ !== void 0) this.currentZ = res.newZ;
+          if (res.newYawDeg !== void 0) this.currentYawDeg = res.newYawDeg;
+          if (res.newL !== void 0) {
+            this.currentL = res.newL;
+            this.editL = res.newL;
+          }
+          if (res.newW !== void 0) {
+            this.currentW = res.newW;
+            this.editW = res.newW;
+          }
+          if (res.newH !== void 0) {
+            this.currentH = res.newH;
+            this.editH = res.newH;
+          }
+          const inputW = this.container.querySelector("#input-dim-w");
+          if (inputW && res.newW !== void 0) {
+            inputW.value = String(res.newW);
+          }
+          const inputH = this.container.querySelector("#input-dim-h");
+          if (inputH && res.newH !== void 0) {
+            inputH.value = String(res.newH);
+          }
+          const inputL = this.container.querySelector("#input-dim-l");
+          if (inputL && res.newL !== void 0) {
+            inputL.value = String(res.newL);
+          }
+          const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
+          if (targetItem) {
+            if (res.newX !== void 0) targetItem.x = res.newX;
+            if (res.newY !== void 0) targetItem.y = res.newY;
+            if (res.newZ !== void 0) targetItem.z = res.newZ;
+            if (res.newYawDeg !== void 0) targetItem.yawDeg = res.newYawDeg;
+            if (res.newL !== void 0) targetItem.l = res.newL;
+            if (res.newW !== void 0) targetItem.w = res.newW;
+            if (res.newH !== void 0) targetItem.h = res.newH;
+          }
+          this.showToast(res.message, "success");
+        } else {
+          this.showToast(res.message, "error");
+        }
+      } catch (err) {
+        this.showToast(`Lỗi ${stepLabel}: ${err.message || err}`, "error");
+      } finally {
+        this.isProcessing = false;
+        this.updateContent();
+      }
+    }
+    /**
      * Xử lý Căn Hộp Bám Cụm Điểm BẢO TOÀN KÍCH THƯỚC (Preserving Dimensions Alignment)
      * Tự động bay tới ôm khít cụm điểm mà TUYỆT ĐỐI GIỮ NGUYÊN kích thước L, W, H của xe.
      */
@@ -4349,8 +8825,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return;
       }
       if (this.isProcessing) return;
+      await this.pushUndoSnapshot("Căn Hộp Bám Điểm", false);
       this.isProcessing = true;
-      this.showToast("Đang căn hộp bám cụm điểm & giữ nguyên kích thước...", "info");
       try {
         const serverId = this.selectedServerId || this.selectedUiId;
         const res = await CVATBridge.alignBoxToPoints(
@@ -4398,8 +8874,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return;
       }
       if (this.isProcessing) return;
+      await this.pushUndoSnapshot("Khớp Kích Thước Catalog", this.applyToTrack);
       this.isProcessing = true;
-      this.showToast("Đang đối chiếu và khớp kích thước Catalog...", "info");
       try {
         const serverId = this.selectedServerId || this.selectedUiId;
         const res = await CVATBridge.autoFitTrack(
@@ -4469,6 +8945,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return;
       }
       if (this.isProcessing) return;
+      await this.pushUndoSnapshot("Fit Toàn Track", true);
       this.isProcessing = true;
       this.showToast("Đang tìm mốc chuẩn và fit đồng bộ toàn track...", "info");
       try {
@@ -4510,6 +8987,30 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     updateContent() {
       if (!this.container || !this.currentCtx) return;
+      const stateHash = [
+        this.selectedUiId,
+        this.currentFrameNumber,
+        this.currentX,
+        this.currentY,
+        this.currentZ,
+        this.currentYawDeg,
+        this.currentL,
+        this.currentW,
+        this.currentH,
+        this.editL,
+        this.editW,
+        this.editH,
+        this.frameTracks.length,
+        this.isDropdownOpen,
+        this.searchKeyword,
+        this.selectedCategory,
+        this.isAdvancedOpen,
+        this.applyToTrack
+      ].join("|");
+      if (stateHash === this.lastRenderedHash && this.container.children.length > 0) {
+        return;
+      }
+      this.lastRenderedHash = stateHash;
       const jobText = this.currentCtx.jobId ? `#${this.currentCtx.jobId}` : "OFFLINE";
       const filteredTracks = this.frameTracks.filter((t) => {
         if (!this.searchKeyword.trim()) return true;
@@ -4524,9 +9025,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             <div class="dropdown-track-item" data-uiid="${t.uiId}" style="
               padding: 6px 10px;
               border-radius: 6px;
-              background: ${isSelected ? "rgba(16, 185, 129, 0.2)" : "transparent"};
-              border: 1px solid ${isSelected ? "rgba(16, 185, 129, 0.4)" : "transparent"};
-              color: ${isSelected ? "#6ee7b7" : "#e4e4e7"};
+              background: ${isSelected ? "#ecfdf5" : "transparent"};
+              border: 1px solid ${isSelected ? "#a7f3d0" : "transparent"};
+              color: ${isSelected ? "#047857" : "#0f172a"};
               cursor: pointer;
               display: flex;
               align-items: center;
@@ -4536,19 +9037,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               transition: background 0.12s;
             ">
               <span style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-weight: 700; color: ${isSelected ? "#10b981" : "#a1a1aa"};">#${t.uiId}</span>
-                <span style="color: #fafafa; font-weight: 500;">${t.label}</span>
+                <span style="font-weight: 700; color: ${isSelected ? "#059669" : "#64748b"};">#${t.uiId}</span>
+                <span style="color: ${isSelected ? "#047857" : "#0f172a"}; font-weight: 500;">${t.label}</span>
               </span>
-              <span style="font-size: 10px; color: #71717a;">
+              <span style="font-size: 10px; color: #64748b;">
                 Z: ${t.z}m • ${t.yawDeg}°
-                ${isSelected ? `<span style="color: #10b981; margin-left: 4px;">●</span>` : ""}
+                ${isSelected ? `<span style="color: #059669; margin-left: 4px;">●</span>` : ""}
               </span>
             </div>
           `;
         }).join("");
       } else {
         dropdownItemsHtml = `
-        <div style="font-size: 11px; color: #71717a; padding: 8px; text-align: center; font-style: italic;">
+        <div style="font-size: 11px; color: #64748b; padding: 8px; text-align: center; font-style: italic;">
           Không tìm thấy xe nào khớp với "${this.searchKeyword}"
         </div>
       `;
@@ -4559,333 +9060,110 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.currentH || 1.45,
         this.currentLabel
       );
-      let tabContentHtml = "";
-      if (this.activeTab === "dimensions") {
-        tabContentHtml = `
-        <!-- BỘ ĐIỀU CHỈNH KÍCH THƯỚC (L, W, H) -->
+      const activePresets = this.selectedCategory === "pedestrian" ? PEDESTRIAN_PRESETS : this.selectedCategory === "cyclist" ? CYCLIST_PRESETS : CAR_PRESETS;
+      let heroTitle = "1-CLICK SMART FIT";
+      let heroSub = "Tự bám đất • Khóa Roll 0° • Lọc sạch gương & xe khác";
+      let heroKey = "T";
+      let heroGradient = "linear-gradient(135deg, #ecfdf5 0%, #e0f2fe 100%)";
+      let heroBorder = "#6ee7b7";
+      let heroColor = "#047857";
+      let heroIcon = ICONS.zap;
+      if (this.selectedCategory === "pedestrian") {
+        heroTitle = "FIT NGƯỜI ĐI BỘ";
+        heroSub = "Khóa đứng 0° • Bù đỉnh đầu +12cm • Co giãn dáng người";
+        heroKey = "P";
+        heroGradient = "linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)";
+        heroBorder = "#d8b4fe";
+        heroColor = "#6b21a8";
+        heroIcon = ICONS.user;
+      } else if (this.selectedCategory === "cyclist") {
+        heroTitle = "FIT XE ĐẠP / XE MÁY";
+        heroSub = "Khung xe chuẩn • Khóa thẳng đứng 0° • Bù nón bảo hiểm";
+        heroKey = "Shift+C";
+        heroGradient = "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)";
+        heroBorder = "#fcd34d";
+        heroColor = "#b45309";
+        heroIcon = ICONS.bicycle;
+      }
+      let advancedContentHtml = "";
+      if (this.isAdvancedOpen) {
+        advancedContentHtml = `
         <div style="
-          background: rgba(24, 24, 27, 0.6);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
           border-radius: 10px;
-          padding: 8px 10px;
+          padding: 10px;
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 8px;
         ">
-          <!-- TOGGLE SWITCH: CHỈ FRAME NÀY VS TOÀN TRACK -->
-          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.06);">
-            <span style="font-size: 11px; font-weight: 600; color: #a1a1aa;">Phạm vi áp dụng:</span>
-            <div id="btn-toggle-scope" style="
-              background: #18181b;
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              border-radius: 6px;
-              display: flex;
-              padding: 2px;
-              cursor: pointer;
-              font-size: 10px;
-              font-family: ui-monospace, monospace;
-            ">
-              <span style="
-                padding: 3px 8px;
-                border-radius: 4px;
-                background: ${!this.applyToTrack ? "#27272a" : "transparent"};
-                color: ${!this.applyToTrack ? "#10b981" : "#71717a"};
-                font-weight: ${!this.applyToTrack ? "600" : "normal"};
-              ">Frame Này</span>
-              <span style="
-                padding: 3px 8px;
-                border-radius: 4px;
-                background: ${this.applyToTrack ? "rgba(239, 68, 68, 0.2)" : "transparent"};
-                color: ${this.applyToTrack ? "#fca5a5" : "#71717a"};
-                font-weight: ${this.applyToTrack ? "600" : "normal"};
-              ">Toàn Track</span>
+          <!-- VI CHỈNH ĐỘ CAO Z -->
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 10px; color: #64748b; font-family: ui-monospace, monospace; font-weight: 500;">Vi chỉnh Z (cm):</span>
+            <div style="display: flex; gap: 4px;">
+              <button class="btn-micro-z" data-delta="-5" title="Hạ 5cm" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 10px; font-family: monospace; padding: 4px 7px; border-radius: 5px; cursor: pointer;">-5</button>
+              <button class="btn-micro-z" data-delta="-1" title="Hạ 1cm" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 10px; font-family: monospace; padding: 4px 7px; border-radius: 5px; cursor: pointer;">-1</button>
+              <button class="btn-micro-z" data-delta="1" title="Nâng 1cm" style="background: #ffffff; border: 1px solid #a7f3d0; color: #059669; font-size: 10px; font-family: monospace; padding: 4px 7px; border-radius: 5px; cursor: pointer; font-weight: 600;">+1</button>
+              <button class="btn-micro-z" data-delta="5" title="Nâng 5cm" style="background: #ffffff; border: 1px solid #a7f3d0; color: #059669; font-size: 10px; font-family: monospace; padding: 4px 7px; border-radius: 5px; cursor: pointer; font-weight: 600;">+5</button>
             </div>
           </div>
 
-          <!-- 3 HÀNG STEPPER (L, W, H) -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
-            <!-- Chiều Dài L -->
-            <div style="display: flex; flex-direction: column; gap: 2px;">
-              <span style="font-size: 10px; color: #a1a1aa; font-family: monospace;">Dài (L):</span>
-              <div style="display: flex; align-items: center; background: #09090b; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;">
-                <button class="btn-step" data-axis="l" data-delta="-0.05" style="border: none; background: transparent; color: #71717a; padding: 4px; cursor: pointer;">-</button>
-                <input id="input-dim-l" type="number" step="0.05" value="${this.editL || this.currentL}" style="width: 100%; border: none; background: transparent; color: #38bdf8; font-size: 11px; font-weight: bold; text-align: center; outline: none; font-family: monospace;" />
-                <button class="btn-step" data-axis="l" data-delta="0.05" style="border: none; background: transparent; color: #71717a; padding: 4px; cursor: pointer;">+</button>
-              </div>
-            </div>
-
-            <!-- Chiều Rộng W -->
-            <div style="display: flex; flex-direction: column; gap: 2px;">
-              <span style="font-size: 10px; color: #a1a1aa; font-family: monospace;">Rộng (W):</span>
-              <div style="display: flex; align-items: center; background: #09090b; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;">
-                <button class="btn-step" data-axis="w" data-delta="-0.05" style="border: none; background: transparent; color: #71717a; padding: 4px; cursor: pointer;">-</button>
-                <input id="input-dim-w" type="number" step="0.05" value="${this.editW || this.currentW}" style="width: 100%; border: none; background: transparent; color: #38bdf8; font-size: 11px; font-weight: bold; text-align: center; outline: none; font-family: monospace;" />
-                <button class="btn-step" data-axis="w" data-delta="0.05" style="border: none; background: transparent; color: #71717a; padding: 4px; cursor: pointer;">+</button>
-              </div>
-            </div>
-
-            <!-- Chiều Cao H -->
-            <div style="display: flex; flex-direction: column; gap: 2px;">
-              <span style="font-size: 10px; color: #a1a1aa; font-family: monospace;">Cao (H):</span>
-              <div style="display: flex; align-items: center; background: #09090b; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;">
-                <button class="btn-step" data-axis="h" data-delta="-0.05" style="border: none; background: transparent; color: #71717a; padding: 4px; cursor: pointer;">-</button>
-                <input id="input-dim-h" type="number" step="0.05" value="${this.editH || this.currentH}" style="width: 100%; border: none; background: transparent; color: #38bdf8; font-size: 11px; font-weight: bold; text-align: center; outline: none; font-family: monospace;" />
-                <button class="btn-step" data-axis="h" data-delta="0.05" style="border: none; background: transparent; color: #71717a; padding: 4px; cursor: pointer;">+</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- NÚT ÁP DỤNG KÍCH THƯỚC ĐÃ NHẬP -->
-          <button id="btn-apply-dimensions" style="
-            background: #27272a;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #f4f4f5;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.15s;
-          ">
-            <span style="display: flex; align-items: center;">${ICONS.save}</span>
-            <span>Lưu Kích Thước (${this.applyToTrack ? "Toàn Track" : "Frame Này"})</span>
-          </button>
-        </div>
-
-        <!-- 3 NÚT HÀNH ĐỘNG FIT CHUYÊN BIỆT: ALIGN TO POINTS (GIỮ SIZE), CATALOG & QUÉT MỐC ĐA FRAME -->
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-          <!-- NÚT 1: CĂN HỘP BÁM CỤM ĐIỂM (BẢO TOÀN KÍCH THƯỚC L, W, H) -->
-          <button id="btn-tight-fit" title="Tự động dịch tâm và ôm trọn cụm điểm LiDAR, giữ nguyên 100% kích cỡ chuẩn" style="
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid #10b981;
-            color: #6ee7b7;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.12s;
-          ">
-            <span style="display: flex; align-items: center; gap: 7px;">
-              <span style="display: flex; align-items: center;">${ICONS.tightFit}</span>
-              <span>Căn Hộp Bám Cụm Điểm (Giữ Size)</span>
-            </span>
-            <kbd style="font-size: 9px; font-family: monospace; background: #18181b; padding: 1px 5px; border-radius: 4px; color: #a7f3d0;">T</kbd>
-          </button>
-
-          <!-- NÚT 2: QUÉT MỐC ĐA FRAME (CHỌN FRAME HIỂN THỊ TỐT NHẤT) -->
-          <button id="btn-smart-anchor-fit" title="Duyệt qua toàn bộ frame của xe trong track, chọn frame có cụm điểm đầy đủ nhất để đồng bộ kích thước" style="
-            background: rgba(168, 85, 247, 0.12);
-            border: 1px solid rgba(168, 85, 247, 0.35);
-            color: #d8b4fe;
-            padding: 7px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.15s;
-          ">
-            <span style="display: flex; align-items: center; gap: 7px;">
-              <span style="display: flex; align-items: center;">${ICONS.link}</span>
-              <span>Quét Mốc Đa Frame (Chọn Frame Đẹp)</span>
-            </span>
-            <span style="font-size: 9px; font-family: monospace; background: rgba(0,0,0,0.35); padding: 1px 5px; border-radius: 4px; color: #d8b4fe;">MULTI-SCAN</span>
-          </button>
-
-          <!-- NÚT 3: KHỚP KÍCH THƯỚC CHUẨN CATALOG -->
-          <button id="btn-catalog-fit" title="Gợi ý và khớp kích thước theo catalog phương tiện chuẩn" style="
-            background: rgba(14, 165, 233, 0.12);
-            border: 1px solid rgba(14, 165, 233, 0.35);
-            color: #7dd3fc;
-            padding: 7px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.12s;
-          ">
-            <span style="display: flex; align-items: center; gap: 7px;">
-              <span style="display: flex; align-items: center;">${ICONS.sparkles}</span>
-              <span>Khớp Chuẩn Catalog (Best-Fit)</span>
-            </span>
-            <kbd style="font-size: 9px; font-family: monospace; background: #18181b; padding: 1px 5px; border-radius: 4px; color: #7dd3fc;">⇧B</kbd>
-          </button>
-
-          <!-- GỢI Ý XE KHỚP TỪ CATALOG -->
-          <div style="
-            font-size: 10px;
-            color: #71717a;
-            padding: 2px 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-family: ui-monospace, monospace;
-          ">
-            <span>Dòng xe khớp: <strong style="color: #10b981;">${bestFit.matchedItem.name}</strong> (${bestFit.confidence}%)</span>
-            <button class="catalog-btn" data-l="${bestFit.recommendedL}" data-w="${bestFit.recommendedW}" data-h="${bestFit.recommendedH}" data-name="${bestFit.matchedItem.name}" style="
-              border: none;
-              background: transparent;
-              color: #38bdf8;
-              font-size: 10px;
-              cursor: pointer;
-              text-decoration: underline;
-            ">Áp dụng</button>
-          </div>
-        </div>
-
-        <!-- PRESET CATALOG NHANH -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-          ${STANDARD_VEHICLE_CATALOG.slice(0, 4).map(
-          (item) => `
-            <button class="catalog-btn" data-l="${item.l}" data-w="${item.w}" data-h="${item.h}" data-name="${item.name}" style="
-              background: #18181b;
-              border: 1px solid rgba(255,255,255,0.08);
-              color: #d4d4d8;
-              padding: 5px 8px;
-              border-radius: 6px;
-              font-size: 10px;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            ">
-              <span style="font-weight: 500;">${item.name}</span>
-              <span style="font-size: 8px; font-family: monospace; color: #71717a;">${item.l}x${item.w}m</span>
-            </button>
-          `
-        ).join("")}
-        </div>
-      `;
-      } else if (this.activeTab === "rotation") {
-        tabContentHtml = `
-        <!-- LẬT 180 ĐỘ -->
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #71717a;">Lật Đầu Xe 180°</div>
+          <!-- DỐC DỌC PITCH & NGHIÊNG NGANG ROLL -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-            <button id="btn-flip-frame" style="
-              background: #27272a;
-              border: 1px solid rgba(255, 255, 255, 0.08);
-              color: #f4f4f5;
-              padding: 8px 10px;
-              border-radius: 8px;
-              font-size: 11px;
-              font-weight: 500;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            ">
-              <span style="display: flex; align-items: center; gap: 6px;">
-                <span style="display: flex; align-items: center;">${ICONS.flip}</span>
-                <span>Lật Frame này</span>
+            <div style="background: #ffffff; padding: 6px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-size: 9px; color: #0284c7; font-family: monospace; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                ${ICONS.arrowUpDown}
+                <span>Dốc Side (Pitch)</span>
               </span>
-              <kbd style="font-size: 9px; font-family: monospace; background: #18181b; padding: 1px 4px; border-radius: 4px; color: #71717a;">F</kbd>
-            </button>
+              <div style="display: flex; gap: 3px;">
+                <button class="btn-micro-pitch" data-delta="-1" style="flex: 1; background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer;">-1°</button>
+                <button class="btn-micro-pitch" data-delta="1" style="flex: 1; background: #f0f9ff; border: 1px solid #bae6fd; color: #0284c7; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer; font-weight: 600;">+1°</button>
+              </div>
+            </div>
 
-            <button id="btn-flip-track" style="
-              background: rgba(239, 68, 68, 0.12);
-              border: 1px solid rgba(239, 68, 68, 0.3);
-              color: #fca5a5;
-              padding: 8px 10px;
-              border-radius: 8px;
-              font-size: 11px;
-              font-weight: 500;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            ">
-              <span style="display: flex; align-items: center; gap: 6px;">
-                <span style="display: flex; align-items: center;">${ICONS.flip}</span>
-                <span>Lật Toàn Track</span>
+            <div style="background: #ffffff; padding: 6px; border-radius: 6px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-size: 9px; color: #e11d48; font-family: monospace; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                ${ICONS.arrowRightLeft}
+                <span>Nghiêng (Roll)</span>
               </span>
-              <kbd style="font-size: 9px; font-family: monospace; background: #18181b; padding: 1px 4px; border-radius: 4px; color: #71717a;">⇧F</kbd>
-            </button>
+              <div style="display: flex; gap: 3px;">
+                <button class="btn-micro-roll" data-delta="-1" style="flex: 1; background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer;">-1°</button>
+                <button class="btn-micro-roll" data-delta="1" style="flex: 1; background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer; font-weight: 600;">+1°</button>
+                <button id="btn-reset-slope" title="Đặt lại dốc phẳng 0°" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; padding: 3px 6px; border-radius: 4px; cursor: pointer; font-weight: 600;">0°</button>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <!-- VI CHỈNH GÓC XOAY -->
-        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
-          <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #71717a;">Vi Chỉnh Góc Yaw</div>
-          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
-            <button class="btn-rot" data-deg="-90" style="background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 10px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">-90°</button>
-            <button class="btn-rot" data-deg="-15" style="background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 10px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">-15°</button>
-            <button class="btn-rot" data-deg="-5" style="background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 10px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">-5°</button>
-            <button class="btn-rot" data-deg="5" style="background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #10b981; font-size: 10px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">+5°</button>
-            <button class="btn-rot" data-deg="15" style="background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #10b981; font-size: 10px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">+15°</button>
-            <button class="btn-rot" data-deg="90" style="background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #10b981; font-size: 10px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">+90°</button>
-          </div>
-        </div>
-      `;
-      } else if (this.activeTab === "ground") {
-        tabContentHtml = `
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <!-- GHIM MẶT ĐƯỜNG & VỈA HÈ -->
+          <!-- VỈA HÈ & GÁC LỀ -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-            <button id="btn-snap-road" title="Ghim sát mặt đường và tự động khớp góc dốc Pitch dọc & Roll ngang theo thực tế 3D" style="
-              background: #27272a;
-              border: 1px solid rgba(45, 212, 191, 0.3);
-              color: #2dd4bf;
-              padding: 8px 10px;
-              border-radius: 8px;
-              font-size: 11px;
-              font-weight: 500;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            ">
-              <span style="display: flex; align-items: center; gap: 6px;">
-                <span style="display: flex; align-items: center;">${ICONS.road}</span>
-                <span>Mặt Đường Bám Dốc 3D</span>
-              </span>
-              <kbd style="font-size: 9px; font-family: monospace; background: #18181b; padding: 1px 4px; border-radius: 4px; color: #71717a;">G</kbd>
-            </button>
-
             <button id="btn-snap-curb" style="
-              background: #27272a;
-              border: 1px solid rgba(245, 158, 11, 0.3);
-              color: #fbbf24;
-              padding: 8px 10px;
-              border-radius: 8px;
-              font-size: 11px;
-              font-weight: 500;
+              background: #fffbeb;
+              border: 1px solid #fde68a;
+              color: #b45309;
+              padding: 6px 8px;
+              border-radius: 6px;
+              font-size: 10px;
+              font-weight: 600;
               cursor: pointer;
               display: flex;
               align-items: center;
               justify-content: space-between;
             ">
-              <span style="display: flex; align-items: center; gap: 6px;">
+              <span style="display: flex; align-items: center; gap: 5px;">
                 <span style="display: flex; align-items: center;">${ICONS.curb}</span>
                 <span>Vỉa Hè +15cm</span>
               </span>
-              <kbd style="font-size: 9px; font-family: monospace; background: #18181b; padding: 1px 4px; border-radius: 4px; color: #71717a;">⌥G</kbd>
+              <kbd style="font-size: 8px; font-family: monospace; background: #fef3c7; border: 1px solid #fde68a; padding: 1px 4px; border-radius: 3px; color: #92400e;">⌥G</kbd>
             </button>
-          </div>
 
-          <!-- GÁC LỀ NGHIÊNG ROLL & VI CHỈNH CENTIMET -->
-          <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 6px;">
             <button id="btn-snap-half-curb" style="
-              background: rgba(244, 63, 94, 0.1);
-              border: 1px solid rgba(244, 63, 94, 0.25);
-              color: #fda4af;
+              background: #fff1f2;
+              border: 1px solid #fecdd3;
+              color: #be123c;
               padding: 6px 8px;
-              border-radius: 8px;
+              border-radius: 6px;
               font-size: 10px;
-              font-weight: 500;
+              font-weight: 600;
               cursor: pointer;
               display: flex;
               align-items: center;
@@ -4893,82 +9171,102 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             ">
               <span style="display: flex; align-items: center; gap: 5px;">
                 <span style="display: flex; align-items: center;">${ICONS.layers}</span>
-                <span>Gác Lề Nghiêng Roll</span>
+                <span>Gác Lề Roll</span>
               </span>
-              <kbd style="font-size: 8px; font-family: monospace; background: #18181b; padding: 1px 3px; border-radius: 3px; color: #71717a;">⇧G</kbd>
+              <kbd style="font-size: 8px; font-family: monospace; background: #ffe4e6; border: 1px solid #fecdd3; padding: 1px 4px; border-radius: 3px; color: #9f1239;">⇧G</kbd>
             </button>
+          </div>
 
-            <div style="display: flex; gap: 3px; align-items: center;">
-              <button class="btn-micro-z" data-delta="-5" title="Hạ 5cm" style="flex: 1; background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 9px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">-5</button>
-              <button class="btn-micro-z" data-delta="-1" title="Hạ 1cm" style="flex: 1; background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 9px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">-1</button>
-              <button class="btn-micro-z" data-delta="1" title="Nâng 1cm" style="flex: 1; background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #2dd4bf; font-size: 9px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">+1</button>
-              <button class="btn-micro-z" data-delta="5" title="Nâng 5cm" style="flex: 1; background: #18181b; border: 1px solid rgba(255,255,255,0.08); color: #2dd4bf; font-size: 9px; font-family: monospace; padding: 6px 0; border-radius: 6px; cursor: pointer;">+5</button>
+          <!-- VI CHỈNH GÓC YAW -->
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 9px; color: #64748b; font-family: monospace; font-weight: 500;">Xoay góc Yaw:</span>
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;">
+              <button class="btn-rot" data-deg="-90" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer;">-90°</button>
+              <button class="btn-rot" data-deg="-15" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer;">-15°</button>
+              <button class="btn-rot" data-deg="-5" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer;">-5°</button>
+              <button class="btn-rot" data-deg="5" style="background: #ffffff; border: 1px solid #a7f3d0; color: #059669; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer; font-weight: 600;">+5°</button>
+              <button class="btn-rot" data-deg="15" style="background: #ffffff; border: 1px solid #a7f3d0; color: #059669; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer; font-weight: 600;">+15°</button>
+              <button class="btn-rot" data-deg="90" style="background: #ffffff; border: 1px solid #a7f3d0; color: #059669; font-size: 9px; font-family: monospace; padding: 4px 0; border-radius: 4px; cursor: pointer; font-weight: 600;">+90°</button>
             </div>
           </div>
 
-          <!-- VI CHỈNH GÓC DỐC SIDE VIEW (PITCH) -->
-          <div style="display: flex; align-items: center; justify-content: space-between; background: #18181b; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
-            <span style="font-size: 10px; color: #a1a1aa; display: flex; align-items: center; gap: 4px;">
-              <span style="color: #38bdf8; font-weight: bold;">↕</span> Dốc Side (Pitch)
-            </span>
-            <div style="display: flex; gap: 3px; align-items: center;">
-              <button class="btn-micro-pitch" data-delta="-1" title="Chúc mũi xuống 1°" style="background: #27272a; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 9px; font-family: monospace; padding: 3px 6px; border-radius: 4px; cursor: pointer;">-1°</button>
-              <button class="btn-micro-pitch" data-delta="-0.5" title="Chúc mũi xuống 0.5°" style="background: #27272a; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 9px; font-family: monospace; padding: 3px 5px; border-radius: 4px; cursor: pointer;">-0.5°</button>
-              <button class="btn-micro-pitch" data-delta="0.5" title="Nâng mũi lên 0.5°" style="background: #27272a; border: 1px solid rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 9px; font-family: monospace; padding: 3px 5px; border-radius: 4px; cursor: pointer;">+0.5°</button>
-              <button class="btn-micro-pitch" data-delta="1" title="Nâng mũi lên 1°" style="background: #27272a; border: 1px solid rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 9px; font-family: monospace; padding: 3px 6px; border-radius: 4px; cursor: pointer;">+1°</button>
-            </div>
-          </div>
-
-          <!-- VI CHỈNH GÓC NGHIÊNG FRONT VIEW (ROLL) & RESET PHẲNG -->
-          <div style="display: flex; align-items: center; justify-content: space-between; background: #18181b; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
-            <span style="font-size: 10px; color: #a1a1aa; display: flex; align-items: center; gap: 4px;">
-              <span style="color: #f43f5e; font-weight: bold;">↔</span> Nghiêng Front (Roll)
-            </span>
-            <div style="display: flex; gap: 3px; align-items: center;">
-              <button class="btn-micro-roll" data-delta="-1" title="Nghiêng phải 1°" style="background: #27272a; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 9px; font-family: monospace; padding: 3px 6px; border-radius: 4px; cursor: pointer;">-1°</button>
-              <button class="btn-micro-roll" data-delta="-0.5" title="Nghiêng phải 0.5°" style="background: #27272a; border: 1px solid rgba(255,255,255,0.08); color: #d4d4d8; font-size: 9px; font-family: monospace; padding: 3px 5px; border-radius: 4px; cursor: pointer;">-0.5°</button>
-              <button class="btn-micro-roll" data-delta="0.5" title="Nghiêng trái 0.5°" style="background: #27272a; border: 1px solid rgba(244, 63, 94, 0.2); color: #fda4af; font-size: 9px; font-family: monospace; padding: 3px 5px; border-radius: 4px; cursor: pointer;">+0.5°</button>
-              <button class="btn-micro-roll" data-delta="1" title="Nghiêng trái 1°" style="background: #27272a; border: 1px solid rgba(244, 63, 94, 0.2); color: #fda4af; font-size: 9px; font-family: monospace; padding: 3px 6px; border-radius: 4px; cursor: pointer;">+1°</button>
-              <button id="btn-reset-slope" title="Đặt lại dốc phẳng 0° (Reset Pitch & Roll)" style="background: #27272a; border: 1px solid rgba(255,255,255,0.15); color: #e4e4e7; font-size: 9px; font-family: monospace; padding: 3px 5px; border-radius: 4px; cursor: pointer; margin-left: 1px;">0°</button>
-            </div>
+          <!-- PRESET CATALOG XE NHANH -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 2px;">
+            ${STANDARD_VEHICLE_CATALOG.slice(0, 4).map(
+          (item) => `
+              <button class="catalog-btn" data-l="${item.l}" data-w="${item.w}" data-h="${item.h}" data-name="${item.name}" style="
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
+                color: #1e293b;
+                padding: 4px 6px;
+                border-radius: 5px;
+                font-size: 9px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              ">
+                <span style="font-weight: 600;">${item.name}</span>
+                <span style="font-size: 8px; font-family: monospace; color: #64748b;">${item.l}x${item.w}m</span>
+              </button>
+            `
+        ).join("")}
           </div>
         </div>
       `;
       }
       this.container.innerHTML = `
-      <!-- SHADCN CARD HEADER (DRAGGABLE HANDLE) -->
+      <!-- HEADER CHUẨN SHADCN (LIGHT) -->
       <div id="floating-drag-header" style="
-        padding: 10px 14px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(24, 24, 27, 0.75);
+        padding: 9px 12px;
+        border-bottom: 1px solid #e2e8f0;
+        background: #ffffff;
         display: flex;
         align-items: center;
         justify-content: space-between;
         cursor: grab;
       ">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="color: #71717a; display: flex;">${ICONS.grip}</span>
+        <div style="display: flex; align-items: center; gap: 7px;">
+          <span style="color: #94a3b8; display: flex;">${ICONS.grip}</span>
           <span style="color: #10b981; display: flex;">${ICONS.box}</span>
-          <span style="font-weight: 600; font-size: 13px; letter-spacing: -0.2px; color: #fafafa;">CVAT 3D Suite</span>
+          <span style="font-weight: 700; font-size: 13px; letter-spacing: -0.2px; color: #09090b;">CVAT 3D Suite</span>
           <span style="
-            font-size: 10px;
+            font-size: 9px;
             font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            background: #27272a;
-            color: #10b981;
-            padding: 2px 6px;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.06);
+            background: #f1f5f9;
+            color: #059669;
+            padding: 2px 5px;
+            border-radius: 5px;
+            border: 1px solid #e2e8f0;
             font-weight: 600;
           ">${jobText}</span>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 4px;">
-          <button id="floating-btn-fullscreen" title="Mở Rộng Toàn Màn Hình · Duyệt Toàn Bộ Track ID (Shift+F)" style="
-            background: rgba(37, 99, 235, 0.15);
-            border: 1px solid rgba(37, 99, 235, 0.3);
-            color: #60a5fa;
+        <div style="display: flex; align-items: center; gap: 3px;">
+          <button id="floating-btn-undo" title="Hoàn tác thao tác vừa thực hiện (Ctrl+Z / Cmd+Z)" style="
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #0f172a;
             cursor: pointer;
-            padding: 4px 6px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            transition: all 0.12s;
+          ">
+            <span style="display: flex; align-items: center;">${ICONS.undo}</span>
+            <span>Pre</span>
+          </button>
+          <button id="floating-btn-fullscreen" title="Mở Rộng Toàn Màn Hình · Duyệt Toàn Bộ Track ID (Shift+M)" style="
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #2563eb;
+            cursor: pointer;
+            padding: 3px 6px;
             border-radius: 4px;
             display: flex;
             align-items: center;
@@ -4976,15 +9274,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             font-size: 10px;
             font-weight: 600;
           ">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
             <span>Full</span>
           </button>
           <button id="floating-btn-sync-frame" title="Quét lại xe frame này" style="
             background: transparent;
             border: none;
-            color: #71717a;
+            color: #64748b;
             cursor: pointer;
-            padding: 4px;
+            padding: 3px;
             border-radius: 4px;
             display: flex;
             align-items: center;
@@ -4994,9 +9292,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           <button id="floating-btn-minimize" title="Thu nhỏ (\`)" style="
             background: transparent;
             border: none;
-            color: #71717a;
+            color: #64748b;
             cursor: pointer;
-            padding: 4px;
+            padding: 3px;
             border-radius: 4px;
             display: flex;
             align-items: center;
@@ -5006,52 +9304,36 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         </div>
       </div>
 
-      <!-- MAIN CONTAINER BODY -->
+      <!-- MAIN CONTAINER BODY (LIGHT) -->
       <div style="
-        padding: 12px;
+        padding: 10px;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
+        max-height: calc(100vh - 120px);
       ">
-        <!-- KHỐI 1: DROPDOWN SELECT DANH SÁCH XE (SEARCHABLE COMBOBOX) -->
+        <!-- KHỐI 1: CHỌN XE & THÔNG SỐ TÓM TẮT -->
         <div style="
-          background: rgba(24, 24, 27, 0.7);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          padding: 10px 12px;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 8px 10px;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 6px;
           position: relative;
         ">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 11px; font-weight: 700; color: #f4f4f5; display: flex; align-items: center; gap: 5px;">
-              <span>Xe tại Frame #${this.currentFrameNumber}</span>
-              <span style="color: #71717a; font-weight: normal;">(${this.frameTracks.length})</span>
-            </span>
-            <span style="
-              font-size: 9px;
-              font-family: ui-monospace, monospace;
-              color: #10b981;
-              background: rgba(16, 185, 129, 0.12);
-              border: 1px solid rgba(16, 185, 129, 0.25);
-              padding: 1px 6px;
-              border-radius: 4px;
-              font-weight: 600;
-            ">CANVAS AUTO-SELECT</span>
-          </div>
-
-          <!-- HEADER SELECT BUTTON & PREV/NEXT -->
-          <div style="display: flex; gap: 6px; align-items: center;">
+          <!-- THANH CHỌN XE & PREV/NEXT -->
+          <div style="display: flex; gap: 5px; align-items: center;">
             <button id="btn-dropdown-toggle" style="
               flex: 1;
-              background: #18181b;
-              border: 1px solid ${this.isDropdownOpen ? "#10b981" : "rgba(255, 255, 255, 0.12)"};
-              color: #f4f4f5;
-              padding: 7px 10px;
-              border-radius: 8px;
-              font-size: 12px;
+              background: #ffffff;
+              border: 1px solid ${this.isDropdownOpen ? "#10b981" : "#e2e8f0"};
+              color: #09090b;
+              padding: 6px 10px;
+              border-radius: 7px;
+              font-size: 11px;
               font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
               font-weight: 600;
               cursor: pointer;
@@ -5061,17 +9343,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               transition: all 0.15s;
             ">
               <span style="display: flex; align-items: center; gap: 6px;">
-                <span style="color: #10b981;">${this.selectedUiId ? `#${this.selectedUiId}` : "#0"}</span>
-                <span style="font-weight: 500; font-size: 11px; color: #e4e4e7;">${this.selectedUiId ? this.currentLabel : "Chưa chọn xe"}</span>
+                <span style="color: #059669; font-weight: 700;">${this.selectedUiId ? `#${this.selectedUiId}` : "#0"}</span>
+                <span style="font-weight: 600; font-size: 11px; color: #09090b;">${this.selectedUiId ? this.currentLabel : "Chưa chọn đối tượng"}</span>
               </span>
-              <span style="color: #71717a; font-size: 10px;">${this.isDropdownOpen ? "▲" : "▼"}</span>
+              <span style="color: #64748b; font-size: 9px;">${this.isDropdownOpen ? "▲" : "▼"}</span>
             </button>
 
             <!-- NÚT PREV / NEXT -->
-            <button id="btn-prev-frame-track" title="Xe trước (Phím [)" style="
-              background: #18181b;
-              border: 1px solid rgba(255,255,255,0.08);
-              color: #d4d4d8;
+            <button id="btn-prev-frame-track" title="Đối tượng trước (Phím [)" style="
+              background: #ffffff;
+              border: 1px solid #e2e8f0;
+              color: #334155;
               padding: 6px 8px;
               border-radius: 6px;
               cursor: pointer;
@@ -5080,10 +9362,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             ">
               ${ICONS.chevronLeft}
             </button>
-            <button id="btn-next-frame-track" title="Xe kế (Phím ])" style="
-              background: #18181b;
-              border: 1px solid rgba(255,255,255,0.08);
-              color: #d4d4d8;
+            <button id="btn-next-frame-track" title="Đối tượng kế (Phím ])" style="
+              background: #ffffff;
+              border: 1px solid #e2e8f0;
+              color: #334155;
               padding: 6px 8px;
               border-radius: 6px;
               cursor: pointer;
@@ -5097,24 +9379,24 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           <!-- DROPDOWN POPOVER MENU (NẾU ĐANG MỞ) -->
           ${this.isDropdownOpen ? `
             <div id="dropdown-menu-popover" style="
-              background: #18181b;
-              border: 1px solid rgba(255, 255, 255, 0.15);
+              background: #ffffff;
+              border: 1px solid #e2e8f0;
               border-radius: 8px;
               padding: 6px;
-              box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+              box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
               display: flex;
               flex-direction: column;
               gap: 4px;
-              max-height: 220px;
+              max-height: 200px;
               overflow-y: auto;
               z-index: 1000;
             ">
               <!-- Ô TÌM KIẾM NHANH -->
               <input id="input-dropdown-search" type="text" placeholder="Tìm ID (#1) hoặc loại xe..." value="${this.searchKeyword}" style="
-                background: #09090b;
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: #f8fafc;
+                border: 1px solid #cbd5e1;
                 border-radius: 6px;
-                color: #f4f4f5;
+                color: #09090b;
                 font-size: 11px;
                 padding: 5px 8px;
                 outline: none;
@@ -5128,32 +9410,657 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               </div>
             </div>
           ` : ""}
+
+          <!-- PHÂN LOẠI ĐỐI TƯỢNG (CATEGORY CHIPS) -->
+          <div style="
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 4px;
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 7px;
+            border: 1px solid #e2e8f0;
+          ">
+            <button class="btn-category-chip" data-cat="car" style="
+              background: ${this.selectedCategory === "car" ? "#ffffff" : "transparent"};
+              border: 1px solid ${this.selectedCategory === "car" ? "#10b981" : "transparent"};
+              color: ${this.selectedCategory === "car" ? "#059669" : "#64748b"};
+              box-shadow: ${this.selectedCategory === "car" ? "0 1px 3px rgba(0,0,0,0.06)" : "none"};
+              padding: 5px 6px;
+              border-radius: 5px;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 5px;
+              transition: all 0.12s;
+            ">
+              <span style="display: flex; align-items: center;">${ICONS.car}</span>
+              <span>Ô tô</span>
+            </button>
+
+            <button class="btn-category-chip" data-cat="pedestrian" style="
+              background: ${this.selectedCategory === "pedestrian" ? "#ffffff" : "transparent"};
+              border: 1px solid ${this.selectedCategory === "pedestrian" ? "#a855f7" : "transparent"};
+              color: ${this.selectedCategory === "pedestrian" ? "#7e22ce" : "#64748b"};
+              box-shadow: ${this.selectedCategory === "pedestrian" ? "0 1px 3px rgba(0,0,0,0.06)" : "none"};
+              padding: 5px 6px;
+              border-radius: 5px;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 5px;
+              transition: all 0.12s;
+            ">
+              <span style="display: flex; align-items: center;">${ICONS.user}</span>
+              <span>Người</span>
+            </button>
+
+            <button class="btn-category-chip" data-cat="cyclist" style="
+              background: ${this.selectedCategory === "cyclist" ? "#ffffff" : "transparent"};
+              border: 1px solid ${this.selectedCategory === "cyclist" ? "#f59e0b" : "transparent"};
+              color: ${this.selectedCategory === "cyclist" ? "#d97706" : "#64748b"};
+              box-shadow: ${this.selectedCategory === "cyclist" ? "0 1px 3px rgba(0,0,0,0.06)" : "none"};
+              padding: 5px 6px;
+              border-radius: 5px;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 5px;
+              transition: all 0.12s;
+            ">
+              <span style="display: flex; align-items: center;">${ICONS.bicycle}</span>
+              <span>Xe 2 bánh</span>
+            </button>
+          </div>
+
+          <!-- THÔNG SỐ TÓM TẮT X, Y, Z, YAW -->
+          <div style="
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            font-size: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            background: #f8fafc;
+            padding: 4px 6px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            text-align: center;
+          ">
+            <div><span style="color: #64748b;">X:</span> ${this.currentX}</div>
+            <div><span style="color: #64748b;">Y:</span> ${this.currentY}</div>
+            <div><span style="color: #64748b;">Z:</span> ${this.currentZ}</div>
+            <div><span style="color: #64748b;">Yaw:</span> <span style="color: #059669; font-weight: bold;">${this.currentYawDeg}°</span></div>
+          </div>
         </div>
 
-        <!-- THẺ THÔNG SỐ TÓM TẮT CỦA XE ĐANG CHỌN -->
+        <!-- KHỐI 2: ĐIỀU KHIỂN CĂN CHỈNH 2D/3D & THAO TÁC NHANH -->
         <div style="
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 4px;
-          font-size: 10px;
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          background: rgba(24, 24, 27, 0.55);
-          padding: 6px 8px;
-          border-radius: 8px;
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          color: #a1a1aa;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 8px 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
         ">
-          <div><span style="color: #71717a;">X:</span> ${this.currentX}</div>
-          <div><span style="color: #71717a;">Y:</span> ${this.currentY}</div>
-          <div><span style="color: #71717a;">Z:</span> ${this.currentZ}</div>
-          <div><span style="color: #71717a;">Yaw:</span> <span style="color: #10b981; font-weight: bold;">${this.currentYawDeg}°</span></div>
+          ${this.selectedCategory === "car" ? `
+            <!-- THANH 3 NÚT FIT ĐỘC LẬP THEO 3 CHIỀU (TOP - SIDE - FRONT) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+              <!-- 1. FIT TOP -->
+              <button id="btn-fit-top" title="Căn góc xoay Yaw quanh tâm xe & Auto Ghim Đất (Phím 1 hoặc T)" style="
+                background: #f0fdfa;
+                border: 1px solid #99f6e4;
+                color: #0f766e;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowUp}
+                    <span>TOP</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #ccfbf1; color: #0f766e;">1</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Thẳng Yaw</span>
+              </button>
+
+              <!-- 2. FIT SIDE -->
+              <button id="btn-fit-side" title="Căn cản trước/sau theo trục dọc X & Auto Ghim Đất (Phím 2 hoặc S)" style="
+                background: #eff6ff;
+                border: 1px solid #bfdbfe;
+                color: #1d4ed8;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowRightLeft}
+                    <span>SIDE</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #dbeafe; color: #1d4ed8;">2</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Cản đón tia X</span>
+              </button>
+
+              <!-- 3. FIT FRONT -->
+              <button id="btn-fit-front" title="Căn mép sườn xe ăn khít phương W (Giữ nguyên cao độ Z, không ghim đất) (Phím 3 hoặc W)" style="
+                background: #faf5ff;
+                border: 1px solid #e9d5ff;
+                color: #7e22ce;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowUpDown}
+                    <span>FRONT</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #f3e8ff; color: #7e22ce;">3</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Sườn xe W</span>
+              </button>
+            </div>
+          ` : this.selectedCategory === "cyclist" ? `
+            <!-- THANH 3 NÚT FIT ĐỘC LẬP CHO XE 2 BÁNH (TOP - SIDE - FRONT) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+              <!-- 1. FIT TOP XE 2 BÁNH -->
+              <button id="btn-fit-top" title="Căn Yaw theo trục dài nối Cực Đuôi -> Cực Đầu (Bánh sau - Bánh trước), khóa tâm X/Y/Z và kích thước (Phím 1 hoặc T)" style="
+                background: #fffbeb;
+                border: 1px solid #fcd34d;
+                color: #b45309;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowUp}
+                    <span>TOP</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #fde68a; color: #b45309;">1</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Trục đầu-đuôi</span>
+              </button>
+
+              <!-- 2. FIT SIDE XE 2 BÁNH -->
+              <button id="btn-fit-side" title="Căn cản trước/sau đón tia theo trục dọc X & Ghim đất đáy xe. KHÓA 100% CHIỀU DÀI L (Phím 2 hoặc S)" style="
+                background: #fef3c7;
+                border: 1px solid #f59e0b;
+                color: #92400e;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowRightLeft}
+                    <span>SIDE</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #fcd34d; color: #92400e;">2</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Cản đón tia (Khóa L)</span>
+              </button>
+
+              <!-- 3. FIT FRONT XE 2 BÁNH (CHUẨN THEO CAR, GIỮ NGUYÊN CAO ĐỘ Z & KÍCH THƯỚC) -->
+              <button id="btn-fit-front" title="Căn sườn xe ăn khít phương W theo mép đón tia (Giữ nguyên cao độ Z & kích thước L, W, H) (Phím 3 hoặc W)" style="
+                background: #faf5ff;
+                border: 1px solid #e9d5ff;
+                color: #7e22ce;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowUpDown}
+                    <span>FRONT</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #f3e8ff; color: #7e22ce;">3</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Sườn xe W (Giữ Size)</span>
+              </button>
+            </div>
+
+            <!-- THANH 2 NÚT TÁCH BIỆT: FIT RỘNG (W) & FIT CAO (H) CHO XE 2 BÁNH -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+              <!-- 1. NÚT FIT RỘNG W -->
+              <button id="btn-fit-cyclist-w" title="Tự động đo mây điểm và fit riêng chiều rộng W (bắt trọn gương chiếu hậu, tay lái, đệm +5cm mỗi bên), giữ nguyên L, H và Z" style="
+                background: #fffbeb;
+                border: 1px solid #fcd34d;
+                color: #b45309;
+                padding: 6px 8px;
+                border-radius: 7px;
+                font-size: 10px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                transition: all 0.12s;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+              ">
+                <span style="display: flex; align-items: center; color: #d97706;">${ICONS.sparkles}</span>
+                <span>Fit Rộng (W) [+5cm Pad]</span>
+              </button>
+
+              <!-- 2. NÚT FIT CAO H -->
+              <button id="btn-fit-cyclist-h" title="Tự động đo đỉnh nón bảo hiểm và fit riêng chiều cao H (Mặt đáy tiếp đất giữ nguyên cố định 100%, nở lên nóc +12cm), giữ nguyên L, W và XY" style="
+                background: #fff7ed;
+                border: 1px solid #fdba74;
+                color: #c2410c;
+                padding: 6px 8px;
+                border-radius: 7px;
+                font-size: 10px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                transition: all 0.12s;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+              ">
+                <span style="display: flex; align-items: center; color: #ea580c;">${ICONS.arrowUpDown}</span>
+                <span>Fit Cao (H) [Nở Nóc]</span>
+              </button>
+            </div>
+
+            <!-- NÚT FIT TOÀN DIỆN CHO XE 2 BÁNH (1-CHẠM CHU TRÌNH HOÀN CHỈNH) -->
+            <button id="btn-fit-cyclist-all" title="Chạy chu trình fit hoàn chỉnh Xe 2 bánh: TOP ➔ SIDE ➔ FRONT (Khóa cứng L)" style="
+              width: 100%;
+              background: #fffbeb;
+              border: 1px dashed #f59e0b;
+              color: #b45309;
+              padding: 4px 8px;
+              border-radius: 6px;
+              font-size: 10px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
+            ">
+              <span style="display: flex; align-items: center; gap: 5px;">
+                ${ICONS.bicycle}
+                <span>Fit Toàn Diện Xe 2 Bánh (TOP ➔ SIDE ➔ FRONT)</span>
+              </span>
+              <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; border: 1px solid #fde68a; padding: 1px 4px; border-radius: 3px;">Shift+C</kbd>
+            </button>
+          ` : `
+            <!-- NÚT FIT CHUYÊN BIỆT CHO NGƯỜI HOẶC XE ĐẠP -->
+            <button id="btn-hero-smart-fit" title="${heroTitle}" style="
+              background: ${heroGradient};
+              border: 1px solid ${heroBorder};
+              color: ${heroColor};
+              padding: 9px 12px;
+              border-radius: 8px;
+              cursor: pointer;
+              display: flex;
+              flex-direction: column;
+              gap: 3px;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+              transition: all 0.15s ease;
+            ">
+              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <span style="display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; letter-spacing: -0.2px;">
+                  <span style="display: flex; align-items: center;">${heroIcon}</span>
+                  <span>${heroTitle}</span>
+                </span>
+                <kbd style="
+                  font-size: 9px;
+                  font-family: ui-monospace, monospace;
+                  background: #ffffff;
+                  padding: 1px 6px;
+                  border-radius: 4px;
+                  border: 1px solid ${heroBorder};
+                  color: ${heroColor};
+                ">${heroKey}</kbd>
+              </div>
+              <div style="font-size: 9.5px; opacity: 0.9; text-align: left; font-weight: 500;">
+                ${heroSub}
+              </div>
+            </button>
+          `}
+
+          <!-- THAO TÁC 1-CHẠM THƯỜNG DÙNG: GHIM ĐẤT (G) & LẬT ĐẦU 180° (F) -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+            <!-- GHIM MẶT ĐẤT -->
+            <button id="btn-quick-ground" title="Đáy xe chạm sát mặt đường chuẩn xác 100%, khóa Roll 0° (Phím G)" style="
+              background: #f0fdf4;
+              border: 1px solid #bbf7d0;
+              color: #15803d;
+              padding: 6px 10px;
+              border-radius: 7px;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            ">
+              <span style="display: flex; align-items: center; gap: 5px;">
+                <span style="display: flex; align-items: center; color: #16a34a;">${ICONS.road}</span>
+                <span>Ghim Đất</span>
+              </span>
+              <kbd style="font-size: 9px; font-family: monospace; background: #dcfce7; border: 1px solid #bbf7d0; padding: 1px 4px; border-radius: 3px; color: #15803d;">G</kbd>
+            </button>
+
+            <!-- LẬT ĐẦU 180° -->
+            <button id="btn-quick-flip" title="Lật ngược đầu xe 180° tức thì (Phím F)" style="
+              background: #ffffff;
+              border: 1px solid #e2e8f0;
+              color: #0f172a;
+              padding: 6px 10px;
+              border-radius: 7px;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            ">
+              <span style="display: flex; align-items: center; gap: 5px;">
+                <span style="display: flex; align-items: center; color: #64748b;">${ICONS.flip}</span>
+                <span>Lật Đầu 180°</span>
+              </span>
+              <kbd style="font-size: 9px; font-family: monospace; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 1px 4px; border-radius: 3px; color: #64748b;">F</kbd>
+            </button>
+          </div>
         </div>
 
-        <!-- NÚT MỞ RỘNG FULLSCREEN TRACK EDITOR (CASE 2 - DUYỆT THEO ID) -->
-        <button id="btn-banner-fullscreen-editor" title="Mở Rộng Toàn Màn Hình · Duyệt Toàn Bộ Track ID (Shift+M)" style="
-          background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(30, 64, 175, 0.3));
-          border: 1px solid rgba(59, 130, 246, 0.4);
-          color: #93c5fd;
+        <!-- KHỐI 3: BỘ ĐIỀU CHỈNH KÍCH THƯỚC & CENTER (COMPACT STEPPER - LIGHT) -->
+        <div style="
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 8px 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        ">
+          <!-- HEADER & TOGGLE PHẠM VI -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px solid #f1f5f9;">
+            <span style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase;">Kích thước hộp & Center:</span>
+            <div id="btn-toggle-scope" style="
+              background: #f1f5f9;
+              border: 1px solid #e2e8f0;
+              border-radius: 5px;
+              display: flex;
+              padding: 2px;
+              cursor: pointer;
+              font-size: 9.5px;
+              font-family: ui-monospace, monospace;
+            ">
+              <span style="
+                padding: 2px 7px;
+                border-radius: 4px;
+                background: ${!this.applyToTrack ? "#ffffff" : "transparent"};
+                color: ${!this.applyToTrack ? "#059669" : "#64748b"};
+                font-weight: ${!this.applyToTrack ? "600" : "normal"};
+                box-shadow: ${!this.applyToTrack ? "0 1px 2px rgba(0,0,0,0.06)" : "none"};
+              ">Frame Này</span>
+              <span style="
+                padding: 2px 7px;
+                border-radius: 4px;
+                background: ${this.applyToTrack ? "#fee2e2" : "transparent"};
+                color: ${this.applyToTrack ? "#dc2626" : "#64748b"};
+                font-weight: ${this.applyToTrack ? "600" : "normal"};
+                box-shadow: ${this.applyToTrack ? "0 1px 2px rgba(0,0,0,0.06)" : "none"};
+              ">Toàn Track</span>
+            </div>
+          </div>
+
+          <!-- NÚT FIT BOX HIỆN TẠI VỚI PADDING 5CM (BÁM SÀN CỐ ĐỊNH) -->
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 5px;">
+            <button id="btn-fit-current-box" title="Fit kích thước L, W, H theo mây điểm tại frame này (Padding +5cm mỗi bên, ghim sàn giữ cố định đáy, chỉ nở lên nóc). ${this.applyToTrack ? "Áp dụng Toàn Track" : "Chỉ Frame Này"}" style="
+              width: 100%;
+              background: #f0fdf4;
+              border: 1px solid #86efac;
+              color: #15803d;
+              padding: 6px 10px;
+              border-radius: 7px;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            ">
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span style="display: flex; align-items: center; color: #16a34a;">${ICONS.sparkles}</span>
+                <span>Fit Box Hiện Tại (+5cm Pad)</span>
+              </span>
+              <span style="font-size: 9px; font-family: monospace; background: #dcfce7; border: 1px solid #bbf7d0; padding: 1px 5px; border-radius: 4px; color: #15803d; font-weight: 700;">
+                +5cm Pad
+              </span>
+            </button>
+          </div>
+
+          <!-- GỢI Ý MẪU KÍCH THƯỚC CHUẨN (1-CLICK ÁP DỤNG) -->
+          <div style="display: flex; flex-direction: column; gap: 4px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 7px; padding: 5px 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 9.5px; font-weight: 600; color: #475569;">
+                Mẫu ${this.selectedCategory === "pedestrian" ? "Người đi bộ" : this.selectedCategory === "cyclist" ? "Xe 2 bánh" : "Ô tô"} chuẩn:
+              </span>
+              <span style="font-size: 8.5px; color: #94a3b8; font-family: monospace;">1-Click áp dụng</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px; max-height: 80px; overflow-y: auto; padding-right: 2px;">
+              ${activePresets.map(
+        (preset, pIdx) => `
+                <button class="btn-preset-chip" data-idx="${pIdx}" title="${preset.name} - ${preset.description || ""} (${preset.l} x ${preset.w} x ${preset.h}m)" style="
+                  background: #ffffff;
+                  border: 1px solid #cbd5e1;
+                  color: #334155;
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  font-size: 9px;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  gap: 3px;
+                  transition: all 0.12s;
+                  white-space: nowrap;
+                ">
+                  <span style="font-weight: 600;">${preset.name}</span>
+                  <span style="font-size: 8px; font-family: monospace; color: #64748b;">${preset.l}x${preset.w}x${preset.h}</span>
+                </button>
+              `
+      ).join("")}
+            </div>
+          </div>
+
+          <!-- NÚT ĐÁNH DẤU OUTSIDE TOÀN TRACK -->
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 5px;">
+            <button id="btn-outside-entire-track" title="Đánh dấu Outside (ẩn) cho toàn bộ frame của Track này (Shift+O)" style="
+              width: 100%;
+              background: #fff1f2;
+              border: 1px solid #fecdd3;
+              color: #e11d48;
+              padding: 5px 8px;
+              border-radius: 6px;
+              font-size: 10px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            ">
+              <span style="display: flex; align-items: center; gap: 5px;">
+                <span style="display: flex; align-items: center;">${ICONS.eyeOff}</span>
+                <span>Outside Toàn Track</span>
+              </span>
+              <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; border: 1px solid #fecdd3; padding: 1px 4px; border-radius: 3px; color: #e11d48;">⇧O</kbd>
+            </button>
+          </div>
+
+          <!-- 3 STEPPER: DÀI (L) [2D Side], RỘNG (W) [2D Front], CAO (H) [Đáy Ghim Sàn] -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+            <!-- Chiều Dài L -->
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 9px; color: ${this.selectedCategory === "cyclist" ? "#b45309" : "#64748b"}; font-family: monospace; font-weight: ${this.selectedCategory === "cyclist" ? "700" : "500"};">
+                ${this.selectedCategory === "cyclist" ? "Dài (L) [🔒 Khóa]:" : "Dài (L) [Side]:"}
+              </span>
+              <div style="display: flex; align-items: center; background: #f8fafc; border: 1px solid ${this.selectedCategory === "cyclist" ? "#fcd34d" : "#cbd5e1"}; border-radius: 6px;">
+                <button class="btn-step" data-axis="l" data-delta="-0.05" style="border: none; background: transparent; color: #475569; padding: 3px 5px; cursor: pointer; font-weight: bold;">-</button>
+                <input id="input-dim-l" type="number" step="0.05" value="${this.editL || this.currentL}" style="width: 100%; border: none; background: transparent; color: ${this.selectedCategory === "cyclist" ? "#b45309" : "#0284c7"}; font-size: 11px; font-weight: bold; text-align: center; outline: none; font-family: monospace;" />
+                <button class="btn-step" data-axis="l" data-delta="0.05" style="border: none; background: transparent; color: #475569; padding: 3px 5px; cursor: pointer; font-weight: bold;">+</button>
+              </div>
+            </div>
+
+            <!-- Chiều Rộng W -->
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 9px; color: #64748b; font-family: monospace; font-weight: 500;">Rộng (W) [Front]:</span>
+              <div style="display: flex; align-items: center; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px;">
+                <button class="btn-step" data-axis="w" data-delta="-0.05" style="border: none; background: transparent; color: #475569; padding: 3px 5px; cursor: pointer; font-weight: bold;">-</button>
+                <input id="input-dim-w" type="number" step="0.05" value="${this.editW || this.currentW}" style="width: 100%; border: none; background: transparent; color: #0284c7; font-size: 11px; font-weight: bold; text-align: center; outline: none; font-family: monospace;" />
+                <button class="btn-step" data-axis="w" data-delta="0.05" style="border: none; background: transparent; color: #475569; padding: 3px 5px; cursor: pointer; font-weight: bold;">+</button>
+              </div>
+            </div>
+
+            <!-- Chiều Cao H -->
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 9px; color: #64748b; font-family: monospace; font-weight: 500;">Cao (H) [Fit Lên]:</span>
+              <div style="display: flex; align-items: center; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px;">
+                <button class="btn-step" data-axis="h" data-delta="-0.05" style="border: none; background: transparent; color: #475569; padding: 3px 5px; cursor: pointer; font-weight: bold;">-</button>
+                <input id="input-dim-h" type="number" step="0.05" value="${this.editH || this.currentH}" style="width: 100%; border: none; background: transparent; color: #0284c7; font-size: 11px; font-weight: bold; text-align: center; outline: none; font-family: monospace;" />
+                <button class="btn-step" data-axis="h" data-delta="0.05" style="border: none; background: transparent; color: #475569; padding: 3px 5px; cursor: pointer; font-weight: bold;">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- BỘ VI CHỈNH CENTER 2D DÀN ĐỀU (TIẾN/LÙI DỌC X & TRÁI/PHẢI NGANG Y) -->
+          <div style="
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 5px 7px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+          ">
+            <!-- Trục Dọc X (Tiến / Lùi - Side View) -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 9px; font-weight: 600; color: #475569; font-family: monospace;">Tâm X (Side):</span>
+              <div style="display: flex; gap: 3px;">
+                <button class="btn-shift-center" data-dx="-0.05" data-dy="0" title="Lùi tâm 5cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">-5cm</button>
+                <button class="btn-shift-center" data-dx="-0.01" data-dy="0" title="Lùi tâm 1cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">-1cm</button>
+                <button class="btn-shift-center" data-dx="0.01" data-dy="0" title="Tiến tâm 1cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">+1cm</button>
+                <button class="btn-shift-center" data-dx="0.05" data-dy="0" title="Tiến tâm 5cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">+5cm</button>
+              </div>
+            </div>
+
+            <!-- Trục Ngang Y (Trái / Phải - Front View) -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 9px; font-weight: 600; color: #475569; font-family: monospace;">Tâm Y (Front):</span>
+              <div style="display: flex; gap: 3px;">
+                <button class="btn-shift-center" data-dx="0" data-dy="-0.05" title="Dời tâm sang phải 5cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">-5cm</button>
+                <button class="btn-shift-center" data-dx="0" data-dy="-0.01" title="Dời tâm sang phải 1cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">-1cm</button>
+                <button class="btn-shift-center" data-dx="0" data-dy="0.01" title="Dời tâm sang trái 1cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">+1cm</button>
+                <button class="btn-shift-center" data-dx="0" data-dy="0.05" title="Dời tâm sang trái 5cm" style="border: 1px solid #cbd5e1; background: #ffffff; color: #334155; padding: 1px 5px; border-radius: 3px; font-size: 8.5px; font-family: monospace; cursor: pointer;">+5cm</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- GỢI Ý DÒNG XE CATALOG & NÚT LƯU KÍCH THƯỚC -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+            <span style="font-size: 9.5px; color: #64748b; font-family: ui-monospace, monospace;">
+              Khớp: <strong style="color: #059669;">${bestFit.matchedItem.name}</strong> (${bestFit.confidence}%)
+              <button class="catalog-btn" data-l="${bestFit.recommendedL}" data-w="${bestFit.recommendedW}" data-h="${bestFit.recommendedH}" data-name="${bestFit.matchedItem.name}" style="
+                border: none;
+                background: transparent;
+                color: #0284c7;
+                font-size: 9.5px;
+                cursor: pointer;
+                text-decoration: underline;
+                padding-left: 4px;
+                font-weight: 600;
+              ">Áp dụng</button>
+            </span>
+
+            <button id="btn-apply-dimensions" style="
+              background: #0f172a;
+              border: 1px solid #0f172a;
+              color: #ffffff;
+              padding: 4px 10px;
+              border-radius: 5px;
+              font-size: 10px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              transition: background 0.12s;
+            ">
+              ${ICONS.save}
+              <span>Lưu</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KHỐI 4: ACCORDION TINH CHỈNH NÂNG CAO (COLLAPSIBLE - LIGHT) -->
+        <button id="btn-toggle-advanced" style="
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          color: #334155;
           padding: 7px 10px;
           border-radius: 8px;
           font-size: 11px;
@@ -5165,100 +10072,54 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           transition: all 0.15s;
         ">
           <span style="display: flex; align-items: center; gap: 6px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-            <span>Duyệt Toàn Track ID (Full Screen)</span>
+            <span style="display: flex; align-items: center; color: #64748b;">${ICONS.sliders}</span>
+            <span style="color: #09090b; font-weight: 600;">Tinh Chỉnh Nâng Cao</span>
           </span>
-          <kbd style="font-size: 9px; font-family: monospace; background: rgba(0,0,0,0.4); padding: 1px 4px; border-radius: 3px; color: #bfdbfe;">⇧M</kbd>
+          <span style="display: flex; align-items: center; gap: 4px; font-size: 10px; color: #64748b;">
+            <span>${this.isAdvancedOpen ? "Thu gọn" : "Mở rộng"}</span>
+            <span style="display: flex; align-items: center;">${this.isAdvancedOpen ? ICONS.chevronUp : ICONS.chevronDown}</span>
+          </span>
         </button>
 
-        <!-- THANH TAB NAVIGATION THEO MODULE CHUYÊN BIỆT -->
-        <div style="
-          display: flex;
-          background: #18181b;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 8px;
-          padding: 3px;
-          gap: 3px;
-        ">
-          <button class="nav-tab-btn" data-tab="dimensions" style="
-            flex: 1;
-            padding: 5px 6px;
-            border-radius: 6px;
-            border: none;
-            background: ${this.activeTab === "dimensions" ? "rgba(16, 185, 129, 0.2)" : "transparent"};
-            color: ${this.activeTab === "dimensions" ? "#6ee7b7" : "#71717a"};
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            transition: all 0.12s;
-          ">
-            <span style="display: flex; align-items: center;">${ICONS.ruler}</span>
-            <span>Kích Thước</span>
-          </button>
-          <button class="nav-tab-btn" data-tab="rotation" style="
-            flex: 1;
-            padding: 5px 6px;
-            border-radius: 6px;
-            border: none;
-            background: ${this.activeTab === "rotation" ? "rgba(16, 185, 129, 0.2)" : "transparent"};
-            color: ${this.activeTab === "rotation" ? "#6ee7b7" : "#71717a"};
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            transition: all 0.12s;
-          ">
-            <span style="display: flex; align-items: center;">${ICONS.compass}</span>
-            <span>Hướng Xoay</span>
-          </button>
-          <button class="nav-tab-btn" data-tab="ground" style="
-            flex: 1;
-            padding: 5px 6px;
-            border-radius: 6px;
-            border: none;
-            background: ${this.activeTab === "ground" ? "rgba(16, 185, 129, 0.2)" : "transparent"};
-            color: ${this.activeTab === "ground" ? "#6ee7b7" : "#71717a"};
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            transition: all 0.12s;
-          ">
-            <span style="display: flex; align-items: center;">${ICONS.alignBottom}</span>
-            <span>Ghim Đất</span>
-          </button>
-        </div>
+        ${advancedContentHtml}
 
-        <!-- NỘI DUNG MODULE ĐANG CHỌN -->
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          ${tabContentHtml}
-        </div>
+        <!-- KHỐI 5: NÚT MỞ RỘNG FULLSCREEN TRACK STUDIO (DUYỆT THEO ID) -->
+        <button id="btn-banner-fullscreen-editor" title="Mở Rộng Toàn Màn Hình · Duyệt Toàn Bộ Track ID (Shift+M)" style="
+          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+          border: 1px solid #bfdbfe;
+          color: #1d4ed8;
+          padding: 6px 10px;
+          border-radius: 8px;
+          font-size: 10.5px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          transition: all 0.15s;
+        ">
+          <span style="display: flex; align-items: center; gap: 6px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+            <span>Duyệt Toàn Track ID (Full Screen)</span>
+          </span>
+          <kbd style="font-size: 9px; font-family: monospace; background: #ffffff; border: 1px solid #bfdbfe; padding: 1px 4px; border-radius: 3px; color: #1d4ed8;">⇧M</kbd>
+        </button>
       </div>
 
-      <!-- CARD FOOTER -->
+      <!-- CARD FOOTER (LIGHT) -->
       <div style="
-        padding: 8px 14px;
-        background: rgba(24, 24, 27, 0.5);
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 6px 12px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 10px;
-        color: #71717a;
+        font-size: 9.5px;
+        color: #64748b;
         font-family: ui-monospace, monospace;
       ">
         <span>300K LIDAR FIT</span>
-        <span style="color: #10b981; display: flex; align-items: center; gap: 4px;">
+        <span style="color: #059669; display: flex; align-items: center; gap: 4px; font-weight: 600;">
           <span style="width: 5px; height: 5px; border-radius: 50%; background: #10b981;"></span>
           CANVAS AUTO-SELECT
         </span>
@@ -5267,16 +10128,58 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (this.toastOverlay) {
         this.container.appendChild(this.toastOverlay);
       }
-      const tabBtns = this.container.querySelectorAll(".nav-tab-btn");
-      tabBtns.forEach((btn) => {
+      const catChips = this.container.querySelectorAll(".btn-category-chip");
+      catChips.forEach((btn) => {
         btn.addEventListener("click", () => {
-          const tab = btn.dataset.tab;
-          if (tab && tab !== this.activeTab) {
-            this.activeTab = tab;
+          const cat = btn.dataset.cat;
+          if (cat && cat !== this.selectedCategory) {
+            this.selectedCategory = cat;
             this.updateContent();
+            this.showToast(`Chế độ: ${cat === "car" ? "Ô tô" : cat === "pedestrian" ? "Người đi bộ" : "Xe 2 bánh"}`, "info");
           }
         });
       });
+      const fitTopBtn = this.container.querySelector("#btn-fit-top");
+      if (fitTopBtn) fitTopBtn.addEventListener("click", () => this.handleFitTop());
+      const fitSideBtn = this.container.querySelector("#btn-fit-side");
+      if (fitSideBtn) fitSideBtn.addEventListener("click", () => this.handleFitSide());
+      const fitFrontBtn = this.container.querySelector("#btn-fit-front");
+      if (fitFrontBtn) fitFrontBtn.addEventListener("click", () => this.handleFitFront());
+      const heroBtn = this.container.querySelector("#btn-hero-smart-fit");
+      if (heroBtn) {
+        heroBtn.addEventListener("click", () => {
+          if (this.selectedCategory === "pedestrian") {
+            this.handleFitPedestrian();
+          } else if (this.selectedCategory === "cyclist") {
+            this.handleFitCyclist();
+          }
+        });
+      }
+      const fitCyclistAllBtn = this.container.querySelector("#btn-fit-cyclist-all");
+      if (fitCyclistAllBtn) {
+        fitCyclistAllBtn.addEventListener("click", () => this.handleFitCyclist("all"));
+      }
+      const fitCyclistWBtn = this.container.querySelector("#btn-fit-cyclist-w");
+      if (fitCyclistWBtn) {
+        fitCyclistWBtn.addEventListener("click", () => this.handleFitCyclist("w"));
+      }
+      const fitCyclistHBtn = this.container.querySelector("#btn-fit-cyclist-h");
+      if (fitCyclistHBtn) {
+        fitCyclistHBtn.addEventListener("click", () => this.handleFitCyclist("h"));
+      }
+      const quickFlipBtn = this.container.querySelector("#btn-quick-flip");
+      if (quickFlipBtn) quickFlipBtn.addEventListener("click", () => this.handleFlipYaw(true));
+      const quickGroundBtn = this.container.querySelector("#btn-quick-ground");
+      if (quickGroundBtn) quickGroundBtn.addEventListener("click", () => this.handleSnapGround("road"));
+      const toggleAdvancedBtn = this.container.querySelector("#btn-toggle-advanced");
+      if (toggleAdvancedBtn) {
+        toggleAdvancedBtn.addEventListener("click", () => {
+          this.isAdvancedOpen = !this.isAdvancedOpen;
+          this.updateContent();
+        });
+      }
+      const undoBtn = this.container.querySelector("#floating-btn-undo");
+      if (undoBtn) undoBtn.addEventListener("click", () => this.handleUndo());
       const minBtn = this.container.querySelector("#floating-btn-minimize");
       if (minBtn) minBtn.addEventListener("click", () => this.toggleMinimize());
       const syncBtn = this.container.querySelector("#floating-btn-sync-frame");
@@ -5403,22 +10306,34 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           this.handleUpdateDimensions(l, w, h, this.applyToTrack);
         });
       }
-      const tightFitBtn = this.container.querySelector("#btn-tight-fit");
-      if (tightFitBtn) {
-        tightFitBtn.addEventListener("click", () => this.handleTightFit());
+      const fitCurrentBoxBtn = this.container.querySelector("#btn-fit-current-box");
+      if (fitCurrentBoxBtn) {
+        fitCurrentBoxBtn.addEventListener("click", () => this.handleFitCurrentBox());
       }
-      const catalogFitBtn = this.container.querySelector("#btn-catalog-fit");
-      if (catalogFitBtn) {
-        catalogFitBtn.addEventListener("click", () => this.handleCatalogFit());
+      const presetChips = this.container.querySelectorAll(".btn-preset-chip");
+      presetChips.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const idx = parseInt(btn.dataset.idx || "0", 10);
+          const preset = activePresets[idx];
+          if (preset) {
+            this.handleApplyPreset(preset);
+          }
+        });
+      });
+      const outsideTrackBtn = this.container.querySelector("#btn-outside-entire-track");
+      if (outsideTrackBtn) {
+        outsideTrackBtn.addEventListener("click", () => this.handleSetTrackOutside(true));
       }
-      const autoFitBtn = this.container.querySelector("#btn-auto-fit-points");
-      if (autoFitBtn) {
-        autoFitBtn.addEventListener("click", () => this.handleTightFit());
-      }
-      const smartAnchorBtn = this.container.querySelector("#btn-smart-anchor-fit");
-      if (smartAnchorBtn) {
-        smartAnchorBtn.addEventListener("click", () => this.handleSmartAnchorFit());
-      }
+      const shiftCenterBtns = this.container.querySelectorAll(".btn-shift-center");
+      shiftCenterBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const dx = parseFloat(btn.dataset.dx || "0");
+          const dy = parseFloat(btn.dataset.dy || "0");
+          if (dx !== 0 || dy !== 0) {
+            this.handleShiftCenter(dx, dy);
+          }
+        });
+      });
       const catalogBtns = this.container.querySelectorAll(".catalog-btn");
       catalogBtns.forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -5430,10 +10345,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         });
       });
-      const flipFrameBtn = this.container.querySelector("#btn-flip-frame");
-      if (flipFrameBtn) flipFrameBtn.addEventListener("click", () => this.handleFlipYaw(true));
-      const flipTrackBtn = this.container.querySelector("#btn-flip-track");
-      if (flipTrackBtn) flipTrackBtn.addEventListener("click", () => this.handleFlipYaw(false));
       const rotBtns = this.container.querySelectorAll(".btn-rot");
       rotBtns.forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -5549,123 +10460,184 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
   }
-  console.log("[CVAT 3D Suite] Đang khởi động cửa sổ nổi Floating shadcn/ui...");
-  const panel = new FloatingPanel();
-  function updateContext() {
-    const ctx = detectCVAT();
-    if (!ctx.isCVAT) {
-      panel.destroy();
-      return;
-    }
-    panel.render(ctx);
-  }
-  function setupGlobalHotkeys() {
-    window.addEventListener("keydown", (e) => {
-      const target = e.target;
-      if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) {
-        return;
-      }
-      if (e.key === "`") {
-        e.preventDefault();
-        panel.toggleMinimize();
-        return;
-      }
-      if (e.shiftKey && (e.key === "M" || e.key === "m")) {
-        e.preventDefault();
-        console.log("[CVAT 3D Suite] Phím tắt Shift+M: Mở Fullscreen Track Editor");
-        panel.openFullscreenEditor();
-        return;
-      }
-      if (e.shiftKey && (e.key === "F" || e.key === "f")) {
-        e.preventDefault();
-        console.log("[CVAT 3D Suite] Phím tắt Shift+F: Lật toàn bộ Track");
-        panel.handleFlipYaw(false);
-        return;
-      }
-      if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "F" || e.key === "f")) {
-        e.preventDefault();
-        console.log("[CVAT 3D Suite] Phím tắt F: Lật Frame hiện tại");
-        panel.handleFlipYaw(true);
-        return;
-      }
-      if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key === "[") {
-        e.preventDefault();
-        panel.selectPrevTrack();
-        return;
-      }
-      if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key === "]") {
-        e.preventDefault();
-        panel.selectNextTrack();
-        return;
-      }
-      if (e.altKey && (e.key === "G" || e.key === "g")) {
-        e.preventDefault();
-        console.log("[CVAT 3D Suite] Phím tắt Alt+G: Ghim Nền Vỉa Hè (+15cm)");
-        panel.handleSnapGround("curb", { curbHeight: 0.15 });
-        return;
-      }
-      if (e.shiftKey && (e.key === "G" || e.key === "g")) {
-        e.preventDefault();
-        console.log("[CVAT 3D Suite] Phím tắt Shift+G: Xe Gác Lề Vỉa Hè");
-        panel.handleSnapGround("half_curb", { curbHeight: 0.15 });
-        return;
-      }
-      if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "G" || e.key === "g")) {
-        e.preventDefault();
-        console.log("[CVAT 3D Suite] Phím tắt G: Ghim Mặt Đường");
-        panel.handleSnapGround("road");
-        return;
-      }
-      if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "T" || e.key === "t")) {
-        e.preventDefault();
-        console.log("[CVAT 3D Suite] Phím tắt T: Ôm Sát Cụm Điểm (Tight Fit)");
-        panel.handleTightFit();
-        return;
-      }
-      if (e.shiftKey && (e.key === "B" || e.key === "b")) {
-        e.preventDefault();
-        console.log("[CVAT 3D Suite] Phím tắt Shift+B: Khớp Chuẩn Catalog");
-        panel.handleCatalogFit();
-        return;
-      }
-      if (e.key === "PageUp") {
-        e.preventDefault();
-        panel.handleSnapGround("micro_adjust", { deltaCm: 1 });
-        return;
-      }
-      if (e.key === "PageDown") {
-        e.preventDefault();
-        panel.handleSnapGround("micro_adjust", { deltaCm: -1 });
-        return;
-      }
-    });
-  }
-  function bootstrap() {
-    updateContext();
-    setupGlobalHotkeys();
-    window.addEventListener("popstate", updateContext);
-    const originalPushState = history.pushState;
-    history.pushState = function(...args) {
-      originalPushState.apply(this, args);
-      setTimeout(updateContext, 300);
-    };
-    const originalReplaceState = history.replaceState;
-    history.replaceState = function(...args) {
-      originalReplaceState.apply(this, args);
-      setTimeout(updateContext, 300);
-    };
-    let checkCount = 0;
-    const interval = setInterval(() => {
-      checkCount++;
-      updateContext();
-      if (checkCount >= 8) {
-        clearInterval(interval);
-      }
-    }, 1200);
-  }
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bootstrap);
+  if (window.__CVAT_3D_SUITE_INITIALIZED__) {
+    console.log("[CVAT 3D Suite] Đã có một phiên bản Suite đang chạy trên trang, bỏ qua khởi tạo trùng lặp.");
   } else {
-    bootstrap();
+    let updateContext = function() {
+      const ctx = detectCVAT();
+      if (!ctx.isCVAT) {
+        panel.destroy();
+        return;
+      }
+      panel.render(ctx);
+    }, setupGlobalHotkeys = function() {
+      window.addEventListener("keydown", (e) => {
+        const target = e.target;
+        if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) {
+          return;
+        }
+        if (e.key === "`") {
+          e.preventDefault();
+          panel.toggleMinimize();
+          return;
+        }
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "z" || e.key === "Z")) {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt Ctrl/Cmd+Z: Hoàn tác (Pre)");
+          panel.handleUndo();
+          return;
+        }
+        if (e.shiftKey && (e.key === "O" || e.key === "o")) {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt Shift+O: Đánh dấu Outside toàn bộ Track");
+          panel.handleSetTrackOutside(true);
+          return;
+        }
+        if (e.shiftKey && (e.key === "M" || e.key === "m")) {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt Shift+M: Mở Fullscreen Track Editor");
+          panel.openFullscreenEditor();
+          return;
+        }
+        if (e.shiftKey && (e.key === "F" || e.key === "f")) {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt Shift+F: Lật toàn bộ Track");
+          panel.handleFlipYaw(false);
+          return;
+        }
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "F" || e.key === "f")) {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt F: Lật Frame hiện tại");
+          panel.handleFlipYaw(true);
+          return;
+        }
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key === "[") {
+          e.preventDefault();
+          panel.selectPrevTrack();
+          return;
+        }
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key === "]") {
+          e.preventDefault();
+          panel.selectNextTrack();
+          return;
+        }
+        if (e.altKey && (e.key === "G" || e.key === "g")) {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt Alt+G: Ghim Nền Vỉa Hè (+15cm)");
+          panel.handleSnapGround("curb", { curbHeight: 0.15 });
+          return;
+        }
+        if (e.shiftKey && (e.key === "G" || e.key === "g")) {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt Shift+G: Xe Gác Lề Vỉa Hè");
+          panel.handleSnapGround("half_curb", { curbHeight: 0.15 });
+          return;
+        }
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "G" || e.key === "g")) {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt G: Ghim Mặt Đường");
+          panel.handleSnapGround("road");
+          return;
+        }
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key === "1") {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt 1: Căn TOP");
+          panel.handleFitTop();
+          return;
+        }
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key === "2") {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt 2: Căn SIDE");
+          panel.handleFitSide();
+          return;
+        }
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key === "3") {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt 3: Căn FRONT");
+          panel.handleFitFront();
+          return;
+        }
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "T" || e.key === "t")) {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt T: Căn TOP");
+          panel.handleFitTop();
+          return;
+        }
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "P" || e.key === "p")) {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt P: Fit Người Đi Bộ (Pedestrian Fit)");
+          panel.handleFitPedestrian();
+          return;
+        }
+        if (e.shiftKey && (e.key === "C" || e.key === "c")) {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt Shift+C: Fit Toàn Diện Xe 2 Bánh");
+          panel.handleFitCyclist("all");
+          return;
+        }
+        if (e.shiftKey && (e.key === "B" || e.key === "b")) {
+          e.preventDefault();
+          console.log("[CVAT 3D Suite] Phím tắt Shift+B: Khớp Chuẩn Catalog");
+          panel.handleCatalogFit();
+          return;
+        }
+        if (e.key === "PageUp") {
+          e.preventDefault();
+          panel.handleSnapGround("micro_adjust", { deltaCm: 1 });
+          return;
+        }
+        if (e.key === "PageDown") {
+          e.preventDefault();
+          panel.handleSnapGround("micro_adjust", { deltaCm: -1 });
+          return;
+        }
+      });
+    }, bootstrap = function() {
+      updateContext();
+      setupGlobalHotkeys();
+      let lastPathname = window.location.pathname;
+      let navDebounceTimer = null;
+      function handleUrlChange() {
+        const currentPathname = window.location.pathname;
+        if (currentPathname === lastPathname) {
+          return;
+        }
+        lastPathname = currentPathname;
+        if (navDebounceTimer) clearTimeout(navDebounceTimer);
+        navDebounceTimer = setTimeout(() => {
+          navDebounceTimer = null;
+          updateContext();
+        }, 250);
+      }
+      window.addEventListener("popstate", handleUrlChange);
+      const originalPushState = history.pushState;
+      history.pushState = function(...args) {
+        originalPushState.apply(this, args);
+        handleUrlChange();
+      };
+      const originalReplaceState = history.replaceState;
+      history.replaceState = function(...args) {
+        originalReplaceState.apply(this, args);
+        handleUrlChange();
+      };
+    };
+    window.__CVAT_3D_SUITE_INITIALIZED__ = true;
+    console.log("[CVAT 3D Suite] Đang khởi động cửa sổ nổi Floating shadcn/ui...");
+    const existingContainer = document.getElementById("cvat-3d-suite-floating");
+    if (existingContainer && existingContainer.parentNode) {
+      existingContainer.parentNode.removeChild(existingContainer);
+    }
+    const existingPill = document.getElementById("cvat-3d-suite-pill");
+    if (existingPill && existingPill.parentNode) {
+      existingPill.parentNode.removeChild(existingPill);
+    }
+    const panel = new FloatingPanel();
+    window.__CVAT_3D_SUITE_PANEL_INSTANCE__ = panel;
+    CVATBridge.ensureMainWorldBridge();
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", bootstrap);
+    } else {
+      bootstrap();
+    }
   }
 })();
