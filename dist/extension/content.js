@@ -1245,7 +1245,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   }
   function fitPedestrianBox(pts, cx, cy, cz, yaw, curL = 0.65, curW = 0.65, curH = 1.7, options = {}, stepParam = "all") {
     const step = options.step ?? stepParam;
-    const headBuffer = options.headBuffer ?? 0.12;
+    const headBuffer = options.headBuffer ?? 0.05;
     const margin = options.margin ?? 0.15;
     const footRadius = Math.max(0.35, Math.max(curL, curW) / 2 + margin);
     const footGroundPts = [];
@@ -1266,7 +1266,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     const minCoreZ = groundZ + 0.3;
     const maxBodyZ = groundZ + 2.3;
-    const minFootZ = groundZ + 0.08;
+    const minFootZ = step === "side" || step === "front" ? groundZ + 0.02 : groundZ + 0.08;
     const outerL = Math.max(0.45, curL / 2 + 0.25);
     const outerW = Math.max(0.4, curW / 2 + 0.25);
     const cosY = Math.cos(-yaw);
@@ -1283,20 +1283,23 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (p.z >= minCoreZ) {
           coreBodyPts.push({ lx, ly, z: p.z });
         } else {
-          if (Math.abs(lx) <= 0.28 && Math.abs(ly) <= 0.28) {
+          if (Math.abs(lx) <= Math.max(0.35, curL / 2 + 0.12) && Math.abs(ly) <= Math.max(0.3, curW / 2 + 0.12)) {
             footPts.push({ lx, ly, z: p.z });
           }
         }
       }
     }
-    let rawBodyPts = coreBodyPts;
-    if (coreBodyPts.length < 8 && footPts.length > 0) {
+    let rawBodyPts;
+    if (step === "side" || step === "front") {
       rawBodyPts = [...coreBodyPts, ...footPts];
+    } else {
+      rawBodyPts = coreBodyPts.length >= 8 ? coreBodyPts : [...coreBodyPts, ...footPts];
     }
     const isSparse = rawBodyPts.length <= 12;
-    const maxClusteringGap = isSparse ? 0.25 : 0.14;
-    const clusterLy = filterDenseConnectedCluster1D(rawBodyPts, "ly", maxClusteringGap, 0);
-    const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxClusteringGap, 0);
+    const maxGapLy = step === "front" || isSparse ? 0.3 : 0.22;
+    const maxGapLx = step === "side" || isSparse ? 0.32 : 0.22;
+    const clusterLy = filterDenseConnectedCluster1D(rawBodyPts, "ly", maxGapLy, 0);
+    const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxGapLx, 0);
     let newCenterX = cx;
     let newCenterY = cy;
     let newCenterZ = cz;
@@ -1333,8 +1336,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
     const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
     const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
-    const pMinIdx = !isSparse && bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.02) : 0;
-    const pMaxIdx = !isSparse && bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.98) : bodyPts.length - 1;
+    const pMinIdx = !isSparse && bodyPts.length >= 25 ? Math.floor(bodyPts.length * 0.01) : 0;
+    const pMaxIdx = !isSparse && bodyPts.length >= 25 ? Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.99)) : bodyPts.length - 1;
     const lxMin = allLx[pMinIdx];
     const lxMax = allLx[pMaxIdx];
     const lyMin = allLy[pMinIdx];
@@ -1454,10 +1457,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newW = curW;
       newH = curH;
       newCenterZ = cz;
-      const spanL = lxMax - lxMin + 0.08;
+      const spanL = lxMax - lxMin + 0.05;
       let shiftLx = 0;
-      if (spanL > 0.8) {
-        newL = 0.8;
+      if (spanL > 0.78) {
+        newL = 0.78;
         if (options.egoPos) {
           const dxEgo = options.egoPos.x - cx;
           const dyEgo = options.egoPos.y - cy;
@@ -1473,7 +1476,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           shiftLx = (lxMin + lxMax) / 2;
         }
       } else {
-        newL = Number(Math.max(0.35, Math.min(0.8, spanL)).toFixed(2));
+        newL = Number(Math.max(0.35, Math.min(0.78, spanL)).toFixed(2));
         shiftLx = (lxMin + lxMax) / 2;
       }
       shiftLx = Math.max(-0.35, Math.min(0.35, shiftLx));
@@ -1488,10 +1491,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newL = curL;
       newH = curH;
       newCenterZ = cz;
-      const spanW = lyMax - lyMin + 0.08;
+      const spanW = lyMax - lyMin + 0.04;
       let shiftLy = 0;
-      if (spanW > 0.75) {
-        newW = 0.75;
+      if (spanW > 0.68) {
+        newW = 0.68;
         if (options.egoPos) {
           const toEgoX = options.egoPos.x - cx;
           const toEgoY = options.egoPos.y - cy;
@@ -1507,14 +1510,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           shiftLy = (lyMin + lyMax) / 2;
         }
       } else {
-        newW = Number(Math.max(0.35, Math.min(0.75, spanW)).toFixed(2));
+        newW = Number(Math.max(0.35, Math.min(0.68, spanW)).toFixed(2));
         shiftLy = (lyMin + lyMax) / 2;
       }
       shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
       newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
       newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
       const deltaYSign = shiftLy >= 0 ? "+" : "";
-      msg = `Đã fix Chiều Rộng (W) Người đi bộ: W=${newW}m (căn tâm Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, kháng ghosting), giữ nguyên L, H & Z`;
+      msg = `Đã fix Chiều Rộng (W) Người đi bộ: W=${newW}m (căn tâm Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, vừa khít vai), giữ nguyên L, H & Z`;
     } else if (step === "h") {
       newYawRad = yaw;
       newYawDeg = radToDeg(yaw);
@@ -1525,15 +1528,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newCenterY = cy;
       const currentBaseZ = cz - curH / 2;
       const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
-      roofTopZ = highestPtZ + Math.max(0.12, headBuffer);
-      newH = Number(Math.max(1, Math.min(2.15, roofTopZ - effectiveBaseZ)).toFixed(2));
-      newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
-      msg = `Đã fix Chiều Cao (H) Người đi bộ: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên đỉnh đầu +12cm), giữ nguyên L, W & XY`;
-    } else {
-      newL = Number(Math.max(0.4, Math.min(0.8, lxMax - lxMin + 0.08)).toFixed(2));
-      newW = Number(Math.max(0.4, Math.min(0.75, lyMax - lyMin + 0.08)).toFixed(2));
       roofTopZ = highestPtZ + headBuffer;
-      newH = Number(Math.max(1.05, Math.min(2.15, roofTopZ - groundZ)).toFixed(2));
+      newH = Number(Math.max(1, Math.min(1.95, roofTopZ - effectiveBaseZ)).toFixed(2));
+      newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
+      msg = `Đã fix Chiều Cao (H) Người đi bộ: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên đỉnh đầu +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
+    } else {
+      newL = Number(Math.max(0.4, Math.min(0.78, lxMax - lxMin + 0.05)).toFixed(2));
+      newW = Number(Math.max(0.38, Math.min(0.68, lyMax - lyMin + 0.04)).toFixed(2));
+      roofTopZ = highestPtZ + headBuffer;
+      newH = Number(Math.max(1.05, Math.min(1.95, roofTopZ - groundZ)).toFixed(2));
       let shiftLx = (lxMin + lxMax) / 2;
       let shiftLy = (lyMin + lyMax) / 2;
       const maxShift = 0.4;
@@ -1617,7 +1620,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   }
   function fitTwoWheelerBox(pts, cx, cy, cz, yaw, curL = 1.75, curW = 0.65, curH = 1.55, options = {}, stepParam = "all") {
     const step = options.step ?? stepParam;
-    const headBuffer = options.headBuffer ?? 0.1;
+    const headBuffer = options.headBuffer ?? 0.05;
     const margin = options.margin ?? 0.2;
     const footRadius = Math.max(0.6, curL / 2 + margin);
     const groundPts = [];
@@ -1638,7 +1641,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     const minCoreZ = groundZ + 0.25;
     const maxBodyZ = groundZ + 2.3;
-    const minWheelZ = groundZ + 0.08;
+    const minWheelZ = step === "side" || step === "front" ? groundZ + 0.02 : groundZ + 0.08;
     const outerL = curL / 2 + 0.45;
     const outerW = Math.max(curW, 0.85) / 2 + 0.45;
     const cosY = Math.cos(-yaw);
@@ -1655,20 +1658,23 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (p.z >= minCoreZ) {
           corePts.push({ lx, ly, z: p.z });
         } else {
-          if (Math.abs(ly) <= 0.22) {
+          if (Math.abs(ly) <= Math.max(0.25, curW / 2 + 0.08)) {
             wheelPts.push({ lx, ly, z: p.z });
           }
         }
       }
     }
-    let rawPts = corePts;
-    if (corePts.length < 8 && wheelPts.length > 0) {
+    let rawPts;
+    if (step === "side" || step === "front") {
       rawPts = [...corePts, ...wheelPts];
+    } else {
+      rawPts = corePts.length >= 8 ? corePts : [...corePts, ...wheelPts];
     }
     const isSparse = rawPts.length <= 12;
-    const maxClusteringGap = isSparse ? 0.28 : 0.16;
-    const clusterLy = filterDenseConnectedCluster1D(rawPts, "ly", maxClusteringGap, 0);
-    const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxClusteringGap, 0);
+    const maxGapLx = step === "side" || isSparse ? 0.38 : 0.28;
+    const maxGapLy = step === "front" || isSparse ? 0.35 : 0.24;
+    const clusterLy = filterDenseConnectedCluster1D(rawPts, "ly", maxGapLy, 0);
+    const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxGapLx, 0);
     let newCenterX = cx;
     let newCenterY = cy;
     let newCenterZ = cz;
@@ -1812,22 +1818,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       let shiftLy = 0;
       let measuredW = curW;
       if (lyMin <= -0.06 && lyMax >= 0.06) {
-        measuredW = lyMax - lyMin + 0.16;
+        measuredW = lyMax - lyMin + 0.06;
         shiftLy = (lyMin + lyMax) / 2;
         shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
       } else if (lyMax > 0 && lyMin > -0.06) {
-        measuredW = 2 * (lyMax + 0.1);
+        measuredW = 2 * (lyMax + 0.05);
         shiftLy = 0;
       } else if (lyMin < 0 && lyMax < 0.06) {
-        measuredW = 2 * (Math.abs(lyMin) + 0.1);
+        measuredW = 2 * (Math.abs(lyMin) + 0.05);
         shiftLy = 0;
       } else {
-        measuredW = lyMax - lyMin + 0.16;
+        measuredW = lyMax - lyMin + 0.06;
         shiftLy = (lyMin + lyMax) / 2;
         shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
       }
-      if (measuredW > 0.95) {
-        newW = 0.95;
+      if (measuredW > 0.85) {
+        newW = 0.85;
         if (options.egoPos) {
           const toEgoX = options.egoPos.x - cx;
           const toEgoY = options.egoPos.y - cy;
@@ -1839,13 +1845,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
       } else {
-        newW = Number(Math.max(0.55, Math.min(0.95, measuredW)).toFixed(2));
+        newW = Number(Math.max(0.55, Math.min(0.85, measuredW)).toFixed(2));
       }
       shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
       newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
       newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
       const deltaYSign = shiftLy >= 0 ? "+" : "";
-      msg = `Đã fit Rộng (W) Xe 2 bánh: W=${newW}m (Đệm +5cm bắt trọn gương/tay lái), căn Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên L, H & Z`;
+      msg = `Đã fit Rộng (W) Xe 2 bánh: W=${newW}m (Đệm +3cm vừa khít gương/tay lái), căn Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên L, H & Z`;
     } else if (step === "h") {
       newYawRad = yaw;
       newYawDeg = radToDeg(yaw);
@@ -1856,10 +1862,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newCenterY = cy;
       const currentBaseZ = cz - curH / 2;
       const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
-      const roofTopZ2 = highestPtZ + Math.max(0.12, headBuffer);
-      newH = Number(Math.max(1.15, Math.min(2.2, roofTopZ2 - effectiveBaseZ)).toFixed(2));
+      const roofTopZ2 = highestPtZ + headBuffer;
+      newH = Number(Math.max(1.1, Math.min(1.85, roofTopZ2 - effectiveBaseZ)).toFixed(2));
       newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
-      msg = `Đã fit Cao (H) Xe 2 bánh: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên nóc +12cm), giữ nguyên L, W & XY`;
+      msg = `Đã fit Cao (H) Xe 2 bánh: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên nóc +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
     } else {
       const headingRes = estimateTwoWheelerHeading(bodyPts, yaw);
       newYawRad = headingRes.newYawRad;
@@ -1880,23 +1886,23 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       let shiftLy = 0;
       let measuredW = curW;
       if (lyMin <= -0.06 && lyMax >= 0.06) {
-        measuredW = lyMax - lyMin + 0.12;
+        measuredW = lyMax - lyMin + 0.06;
         shiftLy = (lyMin + lyMax) / 2;
         shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
       } else if (lyMax > 0 && lyMin > -0.06) {
-        measuredW = 2 * (lyMax + 0.08);
+        measuredW = 2 * (lyMax + 0.05);
         shiftLy = 0;
       } else if (lyMin < 0 && lyMax < 0.06) {
-        measuredW = 2 * (Math.abs(lyMin) + 0.08);
+        measuredW = 2 * (Math.abs(lyMin) + 0.05);
         shiftLy = 0;
       } else {
-        measuredW = lyMax - lyMin + 0.12;
+        measuredW = lyMax - lyMin + 0.06;
         shiftLy = (lyMin + lyMax) / 2;
         shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
       }
-      newW = Number(Math.max(0.55, Math.min(0.95, measuredW)).toFixed(2));
+      newW = Number(Math.max(0.55, Math.min(0.85, measuredW)).toFixed(2));
       roofTopZ = highestPtZ + headBuffer;
-      newH = Number(Math.max(1.15, Math.min(2.2, roofTopZ - groundZ)).toFixed(2));
+      newH = Number(Math.max(1.1, Math.min(1.85, roofTopZ - groundZ)).toFixed(2));
       newCenterZ = Number((groundZ + newH / 2).toFixed(3));
       const cosWorld = Math.cos(newYawRad);
       const sinWorld = Math.sin(newYawRad);
@@ -3280,7 +3286,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         };
       }
       const { count, array } = lidar;
-      const headBuffer = options.headBuffer ?? 0.12;
+      const headBuffer = options.headBuffer ?? 0.05;
       const margin = options.margin ?? 0.15;
       const footRadius = Math.max(0.35, Math.max(curL, curW) / 2 + margin);
       const footGroundPts = [];
@@ -3304,7 +3310,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       const minCoreZ = groundZ + 0.3;
       const maxBodyZ = groundZ + 2.3;
-      const minFootZ = groundZ + 0.08;
+      const minFootZ = step === "side" || step === "front" ? groundZ + 0.02 : groundZ + 0.08;
       const outerL = Math.max(0.45, curL / 2 + 0.25);
       const outerW = Math.max(0.4, curW / 2 + 0.25);
       const cosY = Math.cos(-yaw);
@@ -3324,20 +3330,23 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           if (z >= minCoreZ) {
             coreBodyPts.push({ lx, ly, z });
           } else {
-            if (Math.abs(lx) <= 0.28 && Math.abs(ly) <= 0.28) {
+            if (Math.abs(lx) <= Math.max(0.35, curL / 2 + 0.12) && Math.abs(ly) <= Math.max(0.3, curW / 2 + 0.12)) {
               footPts.push({ lx, ly, z });
             }
           }
         }
       }
-      let rawBodyPts = coreBodyPts;
-      if (coreBodyPts.length < 8 && footPts.length > 0) {
+      let rawBodyPts;
+      if (step === "side" || step === "front") {
         rawBodyPts = [...coreBodyPts, ...footPts];
+      } else {
+        rawBodyPts = coreBodyPts.length >= 8 ? coreBodyPts : [...coreBodyPts, ...footPts];
       }
       const isSparse = rawBodyPts.length <= 12;
-      const maxClusteringGap = isSparse ? 0.25 : 0.14;
-      const clusterLy = filterDenseConnectedCluster1D2(rawBodyPts, "ly", maxClusteringGap, 0);
-      const bodyPts = filterDenseConnectedCluster1D2(clusterLy, "lx", maxClusteringGap, 0);
+      const maxGapLx = step === "side" || isSparse ? 0.32 : 0.22;
+      const maxGapLy = step === "front" || isSparse ? 0.3 : 0.22;
+      const clusterLy = filterDenseConnectedCluster1D2(rawBodyPts, "ly", maxGapLy, 0);
+      const bodyPts = filterDenseConnectedCluster1D2(clusterLy, "lx", maxGapLx, 0);
       let newX = cx;
       let newY = cy;
       let newZ = cz;
@@ -3368,8 +3377,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
       const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
       const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
-      const pMinIdx = !isSparse && bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.02) : 0;
-      const pMaxIdx = !isSparse && bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.98) : bodyPts.length - 1;
+      const pMinIdx = !isSparse && bodyPts.length >= 25 ? Math.floor(bodyPts.length * 0.01) : 0;
+      const pMaxIdx = !isSparse && bodyPts.length >= 25 ? Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.99)) : bodyPts.length - 1;
       const lxMin = allLx[pMinIdx];
       const lxMax = allLx[pMaxIdx];
       const lyMin = allLy[pMinIdx];
@@ -3514,10 +3523,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newW = curW;
         newH = curH;
         newZ = cz;
-        const spanL = lxMax - lxMin + 0.08;
+        const spanL = lxMax - lxMin + 0.05;
         let shiftLx = 0;
-        if (spanL > 0.8) {
-          newL = 0.8;
+        if (spanL > 0.78) {
+          newL = 0.78;
           if (options.egoPos) {
             const dxEgo = options.egoPos.x - cx;
             const dyEgo = options.egoPos.y - cy;
@@ -3533,7 +3542,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             shiftLx = (lxMin + lxMax) / 2;
           }
         } else {
-          newL = Number(Math.max(0.35, Math.min(0.8, spanL)).toFixed(2));
+          newL = Number(Math.max(0.35, Math.min(0.78, spanL)).toFixed(2));
           shiftLx = (lxMin + lxMax) / 2;
         }
         shiftLx = Math.max(-0.35, Math.min(0.35, shiftLx));
@@ -3548,10 +3557,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newL = curL;
         newH = curH;
         newZ = cz;
-        const spanW = lyMax - lyMin + 0.08;
+        const spanW = lyMax - lyMin + 0.04;
         let shiftLy = 0;
-        if (spanW > 0.75) {
-          newW = 0.75;
+        if (spanW > 0.68) {
+          newW = 0.68;
           if (options.egoPos) {
             const toEgoX = options.egoPos.x - cx;
             const toEgoY = options.egoPos.y - cy;
@@ -3567,14 +3576,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             shiftLy = (lyMin + lyMax) / 2;
           }
         } else {
-          newW = Number(Math.max(0.35, Math.min(0.75, spanW)).toFixed(2));
+          newW = Number(Math.max(0.35, Math.min(0.68, spanW)).toFixed(2));
           shiftLy = (lyMin + lyMax) / 2;
         }
         shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
         newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
         newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
         const signY = shiftLy >= 0 ? "+" : "";
-        msg = `Đã fix Chiều Rộng (W) Người đi bộ: W=${newW}m (căn tâm Y: ${signY}${(shiftLy * 100).toFixed(1)}cm, kháng ghosting), giữ nguyên L, H & Z`;
+        msg = `Đã fix Chiều Rộng (W) Người đi bộ: W=${newW}m (căn tâm Y: ${signY}${(shiftLy * 100).toFixed(1)}cm, vừa khít vai), giữ nguyên L, H & Z`;
       } else if (step === "h") {
         newYaw = yaw;
         newYawDeg = curYawDeg;
@@ -3585,17 +3594,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newY = cy;
         const currentBaseZ = cz - curH / 2;
         const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
-        const roofTopZ = highestPtZ + Math.max(0.12, headBuffer);
-        newH = Number(Math.max(1, Math.min(2.15, roofTopZ - effectiveBaseZ)).toFixed(2));
-        newZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
-        msg = `Đã fix Chiều Cao (H) Người đi bộ: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên đỉnh đầu +12cm), giữ nguyên L, W & XY`;
-      } else {
-        const spanL = lxMax - lxMin + 0.08;
-        newL = Number(Math.max(0.4, Math.min(0.8, spanL)).toFixed(2));
-        const spanW = lyMax - lyMin + 0.08;
-        newW = Number(Math.max(0.4, Math.min(0.75, spanW)).toFixed(2));
         const roofTopZ = highestPtZ + headBuffer;
-        newH = Number(Math.max(1.05, Math.min(2.15, roofTopZ - groundZ)).toFixed(2));
+        newH = Number(Math.max(1, Math.min(1.95, roofTopZ - effectiveBaseZ)).toFixed(2));
+        newZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
+        msg = `Đã fix Chiều Cao (H) Người đi bộ: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên đỉnh đầu +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
+      } else {
+        const spanL = lxMax - lxMin + 0.05;
+        newL = Number(Math.max(0.4, Math.min(0.78, spanL)).toFixed(2));
+        const spanW = lyMax - lyMin + 0.04;
+        newW = Number(Math.max(0.38, Math.min(0.68, spanW)).toFixed(2));
+        const roofTopZ = highestPtZ + headBuffer;
+        newH = Number(Math.max(1.05, Math.min(1.95, roofTopZ - groundZ)).toFixed(2));
         let shiftLx = (lxMin + lxMax) / 2;
         let shiftLy = (lyMin + lyMax) / 2;
         const maxShift = 0.4;
@@ -3653,7 +3662,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         };
       }
       const { count, array } = lidar;
-      const headBuffer = options.headBuffer ?? 0.1;
+      const headBuffer = options.headBuffer ?? 0.05;
       const margin = options.margin ?? 0.2;
       const footRadius = Math.max(0.6, curL / 2 + margin);
       const groundPts = [];
@@ -3677,7 +3686,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       const minCoreZ = groundZ + 0.25;
       const maxBodyZ = groundZ + 2.3;
-      const minWheelZ = groundZ + 0.08;
+      const minWheelZ = step === "side" || step === "front" ? groundZ + 0.02 : groundZ + 0.08;
       const outerL = curL / 2 + 0.45;
       const outerW = Math.max(curW, 0.85) / 2 + 0.45;
       const cosY = Math.cos(-yaw);
@@ -3697,20 +3706,23 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           if (z >= minCoreZ) {
             corePts.push({ lx, ly, z });
           } else {
-            if (Math.abs(ly) <= 0.22) {
+            if (Math.abs(ly) <= Math.max(0.25, curW / 2 + 0.08)) {
               wheelPts.push({ lx, ly, z });
             }
           }
         }
       }
-      let rawPts = corePts;
-      if (corePts.length < 8 && wheelPts.length > 0) {
+      let rawPts;
+      if (step === "side" || step === "front") {
         rawPts = [...corePts, ...wheelPts];
+      } else {
+        rawPts = corePts.length >= 8 ? corePts : [...corePts, ...wheelPts];
       }
       const isSparse = rawPts.length <= 12;
-      const maxClusteringGap = isSparse ? 0.28 : 0.16;
-      const clusterLy = filterDenseConnectedCluster1D2(rawPts, "ly", maxClusteringGap, 0);
-      const bodyPts = filterDenseConnectedCluster1D2(clusterLy, "lx", maxClusteringGap, 0);
+      const maxGapLx = step === "side" || isSparse ? 0.38 : 0.28;
+      const maxGapLy = step === "front" || isSparse ? 0.35 : 0.24;
+      const clusterLy = filterDenseConnectedCluster1D2(rawPts, "ly", maxGapLy, 0);
+      const bodyPts = filterDenseConnectedCluster1D2(clusterLy, "lx", maxGapLx, 0);
       let newX = cx;
       let newY = cy;
       let newZ = cz;
@@ -3741,8 +3753,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
       const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
       const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
-      const pMinIdx = !isSparse && bodyPts.length >= 30 ? Math.floor(bodyPts.length * 0.015) : 0;
-      const pMaxIdx = !isSparse && bodyPts.length >= 30 ? Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.985)) : bodyPts.length - 1;
+      const pMinIdx = !isSparse && bodyPts.length >= 35 ? Math.floor(bodyPts.length * 0.01) : 0;
+      const pMaxIdx = !isSparse && bodyPts.length >= 35 ? Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.99)) : bodyPts.length - 1;
       const lxMin = allLx[pMinIdx];
       const lxMax = allLx[pMaxIdx];
       const lyMin = allLy[pMinIdx];
@@ -3894,22 +3906,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         let shiftLy = 0;
         let measuredW = curW;
         if (lyMin <= -0.06 && lyMax >= 0.06) {
-          measuredW = lyMax - lyMin + 0.16;
+          measuredW = lyMax - lyMin + 0.06;
           shiftLy = (lyMin + lyMax) / 2;
           shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
         } else if (lyMax > 0 && lyMin > -0.06) {
-          measuredW = 2 * (lyMax + 0.1);
+          measuredW = 2 * (lyMax + 0.05);
           shiftLy = 0;
         } else if (lyMin < 0 && lyMax < 0.06) {
-          measuredW = 2 * (Math.abs(lyMin) + 0.1);
+          measuredW = 2 * (Math.abs(lyMin) + 0.05);
           shiftLy = 0;
         } else {
-          measuredW = lyMax - lyMin + 0.16;
+          measuredW = lyMax - lyMin + 0.06;
           shiftLy = (lyMin + lyMax) / 2;
           shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
         }
-        if (measuredW > 0.95) {
-          newW = 0.95;
+        if (measuredW > 0.85) {
+          newW = 0.85;
           if (options.egoPos) {
             const toEgoX = options.egoPos.x - cx;
             const toEgoY = options.egoPos.y - cy;
@@ -3921,13 +3933,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             }
           }
         } else {
-          newW = Number(Math.max(0.55, Math.min(0.95, measuredW)).toFixed(2));
+          newW = Number(Math.max(0.55, Math.min(0.85, measuredW)).toFixed(2));
         }
         shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
         newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
         newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
         const signY = shiftLy >= 0 ? "+" : "";
-        msg = `Đã fit Rộng (W) Xe 2 bánh: W=${newW}m (Đệm +5cm bắt trọn gương/tay lái), căn Y: ${signY}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên L, H & Z`;
+        msg = `Đã fit Rộng (W) Xe 2 bánh: W=${newW}m (Đệm +3cm vừa khít gương/tay lái), căn Y: ${signY}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên L, H & Z`;
       } else if (step === "h") {
         newYaw = yaw;
         newYawDeg = curYawDeg;
@@ -3938,10 +3950,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newY = cy;
         const currentBaseZ = cz - curH / 2;
         const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
-        const roofTopZ = highestPtZ + Math.max(0.12, headBuffer);
-        newH = Number(Math.max(1.15, Math.min(2.2, roofTopZ - effectiveBaseZ)).toFixed(2));
+        const roofTopZ = highestPtZ + headBuffer;
+        newH = Number(Math.max(1.1, Math.min(1.85, roofTopZ - effectiveBaseZ)).toFixed(2));
         newZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
-        msg = `Đã fit Cao (H) Xe 2 bánh: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên nóc +12cm), giữ nguyên L, W & XY`;
+        msg = `Đã fit Cao (H) Xe 2 bánh: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên nóc +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
       } else {
         const dTheta = calcHeadingDelta();
         newYaw = normalizeRad(yaw + dTheta);
@@ -3962,23 +3974,23 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         let shiftLy = 0;
         let measuredW = curW;
         if (lyMin <= -0.06 && lyMax >= 0.06) {
-          measuredW = lyMax - lyMin + 0.12;
+          measuredW = lyMax - lyMin + 0.06;
           shiftLy = (lyMin + lyMax) / 2;
           shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
         } else if (lyMax > 0 && lyMin > -0.06) {
-          measuredW = 2 * (lyMax + 0.08);
+          measuredW = 2 * (lyMax + 0.05);
           shiftLy = 0;
         } else if (lyMin < 0 && lyMax < 0.06) {
-          measuredW = 2 * (Math.abs(lyMin) + 0.08);
+          measuredW = 2 * (Math.abs(lyMin) + 0.05);
           shiftLy = 0;
         } else {
-          measuredW = lyMax - lyMin + 0.12;
+          measuredW = lyMax - lyMin + 0.06;
           shiftLy = (lyMin + lyMax) / 2;
           shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
         }
-        newW = Number(Math.max(0.55, Math.min(0.95, measuredW)).toFixed(2));
+        newW = Number(Math.max(0.55, Math.min(0.85, measuredW)).toFixed(2));
         const roofTopZ = highestPtZ + headBuffer;
-        newH = Number(Math.max(1.15, Math.min(2.2, roofTopZ - groundZ)).toFixed(2));
+        newH = Number(Math.max(1.1, Math.min(1.85, roofTopZ - groundZ)).toFixed(2));
         newZ = Number((groundZ + newH / 2).toFixed(3));
         const cosW = Math.cos(newYaw);
         const sinW = Math.sin(newYaw);

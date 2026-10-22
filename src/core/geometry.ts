@@ -2705,7 +2705,8 @@ export function fitPedestrianBox(
   stepParam: "all" | "top" | "side" | "front" | "l" | "w" | "h" = "all"
 ): PedestrianFitResult {
   const step = options.step ?? stepParam;
-  const headBuffer = options.headBuffer ?? 0.12;
+  // Đệm nóc đỉnh đầu chuẩn tinh gọn (+5cm), không đệm quá dày làm box vọt lên quá cao
+  const headBuffer = options.headBuffer ?? 0.05;
   const margin = options.margin ?? 0.15;
 
   // 1. Quét mặt đất siêu hẹp sát chân người (R <= 0.45m)
@@ -2729,12 +2730,13 @@ export function fitPedestrianBox(
     groundZ = footGroundPts[Math.max(0, Math.floor(footGroundPts.length * 0.15))];
   }
 
-  // 2. Thu thập điểm thân người có phân tầng cao độ và GIẢM TRỌNG SỐ Ở CHÂN:
-  // - Tầng thân chính (Core Body): Z in [groundZ + 0.30m, groundZ + 2.30m] -> Trọng số 100%
-  // - Tầng chân (Foot/Ankle): Z in [groundZ + 0.08m, groundZ + 0.30m] -> Giảm trọng số
+  // 2. Thu thập điểm thân người và chân:
+  // - Tầng thân chính (Core Body): Z in [groundZ + 0.30m, groundZ + 2.30m]
+  // - Tầng chân (Foot/Ankle): Z in [groundZ + 0.08m, groundZ + 0.30m] (ở SIDE & FRONT hạ xuống groundZ + 0.02m để giữ trọn curpoint)
+  // GIỮ TRỌN CURPOINT: Không gạt bỏ điểm tầng chân khi thân có nhiều điểm (tránh cắt mất curpoint bàn chân/mũi chân)
   const minCoreZ = groundZ + 0.30;
   const maxBodyZ = groundZ + 2.30;
-  const minFootZ = groundZ + 0.08;
+  const minFootZ = (step === "side" || step === "front") ? groundZ + 0.02 : groundZ + 0.08;
   const outerL = Math.max(0.45, curL / 2 + 0.25);
   const outerW = Math.max(0.40, curW / 2 + 0.25);
 
@@ -2753,9 +2755,8 @@ export function fitPedestrianBox(
       if (p.z >= minCoreZ) {
         coreBodyPts.push({ lx, ly, z: p.z });
       } else {
-        // Tầng chân: CHỈ thu nạp nếu nằm sát trục đứng thân người (d_xy <= 0.28m)
-        // Loại bỏ hoàn toàn 100% vệt quét xiên loang sát đất, vạch sơn phản quang, gờ vỉa hè
-        if (Math.abs(lx) <= 0.28 && Math.abs(ly) <= 0.28) {
+        // Tầng chân: chỉ loại bỏ các tia quét xiên loang quá xa ngoài bán kính sải chân người
+        if (Math.abs(lx) <= Math.max(0.35, curL / 2 + 0.12) && Math.abs(ly) <= Math.max(0.30, curW / 2 + 0.12)) {
           footPts.push({ lx, ly, z: p.z });
         }
       }
@@ -2763,21 +2764,24 @@ export function fitPedestrianBox(
   }
 
   // Phối hợp điểm:
-  // - Nếu tầng thân chính có >= 8 điểm: 100% chỉ dùng điểm thân chính (loại bỏ hoàn toàn điểm chân chống phình to box)
-  // - Nếu tầng thân chính ít điểm (< 8 điểm): Bổ sung điểm tầng chân (đã kiểm soát sát trục đứng) để bắt trọn cẳng chân người ở xa
-  let rawBodyPts = coreBodyPts;
-  if (coreBodyPts.length < 8 && footPts.length > 0) {
+  // - Ở nút SIDE & FRONT: Tính luôn cả điểm tầng chân để mép cản/sườn đón tia ôm trọn curpoint bàn chân/mũi chân ngoài cùng
+  // - Ở các nút Fit Size (L, W, H) & ALL: Ưu tiên tầng thân chính nếu có >= 8 điểm để chống phình to kích thước do vệt quét loang sát đất
+  let rawBodyPts: Array<{ lx: number; ly: number; z: number }>;
+  if (step === "side" || step === "front") {
     rawBodyPts = [...coreBodyPts, ...footPts];
+  } else {
+    rawBodyPts = coreBodyPts.length >= 8 ? coreBodyPts : [...coreBodyPts, ...footPts];
   }
 
   // 3. Phân cụm mật độ tự thích ứng (Adaptive Density-Connected Clustering):
-  // - Khi box ít điểm (N <= 12 điểm): Tự động nới maxGap = 0.25m để không chém đứt điểm người ở cự ly xa
-  // - Khi box nhiều điểm (N > 12 điểm): maxGap = 0.14m để chém đứt đám đông và cắt bỏ bóng ma ghosting rời rạc
+  // - Giảm cắt nhiễu bớt đi: Dùng maxClusteringGap = 0.22m (sparse 0.26m) để không chém đứt curpoint cẳng chân, sải bước hay tay
   const isSparse = rawBodyPts.length <= 12;
-  const maxClusteringGap = isSparse ? 0.25 : 0.14;
+  // Giảm cắt nhiễu bớt đi: Nới lỏng gap ở SIDE (trục X) và FRONT (trục Y) để không chém đứt curpoint sải chân, tay hay balo
+  const maxGapLy = (step === "front" || isSparse) ? 0.30 : 0.22;
+  const maxGapLx = (step === "side" || isSparse) ? 0.32 : 0.22;
 
-  const clusterLy = filterDenseConnectedCluster1D(rawBodyPts, "ly", maxClusteringGap, 0);
-  const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxClusteringGap, 0);
+  const clusterLy = filterDenseConnectedCluster1D(rawBodyPts, "ly", maxGapLy, 0);
+  const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxGapLx, 0);
 
   let newCenterX = cx;
   let newCenterY = cy;
@@ -2818,10 +2822,9 @@ export function fitPedestrianBox(
   const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
   const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
 
-  // Nếu ít điểm: Bắt trọn 100% điểm cực biên [0 -> length - 1], không dùng phân vị làm teo nhỏ box
-  // Nếu nhiều điểm: Cắt bỏ 2% biên ngoại lai
-  const pMinIdx = !isSparse && bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.02) : 0;
-  const pMaxIdx = !isSparse && bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.98) : bodyPts.length - 1;
+  // Giảm cắt nhiễu bớt đi: Chỉ cắt 1% nếu mây điểm cực đông (>= 25 điểm), không cắt mất curpoint đón tia
+  const pMinIdx = !isSparse && bodyPts.length >= 25 ? Math.floor(bodyPts.length * 0.01) : 0;
+  const pMaxIdx = !isSparse && bodyPts.length >= 25 ? Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.99)) : bodyPts.length - 1;
 
   const lxMin = allLx[pMinIdx];
   const lxMax = allLx[pMaxIdx];
@@ -2988,12 +2991,12 @@ export function fitPedestrianBox(
     newH = curH;
     newCenterZ = cz;
 
-    const spanL = (lxMax - lxMin) + 0.08;
+    const spanL = (lxMax - lxMin) + 0.05;
     let shiftLx = 0;
 
-    if (spanL > 0.80) {
-      // Bị Ghosting vệt dài: Khóa trần an toàn L = 0.80m & Ưu tiên cản đón tia Ego
-      newL = 0.80;
+    if (spanL > 0.78) {
+      // Bị Ghosting vệt dài: Khóa trần an toàn L = 0.78m & Ưu tiên cản đón tia Ego
+      newL = 0.78;
       if (options.egoPos) {
         const dxEgo = options.egoPos.x - cx;
         const dyEgo = options.egoPos.y - cy;
@@ -3009,7 +3012,7 @@ export function fitPedestrianBox(
         shiftLx = (lxMin + lxMax) / 2;
       }
     } else {
-      newL = Number(Math.max(0.35, Math.min(0.80, spanL)).toFixed(2));
+      newL = Number(Math.max(0.35, Math.min(0.78, spanL)).toFixed(2));
       shiftLx = (lxMin + lxMax) / 2;
     }
 
@@ -3021,9 +3024,9 @@ export function fitPedestrianBox(
     msg = `Đã fix Chiều Dài (L) Người đi bộ: L=${newL}m (căn tâm X: ${deltaXSign}${(shiftLx * 100).toFixed(1)}cm, kháng ghosting), giữ nguyên W, H & Z`;
   } else if (step === "w") {
     // -------------------------------------------------------------
-    // 5. FIX RIÊNG CHIỀU RỘNG W: Co giãn theo mây điểm thân người & Kháng Ghosting
-    // - Khi ít điểm: Bắt trọn 100% biên cực trị
-    // - Khi bị Ghosting (> 0.75m): Khóa trần W = 0.75m, ưu tiên sườn đón tia Ego
+    // 5. FIX RIÊNG CHIỀU RỘNG W: Co giãn vừa vặn theo vai/ngực & Kháng phình to
+    // - Đệm nhẹ +4cm ôm sát thân người
+    // - Khi bị Ghosting (> 0.68m): Khóa trần W = 0.68m
     // - Giữ nguyên 100% Chiều dài L, Chiều cao H, Cao độ Z và trục X
     // -------------------------------------------------------------
     newYawRad = yaw;
@@ -3033,12 +3036,12 @@ export function fitPedestrianBox(
     newH = curH;
     newCenterZ = cz;
 
-    const spanW = (lyMax - lyMin) + 0.08;
+    const spanW = (lyMax - lyMin) + 0.04;
     let shiftLy = 0;
 
-    if (spanW > 0.75) {
-      // Bị Ghosting: Khóa trần an toàn W = 0.75m & Ưu tiên sườn đón tia Ego
-      newW = 0.75;
+    if (spanW > 0.68) {
+      // Bị Ghosting: Khóa trần an toàn W = 0.68m & Ưu tiên sườn đón tia Ego
+      newW = 0.68;
       if (options.egoPos) {
         const toEgoX = options.egoPos.x - cx;
         const toEgoY = options.egoPos.y - cy;
@@ -3054,7 +3057,7 @@ export function fitPedestrianBox(
         shiftLy = (lyMin + lyMax) / 2;
       }
     } else {
-      newW = Number(Math.max(0.35, Math.min(0.75, spanW)).toFixed(2));
+      newW = Number(Math.max(0.35, Math.min(0.68, spanW)).toFixed(2));
       shiftLy = (lyMin + lyMax) / 2;
     }
 
@@ -3063,12 +3066,12 @@ export function fitPedestrianBox(
     newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
 
     const deltaYSign = shiftLy >= 0 ? "+" : "";
-    msg = `Đã fix Chiều Rộng (W) Người đi bộ: W=${newW}m (căn tâm Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, kháng ghosting), giữ nguyên L, H & Z`;
+    msg = `Đã fix Chiều Rộng (W) Người đi bộ: W=${newW}m (căn tâm Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, vừa khít vai), giữ nguyên L, H & Z`;
   } else if (step === "h") {
     // -------------------------------------------------------------
-    // 6. FIX RIÊNG CHIỀU CAO H: Bám sàn Z_base cố định, nở lên đỉnh đầu
+    // 6. FIX RIÊNG CHIỀU CAO H: Bám sàn Z_base cố định, nở lên đỉnh đầu gọn gàng
     // - Mặt đáy tiếp đất giữ nguyên cố định 100%
-    // - Đỉnh đầu nở lên + 12cm đệm chống cắt trán
+    // - Đỉnh đầu nở lên +5cm đệm nóc tinh gọn (không đệm quá dày làm vọt lên quá cao)
     // - Giữ nguyên 100% Chiều dài L, Chiều rộng W và vị trí XY
     // -------------------------------------------------------------
     newYawRad = yaw;
@@ -3082,20 +3085,20 @@ export function fitPedestrianBox(
     const currentBaseZ = cz - curH / 2;
     const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
 
-    roofTopZ = highestPtZ + Math.max(0.12, headBuffer);
-    newH = Number(Math.max(1.00, Math.min(2.15, roofTopZ - effectiveBaseZ)).toFixed(2));
+    roofTopZ = highestPtZ + headBuffer;
+    newH = Number(Math.max(1.00, Math.min(1.95, roofTopZ - effectiveBaseZ)).toFixed(2));
     newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
 
-    msg = `Đã fix Chiều Cao (H) Người đi bộ: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên đỉnh đầu +12cm), giữ nguyên L, W & XY`;
+    msg = `Đã fix Chiều Cao (H) Người đi bộ: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên đỉnh đầu +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
   } else {
     // -------------------------------------------------------------
     // 7. CHU TRÌNH TOÀN DIỆN (ALL): 1-Click Smart Fit cho Người
     // -------------------------------------------------------------
-    newL = Number(Math.max(0.40, Math.min(0.80, lxMax - lxMin + 0.08)).toFixed(2));
-    newW = Number(Math.max(0.40, Math.min(0.75, lyMax - lyMin + 0.08)).toFixed(2));
+    newL = Number(Math.max(0.40, Math.min(0.78, lxMax - lxMin + 0.05)).toFixed(2));
+    newW = Number(Math.max(0.38, Math.min(0.68, lyMax - lyMin + 0.04)).toFixed(2));
 
     roofTopZ = highestPtZ + headBuffer;
-    newH = Number(Math.max(1.05, Math.min(2.15, roofTopZ - groundZ)).toFixed(2));
+    newH = Number(Math.max(1.05, Math.min(1.95, roofTopZ - groundZ)).toFixed(2));
 
     let shiftLx = (lxMin + lxMax) / 2;
     let shiftLy = (lyMin + lyMax) / 2;
@@ -3247,7 +3250,8 @@ export function fitTwoWheelerBox(
   stepParam: "all" | "top" | "side" | "front" | "w" | "h" = "all"
 ): TwoWheelerFitResult {
   const step = options.step ?? stepParam;
-  const headBuffer = options.headBuffer ?? 0.10;
+  // Đệm nóc xe 2 bánh chuẩn tinh gọn (+5cm), tránh box bị cao lêu nghêu
+  const headBuffer = options.headBuffer ?? 0.05;
   const margin = options.margin ?? 0.20;
 
   // 1. Quét mặt đất vệt bánh xe (R <= curL/2 + margin)
@@ -3271,12 +3275,13 @@ export function fitTwoWheelerBox(
     groundZ = groundPts[Math.max(0, Math.floor(groundPts.length * 0.15))];
   }
 
-  // 2. Thu thập điểm thân xe và người lái có phân tầng và GIẢM TRỌNG SỐ Ở BÁNH XE SÁT ĐẤT:
-  // - Tầng thân xe & người lái (Core): Z in [groundZ + 0.25m, groundZ + 2.30m] -> Trọng số 100%
-  // - Tầng lốp/bánh xe sát đất: Z in [groundZ + 0.08m, groundZ + 0.25m] -> Giảm trọng số
+  // 2. Thu thập điểm thân xe và bánh xe:
+  // - Tầng thân xe & người lái (Core): Z in [groundZ + 0.25m, groundZ + 2.30m]
+  // - Tầng lốp/bánh xe sát đất: Z in [groundZ + 0.08m, groundZ + 0.25m] (ở SIDE & FRONT hạ xuống groundZ + 0.02m để giữ trọn curpoint)
+  // GIỮ TRỌN CURPOINT: Không gạt bỏ bánh xe khi thân có nhiều điểm (tránh cắt mất curpoint lốp xe trước/sau)
   const minCoreZ = groundZ + 0.25;
   const maxBodyZ = groundZ + 2.30;
-  const minWheelZ = groundZ + 0.08;
+  const minWheelZ = (step === "side" || step === "front") ? groundZ + 0.02 : groundZ + 0.08;
   const outerL = curL / 2 + 0.45;
   const outerW = Math.max(curW, 0.85) / 2 + 0.45;
 
@@ -3295,24 +3300,30 @@ export function fitTwoWheelerBox(
       if (p.z >= minCoreZ) {
         corePts.push({ lx, ly, z: p.z });
       } else {
-        // Điểm bánh xe sát đất: CHỈ nhận nếu nằm sát trục dọc xe (|ly| <= 0.22m)
-        // Loại bỏ 100% vệt quét xiên mặt đất hoặc gờ vỉa hè hai bên
-        if (Math.abs(ly) <= 0.22) {
+        // Điểm bánh xe sát đất: chỉ loại bỏ các tia quét xiên loang quá xa ngoài trục xe
+        if (Math.abs(ly) <= Math.max(0.25, curW / 2 + 0.08)) {
           wheelPts.push({ lx, ly, z: p.z });
         }
       }
     }
   }
 
-  let rawPts = corePts;
-  if (corePts.length < 8 && wheelPts.length > 0) {
+  // Phối hợp điểm:
+  // - Ở nút SIDE & FRONT: Tính luôn cả điểm bánh xe để cản trước/sau và sườn đón tia ôm trọn curpoint lốp xe ngoài cùng
+  // - Ở các nút Fit Size (W, H) & ALL: Ưu tiên tầng thân xe nếu có >= 8 điểm để chống phình to kích thước do vệt quét sát đất
+  let rawPts: Array<{ lx: number; ly: number; z: number }>;
+  if (step === "side" || step === "front") {
     rawPts = [...corePts, ...wheelPts];
+  } else {
+    rawPts = corePts.length >= 8 ? corePts : [...corePts, ...wheelPts];
   }
 
   const isSparse = rawPts.length <= 12;
-  const maxClusteringGap = isSparse ? 0.28 : 0.16;
-  const clusterLy = filterDenseConnectedCluster1D(rawPts, "ly", maxClusteringGap, 0);
-  const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxClusteringGap, 0);
+  // Giảm cắt nhiễu bớt đi: Dùng maxGapLx = 0.38m ở Side để nối thông lốp trước/sau; maxGapLy = 0.35m ở Front để nối thông gương/tay lái
+  const maxGapLx = (step === "side" || isSparse) ? 0.38 : 0.28;
+  const maxGapLy = (step === "front" || isSparse) ? 0.35 : 0.24;
+  const clusterLy = filterDenseConnectedCluster1D(rawPts, "ly", maxGapLy, 0);
+  const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxGapLx, 0);
 
   // Giá trị khởi tạo mặc định (giữ nguyên hiện trạng nếu thiếu điểm)
   let newCenterX = cx;
@@ -3513,27 +3524,27 @@ export function fitTwoWheelerBox(
     let measuredW = curW;
 
     if (lyMin <= -0.06 && lyMax >= 0.06) {
-      // Điểm LiDAR bao quát cả 2 bên: Đệm +8cm mỗi bên cho gương và tay lái
-      measuredW = (lyMax - lyMin) + 0.16;
+      // Điểm LiDAR bao quát cả 2 bên: Đệm nhẹ +6cm (+3cm mỗi bên cho tay lái/gương)
+      measuredW = (lyMax - lyMin) + 0.06;
       shiftLy = (lyMin + lyMax) / 2;
       shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
     } else if (lyMax > 0 && lyMin > -0.06) {
-      // Điểm LiDAR chỉ ở SƯỜN TRÁI -> Mở rộng đối xứng qua trục dọc bánh xe +10cm đệm gương
-      measuredW = 2 * (lyMax + 0.10);
+      // Điểm LiDAR chỉ ở SƯỜN TRÁI -> Mở rộng đối xứng qua trục dọc bánh xe +5cm đệm gương
+      measuredW = 2 * (lyMax + 0.05);
       shiftLy = 0;
     } else if (lyMin < 0 && lyMax < 0.06) {
-      // Điểm LiDAR chỉ ở SƯỜN PHẢI -> Mở rộng đối xứng qua trục dọc bánh xe +10cm đệm gương
-      measuredW = 2 * (Math.abs(lyMin) + 0.10);
+      // Điểm LiDAR chỉ ở SƯỜN PHẢI -> Mở rộng đối xứng qua trục dọc bánh xe +5cm đệm gương
+      measuredW = 2 * (Math.abs(lyMin) + 0.05);
       shiftLy = 0;
     } else {
-      measuredW = (lyMax - lyMin) + 0.16;
+      measuredW = (lyMax - lyMin) + 0.06;
       shiftLy = (lyMin + lyMax) / 2;
       shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
     }
 
-    // Kháng Ghosting: Giới hạn trần an toàn W <= 0.95m cho xe 2 bánh (chống bóng ma dãn ngang)
-    if (measuredW > 0.95) {
-      newW = 0.95;
+    // Kháng Ghosting: Giới hạn trần an toàn W <= 0.85m cho xe 2 bánh (chống bóng ma dãn ngang phình to)
+    if (measuredW > 0.85) {
+      newW = 0.85;
       if (options.egoPos) {
         const toEgoX = options.egoPos.x - cx;
         const toEgoY = options.egoPos.y - cy;
@@ -3545,7 +3556,7 @@ export function fitTwoWheelerBox(
         }
       }
     } else {
-      newW = Number(Math.max(0.55, Math.min(0.95, measuredW)).toFixed(2));
+      newW = Number(Math.max(0.55, Math.min(0.85, measuredW)).toFixed(2));
     }
     shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
 
@@ -3553,12 +3564,12 @@ export function fitTwoWheelerBox(
     newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
 
     const deltaYSign = shiftLy >= 0 ? "+" : "";
-    msg = `Đã fit Rộng (W) Xe 2 bánh: W=${newW}m (Đệm +5cm bắt trọn gương/tay lái), căn Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên L, H & Z`;
+    msg = `Đã fit Rộng (W) Xe 2 bánh: W=${newW}m (Đệm +3cm vừa khít gương/tay lái), căn Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên L, H & Z`;
   } else if (step === "h") {
     // -------------------------------------------------------------
-    // CHẾ ĐỘ FIT RIÊNG CHIỀU CAO H: Bám sàn cố định Z_base, nở lên nóc xe
+    // CHẾ ĐỘ FIT RIÊNG CHIỀU CAO H: Bám sàn cố định Z_base, nở lên nóc xe gọn gàng
     // - Mặt đáy tiếp đất Z_base giữ nguyên cố định 100%
-    // - Bắt trọn đỉnh nón bảo hiểm / đầu người lái + 12cm đệm nón
+    // - Bắt trọn đỉnh nón bảo hiểm / đầu người lái + 5cm đệm nóc (không đệm quá dày làm vọt lên quá cao)
     // - Giữ nguyên 100% Chiều dài L, Chiều rộng W và vị trí XY
     // -------------------------------------------------------------
     newYawRad = yaw;
@@ -3572,11 +3583,11 @@ export function fitTwoWheelerBox(
     const currentBaseZ = cz - curH / 2;
     const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
 
-    const roofTopZ = highestPtZ + Math.max(0.12, headBuffer);
-    newH = Number(Math.max(1.15, Math.min(2.20, roofTopZ - effectiveBaseZ)).toFixed(2));
+    const roofTopZ = highestPtZ + headBuffer;
+    newH = Number(Math.max(1.10, Math.min(1.85, roofTopZ - effectiveBaseZ)).toFixed(2));
     newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
 
-    msg = `Đã fit Cao (H) Xe 2 bánh: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên nóc +12cm), giữ nguyên L, W & XY`;
+    msg = `Đã fit Cao (H) Xe 2 bánh: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên nóc +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
   } else {
     // -------------------------------------------------------------
     // CHẾ ĐỘ 4: CHU TRÌNH TOÀN DIỆN (TOP ➔ SIDE ➔ FRONT)
@@ -3606,25 +3617,25 @@ export function fitTwoWheelerBox(
     let measuredW = curW;
 
     if (lyMin <= -0.06 && lyMax >= 0.06) {
-      measuredW = lyMax - lyMin + 0.12;
+      measuredW = lyMax - lyMin + 0.06;
       shiftLy = (lyMin + lyMax) / 2;
       shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
     } else if (lyMax > 0 && lyMin > -0.06) {
-      measuredW = 2 * (lyMax + 0.08);
+      measuredW = 2 * (lyMax + 0.05);
       shiftLy = 0;
     } else if (lyMin < 0 && lyMax < 0.06) {
-      measuredW = 2 * (Math.abs(lyMin) + 0.08);
+      measuredW = 2 * (Math.abs(lyMin) + 0.05);
       shiftLy = 0;
     } else {
-      measuredW = lyMax - lyMin + 0.12;
+      measuredW = lyMax - lyMin + 0.06;
       shiftLy = (lyMin + lyMax) / 2;
       shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
     }
 
-    newW = Number(Math.max(0.55, Math.min(0.95, measuredW)).toFixed(2));
+    newW = Number(Math.max(0.55, Math.min(0.85, measuredW)).toFixed(2));
 
     roofTopZ = highestPtZ + headBuffer;
-    newH = Number(Math.max(1.15, Math.min(2.20, roofTopZ - groundZ)).toFixed(2));
+    newH = Number(Math.max(1.10, Math.min(1.85, roofTopZ - groundZ)).toFixed(2));
     newCenterZ = Number((groundZ + newH / 2).toFixed(3));
 
     // Tọa độ thế giới kết hợp (xoay theo newYawRad)

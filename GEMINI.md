@@ -68,11 +68,21 @@
 - **Tự thích ứng theo mật độ điểm (Box ít điểm ở xa)**:
   - Khi box có ít điểm ($N \le 12$ điểm): Phân kỳ tia LiDAR ở xa làm các điểm thưa hơn. Tự động nới `maxGap = 0.25m` (Người) và `0.28m` (Xe 2 bánh), bắt trọn 100% biên cực trị ($min \to max$) không qua phân vị loại bỏ điểm để box không bao giờ bị teo nhỏ hoặc lệch tâm.
 - **Giảm trọng số tầng chân & bánh xe sát đất (Foot / Wheel Noise Protection)**:
-  - Tầng thân chính ($Z \ge Z_{\text{ground}} + 0.30\text{m}$ cho Người; $Z \ge Z_{\text{ground}} + 0.25\text{m}$ cho Xe 2 bánh): Chiếm 100% trọng số hình dáng.
-  - Tầng sát chân/lốp ($Z_{\text{ground}} + 0.08\text{m} \le Z < Z_{\text{ground}} + 0.30\text{m}$): **CHỈ** được thu nạp bổ trợ khi tầng thân chính $< 8$ điểm VÀ phải nằm sát trục đứng/trục dọc ($|lx|, |ly| \le 0.28\text{m}$ cho Người; $|ly| \le 0.22\text{m}$ cho Xe 2 bánh). Loại bỏ 100% vệt quét xiên loang sát đất, vạch sơn phản quang, mép vỉa hè làm phình to chân đế.
+  - Tầng thân chính ($Z \ge Z_{\text{ground}} + 0.30\text{m}$ cho Người; $Z \ge Z_{\text{ground}} + 0.25\text{m}$ cho Xe 2 bánh): Chiếm 100% trọng số hình dáng khi Fit Size.
+  - Tầng sát chân/lốp ($Z_{\text{ground}} + 0.08\text{m} \le Z < Z_{\text{ground}} + 0.30\text{m}$): Khi Fit Size chỉ thu nạp khi tầng thân $< 8$ điểm.
 - **Kháng hiện tượng bóng ma Ghosting (Motion Smear)**:
-  - Khóa trần kích thước vật lý an toàn: Người đi bộ ($L \le 0.80\text{m}, W \le 0.75\text{m}$); Xe 2 bánh ($W \le 0.95\text{m}$).
+  - Khóa trần kích thước vật lý an toàn: Người đi bộ ($L \le 0.78\text{m}, W \le 0.68\text{m}$); Xe 2 bánh ($W \le 0.85\text{m}$).
   - Khi phát hiện vệt kéo dài vượt trần: Hệ thống khóa chặt trần kích thước và tự động bắt cản/sườn đón tia từ xe Ego (vị trí thân thật của vật thể tại frame hiện tại), gạt bỏ hoàn toàn phần đuôi bóng ma trôi dạt phía sau.
+
+### 10. Giảm Cắt Nhiễu Biên (SIDE & FRONT) & Tinh Chỉnh Đệm Kích Thước Gọn Gàng
+- **Nút SIDE & FRONT Không Cắt Mất Curpoint**:
+  - Không lọc nhiễu quá gắt làm mất các điểm biên đón tia (bàn chân, cẳng chân, lốp xe, gương chiếu hậu, tay lái).
+  - Thu nạp điểm sát chân/lốp xuống tới $Z_{\text{ground}} + 0.02\text{m}$, dùng `maxGapLx = 0.38m` (Xe 2 bánh) / `0.32m` (Người) và `maxGapLy = 0.35m` (Xe 2 bánh) / `0.30m` (Người) để nối thông bánh xe và gương vào thân.
+  - Phân vị biên chỉ loại bỏ tối đa 1% nếu $\ge 25$ điểm.
+- **Hạ Đệm Fit Cao & Fit Rộng (Tránh Box Phình To & Cao Lêu Nghêu)**:
+  - **Fit Cao (H)**: Hạ đệm nóc từ $+12\text{cm} \sim +15\text{cm}$ xuống mức gọn gàng chuẩn **$+5\text{cm}$** cho cả Người đi bộ và Xe 2 bánh.
+  - **Fit Rộng (W)**: Xe 2 bánh đệm nhẹ $+6\text{cm}$ (+3cm mỗi bên, trần $W \le 0.85\text{m}$); Người đi bộ đệm nhẹ $+4\text{cm}$ (+2cm mỗi bên, trần $W \le 0.68\text{m}$).
+  - **Fit Dài (L)**: Người đi bộ đệm nhẹ $+5\text{cm}$ (trần $L \le 0.78\text{m}$).
 
 ---
 

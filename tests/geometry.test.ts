@@ -603,10 +603,10 @@ const pedAdultRes = fitPedestrianBox(pedAdultPts, 5.0, 2.0, 0.8, 0);
 assert.strictEqual(pedAdultRes.rollDeg, 0, "Người đi bộ phải khóa cứng Roll = 0°");
 assert.strictEqual(pedAdultRes.pitchDeg, 0, "Người đi bộ phải khóa cứng Pitch = 0°");
 assert.ok(Math.abs(pedAdultRes.groundZ - 0.0) < 0.05, `Đáy box người phải chạm mặt đất 0.0m (thực tế: ${pedAdultRes.groundZ}m)`);
-assert.ok(Math.abs(pedAdultRes.newH - 1.72) < 0.05, `Chiều cao phải bù +12cm từ vai (1.60m + 0.12m = 1.72m, thực tế: ${pedAdultRes.newH}m)`);
+assert.ok(Math.abs(pedAdultRes.newH - 1.65) < 0.05, `Chiều cao phải bù +5cm từ đỉnh đầu gọn gàng (1.60m + 0.05m = 1.65m, thực tế: ${pedAdultRes.newH}m)`);
 assert.ok(pedAdultRes.newL <= 0.75, `Chiều dài người phải thon gọn <= 0.75m (thực tế: ${pedAdultRes.newL}m)`);
 assert.ok(pedAdultRes.newW <= 0.70, `Chiều rộng người phải thon gọn <= 0.70m, không ăn nhầm rào chắn 2.7m (thực tế: ${pedAdultRes.newW}m)`);
-console.log(`✅ Test 30a: Fit Người Đi Bộ Người Lớn: ${pedAdultRes.newL}x${pedAdultRes.newW}x${pedAdultRes.newH}m (Roll=0°, Pitch=0°, Bù đỉnh đầu +12cm ➔ H=1.72m)`);
+console.log(`✅ Test 30a: Fit Người Đi Bộ Người Lớn: ${pedAdultRes.newL}x${pedAdultRes.newW}x${pedAdultRes.newH}m (Roll=0°, Pitch=0°, Bù đỉnh đầu +5cm gọn gàng ➔ H=1.65m)`);
 
 // Kịch bản B: Trẻ em cao 1.20m (Tia laser cao nhất chạm 1.08m)
 const pedChildPts: Array<{ x: number; y: number; z: number }> = [];
@@ -624,7 +624,7 @@ const pedChildRes = fitPedestrianBox(pedChildPts, -3.0, 4.0, 0.4, 0);
 assert.strictEqual(pedChildRes.rollDeg, 0, "Trẻ em phải khóa Roll = 0°");
 assert.strictEqual(pedChildRes.pitchDeg, 0, "Trẻ em phải khóa Pitch = 0°");
 assert.ok(Math.abs(pedChildRes.groundZ - (-0.15)) < 0.05, `Đáy chạm đất -0.15m (thực tế: ${pedChildRes.groundZ}m)`);
-assert.ok(Math.abs(pedChildRes.newH - 1.20) < 0.05, `Chiều cao trẻ em phải co giãn linh hoạt khớp 1.20m (thực tế: ${pedChildRes.newH}m)`);
+assert.ok(Math.abs(pedChildRes.newH - 1.13) < 0.05, `Chiều cao trẻ em phải co giãn linh hoạt khớp 1.13m (thực tế: ${pedChildRes.newH}m)`);
 console.log(`✅ Test 30b: Fit Trẻ Em (Co giãn kích thước tự do): ${pedChildRes.newL}x${pedChildRes.newW}x${pedChildRes.newH}m (Không bị ép to như ô tô)`);
 
 // Kịch bản C: Xe Đạp (Cyclist)
@@ -2240,7 +2240,7 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
   assert.strictEqual(resFront.newH, initH, "Test 61a: Chiều cao H giữ nguyên 100% khi bấm FRONT (chuẩn Car)");
   assert.strictEqual(resFront.newCenterZ, initCz, "Test 61a: Cao độ Z giữ nguyên 100% (không ghim đất như Car)");
 
-  // 61b. Kiểm tra NÚT RIÊNG FIT RỘNG (W): Tự động đo W đối xứng từ sườn đón tia (+5cm đệm gương)
+  // 61b. Kiểm tra NÚT RIÊNG FIT RỘNG (W): Tự động đo W đối xứng từ sườn đón tia gọn gàng (+3cm đệm gương)
   const resFitW = fitTwoWheelerBox(
     singleSidePts,
     0.0, 0.0, initCz, 0.0,
@@ -2250,8 +2250,8 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
   );
   assert.strictEqual(resFitW.step, "w", "Test 61b: Phải ghi nhận step là 'w'");
   assert.ok(
-    resFitW.newW >= 0.95 && resFitW.newW <= 1.15,
-    `Test 61b: Chiều rộng W phải mở rộng đối xứng từ mép sườn phải sang sườn trái kèm đệm gương ~1.04m (thực tế: ${resFitW.newW}m)`
+    resFitW.newW >= 0.82 && resFitW.newW <= 0.95,
+    `Test 61b: Chiều rộng W phải mở rộng đối xứng từ mép sườn phải sang sườn trái kèm đệm gương vừa vặn ~0.85m (thực tế: ${resFitW.newW}m)`
   );
   assert.strictEqual(resFitW.newCenterY, 0.0, "Test 61b: Tâm Y giữ vững trên trục dọc bánh xe khi đón tia 1 sườn");
   assert.strictEqual(resFitW.newL, initL, "Test 61b: Giữ nguyên Chiều dài L khi Fit W");
@@ -2545,17 +2545,17 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
     0.45, 0.80, 1.65 // Box ban đầu L=0.45m, W=0.80m, H=1.65m
   );
 
-  // 1. Chiều rộng W phải được fit co giãn chính xác 0.56m
+  // 1. Chiều rộng W phải được fit co giãn chính xác ~0.52m - 0.54m (ôm vai vừa khít +4cm)
   assert.ok(
-    Math.abs(fixWRes.newW - 0.56) <= 0.03,
-    `Test 68: newW phải là 0.56m (thực tế: ${fixWRes.newW}m)`
+    Math.abs(fixWRes.newW - 0.53) <= 0.03,
+    `Test 68: newW phải là ~0.53m (thực tế: ${fixWRes.newW}m)`
   );
   // 2. Chiều dài L, Chiều cao H và Cao độ Z phải giữ nguyên 100%
   assert.strictEqual(fixWRes.newL, 0.45, "Test 68: newL phải giữ nguyên 0.45m");
   assert.strictEqual(fixWRes.newH, 1.65, "Test 68: newH phải giữ nguyên 1.65m");
   assert.strictEqual(fixWRes.newCenterZ, 0.70, "Test 68: newCenterZ phải giữ nguyên 0.70m");
 
-  console.log(`✅ Test 68: Nút Fix Rộng (W) Người đi bộ: W=${fixWRes.newW}m (ôm vai +8cm), Giữ nguyên L=0.45m, H=1.65m & Z=0.70m`);
+  console.log(`✅ Test 68: Nút Fix Rộng (W) Người đi bộ: W=${fixWRes.newW}m (ôm vai vừa khít +4cm), Giữ nguyên L=0.45m, H=1.65m & Z=0.70m`);
 }
 
 // =========================================================================
@@ -2870,10 +2870,10 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
     `Test 76: Tâm Y phải bám cụm điểm thật ~5.01m (thực tế: ${sparseFitRes.newCenterY}m)`
   );
 
-  // 3. Chiều cao H nở lên đỉnh đầu + 12cm đệm (1.70m + 0.12m = 1.82m)
+  // 3. Chiều cao H nở lên đỉnh đầu + 5cm đệm gọn gàng (1.70m + 0.05m = 1.75m)
   assert.ok(
-    Math.abs(sparseFitRes.newH - 1.82) < 0.05,
-    `Test 76: Chiều cao H phải ôm đỉnh đầu + 12cm đệm ~1.82m (thực tế: ${sparseFitRes.newH}m)`
+    Math.abs(sparseFitRes.newH - 1.75) < 0.05,
+    `Test 76: Chiều cao H phải ôm đỉnh đầu + 5cm đệm gọn gàng ~1.75m (thực tế: ${sparseFitRes.newH}m)`
   );
 
   console.log(
@@ -2908,11 +2908,11 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
     { step: "l", egoPos: { x: 20.0, y: 5.0, z: 0.0 } }
   );
 
-  // 1. Chiều dài L BẮT BUỘC KHỐNG CHẾ TRẦN AN TOÀN L <= 0.80m (Không bị dãn ra 1.38m theo bóng ma)
+  // 1. Chiều dài L BẮT BUỘC KHỐNG CHẾ TRẦN AN TOÀN L <= 0.78m (Không bị dãn ra 1.38m theo bóng ma)
   assert.strictEqual(
     ghostFitRes.newL,
-    0.80,
-    `Test 77: Chiều dài L phải bị khóa trần an toàn 0.80m kháng ghosting (thực tế: ${ghostFitRes.newL}m)`
+    0.78,
+    `Test 77: Chiều dài L phải bị khóa trần an toàn 0.78m kháng ghosting (thực tế: ${ghostFitRes.newL}m)`
   );
 
   // 2. Mép trước đón tia Ego phải bám sát thân thật 10.15m (không trôi lùi theo bóng ma)
@@ -2949,10 +2949,10 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
     { step: "w" }
   );
 
-  // 1. Không bị teo nhỏ: Chiều rộng W bắt trọn 2 đầu tay lái ly in [-0.35, +0.35] + đệm gương
+  // 1. Không bị teo nhỏ: Chiều rộng W bắt trọn 2 đầu tay lái ly in [-0.35, +0.35] + đệm gương vừa vặn
   assert.ok(
-    bikeFitRes.newW >= 0.80 && bikeFitRes.newW <= 0.95,
-    `Test 78: Chiều rộng W xe 2 bánh ít điểm phải bắt trọn tay lái trong [0.80, 0.95]m (thực tế: ${bikeFitRes.newW}m)`
+    bikeFitRes.newW >= 0.74 && bikeFitRes.newW <= 0.85,
+    `Test 78: Chiều rộng W xe 2 bánh ít điểm phải bắt trọn tay lái trong [0.74, 0.85]m (thực tế: ${bikeFitRes.newW}m)`
   );
 
   // 2. Chiều dài L giữ nguyên 1.80m (chuẩn xe 2 bánh bảo toàn L)
@@ -2963,7 +2963,7 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
   );
 }
 
-// 79. Test Xe 2 Bánh Bị Ghosting Dãn Ngang: Khống Chế Trần An Toàn W <= 0.95m
+// 79. Test Xe 2 Bánh Bị Ghosting Dãn Ngang: Khống Chế Trần An Toàn W <= 0.85m
 {
   // Xe 2 bánh bị bóng ma dãn rộng sang ngang (vết quét loang ly in [-0.80, 0.80] -> spanW = 1.6m)
   const ghostBikePts: Array<{ x: number; y: number; z: number }> = [
@@ -2983,11 +2983,11 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
     { step: "w" }
   );
 
-  // Chiều rộng W BẮT BUỘC KHỐNG CHẾ TRẦN AN TOÀN W <= 0.95m (Không bị phình to lên 1.45m hay 1.60m)
+  // Chiều rộng W BẮT BUỘC KHỐNG CHẾ TRẦN AN TOÀN W <= 0.85m (Không bị phình to lên 0.95m hay 1.60m)
   assert.strictEqual(
     ghostBikeRes.newW,
-    0.95,
-    `Test 79: Chiều rộng W phải bị khống chế trần an toàn 0.95m kháng ghosting (thực tế: ${ghostBikeRes.newW}m)`
+    0.85,
+    `Test 79: Chiều rộng W phải bị khống chế trần an toàn 0.85m kháng ghosting (thực tế: ${ghostBikeRes.newW}m)`
   );
 
   console.log(
@@ -2995,7 +2995,149 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
   );
 }
 
-console.log("\n🎉 TẤT CẢ 79 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z, CĂN GÓC FRONT ROLL 2 ĐẦU, TỰ THÍCH ỨNG ÍT ĐIỂM & KHÁNG GHOSTING ĐÃ ĐẠT 100%!");
+// 80. Test Căn SIDE Người Đi Bộ: Giữ Trọn Curpoint Bàn Chân / Mũi Chân Đón Tia (Không Cắt Mất Điểm Chân)
+{
+  const pedPtsWithFoot: Array<{ x: number; y: number; z: number }> = [];
+  // Điểm mặt đất
+  for (let x = 9.0; x <= 11.0; x += 0.5) {
+    for (let y = 4.0; y <= 6.0; y += 0.5) {
+      pedPtsWithFoot.push({ x, y, z: 0.0 });
+    }
+  }
+
+  // 12 điểm thân người cốt lõi (từ hông lên đầu Z in [0.4m, 1.6m])
+  for (let z = 0.4; z <= 1.6; z += 0.2) {
+    pedPtsWithFoot.push({ x: 10.0, y: 5.0, z });
+    pedPtsWithFoot.push({ x: 9.92, y: 4.95, z });
+  }
+
+  // Curpoint bàn chân/mũi chân bước về phía trước đón tia Ego (X = 10.25m, Z = 0.12m sát đất)
+  pedPtsWithFoot.push({ x: 10.25, y: 5.0, z: 0.12 });
+  pedPtsWithFoot.push({ x: 10.20, y: 5.0, z: 0.15 });
+
+  // Xe Ego ở phía trước tại (20, 5, 0)
+  const sideRes = fitPedestrianBox(
+    pedPtsWithFoot,
+    10.0, 5.0, 0.85, 0.0,
+    0.60, 0.60, 1.70,
+    { egoPos: { x: 20.0, y: 5.0, z: 0.0 } },
+    "side"
+  );
+
+  // Mép trước box phải bọc trọn curpoint mũi chân 10.25m (+1cm đệm đón tia = 10.26m)
+  const frontBoxEdge = sideRes.newCenterX + sideRes.newL / 2;
+  assert.ok(
+    frontBoxEdge >= 10.24,
+    `Test 80: Mép trước box phải bọc trọn curpoint mũi chân >= 10.24m, không bị cắt mất curpoint (thực tế: ${frontBoxEdge.toFixed(3)}m)`
+  );
+  assert.strictEqual(sideRes.newCenterZ, 0.85, "Test 80: Giữ nguyên Z=0.85m");
+  assert.strictEqual(sideRes.newL, 0.60, "Test 80: Khóa size L=0.60m");
+
+  console.log(
+    `✅ Test 80: Căn SIDE Người đi bộ: Bọc trọn curpoint mũi chân đón tia ${frontBoxEdge.toFixed(2)}m >= 10.24m (không cắt mất curpoint chân)`
+  );
+}
+
+// 81. Test Căn FRONT Người Đi Bộ: Giữ Trọn Curpoint Sườn / Cánh Tay Đón Tia
+{
+  const pedPtsWithArm: Array<{ x: number; y: number; z: number }> = [];
+  // Thân người
+  for (let z = 0.4; z <= 1.6; z += 0.2) {
+    pedPtsWithArm.push({ x: 10.0, y: 5.0, z });
+  }
+  // Curpoint sườn trái/cánh tay đón tia Ego (Y = 5.24m)
+  pedPtsWithArm.push({ x: 10.0, y: 5.24, z: 1.10 });
+
+  // Xe Ego ở bên trái tại (10, 15, 0)
+  const frontRes = fitPedestrianBox(
+    pedPtsWithArm,
+    10.0, 5.0, 0.85, 0.0,
+    0.60, 0.60, 1.70,
+    { egoPos: { x: 10.0, y: 15.0, z: 0.0 } },
+    "front"
+  );
+
+  const leftBoxEdge = frontRes.newCenterY + frontRes.newW / 2;
+  assert.ok(
+    leftBoxEdge >= 5.23,
+    `Test 81: Mép sườn trái box phải ôm trọn curpoint sườn đón tia >= 5.23m (thực tế: ${leftBoxEdge.toFixed(3)}m)`
+  );
+  assert.strictEqual(frontRes.newCenterZ, 0.85, "Test 81: Giữ nguyên Z=0.85m");
+
+  console.log(
+    `✅ Test 81: Căn FRONT Người đi bộ: Ôm trọn curpoint sườn đón tia ${leftBoxEdge.toFixed(2)}m >= 5.23m (không cắt mất curpoint)`
+  );
+}
+
+// 82. Test Căn SIDE Xe 2 Bánh: Giữ Trọn Curpoint Lốp Bánh Trước Sát Đất Đón Tia
+{
+  const bikePtsWithTire: Array<{ x: number; y: number; z: number }> = [];
+  // Điểm mặt đất
+  for (let x = 14.0; x <= 16.0; x += 0.5) {
+    for (let y = 4.0; y <= 6.0; y += 0.5) {
+      bikePtsWithTire.push({ x, y, z: 0.0 });
+    }
+  }
+  // Thân xe
+  for (let x = 14.5; x <= 15.5; x += 0.2) {
+    bikePtsWithTire.push({ x, y: 5.0, z: 0.70 });
+  }
+  // Curpoint lốp trước sát đất chạm sàn (X = 15.82m, Z = 0.12m < 0.25m)
+  bikePtsWithTire.push({ x: 15.82, y: 5.0, z: 0.12 });
+
+  // Xe Ego ở phía trước tại (25, 5, 0)
+  const bikeSideRes = fitTwoWheelerBox(
+    bikePtsWithTire,
+    15.0, 5.0, 0.80, 0.0,
+    1.80, 0.70, 1.50,
+    { egoPos: { x: 25.0, y: 5.0, z: 0.0 } },
+    "side"
+  );
+
+  const frontTireEdge = bikeSideRes.newCenterX + bikeSideRes.newL / 2;
+  assert.ok(
+    frontTireEdge >= 15.80,
+    `Test 82: Mép cản trước xe 2 bánh phải bọc trọn curpoint lốp trước >= 15.80m (thực tế: ${frontTireEdge.toFixed(3)}m)`
+  );
+  assert.strictEqual(bikeSideRes.newL, 1.80, "Test 82: Khóa size L=1.80m");
+
+  console.log(
+    `✅ Test 82: Căn SIDE Xe 2 Bánh: Bọc trọn curpoint lốp trước đón tia ${frontTireEdge.toFixed(2)}m >= 15.80m (không cắt mất curpoint bánh xe)`
+  );
+}
+
+// 83. Test Căn FRONT Xe 2 Bánh: Giữ Trọn Curpoint Gương Xe / Tay Lái Đón Tia
+{
+  const bikePtsWithMirror: Array<{ x: number; y: number; z: number }> = [];
+  // Thân xe
+  for (let z = 0.4; z <= 1.4; z += 0.2) {
+    bikePtsWithMirror.push({ x: 15.0, y: 5.0, z });
+  }
+  // Curpoint gương chiếu hậu / tay lái sườn trái đón tia Ego (Y = 5.34m)
+  bikePtsWithMirror.push({ x: 15.0, y: 5.34, z: 1.05 });
+
+  // Xe Ego ở bên trái tại (15, 15, 0)
+  const bikeFrontRes = fitTwoWheelerBox(
+    bikePtsWithMirror,
+    15.0, 5.0, 0.80, 0.0,
+    1.80, 0.70, 1.50,
+    { egoPos: { x: 15.0, y: 15.0, z: 0.0 } },
+    "front"
+  );
+
+  const leftMirrorEdge = bikeFrontRes.newCenterY + bikeFrontRes.newW / 2;
+  assert.ok(
+    leftMirrorEdge >= 5.33,
+    `Test 83: Mép sườn trái xe 2 bánh phải ôm trọn curpoint gương xe >= 5.33m (thực tế: ${leftMirrorEdge.toFixed(3)}m)`
+  );
+  assert.strictEqual(bikeFrontRes.newW, 0.70, "Test 83: Khóa size W=0.70m");
+
+  console.log(
+    `✅ Test 83: Căn FRONT Xe 2 Bánh: Ôm trọn curpoint gương chiếu hậu đón tia ${leftMirrorEdge.toFixed(2)}m >= 5.33m (không cắt mất curpoint)`
+  );
+}
+
+console.log("\n🎉 TẤT CẢ 83 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z, CĂN GÓC FRONT ROLL 2 ĐẦU, BẢO TOÀN CURPOINT BIÊN VÀ ĐỆM TINH GỌN ĐÃ ĐẠT 100%!");
 
 
 
