@@ -2343,7 +2343,7 @@ export function mainWorldScript(): void {
       const sign = deltaYawDeg >= 0 ? "+" : "";
       msg = `Đã căn TOP Xe 2 bánh: Xoay Yaw (${newYawDeg}°, Δ=${sign}${deltaYawDeg}°) theo trục Đầu - Đuôi, khóa tâm X/Y/Z & L/W/H`;
     } else if (step === "side") {
-      // 2. CĂN SIDE ĐỘC LẬP: Cản X đón tia & Ghim đất, Khóa L tuyệt đối
+      // 2. CĂN SIDE ĐỘC LẬP: Cản X đón tia, Rider 42% Geometry, Khóa L tuyệt đối
       newYaw = yaw;
       newYawDeg = curYawDeg;
       deltaYawDeg = 0;
@@ -2354,36 +2354,84 @@ export function mainWorldScript(): void {
       let shiftLx = 0;
       let bumperName = "Đón tia";
 
+      // Phân tích Người Lái (Rider): Người lái ở tầng cao Z >= groundZ + 0.65m
+      // Theo chuẩn giải phẫu hình học xe 2 bánh: Người lái ngồi cách cản trước khoảng 42% chiều dài xe (lxRider ~ +0.08 * curL)
+      const riderPts = bodyPts.filter((p) => p.z >= groundZ + 0.65);
+      const hasRider = riderPts.length >= 2;
+      let lxRider = 0;
+      if (hasRider) {
+        const sortedRiderLx = riderPts.map((p) => p.lx).sort((a, b) => a - b);
+        lxRider = sortedRiderLx[Math.floor(sortedRiderLx.length / 2)];
+      }
+
+      const distFront = hasRider ? lxMax - lxRider : curL / 2;
+      const distRear = hasRider ? lxRider - lxMin : curL / 2;
+
+      // Ngưỡng phát hiện mất bánh xe:
+      const isMissingFront = hasRider && distFront < 0.28 * curL;
+      const isMissingRear = hasRider && distRear < 0.38 * curL;
+
+      let lxEgo: number | null = null;
       if (options.egoPos) {
         const dxEgo = options.egoPos.x - cx;
         const dyEgo = options.egoPos.y - cy;
-        const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
-        if (lxEgo > 0.4) {
-          shiftLx = lxMax - curL / 2;
-          bumperName = "Cản trước";
-        } else if (lxEgo < -0.4) {
+        lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
+      }
+
+      if (isMissingFront && isMissingRear) {
+        // 1. MẤT CẢ 2 BÁNH (Chỉ có điểm người ngồi lái):
+        shiftLx = lxRider - 0.08 * curL;
+        bumperName = "Người lái 42% (Mất cả 2 bánh)";
+      } else if (isMissingFront) {
+        // 2. MẤT BÁNH TRƯỚC (Có bánh sau hoặc Ego nhìn từ sau):
+        const estFrontEdge = lxRider + 0.42 * curL;
+        if (lxEgo !== null && lxEgo < -0.3) {
           shiftLx = lxMin + curL / 2;
-          bumperName = "Cản sau";
+          bumperName = "Cản sau (Mất bánh trước)";
         } else {
-          shiftLx = (lxMin + lxMax) / 2;
-          bumperName = "Cân đối";
+          shiftLx = (lxMin + estFrontEdge) / 2;
+          bumperName = "Người lái 42% + Bánh sau (Mất bánh trước)";
+        }
+      } else if (isMissingRear) {
+        // 3. MẤT BÁNH SAU (Có bánh trước hoặc Ego nhìn từ trước):
+        const estRearEdge = lxRider - 0.58 * curL;
+        if (lxEgo !== null && lxEgo > 0.3) {
+          shiftLx = lxMax - curL / 2;
+          bumperName = "Cản trước (Mất bánh sau)";
+        } else {
+          shiftLx = (estRearEdge + lxMax) / 2;
+          bumperName = "Người lái 42% + Bánh trước (Mất bánh sau)";
         }
       } else {
-        const frontCount = bodyPts.filter((p) => p.lx > 0).length;
-        const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
-        if (frontCount > rearCount * 1.5) {
-          shiftLx = lxMax - curL / 2;
-          bumperName = "Cản trước";
-        } else if (rearCount > frontCount * 1.5) {
-          shiftLx = lxMin + curL / 2;
-          bumperName = "Cản sau";
+        // 4. ĐỦ CẢ 2 BÁNH:
+        if (lxEgo !== null) {
+          if (lxEgo > 0.4) {
+            shiftLx = lxMax - curL / 2;
+            bumperName = "Cản trước";
+          } else if (lxEgo < -0.4) {
+            shiftLx = lxMin + curL / 2;
+            bumperName = "Cản sau";
+          } else {
+            shiftLx = (lxMin + lxMax) / 2;
+            bumperName = "Cân đối";
+          }
         } else {
-          shiftLx = (lxMin + lxMax) / 2;
-          bumperName = "Cân đối";
+          const frontCount = bodyPts.filter((p) => p.lx > 0).length;
+          const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
+          if (frontCount > rearCount * 1.5) {
+            shiftLx = lxMax - curL / 2;
+            bumperName = "Cản trước";
+          } else if (rearCount > frontCount * 1.5) {
+            shiftLx = lxMin + curL / 2;
+            bumperName = "Cản sau";
+          } else {
+            shiftLx = (lxMin + lxMax) / 2;
+            bumperName = "Cân đối";
+          }
         }
       }
 
-      shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
+      shiftLx = Math.max(-0.60, Math.min(0.60, shiftLx));
       newZ = cz; // TUYỆT ĐỐI KHÔNG GHIM ĐẤT: Giữ nguyên cao độ Z ban đầu (đã có nút ghim đất riêng)
       newX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
       newY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
@@ -3812,7 +3860,7 @@ export function mainWorldScript(): void {
 
   // 4. Lắng nghe yêu cầu Ghim Mặt Đất & Địa Hình Vỉa Hè (Ground & Curb Snapping Chuẩn Xác từ LiDAR Points)
   window.addEventListener("CVAT_EXT_REQ_SNAP_GROUND", async (e: any) => {
-    const { jobId, frame, uiId, serverId, mode, deltaCm, deltaDeg, curbHeight, targetGroundZ: _targetGroundZ } = e.detail || {};
+    const { jobId, frame, uiId, serverId, mode, deltaCm, deltaDeg, curbHeight, targetGroundZ: _targetGroundZ, applyToTrack } = e.detail || {};
     try {
       const job = await getActiveJobInstance(jobId);
       const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
@@ -3925,6 +3973,33 @@ export function mainWorldScript(): void {
         await target.save();
       }
 
+      let framesSnapped = 1;
+      if (applyToTrack) {
+        try {
+          const deltaZ = newZ - curZ;
+          const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+          if (parentTrack) {
+            const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || (parentTrack as any)._shapes);
+            for (const sh of shapesList) {
+              if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+                const pts = [...sh.points];
+                pts[2] = Number((pts[2] + deltaZ).toFixed(3));
+                pts[3] = newRotX;
+                pts[4] = newRotY;
+                sh.points = pts;
+                if (typeof sh.save === "function") {
+                  await sh.save();
+                }
+                framesSnapped++;
+              }
+            }
+          }
+        } catch (tErr) {
+          console.warn("[CVAT 3D Suite] Lỗi snap ground cho toàn track:", tErr);
+        }
+        msg += ` (Đã ghim toàn bộ ${framesSnapped} frames trong track)`;
+      }
+
       updateThreeJsCuboid(
         uiId,
         undefined,
@@ -3939,7 +4014,7 @@ export function mainWorldScript(): void {
 
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_RES_SNAP_GROUND", {
-          detail: { success: true, uiId, newZ, mode, message: msg },
+          detail: { success: true, uiId, newZ, mode, applyToTrack, message: msg },
         })
       );
     } catch (err: any) {

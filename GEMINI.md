@@ -84,6 +84,16 @@
   - **Fit Rộng (W)**: Xe 2 bánh đệm nhẹ $+6\text{cm}$ (+3cm mỗi bên, trần $W \le 0.85\text{m}$); Người đi bộ đệm nhẹ $+4\text{cm}$ (+2cm mỗi bên, trần $W \le 0.68\text{m}$).
   - **Fit Dài (L)**: Người đi bộ đệm nhẹ $+5\text{cm}$ (trần $L \le 0.78\text{m}$).
 
+### 11. Ghim Đất Toàn Track & Căn Xe 2 Bánh Mất Bánh (Rider 42% Geometry)
+- **Nút Riêng "Ghim Đất Toàn Track"**:
+  - Nút riêng biệt trên `FloatingPanel` cạnh thao tác nhanh: duyệt và ghim toàn bộ các frame thuộc Track ID hiện tại xuống mặt đường hoặc vỉa hè theo độ chênh $\Delta Z$ và góc dốc mặt đường.
+  - Hỗ trợ Undo/Pre khôi phục 100% snapshot toàn track.
+- **Quy Tắc Người Lái Xe 2 Bánh (Rider 42% Geometry)**:
+  - Thân người lái xe ở tầng cao ($Z \ge Z_{\text{ground}} + 0.65\text{m}$) ngồi cách cản trước khoảng $\approx 42\%$ chiều dài xe ($lx_{\text{rider}} \approx +0.08 \cdot L$).
+  - **Mất bánh trước** ($dist_{\text{front}} < 0.28 \cdot L$): Tự động phóng mép cản trước ra $lx_{\text{rider}} + 0.42 \cdot L$, bám cản sau thật đón tia.
+  - **Mất bánh sau** ($dist_{\text{rear}} < 0.38 \cdot L$): Tự động phóng mép cản sau về $lx_{\text{rider}} - 0.58 \cdot L$, bám cản trước thật đón tia.
+  - **Mất cả 2 bánh** (chỉ có người lái): Tự động định vị tâm xe tại $lx_{\text{rider}} - 0.08 \cdot L$.
+
 ---
 
 ## II. QUY CHUẨN GIAO DIỆN (UI/UX)

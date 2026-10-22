@@ -388,7 +388,7 @@ export class CVATBridge {
     uiId: number,
     serverId: number,
     mode: "road" | "curb" | "half_curb" | "micro_adjust" | "micro_adjust_pitch" | "micro_adjust_roll" | "reset_slope",
-    params?: { deltaCm?: number; deltaDeg?: number; curbHeight?: number; targetGroundZ?: number }
+    params?: { deltaCm?: number; deltaDeg?: number; curbHeight?: number; targetGroundZ?: number; applyToTrack?: boolean }
   ): Promise<{ success: boolean; newZ: number; message: string }> {
     this.ensureMainWorldBridge();
     const currentFrame = this.getCurrentFrame();
@@ -420,6 +420,7 @@ export class CVATBridge {
             deltaDeg: params?.deltaDeg,
             curbHeight: params?.curbHeight,
             targetGroundZ: params?.targetGroundZ,
+            applyToTrack: params?.applyToTrack ?? false,
           },
         })
       );

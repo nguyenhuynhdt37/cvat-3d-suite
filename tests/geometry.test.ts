@@ -3137,7 +3137,134 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
   );
 }
 
-console.log("\n🎉 TẤT CẢ 83 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z, CĂN GÓC FRONT ROLL 2 ĐẦU, BẢO TOÀN CURPOINT BIÊN VÀ ĐỆM TINH GỌN ĐÃ ĐẠT 100%!");
+// 84. Test Căn SIDE Xe 2 Bánh MẤT BÁNH TRƯỚC (Dựa vào Người Lái 42% + Bánh Sau)
+{
+  const bikePtsMissingFront: Array<{ x: number; y: number; z: number }> = [];
+  // Mặt đất
+  for (let x = 18.5; x <= 21.5; x += 0.5) {
+    for (let y = 9.0; y <= 11.0; y += 0.5) {
+      bikePtsMissingFront.push({ x, y, z: 0.0 });
+    }
+  }
+  // Người lái ngồi ở vị trí 42% tính từ đầu cản trước (X = 20.15m, Z in [0.7m, 1.4m])
+  for (let z = 0.70; z <= 1.40; z += 0.15) {
+    bikePtsMissingFront.push({ x: 20.15, y: 10.0, z });
+  }
+  // Bánh sau có điểm tại X = 19.10m, Z = 0.15m
+  bikePtsMissingFront.push({ x: 19.10, y: 10.0, z: 0.15 });
+  // Phía trước người lái hoàn toàn KHÔNG CÓ ĐIỂM (mất bánh trước)!
+
+  // Xe Ego ở phía sau tại (10, 10, 0)
+  const res84 = fitTwoWheelerBox(
+    bikePtsMissingFront,
+    20.0, 10.0, 0.80, 0.0,
+    1.85, 0.70, 1.50,
+    { egoPos: { x: 10.0, y: 10.0, z: 0.0 } },
+    "side"
+  );
+
+  const frontEdge84 = res84.newCenterX + res84.newL / 2;
+  const rearEdge84 = res84.newCenterX - res84.newL / 2;
+
+  // Cản sau ôm sát bánh sau thật (19.10m)
+  assert.ok(
+    rearEdge84 <= 19.15,
+    `Test 84: Mép cản sau phải ôm sát bánh sau thật <= 19.15m (thực tế: ${rearEdge84.toFixed(3)}m)`
+  );
+  // Cản trước tự động vươn tới đúng cản trước ước lượng theo Người Lái 42% (>= 20.90m)
+  assert.ok(
+    frontEdge84 >= 20.90,
+    `Test 84: Mép cản trước phải tự động vươn tới đầu xe ước lượng theo Người Lái 42% >= 20.90m (thực tế: ${frontEdge84.toFixed(3)}m)`
+  );
+  assert.strictEqual(res84.newL, 1.85, "Test 84: Khóa size L=1.85m");
+
+  console.log(
+    `✅ Test 84: Xe 2 Bánh MẤT BÁNH TRƯỚC: Mép sau bám lốp sau (${rearEdge84.toFixed(2)}m) & Mép trước tự động vươn chuẩn Người Lái 42% (${frontEdge84.toFixed(2)}m >= 20.90m)`
+  );
+}
+
+// 85. Test Căn SIDE Xe 2 Bánh MẤT BÁNH SAU (Dựa vào Người Lái 42% + Bánh Trước)
+{
+  const bikePtsMissingRear: Array<{ x: number; y: number; z: number }> = [];
+  // Mặt đất
+  for (let x = 28.5; x <= 31.5; x += 0.5) {
+    for (let y = 9.0; y <= 11.0; y += 0.5) {
+      bikePtsMissingRear.push({ x, y, z: 0.0 });
+    }
+  }
+  // Người lái ngồi ở vị trí 42% tính từ đầu cản trước (X = 30.15m, Z in [0.7m, 1.4m])
+  for (let z = 0.70; z <= 1.40; z += 0.15) {
+    bikePtsMissingRear.push({ x: 30.15, y: 10.0, z });
+  }
+  // Bánh trước có điểm tại X = 30.90m, Z = 0.15m
+  bikePtsMissingRear.push({ x: 30.90, y: 10.0, z: 0.15 });
+  // Phía sau người lái hoàn toàn KHÔNG CÓ ĐIỂM (mất bánh sau)!
+
+  // Xe Ego ở phía trước tại (40, 10, 0)
+  const res85 = fitTwoWheelerBox(
+    bikePtsMissingRear,
+    30.0, 10.0, 0.80, 0.0,
+    1.85, 0.70, 1.50,
+    { egoPos: { x: 40.0, y: 10.0, z: 0.0 } },
+    "side"
+  );
+
+  const frontEdge85 = res85.newCenterX + res85.newL / 2;
+  const rearEdge85 = res85.newCenterX - res85.newL / 2;
+
+  // Cản trước ôm sát bánh trước thật (30.90m)
+  assert.ok(
+    frontEdge85 >= 30.85,
+    `Test 85: Mép cản trước phải ôm sát bánh trước thật >= 30.85m (thực tế: ${frontEdge85.toFixed(3)}m)`
+  );
+  // Cản sau tự động vươn về phía sau theo Người Lái 42% (<= 29.10m)
+  assert.ok(
+    rearEdge85 <= 29.10,
+    `Test 85: Mép cản sau phải tự động vươn về đuôi xe ước lượng theo Người Lái 42% <= 29.10m (thực tế: ${rearEdge85.toFixed(3)}m)`
+  );
+  assert.strictEqual(res85.newL, 1.85, "Test 85: Khóa size L=1.85m");
+
+  console.log(
+    `✅ Test 85: Xe 2 Bánh MẤT BÁNH SAU: Mép trước bám lốp trước (${frontEdge85.toFixed(2)}m) & Mép sau tự động vươn chuẩn Người Lái 42% (${rearEdge85.toFixed(2)}m <= 29.10m)`
+  );
+}
+
+// 86. Test Căn SIDE Xe 2 Bánh MẤT CẢ 2 BÁNH (Chỉ Có Người Ngồi Lái Tầng Cao)
+{
+  const bikePtsOnlyRider: Array<{ x: number; y: number; z: number }> = [];
+  // Mặt đất
+  for (let x = 38.5; x <= 41.5; x += 0.5) {
+    for (let y = 9.0; y <= 11.0; y += 0.5) {
+      bikePtsOnlyRider.push({ x, y, z: 0.0 });
+    }
+  }
+  // Chỉ có điểm người lái tại X = 40.15m (lxRider ~ +0.15m)
+  for (let z = 0.70; z <= 1.40; z += 0.15) {
+    bikePtsOnlyRider.push({ x: 40.15, y: 10.0, z });
+  }
+
+  // Bấm SIDE (không có bánh trước và bánh sau)
+  const res86 = fitTwoWheelerBox(
+    bikePtsOnlyRider,
+    40.0, 10.0, 0.80, 0.0,
+    1.85, 0.70, 1.50,
+    { egoPos: { x: 50.0, y: 10.0, z: 0.0 } },
+    "side"
+  );
+
+  // Tâm box mới phải định vị chính xác quanh 40.0m (khớp vị trí người lái 42% từ đầu xe)
+  assert.ok(
+    Math.abs(res86.newCenterX - 40.0) < 0.05,
+    `Test 86: Tâm box mới phải ở quanh 40.0m (thực tế: ${res86.newCenterX.toFixed(3)}m)`
+  );
+  assert.strictEqual(res86.newL, 1.85, "Test 86: Khóa size L=1.85m");
+
+  console.log(
+    `✅ Test 86: Xe 2 Bánh MẤT CẢ 2 BÁNH: Định vị tâm chuẩn theo Người Lái 42% (Tâm X = ${res86.newCenterX.toFixed(2)}m ~ 40.0m)`
+  );
+}
+
+console.log("\n🎉 TẤT CẢ 86 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z, CĂN GÓC FRONT ROLL 2 ĐẦU, BẢO TOÀN CURPOINT BIÊN, VÀ CĂN XE 2 BÁNH MẤT BÁNH TRƯỚC/SAU (RIDER 42%) ĐÃ ĐẠT 100%!");
 
 
 

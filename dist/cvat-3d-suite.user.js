@@ -1752,35 +1752,72 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newH = curH;
       let shiftLx = 0;
       let bumperLabel = "Đón tia";
+      const riderPts = bodyPts.filter((p) => p.z >= groundZ + 0.65);
+      const hasRider = riderPts.length >= 2;
+      let lxRider = 0;
+      if (hasRider) {
+        const sortedRiderLx = riderPts.map((p) => p.lx).sort((a, b) => a - b);
+        lxRider = sortedRiderLx[Math.floor(sortedRiderLx.length / 2)];
+      }
+      const distFront = hasRider ? lxMax - lxRider : curL / 2;
+      const distRear = hasRider ? lxRider - lxMin : curL / 2;
+      const isMissingFront = hasRider && distFront < 0.28 * curL;
+      const isMissingRear = hasRider && distRear < 0.38 * curL;
+      let lxEgo = null;
       if (options.egoPos) {
         const dxEgo = options.egoPos.x - cx;
         const dyEgo = options.egoPos.y - cy;
-        const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
-        if (lxEgo > 0.4) {
-          shiftLx = lxMax - curL / 2;
-          bumperLabel = "Cản trước";
-        } else if (lxEgo < -0.4) {
+        lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
+      }
+      if (isMissingFront && isMissingRear) {
+        shiftLx = lxRider - 0.08 * curL;
+        bumperLabel = "Người lái 42% (Mất cả 2 bánh)";
+      } else if (isMissingFront) {
+        const estFrontEdge = lxRider + 0.42 * curL;
+        if (lxEgo !== null && lxEgo < -0.3) {
           shiftLx = lxMin + curL / 2;
-          bumperLabel = "Cản sau";
+          bumperLabel = "Cản sau (Mất bánh trước)";
         } else {
-          shiftLx = (lxMin + lxMax) / 2;
-          bumperLabel = "Cân đối";
+          shiftLx = (lxMin + estFrontEdge) / 2;
+          bumperLabel = "Người lái 42% + Bánh sau (Mất bánh trước)";
+        }
+      } else if (isMissingRear) {
+        const estRearEdge = lxRider - 0.58 * curL;
+        if (lxEgo !== null && lxEgo > 0.3) {
+          shiftLx = lxMax - curL / 2;
+          bumperLabel = "Cản trước (Mất bánh sau)";
+        } else {
+          shiftLx = (estRearEdge + lxMax) / 2;
+          bumperLabel = "Người lái 42% + Bánh trước (Mất bánh sau)";
         }
       } else {
-        const frontCount = bodyPts.filter((p) => p.lx > 0).length;
-        const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
-        if (frontCount > rearCount * 1.5) {
-          shiftLx = lxMax - curL / 2;
-          bumperLabel = "Cản trước";
-        } else if (rearCount > frontCount * 1.5) {
-          shiftLx = lxMin + curL / 2;
-          bumperLabel = "Cản sau";
+        if (lxEgo !== null) {
+          if (lxEgo > 0.4) {
+            shiftLx = lxMax - curL / 2;
+            bumperLabel = "Cản trước";
+          } else if (lxEgo < -0.4) {
+            shiftLx = lxMin + curL / 2;
+            bumperLabel = "Cản sau";
+          } else {
+            shiftLx = (lxMin + lxMax) / 2;
+            bumperLabel = "Cân đối";
+          }
         } else {
-          shiftLx = (lxMin + lxMax) / 2;
-          bumperLabel = "Cân đối";
+          const frontCount = bodyPts.filter((p) => p.lx > 0).length;
+          const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
+          if (frontCount > rearCount * 1.5) {
+            shiftLx = lxMax - curL / 2;
+            bumperLabel = "Cản trước";
+          } else if (rearCount > frontCount * 1.5) {
+            shiftLx = lxMin + curL / 2;
+            bumperLabel = "Cản sau";
+          } else {
+            shiftLx = (lxMin + lxMax) / 2;
+            bumperLabel = "Cân đối";
+          }
         }
       }
-      shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
+      shiftLx = Math.max(-0.6, Math.min(0.6, shiftLx));
       newCenterZ = cz;
       newCenterX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
       newCenterY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
@@ -3840,35 +3877,72 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newH = curH;
         let shiftLx = 0;
         let bumperName = "Đón tia";
+        const riderPts = bodyPts.filter((p) => p.z >= groundZ + 0.65);
+        const hasRider = riderPts.length >= 2;
+        let lxRider = 0;
+        if (hasRider) {
+          const sortedRiderLx = riderPts.map((p) => p.lx).sort((a, b) => a - b);
+          lxRider = sortedRiderLx[Math.floor(sortedRiderLx.length / 2)];
+        }
+        const distFront = hasRider ? lxMax - lxRider : curL / 2;
+        const distRear = hasRider ? lxRider - lxMin : curL / 2;
+        const isMissingFront = hasRider && distFront < 0.28 * curL;
+        const isMissingRear = hasRider && distRear < 0.38 * curL;
+        let lxEgo = null;
         if (options.egoPos) {
           const dxEgo = options.egoPos.x - cx;
           const dyEgo = options.egoPos.y - cy;
-          const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
-          if (lxEgo > 0.4) {
-            shiftLx = lxMax - curL / 2;
-            bumperName = "Cản trước";
-          } else if (lxEgo < -0.4) {
+          lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
+        }
+        if (isMissingFront && isMissingRear) {
+          shiftLx = lxRider - 0.08 * curL;
+          bumperName = "Người lái 42% (Mất cả 2 bánh)";
+        } else if (isMissingFront) {
+          const estFrontEdge = lxRider + 0.42 * curL;
+          if (lxEgo !== null && lxEgo < -0.3) {
             shiftLx = lxMin + curL / 2;
-            bumperName = "Cản sau";
+            bumperName = "Cản sau (Mất bánh trước)";
           } else {
-            shiftLx = (lxMin + lxMax) / 2;
-            bumperName = "Cân đối";
+            shiftLx = (lxMin + estFrontEdge) / 2;
+            bumperName = "Người lái 42% + Bánh sau (Mất bánh trước)";
+          }
+        } else if (isMissingRear) {
+          const estRearEdge = lxRider - 0.58 * curL;
+          if (lxEgo !== null && lxEgo > 0.3) {
+            shiftLx = lxMax - curL / 2;
+            bumperName = "Cản trước (Mất bánh sau)";
+          } else {
+            shiftLx = (estRearEdge + lxMax) / 2;
+            bumperName = "Người lái 42% + Bánh trước (Mất bánh sau)";
           }
         } else {
-          const frontCount = bodyPts.filter((p) => p.lx > 0).length;
-          const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
-          if (frontCount > rearCount * 1.5) {
-            shiftLx = lxMax - curL / 2;
-            bumperName = "Cản trước";
-          } else if (rearCount > frontCount * 1.5) {
-            shiftLx = lxMin + curL / 2;
-            bumperName = "Cản sau";
+          if (lxEgo !== null) {
+            if (lxEgo > 0.4) {
+              shiftLx = lxMax - curL / 2;
+              bumperName = "Cản trước";
+            } else if (lxEgo < -0.4) {
+              shiftLx = lxMin + curL / 2;
+              bumperName = "Cản sau";
+            } else {
+              shiftLx = (lxMin + lxMax) / 2;
+              bumperName = "Cân đối";
+            }
           } else {
-            shiftLx = (lxMin + lxMax) / 2;
-            bumperName = "Cân đối";
+            const frontCount = bodyPts.filter((p) => p.lx > 0).length;
+            const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
+            if (frontCount > rearCount * 1.5) {
+              shiftLx = lxMax - curL / 2;
+              bumperName = "Cản trước";
+            } else if (rearCount > frontCount * 1.5) {
+              shiftLx = lxMin + curL / 2;
+              bumperName = "Cản sau";
+            } else {
+              shiftLx = (lxMin + lxMax) / 2;
+              bumperName = "Cân đối";
+            }
           }
         }
-        shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
+        shiftLx = Math.max(-0.6, Math.min(0.6, shiftLx));
         newZ = cz;
         newX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
         newY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
@@ -5049,7 +5123,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       window.dispatchEvent(new CustomEvent("CVAT_EXT_REQ_UPDATE_DIMENSIONS", { detail }));
     });
     window.addEventListener("CVAT_EXT_REQ_SNAP_GROUND", async (e) => {
-      const { jobId, frame, uiId, serverId, mode, deltaCm, deltaDeg, curbHeight, targetGroundZ: _targetGroundZ } = e.detail || {};
+      const { jobId, frame, uiId, serverId, mode, deltaCm, deltaDeg, curbHeight, targetGroundZ: _targetGroundZ, applyToTrack } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
@@ -5147,6 +5221,32 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (!isDrawn && typeof target.save === "function") {
           await target.save();
         }
+        let framesSnapped = 1;
+        if (applyToTrack) {
+          try {
+            const deltaZ = newZ - curZ;
+            const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+            if (parentTrack) {
+              const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || parentTrack._shapes);
+              for (const sh of shapesList) {
+                if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+                  const pts = [...sh.points];
+                  pts[2] = Number((pts[2] + deltaZ).toFixed(3));
+                  pts[3] = newRotX;
+                  pts[4] = newRotY;
+                  sh.points = pts;
+                  if (typeof sh.save === "function") {
+                    await sh.save();
+                  }
+                  framesSnapped++;
+                }
+              }
+            }
+          } catch (tErr) {
+            console.warn("[CVAT 3D Suite] Lỗi snap ground cho toàn track:", tErr);
+          }
+          msg += ` (Đã ghim toàn bộ ${framesSnapped} frames trong track)`;
+        }
         updateThreeJsCuboid(
           uiId,
           void 0,
@@ -5158,7 +5258,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         console.log(`[CVAT 3D Suite] ${msg} (Three.js Side/Front Re-rendered Realtime)`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_SNAP_GROUND", {
-            detail: { success: true, uiId, newZ, mode, message: msg }
+            detail: { success: true, uiId, newZ, mode, applyToTrack, message: msg }
           })
         );
       } catch (err) {
@@ -6502,7 +6602,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               deltaCm: params == null ? void 0 : params.deltaCm,
               deltaDeg: params == null ? void 0 : params.deltaDeg,
               curbHeight: params == null ? void 0 : params.curbHeight,
-              targetGroundZ: params == null ? void 0 : params.targetGroundZ
+              targetGroundZ: params == null ? void 0 : params.targetGroundZ,
+              applyToTrack: (params == null ? void 0 : params.applyToTrack) ?? false
             }
           })
         );
@@ -9410,8 +9511,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.showToast("Vui lòng chọn xe trước!", "warning");
         return;
       }
+      const forTrack = (params == null ? void 0 : params.applyToTrack) === true;
       if (this.isProcessing) return;
-      await this.pushUndoSnapshot(`Ghim Đất (${mode})`, false);
+      await this.pushUndoSnapshot(`Ghim Đất ${forTrack ? "Toàn Track " : ""}(${mode})`, forTrack);
       this.isProcessing = true;
       try {
         const serverId = this.selectedServerId || this.selectedUiId;
@@ -9434,6 +9536,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.isProcessing = false;
         this.updateContent();
       }
+    }
+    /**
+     * Nút Riêng: Ghim toàn bộ các frame của Track hiện tại xuống mặt đất
+     */
+    async handleSnapGroundTrack() {
+      await this.handleSnapGround("road", { applyToTrack: true });
     }
     /**
      * Xử lý FIT XE: Hỗ trợ CĂN TOP, CĂN SIDE, CĂN FRONT hoặc GHÉP CHU TRÌNH HOÀN CHỈNH (TOP ➔ SIDE ➔ FRONT)
@@ -10796,6 +10904,34 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               <kbd style="font-size: 9px; font-family: monospace; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 1px 4px; border-radius: 3px; color: #64748b;">F</kbd>
             </button>
           </div>
+
+          <!-- NÚT RIÊNG: GHIM ĐẤT TOÀN TRACK -->
+          <div style="margin-top: 5px;">
+            <button id="btn-snap-ground-track" title="Ghim toàn bộ đáy xe xuống mặt đất cho TẤT CẢ các frame theo Track ID #${this.selectedUiId !== null ? this.selectedUiId : "N/A"}" style="
+              width: 100%;
+              background: #f0fdf4;
+              border: 1px solid #86efac;
+              color: #15803d;
+              padding: 6px 10px;
+              border-radius: 7px;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            ">
+              <span style="display: flex; align-items: center; gap: 5px;">
+                <span style="display: flex; align-items: center; color: #16a34a;">${ICONS.road}</span>
+                <span>Ghim Đất Toàn Track</span>
+              </span>
+              <span style="display: flex; align-items: center; gap: 4px;">
+                <span style="font-size: 9px; background: #dcfce7; color: #15803d; padding: 1px 6px; border-radius: 4px; font-weight: 700; border: 1px solid #bbf7d0;">All Track</span>
+              </span>
+            </button>
+          </div>
         </div>
 
         <!-- KHỐI 3: BỘ ĐIỀU CHỈNH KÍCH THƯỚC & CENTER (COMPACT STEPPER - LIGHT) -->
@@ -11162,6 +11298,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (quickFlipBtn) quickFlipBtn.addEventListener("click", () => this.handleFlipYaw(true));
       const quickGroundBtn = this.container.querySelector("#btn-quick-ground");
       if (quickGroundBtn) quickGroundBtn.addEventListener("click", () => this.handleSnapGround("road"));
+      const quickGroundTrackBtn = this.container.querySelector("#btn-snap-ground-track");
+      if (quickGroundTrackBtn) quickGroundTrackBtn.addEventListener("click", () => this.handleSnapGroundTrack());
       const toggleAdvancedBtn = this.container.querySelector("#btn-toggle-advanced");
       if (toggleAdvancedBtn) {
         toggleAdvancedBtn.addEventListener("click", () => {

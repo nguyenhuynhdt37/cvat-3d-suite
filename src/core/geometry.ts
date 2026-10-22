@@ -3400,7 +3400,7 @@ export function fitTwoWheelerBox(
     msg = `Đã căn TOP Xe 2 bánh: Xoay Yaw (${newYawDeg}°, Δ=${deltaSign}${deltaYawDeg.toFixed(1)}°) theo trục Đầu - Đuôi, khóa tâm X/Y/Z và kích thước`;
   } else if (step === "side") {
     // -------------------------------------------------------------
-    // CHẾ ĐỘ 2: CĂN SIDE ĐỘC LẬP (Cản đón tia X & Ghim đất, Khóa L)
+    // CHẾ ĐỘ 2: CĂN SIDE ĐỘC LẬP (Cản đón tia X, Rider 42% Geometry, Khóa L)
     // -------------------------------------------------------------
     newYawRad = yaw;
     newYawDeg = radToDeg(yaw);
@@ -3412,39 +3412,95 @@ export function fitTwoWheelerBox(
     let shiftLx = 0;
     let bumperLabel = "Đón tia";
 
+    // Phân tích Người Lái (Rider): Người lái ở tầng cao Z >= groundZ + 0.65m
+    // Theo chuẩn giải phẫu hình học xe 2 bánh: Người lái ngồi cách cản trước khoảng 42% chiều dài xe (lxRider ~ +0.08 * curL)
+    const riderPts = bodyPts.filter((p) => p.z >= groundZ + 0.65);
+    const hasRider = riderPts.length >= 2;
+    let lxRider = 0;
+    if (hasRider) {
+      const sortedRiderLx = riderPts.map((p) => p.lx).sort((a, b) => a - b);
+      lxRider = sortedRiderLx[Math.floor(sortedRiderLx.length / 2)];
+    }
+
+    const distFront = hasRider ? lxMax - lxRider : curL / 2;
+    const distRear = hasRider ? lxRider - lxMin : curL / 2;
+
+    // Ngưỡng phát hiện mất bánh xe:
+    // Bình thường: khoảng cách từ người lái ra đầu xe ~ 0.42 * L; về đuôi xe ~ 0.58 * L.
+    // Nếu distFront < 0.28 * curL -> Mất bánh trước!
+    // Nếu distRear < 0.38 * curL -> Mất bánh sau!
+    const isMissingFront = hasRider && distFront < 0.28 * curL;
+    const isMissingRear = hasRider && distRear < 0.38 * curL;
+
+    let lxEgo: number | null = null;
     if (options.egoPos) {
       const dxEgo = options.egoPos.x - cx;
       const dyEgo = options.egoPos.y - cy;
-      const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
-      if (lxEgo > 0.4) {
-        // Ego phía trước xe -> Mép trước đón tia
-        shiftLx = lxMax - curL / 2;
-        bumperLabel = "Cản trước";
-      } else if (lxEgo < -0.4) {
-        // Ego phía sau xe -> Mép sau đón tia
+      lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
+    }
+
+    if (isMissingFront && isMissingRear) {
+      // 1. MẤT CẢ 2 BÁNH (Chỉ có điểm người ngồi lái):
+      // Người lái ngồi ở vị trí 42% tính từ đầu xe lùi lại -> Tọa độ tâm box ước lượng là lxRider - 0.08 * curL
+      shiftLx = lxRider - 0.08 * curL;
+      bumperLabel = "Người lái 42% (Mất cả 2 bánh)";
+    } else if (isMissingFront) {
+      // 2. MẤT BÁNH TRƯỚC (Có bánh sau hoặc Ego nhìn từ sau):
+      // Ước lượng đầu xe từ người lái: lxRider + 0.42 * curL
+      const estFrontEdge = lxRider + 0.42 * curL;
+      if (lxEgo !== null && lxEgo < -0.3) {
+        // Ego phía sau xe: Mép sau đón tia thật lxMin là chuẩn nhất
         shiftLx = lxMin + curL / 2;
-        bumperLabel = "Cản sau";
+        bumperLabel = "Cản sau (Mất bánh trước)";
       } else {
-        shiftLx = (lxMin + lxMax) / 2;
-        bumperLabel = "Cân đối";
+        // Ego phía trước hoặc ngang hông: Vì bánh trước bị mất, căn theo mép sau thật kết hợp đầu xe ước lượng
+        shiftLx = (lxMin + estFrontEdge) / 2;
+        bumperLabel = "Người lái 42% + Bánh sau (Mất bánh trước)";
+      }
+    } else if (isMissingRear) {
+      // 3. MẤT BÁNH SAU (Có bánh trước hoặc Ego nhìn từ trước):
+      // Ước lượng đuôi xe từ người lái: lxRider - 0.58 * curL
+      const estRearEdge = lxRider - 0.58 * curL;
+      if (lxEgo !== null && lxEgo > 0.3) {
+        // Ego phía trước xe: Mép trước đón tia thật lxMax là chuẩn nhất
+        shiftLx = lxMax - curL / 2;
+        bumperLabel = "Cản trước (Mất bánh sau)";
+      } else {
+        // Ego phía sau hoặc ngang hông: Vì bánh sau bị mất, căn theo mép trước thật kết hợp đuôi xe ước lượng
+        shiftLx = (estRearEdge + lxMax) / 2;
+        bumperLabel = "Người lái 42% + Bánh trước (Mất bánh sau)";
       }
     } else {
-      const frontCount = bodyPts.filter((p) => p.lx > 0).length;
-      const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
-      if (frontCount > rearCount * 1.5) {
-        shiftLx = lxMax - curL / 2;
-        bumperLabel = "Cản trước";
-      } else if (rearCount > frontCount * 1.5) {
-        shiftLx = lxMin + curL / 2;
-        bumperLabel = "Cản sau";
+      // 4. ĐỦ CẢ 2 BÁNH (Hoặc không có điểm người lái để đối chiếu):
+      if (lxEgo !== null) {
+        if (lxEgo > 0.4) {
+          shiftLx = lxMax - curL / 2;
+          bumperLabel = "Cản trước";
+        } else if (lxEgo < -0.4) {
+          shiftLx = lxMin + curL / 2;
+          bumperLabel = "Cản sau";
+        } else {
+          shiftLx = (lxMin + lxMax) / 2;
+          bumperLabel = "Cân đối";
+        }
       } else {
-        shiftLx = (lxMin + lxMax) / 2;
-        bumperLabel = "Cân đối";
+        const frontCount = bodyPts.filter((p) => p.lx > 0).length;
+        const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
+        if (frontCount > rearCount * 1.5) {
+          shiftLx = lxMax - curL / 2;
+          bumperLabel = "Cản trước";
+        } else if (rearCount > frontCount * 1.5) {
+          shiftLx = lxMin + curL / 2;
+          bumperLabel = "Cản sau";
+        } else {
+          shiftLx = (lxMin + lxMax) / 2;
+          bumperLabel = "Cân đối";
+        }
       }
     }
 
-    // Giới hạn dịch chuyển an toàn theo trục dọc X (±45cm)
-    shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
+    // Giới hạn dịch chuyển an toàn theo trục dọc X (±60cm)
+    shiftLx = Math.max(-0.60, Math.min(0.60, shiftLx));
 
     // TUYỆT ĐỐI KHÔNG GHIM ĐẤT: Giữ nguyên cao độ Z ban đầu của xe 2 bánh (đã có nút ghim đất riêng)
     newCenterZ = cz;

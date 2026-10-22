@@ -1001,7 +1001,7 @@ export class FloatingPanel {
    */
   public async handleSnapGround(
     mode: "road" | "curb" | "half_curb" | "micro_adjust" | "micro_adjust_pitch" | "micro_adjust_roll" | "reset_slope",
-    params?: { deltaCm?: number; deltaDeg?: number; curbHeight?: number; targetGroundZ?: number }
+    params?: { deltaCm?: number; deltaDeg?: number; curbHeight?: number; targetGroundZ?: number; applyToTrack?: boolean }
   ): Promise<void> {
     if (!this.currentCtx || !this.currentCtx.jobId) {
       this.showToast("Chưa kết nối Job CVAT!", "warning");
@@ -1013,8 +1013,9 @@ export class FloatingPanel {
       return;
     }
 
+    const forTrack = params?.applyToTrack === true;
     if (this.isProcessing) return;
-    await this.pushUndoSnapshot(`Ghim Đất (${mode})`, false);
+    await this.pushUndoSnapshot(`Ghim Đất ${forTrack ? "Toàn Track " : ""}(${mode})`, forTrack);
     this.isProcessing = true;
 
     try {
@@ -1040,6 +1041,13 @@ export class FloatingPanel {
       this.isProcessing = false;
       this.updateContent();
     }
+  }
+
+  /**
+   * Nút Riêng: Ghim toàn bộ các frame của Track hiện tại xuống mặt đất
+   */
+  public async handleSnapGroundTrack(): Promise<void> {
+    await this.handleSnapGround("road", { applyToTrack: true });
   }
 
   /**
@@ -2544,6 +2552,34 @@ export class FloatingPanel {
               <kbd style="font-size: 9px; font-family: monospace; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 1px 4px; border-radius: 3px; color: #64748b;">F</kbd>
             </button>
           </div>
+
+          <!-- NÚT RIÊNG: GHIM ĐẤT TOÀN TRACK -->
+          <div style="margin-top: 5px;">
+            <button id="btn-snap-ground-track" title="Ghim toàn bộ đáy xe xuống mặt đất cho TẤT CẢ các frame theo Track ID #${this.selectedUiId !== null ? this.selectedUiId : 'N/A'}" style="
+              width: 100%;
+              background: #f0fdf4;
+              border: 1px solid #86efac;
+              color: #15803d;
+              padding: 6px 10px;
+              border-radius: 7px;
+              font-size: 11px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            ">
+              <span style="display: flex; align-items: center; gap: 5px;">
+                <span style="display: flex; align-items: center; color: #16a34a;">${ICONS.road}</span>
+                <span>Ghim Đất Toàn Track</span>
+              </span>
+              <span style="display: flex; align-items: center; gap: 4px;">
+                <span style="font-size: 9px; background: #dcfce7; color: #15803d; padding: 1px 6px; border-radius: 4px; font-weight: 700; border: 1px solid #bbf7d0;">All Track</span>
+              </span>
+            </button>
+          </div>
         </div>
 
         <!-- KHỐI 3: BỘ ĐIỀU CHỈNH KÍCH THƯỚC & CENTER (COMPACT STEPPER - LIGHT) -->
@@ -2943,6 +2979,10 @@ export class FloatingPanel {
 
     const quickGroundBtn = this.container.querySelector("#btn-quick-ground");
     if (quickGroundBtn) quickGroundBtn.addEventListener("click", () => this.handleSnapGround("road"));
+
+    // Nút Riêng: Ghim Đất Toàn Track
+    const quickGroundTrackBtn = this.container.querySelector("#btn-snap-ground-track");
+    if (quickGroundTrackBtn) quickGroundTrackBtn.addEventListener("click", () => this.handleSnapGroundTrack());
 
     // 4. Gắn sự kiện Mở rộng / Thu gọn Accordion Tinh chỉnh nâng cao
     const toggleAdvancedBtn = this.container.querySelector("#btn-toggle-advanced");
