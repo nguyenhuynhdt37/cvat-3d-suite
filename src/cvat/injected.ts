@@ -82,11 +82,43 @@ export function mainWorldScript(): void {
   }
 
   // Thuật toán Annular Ring Ground Detection & 3D Slope Fitting (Pitch Dọc & Roll Ngang Front)
+  // Thuật toán ƯỚC LƯỢNG CAO ĐỘ MẶT ĐƯỜNG XE EGO (Ego Road Surface Z Reference):
+  // Quét các điểm mặt đường trong bán kính 1.2m - 6.0m quanh xe Ego làm mốc chuẩn
+  function getEgoRoadGroundZInMainWorld(egoPos: { x: number; y: number; z: number } = { x: 0, y: 0, z: 0 }): number {
+    const lidar = getSceneLidarPoints();
+    if (!lidar || lidar.count === 0) return 0;
+    const { count, array } = lidar;
+    const minRSq = 1.2 * 1.2;
+    const maxRSq = 6.0 * 6.0;
+    const zArr: number[] = [];
+    for (let i = 0; i < count; i++) {
+      const x = array[i * 3];
+      const y = array[i * 3 + 1];
+      const z = array[i * 3 + 2];
+      const dx = x - egoPos.x;
+      const dy = y - egoPos.y;
+      const dSq = dx * dx + dy * dy;
+      if (dSq >= minRSq && dSq <= maxRSq) {
+        if (z >= egoPos.z - 3.5 && z <= egoPos.z + 0.5) {
+          zArr.push(z);
+        }
+      }
+    }
+    if (zArr.length < 8) return 0;
+    zArr.sort((a, b) => a - b);
+    const cutLow = Math.floor(zArr.length * 0.01);
+    const validZ = zArr.slice(cutLow);
+    const p15 = validZ[Math.floor(validZ.length * 0.15)];
+    return Number(p15.toFixed(3));
+  }
+
   // Thuật toán TÍNH CAO ĐỘ MẶT ĐẤT VÀ ĐỘ DỐC ĐƯỜNG 3D THEO FOOTPRINT VẾT ĐÈ CỦA BOX (Pitch & Roll Fitting)
   // - Thu hẹp bán kính quét XY bám sát viền bánh xe (+0.55m dọc đầu đuôi, +0.45m ngang sườn xe Front)
   //   Loại bỏ 100% nhiễu do vơ phải các điểm của xe bên cạnh, dải phân cách bê tông hay tường rào
   // - Mở rộng độ sâu quét Z sâu xuống -4.5m dưới tâm xe để bắt trọn curpoint mặt đường dưới cùng khi box lơ lửng
   // - Cân bằng 4 góc tiếp đất (Front-Left, Front-Right, Rear-Left, Rear-Right) đảm bảo căn cứ dốc ngang Front (Roll) chuẩn xác
+  // - Căn góc dốc ngang Front Roll theo 2 đầu mép biên 0–10% và 90–100%: nếu không đủ điểm -> khóa Roll = 0°
+  // - Tham chiếu mốc Z mặt đường Ego (Ego Road Z) chống lún âm đất và nhận diện nền vỉa hè
   function detectAccurateGroundZ(
     cx: number,
     cy: number,
@@ -96,7 +128,8 @@ export function mainWorldScript(): void {
     halfW: number,
     halfH: number = 0.8,
     isInitialBox: boolean = false,
-    lockRollFlat: boolean = false
+    lockRollFlat: boolean = false,
+    egoRoadZ?: number
   ): {
     groundZ: number | null;
     pitchRad: number;
@@ -105,6 +138,7 @@ export function mainWorldScript(): void {
     rollDeg: number;
     groundPointsCount: number;
     isFallbackZeroGround?: boolean;
+    isCurbGround?: boolean;
   } {
     const lidar = getSceneLidarPoints();
     if (!lidar || lidar.count === 0) {
@@ -172,16 +206,19 @@ export function mainWorldScript(): void {
       }
     }
 
+    const resolvedEgoRoadZ = egoRoadZ !== undefined ? egoRoadZ : getEgoRoadGroundZInMainWorld();
+
     if (groundPts.length < 6) {
-      // Dưới chân không có điểm hoặc rất ít điểm (< 6 điểm) -> Lấy mốc Ego làm Z = 0, đặt phẳng mặt xuống
+      // Dưới chân không có điểm hoặc rất ít điểm (< 6 điểm) -> Neo chuẩn theo mốc Z mặt đường của Ego
       return {
-        groundZ: 0,
+        groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
         pitchRad: 0,
         rollRad: 0,
         pitchDeg: 0,
         rollDeg: 0,
         groundPointsCount: groundPts.length,
         isFallbackZeroGround: true,
+        isCurbGround: false,
       };
     }
 
@@ -327,14 +364,14 @@ export function mainWorldScript(): void {
     }
 
     // Tính sai số dư (residual) của các điểm so với mặt phẳng hồi quy OLS
+    let meanResidual = 0;
     if (Math.abs(det) > 1e-4) {
       let sumRes = 0;
       for (const p of finalPts) {
         const expectedZ = a * p.lx + b * p.ly + c0;
         sumRes += Math.abs(p.z - expectedZ);
       }
-      const meanResidual = sumRes / finalPts.length;
-      void meanResidual;
+      meanResidual = sumRes / finalPts.length;
     }
 
     // =========================================================================
@@ -398,6 +435,65 @@ export function mainWorldScript(): void {
           pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(aRoad)));
         }
       }
+    } else {
+      // =========================================================================
+      // CĂN GÓC DỐC NGANG FRONT ROLL THEO 2 ĐẦU MÉP BIÊN 0–10% VÀ 90–100%:
+      // =========================================================================
+      const W = halfW * 2;
+      const edgeRightPts = validPts.filter(
+        (p) => p.ly >= -halfW - 0.45 && p.ly <= -halfW + W * 0.20
+      );
+      const edgeLeftPts = validPts.filter(
+        (p) => p.ly >= halfW - W * 0.20 && p.ly <= halfW + 0.45
+      );
+
+      if (edgeRightPts.length >= 2 && edgeLeftPts.length >= 2) {
+        const aSlope = -Math.tan(pitchRad);
+        const zRightTrans = edgeRightPts.map((p) => p.z - aSlope * p.lx).sort((a, b) => a - b);
+        const zLeftTrans = edgeLeftPts.map((p) => p.z - aSlope * p.lx).sort((a, b) => a - b);
+        const zRight = zRightTrans[Math.floor(zRightTrans.length / 2)];
+        const zLeft = zLeftTrans[Math.floor(zLeftTrans.length / 2)];
+
+        const sumRightLy = edgeRightPts.reduce((s, p) => s + p.ly, 0);
+        const sumLeftLy = edgeLeftPts.reduce((s, p) => s + p.ly, 0);
+        const meanRightLy = sumRightLy / edgeRightPts.length;
+        const meanLeftLy = sumLeftLy / edgeLeftPts.length;
+        const spanY = Math.max(0.5, meanLeftLy - meanRightLy);
+
+        const deltaZ = zLeft - zRight;
+        const edgeRoll = Math.atan(deltaZ / spanY);
+
+        if (Math.abs(rollRad - edgeRoll) < 0.05) {
+          c0 = (zLeft + zRight) / 2;
+        } else {
+          rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, edgeRoll));
+          c0 = (zLeft + zRight) / 2;
+        }
+      } else {
+        // Ít điểm hoặc không check được mây điểm mặt đường ở cả 2 đầu mép -> BẮT BUỘC KHÓA CỨNG Roll = 0°
+        rollRad = 0;
+      }
+    }
+
+    // =========================================================================
+    // NHẬN DIỆN NỀN VỈA HÈ & CHỐNG LÚN ÂM ĐẤT THEO EGO ROAD Z REFERENCE:
+    // =========================================================================
+    let isCurbGround = false;
+    const refEgoZ = egoRoadZ !== undefined ? egoRoadZ : getEgoRoadGroundZInMainWorld();
+    if (!isCurbOrRamp && refEgoZ !== 0) {
+      // 1. Xe đỗ hoàn toàn trên vỉa hè: Mây điểm mặt đất cao hơn Ego Road Z từ +8cm đến +35cm
+      if (c0 >= refEgoZ + 0.08 && c0 <= refEgoZ + 0.35) {
+        isCurbGround = true;
+        if (Math.abs(rollRad) < (5 * Math.PI) / 180) {
+          rollRad = 0;
+        }
+      }
+      // 2. Chống lún âm đất cho xe ít điểm: Không cho c0 tụt sâu âm hơn mặt đường Ego quá 25cm
+      else if (c0 < refEgoZ - 0.25 && validPts.length < 15) {
+        c0 = refEgoZ;
+        rollRad = 0;
+        pitchRad = 0;
+      }
     }
 
     let pitchRadVal = Number(pitchRad.toFixed(5));
@@ -417,6 +513,7 @@ export function mainWorldScript(): void {
       pitchDeg: pitchDegVal,
       rollDeg: rollDegVal,
       groundPointsCount: finalPts.length,
+      isCurbGround,
     };
   }
 
@@ -3622,24 +3719,30 @@ export function mainWorldScript(): void {
         const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW / 2, curH / 2, false, false);
 
         if (groundInfo.isFallbackZeroGround || groundInfo.groundPointsCount < 6) {
-          // Với box mà dưới chân không có điểm hoặc rất ít (< 6 điểm): Lấy mốc Ego Z = 0, đặt phẳng mặt xuống
+          // Với box mà dưới chân không có điểm hoặc rất ít (< 6 điểm): Neo chuẩn theo mốc Z mặt đường Ego chống âm đất
+          const baseZ = groundInfo.groundZ !== null ? groundInfo.groundZ : 0;
           newRotX = 0;
           newRotY = 0;
-          newZ = Number((0 + curH / 2).toFixed(3));
-          msg = `Dưới chân ít điểm LiDAR (${groundInfo.groundPointsCount} điểm) ➔ Lấy mốc Ego Z = 0, đặt phẳng đáy xe tại Z = 0 (Tâm Z: ${newZ}m, Roll 0°, Pitch 0°)`;
+          newZ = Number((baseZ + curH / 2).toFixed(3));
+          msg = `Dưới chân ít điểm LiDAR (${groundInfo.groundPointsCount} điểm) ➔ Neo đáy xe theo mốc Ego Road Z: ${baseZ}m (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
         } else if (groundInfo.groundZ !== null) {
           const cosPitch = Math.cos(groundInfo.pitchRad);
           const cosRoll = Math.cos(groundInfo.rollRad);
           newZ = Number((groundInfo.groundZ + (curH / 2) * cosPitch * cosRoll).toFixed(3));
-          newRotX = groundInfo.rollRad; // Bám đúng độ dốc ngang Roll của mặt đường (Front View khít 100%)
+          newRotX = groundInfo.rollRad; // Bám đúng độ dốc ngang Roll theo 2 đầu mép biên (Front View khít 100%)
           newRotY = groundInfo.pitchRad; // Bám đúng độ dốc dọc Pitch của mặt đường (Side View khít 100%)
-          msg = `Đã ghim đáy xe #${uiId} bám sát mặt đường (Z: ${newZ}m, Roll: ${groundInfo.rollDeg}°, Pitch: ${groundInfo.pitchDeg}°)`;
+          if (groundInfo.isCurbGround) {
+            msg = `Đã nhận diện xe #${uiId} đỗ trên nền vỉa hè (Z đất: ${groundInfo.groundZ}m, Tâm Z: ${newZ}m, Khóa Roll: ${groundInfo.rollDeg}°)`;
+          } else {
+            msg = `Đã ghim đáy xe #${uiId} bám sát mặt đường (Z: ${newZ}m, Roll: ${groundInfo.rollDeg}°, Pitch: ${groundInfo.pitchDeg}°)`;
+          }
         } else {
-          // Fallback nếu không có điểm mặt đất: mốc Ego Z = 0 đặt phẳng mặt
+          // Fallback nếu không có điểm mặt đất: neo theo mốc Ego Z
+          const egoZ = getEgoRoadGroundZInMainWorld();
           newRotX = 0;
           newRotY = 0;
-          newZ = Number((0 + curH / 2).toFixed(3));
-          msg = `Không có điểm mặt đất ➔ Lấy mốc Ego Z = 0, đặt phẳng đáy xe tại Z = 0 (Tâm Z: ${newZ}m)`;
+          newZ = Number((egoZ + curH / 2).toFixed(3));
+          msg = `Không có điểm mặt đất ➔ Neo theo mốc Ego Road Z: ${egoZ}m (Tâm Z: ${newZ}m)`;
         }
       } else if (mode === "curb") {
         // TỰ ĐỘNG NHẬN DIỆN VỈA HÈ TỪ LIDAR (BÁN KÍNH RỘNG + ĐỘ SÂU)

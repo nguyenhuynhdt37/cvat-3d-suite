@@ -54,6 +54,16 @@
   - **Fit Cao (H)**: Chuẩn **Ground-Lock**: mặt đáy tiếp đất $Z_{\text{base}}$ giữ nguyên cố định, chiều cao $H$ nở lên đỉnh đầu ($+12\text{cm}$ đệm đầu), giữ nguyên $L, W$ và $XY$.
 - **Khóa Thẳng Đứng**: Luôn khóa cứng $\text{Roll} = 0^\circ, \text{Pitch} = 0^\circ$ tuyệt đối cho người đi bộ.
 
+### 8. Chuẩn Ghim Mặt Đất: Tham Chiếu Ego Road Z & Căn Dốc Front Roll 2 Mép Biên
+- **Mốc Mặt Đường Chuẩn của Xe Ego ($Z_{\text{ego\_road}}$)**:
+  - Tự động trích xuất $Z_{\text{ego\_road}}$ từ đám mây điểm mặt đường quanh vùng xe Ego (bán kính $1.2\text{m} \sim 6.0\text{m}$).
+  - **Chống Lún Âm Đất**: Đối với các xe ở xa, ít điểm (< 6 điểm) hoặc bị che khuất không có điểm mặt đất dưới gầm: Đáy box được neo chuẩn theo mốc $Z_{\text{ego\_road}}$, khóa cứng $\text{Roll} = 0^\circ, \text{Pitch} = 0^\circ$, loại bỏ 100% tình trạng box rơi tự do xuống âm đất.
+  - **Nhận Diện Nền Vỉa Hè Chuẩn**: Khi mây điểm mặt đất dưới xe cao hơn $Z_{\text{ego\_road}}$ từ $+8\text{cm} \sim +35\text{cm}$: Xác nhận xe đỗ trên vỉa hè (`isCurbGround = true`), ghim đáy box bám sát mặt vỉa hè thực tế, không kéo tụt xuống lòng đường Ego.
+- **Căn Góc Dốc Ngang Front View (Roll) Theo 2 Đầu Mép Biên 0–10% & 90–100%**:
+  - Dải 0–10% (mép phải) và 90–100% (mép trái) theo trục ngang $Y$ của object:
+    - Nếu cả 2 đầu mép đều có điểm tiếp đất tin cậy ($\ge 2$ điểm mỗi bên): Khử thành phần dốc dọc Pitch, tính độ dốc ngang $\text{Roll} = \arctan\left(\frac{Z_{\text{left}} - Z_{\text{right}}}{\text{spanY}}\right)$ và đặt tâm $c_0 = \frac{Z_{\text{left}} + Z_{\text{right}}}{2}$ để 2 đầu mép đáy của box cách đều mặt đường dốc.
+    - Nếu ít điểm hoặc không check được điểm mặt đường ở 1 trong 2 đầu (hoặc cả 2 đầu): **BẮT BUỘC KHÓA CỨNG Roll = 0° (0 độ)** phẳng hoàn toàn, tuyệt đối không đoán mò làm nghiêng vẹo box!
+
 ---
 
 ## II. QUY CHUẨN GIAO DIỆN (UI/UX)

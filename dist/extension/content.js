@@ -642,6 +642,52 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       validPointsCount: cleanPts.length
     };
   }
+  function estimateEgoRoadGroundZ(pts, egoPos = { x: 0, y: 0, z: 0 }, options = {}) {
+    const minR = options.minRadius ?? 1.2;
+    const maxR = options.maxRadius ?? 6;
+    const defaultZ = options.defaultZ ?? -1.75;
+    const minRSq = minR * minR;
+    const maxRSq = maxR * maxR;
+    const groundZArr = [];
+    if (Array.isArray(pts) && pts.length > 0 && typeof pts[0].x === "number") {
+      const arr = pts;
+      for (let i = 0; i < arr.length; i++) {
+        const p = arr[i];
+        const dx = p.x - egoPos.x;
+        const dy = p.y - egoPos.y;
+        const distSq = dx * dx + dy * dy;
+        if (distSq >= minRSq && distSq <= maxRSq) {
+          if (p.z >= egoPos.z - 3.5 && p.z <= egoPos.z + 0.5) {
+            groundZArr.push(p.z);
+          }
+        }
+      }
+    } else {
+      const raw = pts;
+      const len = raw.length;
+      for (let i = 0; i < len; i += 3) {
+        const x = raw[i];
+        const y = raw[i + 1];
+        const z = raw[i + 2];
+        const dx = x - egoPos.x;
+        const dy = y - egoPos.y;
+        const distSq = dx * dx + dy * dy;
+        if (distSq >= minRSq && distSq <= maxRSq) {
+          if (z >= egoPos.z - 3.5 && z <= egoPos.z + 0.5) {
+            groundZArr.push(z);
+          }
+        }
+      }
+    }
+    if (groundZArr.length < 8) {
+      return defaultZ;
+    }
+    groundZArr.sort((a, b) => a - b);
+    const cutLow = Math.floor(groundZArr.length * 0.01);
+    const validZ = groundZArr.slice(cutLow);
+    const p15Idx = Math.floor(validZ.length * 0.15);
+    return Number(validZ[p15Idx].toFixed(3));
+  }
   function computeGroundSlopesAndZ(pts, cx, cy, cz, yaw, halfL, halfW, ceilingZ, options = {}) {
     const cosY = Math.cos(-yaw);
     const sinY = Math.sin(-yaw);
@@ -680,15 +726,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
     }
+    const resolvedEgoRoadZ = options.egoRoadZ !== void 0 ? options.egoRoadZ : pts && pts.length >= 8 ? estimateEgoRoadGroundZ(pts, options.egoPos, { defaultZ: 0 }) : 0;
     if (groundPts.length < 6) {
       return {
-        groundZ: 0,
+        groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
         pitchRad: 0,
         rollRad: 0,
         pitchDeg: 0,
         rollDeg: 0,
         groundPointsCount: groundPts.length,
-        isFallbackZeroGround: true
+        isFallbackZeroGround: true,
+        isCurbGround: false
       };
     }
     groundPts.sort((a, b) => a.z - b.z);
@@ -848,6 +896,50 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(aRoad)));
         }
       }
+    } else {
+      const W = halfW * 2;
+      const edgeRightPts = validPts.filter(
+        (p) => p.ly >= -halfW - 0.45 && p.ly <= -halfW + W * 0.2
+      );
+      const edgeLeftPts = validPts.filter(
+        (p) => p.ly >= halfW - W * 0.2 && p.ly <= halfW + 0.45
+      );
+      if (edgeRightPts.length >= 2 && edgeLeftPts.length >= 2) {
+        const aSlope = -Math.tan(pitchRad);
+        const zRightTrans = edgeRightPts.map((p) => p.z - aSlope * p.lx).sort((a, b) => a - b);
+        const zLeftTrans = edgeLeftPts.map((p) => p.z - aSlope * p.lx).sort((a, b) => a - b);
+        const zRight = zRightTrans[Math.floor(zRightTrans.length / 2)];
+        const zLeft = zLeftTrans[Math.floor(zLeftTrans.length / 2)];
+        const sumRightLy = edgeRightPts.reduce((s, p) => s + p.ly, 0);
+        const sumLeftLy = edgeLeftPts.reduce((s, p) => s + p.ly, 0);
+        const meanRightLy = sumRightLy / edgeRightPts.length;
+        const meanLeftLy = sumLeftLy / edgeLeftPts.length;
+        const spanY = Math.max(0.5, meanLeftLy - meanRightLy);
+        const deltaZ = zLeft - zRight;
+        const edgeRoll = Math.atan(deltaZ / spanY);
+        if (Math.abs(rollRad - edgeRoll) < 0.05) {
+          c0 = (zLeft + zRight) / 2;
+        } else {
+          rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, edgeRoll));
+          c0 = (zLeft + zRight) / 2;
+        }
+      } else {
+        rollRad = 0;
+      }
+    }
+    let isCurbGround = false;
+    if (!isCurbOrRamp && options.egoRoadZ !== void 0) {
+      const egoZ = options.egoRoadZ;
+      if (c0 >= egoZ + 0.08 && c0 <= egoZ + 0.35) {
+        isCurbGround = true;
+        if (Math.abs(rollRad) < 5 * Math.PI / 180) {
+          rollRad = 0;
+        }
+      } else if (c0 < egoZ - 0.25 && validPts.length < 15) {
+        c0 = egoZ;
+        rollRad = 0;
+        pitchRad = 0;
+      }
     }
     let pitchRadVal = Number(pitchRad.toFixed(5));
     let rollRadVal = Number(rollRad.toFixed(5));
@@ -863,7 +955,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       rollRad: rollRadVal,
       pitchDeg: pitchDegVal,
       rollDeg: rollDegVal,
-      groundPointsCount: finalPts.length
+      groundPointsCount: finalPts.length,
+      isCurbGround
     };
   }
   function fitBoxToEgoRayAndGround(pts, cx, cy, cz, yaw, L, W, H, egoPos = { x: 0, y: 0, z: 0 }, options = {}) {
@@ -1882,6 +1975,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     globalThis.fitCyclistBox = fitCyclistBox;
     globalThis.fitTwoWheelerBox = fitTwoWheelerBox;
     globalThis.estimateTwoWheelerHeading = estimateTwoWheelerHeading;
+    globalThis.estimateEgoRoadGroundZ = estimateEgoRoadGroundZ;
+    globalThis.computeGroundSlopesAndZ = computeGroundSlopesAndZ;
   }
   if (typeof window !== "undefined") {
     window.boxCorners = boxCorners;
@@ -1894,6 +1989,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     window.fitCyclistBox = fitCyclistBox;
     window.fitTwoWheelerBox = fitTwoWheelerBox;
     window.estimateTwoWheelerHeading = estimateTwoWheelerHeading;
+    window.estimateEgoRoadGroundZ = estimateEgoRoadGroundZ;
+    window.computeGroundSlopesAndZ = computeGroundSlopesAndZ;
   }
   function mainWorldScript() {
     if (window.__CVAT_3D_SUITE_INJECTED__) return;
@@ -1957,7 +2054,34 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return null;
       }
     }
-    function detectAccurateGroundZ(cx, cy, cz, yaw, halfL, halfW, halfH = 0.8, isInitialBox = false, lockRollFlat = false) {
+    function getEgoRoadGroundZInMainWorld(egoPos = { x: 0, y: 0, z: 0 }) {
+      const lidar = getSceneLidarPoints();
+      if (!lidar || lidar.count === 0) return 0;
+      const { count, array } = lidar;
+      const minRSq = 1.2 * 1.2;
+      const maxRSq = 6 * 6;
+      const zArr = [];
+      for (let i = 0; i < count; i++) {
+        const x = array[i * 3];
+        const y = array[i * 3 + 1];
+        const z = array[i * 3 + 2];
+        const dx = x - egoPos.x;
+        const dy = y - egoPos.y;
+        const dSq = dx * dx + dy * dy;
+        if (dSq >= minRSq && dSq <= maxRSq) {
+          if (z >= egoPos.z - 3.5 && z <= egoPos.z + 0.5) {
+            zArr.push(z);
+          }
+        }
+      }
+      if (zArr.length < 8) return 0;
+      zArr.sort((a, b) => a - b);
+      const cutLow = Math.floor(zArr.length * 0.01);
+      const validZ = zArr.slice(cutLow);
+      const p15 = validZ[Math.floor(validZ.length * 0.15)];
+      return Number(p15.toFixed(3));
+    }
+    function detectAccurateGroundZ(cx, cy, cz, yaw, halfL, halfW, halfH = 0.8, isInitialBox = false, lockRollFlat = false, egoRoadZ) {
       const lidar = getSceneLidarPoints();
       if (!lidar || lidar.count === 0) {
         return {
@@ -2010,15 +2134,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
       }
+      const resolvedEgoRoadZ = getEgoRoadGroundZInMainWorld();
       if (groundPts.length < 6) {
         return {
-          groundZ: 0,
+          groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
           pitchRad: 0,
           rollRad: 0,
           pitchDeg: 0,
           rollDeg: 0,
           groundPointsCount: groundPts.length,
-          isFallbackZeroGround: true
+          isFallbackZeroGround: true,
+          isCurbGround: false
         };
       }
       groundPts.sort((a2, b2) => a2.z - b2.z);
@@ -2178,6 +2304,50 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(aRoad)));
           }
         }
+      } else {
+        const W = halfW * 2;
+        const edgeRightPts = validPts.filter(
+          (p) => p.ly >= -halfW - 0.45 && p.ly <= -halfW + W * 0.2
+        );
+        const edgeLeftPts = validPts.filter(
+          (p) => p.ly >= halfW - W * 0.2 && p.ly <= halfW + 0.45
+        );
+        if (edgeRightPts.length >= 2 && edgeLeftPts.length >= 2) {
+          const aSlope = -Math.tan(pitchRad);
+          const zRightTrans = edgeRightPts.map((p) => p.z - aSlope * p.lx).sort((a2, b2) => a2 - b2);
+          const zLeftTrans = edgeLeftPts.map((p) => p.z - aSlope * p.lx).sort((a2, b2) => a2 - b2);
+          const zRight = zRightTrans[Math.floor(zRightTrans.length / 2)];
+          const zLeft = zLeftTrans[Math.floor(zLeftTrans.length / 2)];
+          const sumRightLy = edgeRightPts.reduce((s, p) => s + p.ly, 0);
+          const sumLeftLy = edgeLeftPts.reduce((s, p) => s + p.ly, 0);
+          const meanRightLy = sumRightLy / edgeRightPts.length;
+          const meanLeftLy = sumLeftLy / edgeLeftPts.length;
+          const spanY = Math.max(0.5, meanLeftLy - meanRightLy);
+          const deltaZ = zLeft - zRight;
+          const edgeRoll = Math.atan(deltaZ / spanY);
+          if (Math.abs(rollRad - edgeRoll) < 0.05) {
+            c0 = (zLeft + zRight) / 2;
+          } else {
+            rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, edgeRoll));
+            c0 = (zLeft + zRight) / 2;
+          }
+        } else {
+          rollRad = 0;
+        }
+      }
+      let isCurbGround = false;
+      const refEgoZ = getEgoRoadGroundZInMainWorld();
+      if (!isCurbOrRamp && refEgoZ !== 0) {
+        if (c0 >= refEgoZ + 0.08 && c0 <= refEgoZ + 0.35) {
+          isCurbGround = true;
+          if (Math.abs(rollRad) < 5 * Math.PI / 180) {
+            rollRad = 0;
+          }
+        } else if (c0 < refEgoZ - 0.25 && validPts.length < 15) {
+          c0 = refEgoZ;
+          rollRad = 0;
+          pitchRad = 0;
+        }
       }
       let pitchRadVal = Number(pitchRad.toFixed(5));
       let rollRadVal = Number(rollRad.toFixed(5));
@@ -2193,7 +2363,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         rollRad: rollRadVal,
         pitchDeg: pitchDegVal,
         rollDeg: rollDegVal,
-        groundPointsCount: finalPts.length
+        groundPointsCount: finalPts.length,
+        isCurbGround
       };
     }
     function detectCurbStepAndRollInMainWorld(cx, cy, cz, yaw, halfL, halfW, trackW) {
@@ -4702,22 +4873,28 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           const curW2 = newPoints[7] || 1.85;
           const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW2 / 2, curH / 2, false, false);
           if (groundInfo.isFallbackZeroGround || groundInfo.groundPointsCount < 6) {
+            const baseZ = groundInfo.groundZ !== null ? groundInfo.groundZ : 0;
             newRotX = 0;
             newRotY = 0;
-            newZ = Number((0 + curH / 2).toFixed(3));
-            msg = `Dưới chân ít điểm LiDAR (${groundInfo.groundPointsCount} điểm) ➔ Lấy mốc Ego Z = 0, đặt phẳng đáy xe tại Z = 0 (Tâm Z: ${newZ}m, Roll 0°, Pitch 0°)`;
+            newZ = Number((baseZ + curH / 2).toFixed(3));
+            msg = `Dưới chân ít điểm LiDAR (${groundInfo.groundPointsCount} điểm) ➔ Neo đáy xe theo mốc Ego Road Z: ${baseZ}m (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
           } else if (groundInfo.groundZ !== null) {
             const cosPitch = Math.cos(groundInfo.pitchRad);
             const cosRoll = Math.cos(groundInfo.rollRad);
             newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch * cosRoll).toFixed(3));
             newRotX = groundInfo.rollRad;
             newRotY = groundInfo.pitchRad;
-            msg = `Đã ghim đáy xe #${uiId} bám sát mặt đường (Z: ${newZ}m, Roll: ${groundInfo.rollDeg}°, Pitch: ${groundInfo.pitchDeg}°)`;
+            if (groundInfo.isCurbGround) {
+              msg = `Đã nhận diện xe #${uiId} đỗ trên nền vỉa hè (Z đất: ${groundInfo.groundZ}m, Tâm Z: ${newZ}m, Khóa Roll: ${groundInfo.rollDeg}°)`;
+            } else {
+              msg = `Đã ghim đáy xe #${uiId} bám sát mặt đường (Z: ${newZ}m, Roll: ${groundInfo.rollDeg}°, Pitch: ${groundInfo.pitchDeg}°)`;
+            }
           } else {
+            const egoZ = getEgoRoadGroundZInMainWorld();
             newRotX = 0;
             newRotY = 0;
-            newZ = Number((0 + curH / 2).toFixed(3));
-            msg = `Không có điểm mặt đất ➔ Lấy mốc Ego Z = 0, đặt phẳng đáy xe tại Z = 0 (Tâm Z: ${newZ}m)`;
+            newZ = Number((egoZ + curH / 2).toFixed(3));
+            msg = `Không có điểm mặt đất ➔ Neo theo mốc Ego Road Z: ${egoZ}m (Tâm Z: ${newZ}m)`;
           }
         } else if (mode === "curb") {
           const curL = newPoints[6] || 4.6;

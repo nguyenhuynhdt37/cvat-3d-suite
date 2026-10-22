@@ -26,6 +26,7 @@ import {
   computeDensityRobustBounds,
   detectLateralWallBounds,
   detectLongitudinalBumperBounds,
+  estimateEgoRoadGroundZ,
 } from "../src/core/geometry.ts";
 import {
   findBestFitCatalog,
@@ -2709,7 +2710,124 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
   );
 }
 
-console.log("\n🎉 TẤT CẢ 71 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG & ÔM SÁT EGO ĐÃ ĐẠT 100%!");
+// 72. Test Tự Động Đo Cao Độ Mặt Đường Xe Ego (Ego Road Surface Ground Z)
+{
+  const egoScenePts: Array<{ x: number; y: number; z: number }> = [];
+  // Giả lập mặt đường quanh xe Ego (Ego tại 0,0,0) có độ cao Z = -1.75m
+  for (let x = -6.0; x <= 6.0; x += 0.5) {
+    for (let y = -6.0; y <= 6.0; y += 0.5) {
+      const d = Math.hypot(x, y);
+      if (d >= 1.5 && d <= 5.5) {
+        egoScenePts.push({ x, y, z: -1.75 + (Math.random() * 0.02 - 0.01) });
+      }
+    }
+  }
+  const measuredEgoZ = estimateEgoRoadGroundZ(egoScenePts, { x: 0, y: 0, z: 0 });
+  assert.ok(
+    Math.abs(measuredEgoZ - (-1.75)) < 0.03,
+    `Test 72: Cao độ mặt đường Ego phải xấp xỉ -1.75m (thực tế: ${measuredEgoZ}m)`
+  );
+  console.log(`✅ Test 72: Tự Động Đo Cao Độ Mặt Đường Xe Ego: Z = ${measuredEgoZ}m (khớp mốc -1.75m)`);
+}
+
+// 73. Test Xe Ở Xa Ít Điểm / Không Có Point Mặt Đất: Neo Chuẩn Theo Ego Road Z, CHỐNG LÚN ÂM ĐẤT
+{
+  // Xe ở xa X = 25m, Y = 10m chỉ có 4 điểm vỏ xe ở trên cao Z = -0.5m, dưới gầm không có tia laser lọt vào
+  const sparseCarPts = [
+    { x: 25.0, y: 10.0, z: -0.5 },
+    { x: 25.5, y: 10.2, z: -0.4 },
+    { x: 24.5, y: 9.8, z: -0.45 },
+    { x: 26.0, y: 10.1, z: -0.3 },
+  ];
+  // Gọi computeGroundSlopesAndZ với mốc egoRoadZ = -1.75m
+  const snapRes = computeGroundSlopesAndZ(
+    sparseCarPts,
+    25.0, 10.0, 0.0, 0.0,
+    2.3, 0.9, 0.5,
+    { egoRoadZ: -1.75 }
+  );
+
+  assert.strictEqual(snapRes.isFallbackZeroGround, true, "Test 73: Phải kích hoạt fallback khi ít điểm");
+  assert.ok(
+    Math.abs(snapRes.groundZ! - (-1.75)) < 0.01,
+    `Test 73: Đáy xe phải neo chuẩn tại Ego Road Z = -1.75m, KHÔNG BỊ ÂM ĐẤT (thực tế: ${snapRes.groundZ}m)`
+  );
+  assert.strictEqual(snapRes.rollDeg, 0, "Test 73: Roll phải khóa cứng 0°");
+  assert.strictEqual(snapRes.pitchDeg, 0, "Test 73: Pitch phải khóa cứng 0°");
+  console.log(`✅ Test 73: Chống Lún Âm Đất Cho Xe Ít Điểm: Neo đáy xe chuẩn Z = ${snapRes.groundZ}m theo mốc Ego-Z (Khóa Roll=0°, Pitch=0°)`);
+}
+
+// 74a. Test Căn Góc Dốc Ngang Front Roll Theo 2 Đầu Mép Biên 0–10% & 90–100%
+{
+  // Mặt đường nghiêng ngang Front: z = -0.40 - 0.07 * y + 0.03 * x (độ dốc ngang Roll ~ -4.0°)
+  const tiltedRoadPts: Array<{ x: number; y: number; z: number }> = [];
+  for (let x = -2.5; x <= 2.5; x += 0.4) {
+    for (let y = -2.0; y <= 2.0; y += 0.3) {
+      if (Math.abs(y) > 0.6) {
+        tiltedRoadPts.push({ x, y, z: -0.40 - 0.07 * y + 0.03 * x });
+      }
+    }
+  }
+
+  const rollRes = computeGroundSlopesAndZ(tiltedRoadPts, 0, 0, 0.4, 0, 2.3, 0.9);
+  assert.ok(
+    Math.abs(rollRes.rollDeg - (-4.0)) < 0.6,
+    `Test 74a: Góc Front Roll phải bám theo độ dốc 2 đầu mép xấp xỉ -4.0° (thực tế: ${rollRes.rollDeg}°)`
+  );
+  assert.ok(
+    Math.abs(rollRes.groundZ! - (-0.40)) < 0.04,
+    `Test 74a: Cao độ c0 phải ở trung điểm 2 mép -0.40m để 2 đầu box đều nhau (thực tế: ${rollRes.groundZ}m)`
+  );
+  console.log(`✅ Test 74a: Căn Front Roll 2 Mép Biên 0-10% & 90-100%: Roll = ${rollRes.rollDeg}°, Đáy cách đều mặt đường (c0 = ${rollRes.groundZ}m)`);
+}
+
+// 74b. Test Khóa Cứng Roll = 0° Khi Không Đủ Điểm Check Mây Điểm Đường Ở 2 Đầu
+{
+  // Chỉ có điểm ở 1 bên mép phải (y in [-1.3, -0.7]), bên mép trái hoàn toàn không có điểm
+  const oneSidePts: Array<{ x: number; y: number; z: number }> = [];
+  for (let x = -2.5; x <= 2.5; x += 0.4) {
+    for (let y = -1.3; y <= -0.7; y += 0.2) {
+      oneSidePts.push({ x, y, z: -0.40 - 0.07 * y });
+    }
+  }
+
+  const oneSideRes = computeGroundSlopesAndZ(oneSidePts, 0, 0, 0.4, 0, 2.3, 0.9);
+  assert.strictEqual(
+    oneSideRes.rollDeg,
+    0,
+    `Test 74b: Khi thiếu điểm ở 1 trong 2 đầu mép biên, BẮT BUỘC KHÓA CỨNG Roll = 0° (thực tế: ${oneSideRes.rollDeg}°)`
+  );
+  console.log(`✅ Test 74b: Thiếu Điểm 2 Đầu Mép Biên ➔ Khóa Cứng Roll = 0° Phẳng Tuyệt Đối`);
+}
+
+// 75. Test Nhận Diện Xe Đỗ Trên Nền Vỉa Hè (Curb Ground Z Reference)
+{
+  // Xe đỗ hoàn toàn trên vỉa hè: Mây điểm mặt vỉa hè phẳng ở Z = -1.55m
+  // Mặt đường Ego chuẩn ở Z = -1.75m (Vỉa hè cao hơn mặt đường Ego +20cm)
+  const curbSurfacePts: Array<{ x: number; y: number; z: number }> = [];
+  for (let x = -2.5; x <= 2.5; x += 0.4) {
+    for (let y = -1.3; y <= 1.3; y += 0.3) {
+      curbSurfacePts.push({ x, y, z: -1.55 });
+    }
+  }
+
+  const curbRes = computeGroundSlopesAndZ(
+    curbSurfacePts,
+    0, 0, 0.4, 0,
+    2.3, 0.9, 0.5,
+    { egoRoadZ: -1.75 }
+  );
+
+  assert.strictEqual(curbRes.isCurbGround, true, "Test 75: Phải nhận diện xe đỗ trên nền vỉa hè");
+  assert.ok(
+    Math.abs(curbRes.groundZ! - (-1.55)) < 0.02,
+    `Test 75: Đáy xe phải ghim chuẩn vào mặt vỉa hè -1.55m (thực tế: ${curbRes.groundZ}m)`
+  );
+  assert.strictEqual(curbRes.rollDeg, 0, "Test 75: Xe đỗ phẳng trên vỉa hè phải có Roll = 0°");
+  console.log(`✅ Test 75: Tự Nhận Diện Nền Vỉa Hè (+20cm so với Ego): Ghim đúng mặt vỉa hè Z = ${curbRes.groundZ}m, Khóa Roll = 0°`);
+}
+
+console.log("\n🎉 TẤT CẢ 75 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z & CĂN GÓC FRONT ROLL 2 ĐẦU ĐÃ ĐẠT 100%!");
 
 
 
