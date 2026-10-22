@@ -2284,7 +2284,101 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
   );
 }
 
-console.log("\n🎉 TẤT CẢ 61 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, NÚT FRONT CAR & NÚT RIÊNG FIT W/H XE 2 BÁNH ĐÃ ĐẠT 100%!");
+// =========================================================================
+// TEST 62: KHÁNG NHIỄU TIA QUÉT LOANG MẶT ĐẤT Ở CHÂN NGƯỜI ĐI BỘ (PHÂN TẦNG ĐỘ CAO)
+// =========================================================================
+{
+  const pedPtsWithGroundScatter: Array<{ x: number; y: number; z: number }> = [];
+
+  // 1. Vệt quét loang sát mặt đất quanh bàn chân: Z trong [-0.35m, -0.15m], loang rộng ra [-0.45m, +0.45m] (Rộng 0.90m)
+  for (let x = -0.45; x <= 0.45; x += 0.08) {
+    for (let y = -0.45; y <= 0.45; y += 0.08) {
+      pedPtsWithGroundScatter.push({ x, y, z: -0.35 });
+      pedPtsWithGroundScatter.push({ x, y, z: -0.20 });
+    }
+  }
+
+  // 2. Thân người cốt lõi thật (từ đùi lên đầu): Z trong [0.0m, 1.35m], thân gọn gàng [-0.18m, +0.18m] (Rộng 0.36m, Dài 0.36m)
+  for (let z = 0.0; z <= 1.35; z += 0.10) {
+    for (let x = -0.18; x <= 0.18; x += 0.09) {
+      for (let y = -0.18; y <= 0.18; y += 0.09) {
+        pedPtsWithGroundScatter.push({ x, y, z });
+      }
+    }
+  }
+
+  const pedFitRes = fitPedestrianBox(
+    pedPtsWithGroundScatter,
+    0.0, 0.0, 0.50, 0.0,
+    0.80, 0.80, 1.70, // Box ban đầu bị người dùng kéo to 80x80cm
+    0.12
+  );
+
+  // Nhờ cơ chế lọc phân tầng (cắt bỏ Z < Z_ground + 0.30m):
+  // Box không bị vệt quét 0.90m sát đất "lừa", mà ôm gọn thân người ~0.45m - 0.55m!
+  assert.ok(
+    pedFitRes.newL <= 0.55,
+    `Test 62: Chiều dài L người phải được thu gọn <= 0.55m (thực tế: ${pedFitRes.newL}m)`
+  );
+  assert.ok(
+    pedFitRes.newW <= 0.55,
+    `Test 62: Chiều rộng W người phải được thu gọn <= 0.55m (thực tế: ${pedFitRes.newW}m)`
+  );
+  console.log(
+    `✅ Test 62: Phân Tầng Kháng Nhiễu Đất Người Đi Bộ: Thu gọn box về ${pedFitRes.newL}x${pedFitRes.newW}x${pedFitRes.newH}m (loại bỏ 100% vệt quét loang sát đất 0.9m)`
+  );
+}
+
+// =========================================================================
+// TEST 63: KHÁNG NHIỄU GẦM / MẶT ĐƯỜNG / VỈA HÈ SÁT SÀN Ở Ô TÔ (PHÂN TẦNG +22CM)
+// =========================================================================
+{
+  const carPtsWithGroundScatter: Array<{ x: number; y: number; z: number }> = [];
+
+  // 1. Mặt đường và vệt quét loang sát sàn: Z = -0.35m đến -0.20m, loang ra trước cản 0.5m và sang hai bên sườn
+  for (let x = -3.0; x <= 3.0; x += 0.25) {
+    for (let y = -1.5; y <= 1.5; y += 0.25) {
+      carPtsWithGroundScatter.push({ x, y, z: -0.35 });
+      carPtsWithGroundScatter.push({ x, y, z: -0.22 });
+    }
+  }
+
+  // 2. Thân vỏ xe thật (Z từ 0.0m đến +1.2m): Dài 4.6m (x từ -2.3m đến +2.3m), Rộng 1.8m (y từ -0.9m đến +0.9m)
+  for (let x = -2.3; x <= 2.3; x += 0.20) {
+    for (let y = -0.9; y <= 0.9; y += 0.20) {
+      carPtsWithGroundScatter.push({ x, y, z: 0.1 });
+      carPtsWithGroundScatter.push({ x, y, z: 0.6 });
+      carPtsWithGroundScatter.push({ x, y, z: 1.15 });
+    }
+  }
+
+  // Mặt cản trước đón tia Ego (x = +2.30m) có mật độ điểm đón tia dày đặc
+  for (let y = -0.9; y <= 0.9; y += 0.1) {
+    for (let z = 0.0; z <= 0.8; z += 0.1) {
+      carPtsWithGroundScatter.push({ x: 2.30, y, z });
+    }
+  }
+
+  const carFitRes = fitBoxToEgoRayAndGround(
+    carPtsWithGroundScatter,
+    0.0, 0.0, 0.45, 0.0,
+    4.6, 1.8, 1.5,
+    { x: 10, y: 0, z: 0 },
+    { fitStep: "side", preserveDimensions: true }
+  );
+
+  // Mép cản trước xe phải bám cản vỏ thật (+2.3m), không bị vệt quét loang mặt đất ở 3.0m kéo văng ra xa
+  const bumperEdge = carFitRes.newCenterX + carFitRes.newL / 2;
+  assert.ok(
+    Math.abs(bumperEdge - 2.35) <= 0.10,
+    `Test 63: Cản trước phải bám cản vỏ thật 2.35m (thực tế: ${bumperEdge.toFixed(2)}m, loại bỏ vệt quét 3.0m)`
+  );
+  console.log(
+    `✅ Test 63: Phân Tầng Kháng Nhiễu Mặt Đường Ô Tô: Mép cản đón tia bám chuẩn ${bumperEdge.toFixed(2)}m (loại bỏ 100% vệt quét loang sát sàn 3.0m)`
+  );
+}
+
+console.log("\n🎉 TẤT CẢ 63 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT & HOÀN TÁC ĐÃ ĐẠT 100%!");
 
 
 

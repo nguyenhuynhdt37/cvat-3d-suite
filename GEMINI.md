@@ -29,6 +29,14 @@
 - **🚨 TUYỆT ĐỐI KHÔNG GHIM ĐẤT**: Khi bấm TOP, **giữ nguyên 100% cao độ $Z$** (`newCenterZ = cz`), đồng thời giữ nguyên góc nghiêng `Roll` và `Pitch` hiện tại của xe.
 - Chuyên trách căn góc xoay $Yaw$ theo viền đón tia tổng thể, xoay tại chỗ quanh tâm (`shiftLx = 0`, `shiftLy = 0`).
 
+### 5. Nguyên Tắc Phân Tầng Độ Cao (Height Stratification - Kháng Nhiễu Mặt Đất)
+- **Ưu tiên trọng số tầng trên cao (Core Body)**: Các điểm ở tầng trên cao (thân vỏ xe, kính, nóc xe, ngực/hông người, tay lái xe 2 bánh) phản ánh 100% hình dáng chuẩn của vật thể, không bị lẫn điểm mặt đất.
+- **Cắt bỏ nhiễu sát sàn (Ground Noise Cut-off)**: Vùng sát mặt đất thường xuyên xuất hiện các chùm tia quét xiên loang rải rác (ground scatter), vạch sơn phản quang, gờ vỉa hè hoặc sỏi đá.
+  - **Người đi bộ (Pedestrian)**: Cắt bỏ hoàn toàn điểm $Z < Z_{\text{ground}} + 0.30\text{m}$ khi tính $L, W$ để chống phình to box chân đế. Chặn trần kích thước an toàn $L, W \le 0.85\text{m}$.
+  - **Ô tô (Car / Truck / Bus)**: Cắt bỏ điểm $Z < Z_{\text{ground}} + 0.22\text{m}$ khi căn mép cản $X$ và mép sườn $W$.
+  - **Xe 2 bánh (Cyclist / Motorcycle)**: Cắt bỏ điểm $Z < Z_{\text{ground}} + 0.25\text{m}$ khi căn mép cản và co giãn độ rộng $W$ ôm tay lái.
+  - Các điểm sát đất này **CHỈ** được dùng cho thuật toán ghim sàn ($Z_{\text{ground}}$).
+
 ### 5. Bộ Kích Thước L, W, H & Vi Chỉnh Center
 - **Dàn đều kích thước**: Chiều dài $L$ và chiều rộng $W$ nới/thu dàn đều ra hai bên từ tâm cố định.
 - **Vi chỉnh Center 2D Dàn Đều**: Hỗ trợ các nút vi chỉnh độc lập $\pm 1\text{cm}, \pm 5\text{cm}$ cho Trục Dọc $X$ (Side View - Tiến/Lùi) và Trục Ngang $Y$ (Front View - Trái/Phải).

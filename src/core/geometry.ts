@@ -486,8 +486,8 @@ export function evaluateGoldenAnchorFrame(
     groundZ = groundRes.groundZ !== null ? groundRes.groundZ : cz - currentH / 2;
   }
 
-  // 2. Thu thập điểm thân xe (trên mặt đất +5cm, dưới trần dự kiến +60cm)
-  const minBodyZ = groundZ + 0.05;
+  // 2. Thu thập điểm thân xe (trên mặt đất +22cm loại bỏ hoàn toàn nhiễu quét loang mặt đất/gờ vỉa hè)
+  const minBodyZ = groundZ + 0.22;
   const maxBodyZ = groundZ + Math.max(currentH, 1.8) + 0.6;
   const outerL = currentL / 2 + 0.5;
   const outerW = currentW / 2 + 0.4;
@@ -2113,8 +2113,8 @@ export function fitBoxToEgoRayAndGround(
   const cosY = Math.cos(-yaw);
   const sinY = Math.sin(-yaw);
 
-  // 2. Thu thập các điểm thân xe (loại bỏ mặt đất và điểm trên cao ngoài xe)
-  const minBodyZ = groundZ + 0.05;
+  // 2. Thu thập các điểm thân xe cốt lõi (loại bỏ mặt đất và vệt quét loang sát sàn +22cm)
+  const minBodyZ = groundZ + 0.22;
   const maxRoofZ = groundZ + H + 0.55;
   const fitStep = options.fitStep ?? "all";
   const outerL = L / 2 + 0.45;
@@ -2559,8 +2559,8 @@ export function fitPedestrianBox(
     groundZ = footGroundPts[Math.max(0, Math.floor(footGroundPts.length * 0.15))];
   }
 
-  // 2. Thu thập điểm thân người (từ mặt đất + 5cm đến 2.3m)
-  const minBodyZ = groundZ + 0.05;
+  // 2. Thu thập điểm thân người cốt lõi (từ mặt đất + 30cm loại bỏ 100% vệt quét mặt đất quanh chân)
+  const minBodyZ = groundZ + 0.30;
   const maxBodyZ = groundZ + 2.30;
   const outerL = Math.max(0.45, curL / 2 + 0.25);
   const outerW = Math.max(0.40, curW / 2 + 0.25);
@@ -2601,9 +2601,9 @@ export function fitPedestrianBox(
     const lyMax = allLy[pMaxIdx];
     const highestPtZ = allZ[allZ.length - 1];
 
-    // Co giãn kích thước linh hoạt theo đám mây điểm thực tế (sải bước, mang ba lô...)
-    newL = Number(Math.max(0.45, Math.min(1.30, lxMax - lxMin + 0.10)).toFixed(2));
-    newW = Number(Math.max(0.40, Math.min(1.10, lyMax - lyMin + 0.10)).toFixed(2));
+    // Co giãn kích thước linh hoạt theo thân người thật (chặn trần an toàn max 0.85m chống phình box)
+    newL = Number(Math.max(0.40, Math.min(0.85, lxMax - lxMin + 0.08)).toFixed(2));
+    newW = Number(Math.max(0.40, Math.min(0.85, lyMax - lyMin + 0.08)).toFixed(2));
 
     // Bù đỉnh đầu chống cắt ngang trán/tai
     roofTopZ = highestPtZ + headBuffer;
@@ -2778,8 +2778,8 @@ export function fitTwoWheelerBox(
   }
 
   // 2. Thu thập điểm thân xe và người lái trong hệ tọa độ cục bộ (lx, ly)
-  // Nới rộng phạm vi biên để bắt trọn gương chiếu hậu, tay lái bè và hàng hóa hai bên
-  const minBodyZ = groundZ + 0.05;
+  // Loại bỏ vệt quét loang sát lốp xe mặt đất (từ mặt đất +25cm trở lên)
+  const minBodyZ = groundZ + 0.25;
   const maxBodyZ = groundZ + 2.30;
   const outerL = curL / 2 + 0.45;
   const outerW = Math.max(curW, 0.85) / 2 + 0.45;

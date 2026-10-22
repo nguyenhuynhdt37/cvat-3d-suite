@@ -1112,8 +1112,8 @@ export function mainWorldScript(): void {
     const cosY = Math.cos(-yaw);
     const sinY = Math.sin(-yaw);
 
-    // Thu thập điểm thân xe (tránh điểm mặt đất và điểm cành cây/dây điện)
-    const minBodyZ = groundZ + 0.05;
+    // Thu thập các điểm thân xe cốt lõi (loại bỏ mặt đất và vệt quét loang sát sàn +22cm)
+    const minBodyZ = groundZ + 0.22;
     const maxRoofZ = groundZ + H + 0.55;
     const fitStep = options.fitStep ?? "all";
     const outerL = L / 2 + 0.45;
@@ -1588,8 +1588,8 @@ export function mainWorldScript(): void {
       groundZ = footGroundPts[Math.max(0, Math.floor(footGroundPts.length * 0.15))];
     }
 
-    // 2. Thu thập điểm thân người
-    const minBodyZ = groundZ + 0.05;
+    // 2. Thu thập điểm thân người cốt lõi (từ mặt đất + 30cm loại bỏ 100% vệt quét mặt đất quanh chân)
+    const minBodyZ = groundZ + 0.30;
     const maxBodyZ = groundZ + 2.30;
     const outerL = Math.max(0.45, curL / 2 + 0.25);
     const outerW = Math.max(0.40, curW / 2 + 0.25);
@@ -1633,8 +1633,9 @@ export function mainWorldScript(): void {
       const lyMax = allLy[pMaxIdx];
       const highestPtZ = allZ[allZ.length - 1];
 
-      newL = Number(Math.max(0.45, Math.min(1.30, lxMax - lxMin + 0.10)).toFixed(2));
-      newW = Number(Math.max(0.40, Math.min(1.10, lyMax - lyMin + 0.10)).toFixed(2));
+      // Co giãn kích thước linh hoạt theo thân người thật (chặn trần an toàn max 0.85m chống phình box)
+      newL = Number(Math.max(0.40, Math.min(0.85, lxMax - lxMin + 0.08)).toFixed(2));
+      newW = Number(Math.max(0.40, Math.min(0.85, lyMax - lyMin + 0.08)).toFixed(2));
 
       roofTopZ = highestPtZ + headBuffer;
       newH = Number(Math.max(1.05, Math.min(2.15, roofTopZ - groundZ)).toFixed(2));
@@ -1750,8 +1751,8 @@ export function mainWorldScript(): void {
       groundZ = groundPts[Math.max(0, Math.floor(groundPts.length * 0.15))];
     }
 
-    // 2. Thu thập điểm thân xe và người lái (nới rộng biên để bắt gương chiếu hậu, tay lái bè và hàng hóa)
-    const minBodyZ = groundZ + 0.05;
+    // 2. Thu thập điểm thân xe và người lái (từ mặt đất +25cm loại bỏ vệt quét loang sát lốp xe)
+    const minBodyZ = groundZ + 0.25;
     const maxBodyZ = groundZ + 2.30;
     const outerL = curL / 2 + 0.45;
     const outerW = Math.max(curW, 0.85) / 2 + 0.45;
@@ -2171,8 +2172,8 @@ export function mainWorldScript(): void {
 
     // Trần cao độ để loại bỏ cành cây, dây điện, biển báo phía trên cao
     const maxRoofZ = effectiveGroundZ + 2.7;
-    // Đáy cao độ: cao hơn mặt đất ít nhất 3cm để loại bỏ các điểm mặt đường
-    const minBodyZ = effectiveGroundZ + 0.03;
+    // Đáy cao độ: cao hơn mặt đất ít nhất 22cm để loại bỏ triệt để các điểm vệt quét loang sát mặt đường
+    const minBodyZ = effectiveGroundZ + 0.22;
 
     for (let i = 0; i < count; i++) {
       const z = array[i * 3 + 2];
@@ -3645,7 +3646,7 @@ export function mainWorldScript(): void {
       const sinY = Math.sin(-curYaw);
       const halfL = curL / 2 + 0.35;
       const halfW = curW / 2 + 0.30;
-      const minBodyZ = effectiveGroundZ + 0.03;
+      const minBodyZ = effectiveGroundZ + 0.22;
       const maxRoofZ = effectiveGroundZ + curH + 0.25;
 
       const bodyPts: Array<{ x: number; y: number; z: number; lx: number; ly: number }> = [];
@@ -4131,7 +4132,7 @@ export function mainWorldScript(): void {
     const cosY = Math.cos(-yaw);
     const sinY = Math.sin(-yaw);
 
-    const minBodyZ = groundZ + 0.04;
+    const minBodyZ = groundZ + 0.22;
     const maxRoofZ = groundZ + 3.5;
     const searchHalfL = l / 2 + 0.55;
     const searchHalfW = w / 2 + 0.45;

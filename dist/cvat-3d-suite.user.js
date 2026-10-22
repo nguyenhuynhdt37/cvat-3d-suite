@@ -889,7 +889,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const rollDeg = groundInfo.rollDeg;
     const cosY = Math.cos(-yaw);
     const sinY = Math.sin(-yaw);
-    const minBodyZ = groundZ + 0.05;
+    const minBodyZ = groundZ + 0.22;
     const maxRoofZ = groundZ + H + 0.55;
     const fitStep = options.fitStep ?? "all";
     const outerL = L / 2 + 0.45;
@@ -1183,7 +1183,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       footGroundPts.sort((a, b) => a - b);
       groundZ = footGroundPts[Math.max(0, Math.floor(footGroundPts.length * 0.15))];
     }
-    const minBodyZ = groundZ + 0.05;
+    const minBodyZ = groundZ + 0.3;
     const maxBodyZ = groundZ + 2.3;
     const outerL = Math.max(0.45, curL / 2 + 0.25);
     const outerW = Math.max(0.4, curW / 2 + 0.25);
@@ -1217,8 +1217,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const lyMin = allLy[pMinIdx];
       const lyMax = allLy[pMaxIdx];
       const highestPtZ = allZ[allZ.length - 1];
-      newL = Number(Math.max(0.45, Math.min(1.3, lxMax - lxMin + 0.1)).toFixed(2));
-      newW = Number(Math.max(0.4, Math.min(1.1, lyMax - lyMin + 0.1)).toFixed(2));
+      newL = Number(Math.max(0.4, Math.min(0.85, lxMax - lxMin + 0.08)).toFixed(2));
+      newW = Number(Math.max(0.4, Math.min(0.85, lyMax - lyMin + 0.08)).toFixed(2));
       roofTopZ = highestPtZ + headBuffer;
       newH = Number(Math.max(1.05, Math.min(2.15, roofTopZ - groundZ)).toFixed(2));
       shiftLx = (lxMin + lxMax) / 2;
@@ -1318,7 +1318,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       groundPts.sort((a, b) => a - b);
       groundZ = groundPts[Math.max(0, Math.floor(groundPts.length * 0.15))];
     }
-    const minBodyZ = groundZ + 0.05;
+    const minBodyZ = groundZ + 0.25;
     const maxBodyZ = groundZ + 2.3;
     const outerL = curL / 2 + 0.45;
     const outerW = Math.max(curW, 0.85) / 2 + 0.45;
@@ -2504,7 +2504,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const rollRad = groundInfo.rollRad;
       const cosY = Math.cos(-yaw);
       const sinY = Math.sin(-yaw);
-      const minBodyZ = groundZ + 0.05;
+      const minBodyZ = groundZ + 0.22;
       const maxRoofZ = groundZ + H + 0.55;
       const fitStep = options.fitStep ?? "all";
       const outerL = L / 2 + 0.45;
@@ -2854,7 +2854,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         footGroundPts.sort((a, b) => a - b);
         groundZ = footGroundPts[Math.max(0, Math.floor(footGroundPts.length * 0.15))];
       }
-      const minBodyZ = groundZ + 0.05;
+      const minBodyZ = groundZ + 0.3;
       const maxBodyZ = groundZ + 2.3;
       const outerL = Math.max(0.45, curL / 2 + 0.25);
       const outerW = Math.max(0.4, curW / 2 + 0.25);
@@ -2891,8 +2891,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const lyMin = allLy[pMinIdx];
         const lyMax = allLy[pMaxIdx];
         const highestPtZ = allZ[allZ.length - 1];
-        newL = Number(Math.max(0.45, Math.min(1.3, lxMax - lxMin + 0.1)).toFixed(2));
-        newW = Number(Math.max(0.4, Math.min(1.1, lyMax - lyMin + 0.1)).toFixed(2));
+        newL = Number(Math.max(0.4, Math.min(0.85, lxMax - lxMin + 0.08)).toFixed(2));
+        newW = Number(Math.max(0.4, Math.min(0.85, lyMax - lyMin + 0.08)).toFixed(2));
         roofTopZ = highestPtZ + headBuffer;
         newH = Number(Math.max(1.05, Math.min(2.15, roofTopZ - groundZ)).toFixed(2));
         shiftLx = (lxMin + lxMax) / 2;
@@ -2970,7 +2970,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         groundPts.sort((a, b) => a - b);
         groundZ = groundPts[Math.max(0, Math.floor(groundPts.length * 0.15))];
       }
-      const minBodyZ = groundZ + 0.05;
+      const minBodyZ = groundZ + 0.25;
       const maxBodyZ = groundZ + 2.3;
       const outerL = curL / 2 + 0.45;
       const outerW = Math.max(curW, 0.85) / 2 + 0.45;
@@ -3299,7 +3299,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       let sinY = Math.sin(-yaw);
       const candidateBodyPts = [];
       const maxRoofZ = effectiveGroundZ + 2.7;
-      const minBodyZ = effectiveGroundZ + 0.03;
+      const minBodyZ = effectiveGroundZ + 0.22;
       for (let i = 0; i < count; i++) {
         const z = array[i * 3 + 2];
         if (z < minBodyZ || z > maxRoofZ) continue;
@@ -4548,7 +4548,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const sinY = Math.sin(-curYaw);
         const halfL = curL / 2 + 0.35;
         const halfW = curW / 2 + 0.3;
-        const minBodyZ = effectiveGroundZ + 0.03;
+        const minBodyZ = effectiveGroundZ + 0.22;
         const maxRoofZ = effectiveGroundZ + curH + 0.25;
         const bodyPts = [];
         for (let i = 0; i < count; i++) {
@@ -4959,7 +4959,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const groundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : cz - h / 2;
       const cosY = Math.cos(-yaw);
       const sinY = Math.sin(-yaw);
-      const minBodyZ = groundZ + 0.04;
+      const minBodyZ = groundZ + 0.22;
       const maxRoofZ = groundZ + 3.5;
       const searchHalfL = l / 2 + 0.55;
       const searchHalfW = w / 2 + 0.45;
