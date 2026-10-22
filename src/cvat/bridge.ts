@@ -684,32 +684,38 @@ export class CVATBridge {
 
   /**
    * FIT CHUYÊN BIỆT CHO NGƯỜI ĐI BỘ (PEDESTRIAN FIT).
-   * - Co giãn kích thước L, W linh hoạt theo sải bước
-   * - Khóa cứng Roll = 0°, Pitch = 0° (Người luôn đứng thẳng tuyệt đối)
-   * - Quét mặt đất siêu hẹp +15cm tránh dính vỉa hè, rào chắn
-   * - Bù đỉnh đầu +12cm chống cắt ngang trán người
+   * Hỗ trợ 3 bước căn độc lập (TOP - SIDE - FRONT), 3 nút Fix Size (L, W, H) hoặc toàn chu trình (ALL).
+   * Khóa đứng Roll = 0°, Pitch = 0° tuyệt đối.
+   * Bù đỉnh đầu +12cm chống cắt ngang trán người.
    */
   public static async fitPedestrian(
     jobId: number,
     uiId: number,
     serverId: number | null,
-    headBuffer: number = 0.12
+    headBuffer: number = 0.12,
+    step: "all" | "top" | "side" | "front" | "l" | "w" | "h" = "all",
+    applyToTrack: boolean = false
   ): Promise<{
     success: boolean;
     newX?: number;
     newY?: number;
     newZ?: number;
+    newYaw?: number;
+    newYawDeg?: number;
+    deltaYawDeg?: number;
     newL?: number;
     newW?: number;
     newH?: number;
     pointsCount?: number;
+    step?: "all" | "top" | "side" | "front" | "l" | "w" | "h";
+    applyToTrack?: boolean;
     message: string;
   }> {
     this.ensureMainWorldBridge();
     const currentFrame = this.getCurrentFrame();
 
     const mwPromise = new Promise<any>((resolve) => {
-      const timeout = setTimeout(() => resolve(null), 1500);
+      const timeout = setTimeout(() => resolve(null), 2500);
 
       const onResponse = (e: any) => {
         clearTimeout(timeout);
@@ -724,7 +730,7 @@ export class CVATBridge {
       window.addEventListener("CVAT_EXT_RES_FIT_PEDESTRIAN", onResponse);
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_REQ_FIT_PEDESTRIAN", {
-          detail: { jobId, frame: currentFrame, uiId, serverId, headBuffer },
+          detail: { jobId, frame: currentFrame, uiId, serverId, headBuffer, step, applyToTrack },
         })
       );
     });
@@ -739,10 +745,15 @@ export class CVATBridge {
       newX: mwRes.newX,
       newY: mwRes.newY,
       newZ: mwRes.newZ,
+      newYaw: mwRes.newYaw,
+      newYawDeg: mwRes.newYawDeg,
+      deltaYawDeg: mwRes.deltaYawDeg,
       newL: mwRes.newL,
       newW: mwRes.newW,
       newH: mwRes.newH,
       pointsCount: mwRes.pointsCount,
+      step: mwRes.step,
+      applyToTrack,
       message: mwRes.message || "Đã fit Người Đi Bộ thành công",
     };
   }

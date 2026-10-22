@@ -2504,6 +2504,9 @@ export interface PedestrianFitResult {
   newCenterX: number;
   newCenterY: number;
   newCenterZ: number;
+  newYawRad?: number;
+  newYawDeg?: number;
+  deltaYawDeg?: number;
   newL: number;
   newW: number;
   newH: number;
@@ -2514,6 +2517,7 @@ export interface PedestrianFitResult {
   groundZ: number;
   roofTopZ: number;
   pointsCount: number;
+  step?: "all" | "top" | "side" | "front" | "l" | "w" | "h";
   message: string;
 }
 
@@ -2521,8 +2525,15 @@ export interface PedestrianFitResult {
  * Thuật toán CHUYÊN BIỆT CHO NGƯỜI ĐI BỘ (PEDESTRIAN FIT):
  * 1. Khóa cứng Roll = 0° và Pitch = 0° tuyệt đối (Người luôn đứng thẳng 100% theo phương trọng lực).
  * 2. Bán kính quét mặt đất siêu hẹp (+15cm quanh chân) loại bỏ 100% rủi ro ăn nhầm vào vỉa hè hay cột đèn.
- * 3. Co giãn kích thước L, W linh hoạt theo đám mây điểm (sải chân, vung tay, mang ba lô...).
- * 4. Bù chiều cao đỉnh đầu (+12cm) chống hiện tượng tia laser chỉ bắn tới ngực/vai làm cắt ngang đầu người.
+ * 3. Phân tầng độ cao (Height Stratification): Loại bỏ 100% vệt quét mặt đất quanh chân (minBodyZ = groundZ + 0.30m).
+ * 4. Hỗ trợ các chế độ căn chỉnh độc lập:
+ *    - TOP: Ước lượng Yaw quanh trục cơ thể, khóa cứng vị trí X/Y/Z và kích thước L/W/H.
+ *    - SIDE: Căn mép trước/sau đón tia theo trục dọc X, giữ nguyên 100% cao độ Z và kích thước.
+ *    - FRONT: Căn mép sườn đón tia theo trục ngang Y, giữ nguyên 100% cao độ Z và kích thước.
+ *    - L: Co giãn riêng chiều dài L theo mây điểm thân người, căn tâm X, giữ nguyên W, H & Z.
+ *    - W: Co giãn riêng chiều rộng W theo mây điểm thân người, căn tâm Y, giữ nguyên L, H & Z.
+ *    - H: Bám sàn Z_base cố định, chiều cao nở lên đỉnh đầu (+12cm đệm đầu), giữ nguyên L, W & XY.
+ *    - ALL: Chu trình fit toàn diện Người đi bộ (1-Click).
  */
 export function fitPedestrianBox(
   pts: Array<{ x: number; y: number; z: number }>,
@@ -2533,7 +2544,12 @@ export function fitPedestrianBox(
   curL: number = 0.65,
   curW: number = 0.65,
   curH: number = 1.70,
-  options: { headBuffer?: number; margin?: number } = {}
+  options: {
+    headBuffer?: number;
+    margin?: number;
+    egoPos?: { x: number; y: number; z?: number };
+  } = {},
+  step: "all" | "top" | "side" | "front" | "l" | "w" | "h" = "all"
 ): PedestrianFitResult {
   const headBuffer = options.headBuffer ?? 0.12;
   const margin = options.margin ?? 0.15;
@@ -2580,55 +2596,282 @@ export function fitPedestrianBox(
     }
   }
 
+  let newCenterX = cx;
+  let newCenterY = cy;
+  let newCenterZ = cz;
+  let newYawRad = yaw;
+  let newYawDeg = radToDeg(yaw);
+  let deltaYawDeg = 0;
   let newL = curL;
   let newW = curW;
   let newH = curH;
-  let shiftLx = 0;
-  let shiftLy = 0;
   let roofTopZ = groundZ + curH;
+  let msg = "";
 
-  if (bodyPts.length >= 3) {
-    const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
-    const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
-    const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
+  if (bodyPts.length < 3) {
+    return {
+      newCenterX,
+      newCenterY,
+      newCenterZ,
+      newYawRad,
+      newYawDeg,
+      deltaYawDeg: 0,
+      newL,
+      newW,
+      newH,
+      pitchRad: 0,
+      rollRad: 0,
+      pitchDeg: 0,
+      rollDeg: 0,
+      groundZ: Number(groundZ.toFixed(3)),
+      roofTopZ: Number(roofTopZ.toFixed(3)),
+      pointsCount: bodyPts.length,
+      step,
+      message: `Không đủ điểm LiDAR thân người (${bodyPts.length} điểm), giữ nguyên box`,
+    };
+  }
 
-    const pMinIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.02) : 0;
-    const pMaxIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.98) : bodyPts.length - 1;
+  const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
+  const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
+  const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
 
-    const lxMin = allLx[pMinIdx];
-    const lxMax = allLx[pMaxIdx];
-    const lyMin = allLy[pMinIdx];
-    const lyMax = allLy[pMaxIdx];
-    const highestPtZ = allZ[allZ.length - 1];
+  const pMinIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.02) : 0;
+  const pMaxIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.98) : bodyPts.length - 1;
 
-    // Co giãn kích thước linh hoạt theo thân người thật (chặn trần an toàn max 0.85m chống phình box)
+  const lxMin = allLx[pMinIdx];
+  const lxMax = allLx[pMaxIdx];
+  const lyMin = allLy[pMinIdx];
+  const lyMax = allLy[pMaxIdx];
+  const highestPtZ = allZ[allZ.length - 1];
+
+  // =========================================================================
+  // XỬ LÝ THEO TỪNG CHẾ ĐỘ FIT CHO NGƯỜI ĐI BỘ (TOP, SIDE, FRONT, L, W, H, ALL)
+  // =========================================================================
+
+  if (step === "top") {
+    // -------------------------------------------------------------
+    // 1. CĂN TOP ĐỘC LẬP: Ước lượng trục xoay quanh thân người
+    // - Khóa cứng vị trí X, Y, Z (Không ghim đất)
+    // - Khóa cứng 100% kích thước L, W, H
+    // -------------------------------------------------------------
+    const headingRes = estimateTwoWheelerHeading(bodyPts, yaw);
+    // Giới hạn biên độ xoay để không bị lật vuông góc 90° bất ngờ nếu dáng người tròn
+    if (Math.abs(headingRes.deltaYawDeg) <= 35) {
+      newYawRad = headingRes.newYawRad;
+      newYawDeg = headingRes.newYawDeg;
+      deltaYawDeg = headingRes.deltaYawDeg;
+    } else {
+      newYawRad = yaw;
+      newYawDeg = radToDeg(yaw);
+      deltaYawDeg = 0;
+    }
+
+    newCenterX = cx;
+    newCenterY = cy;
+    newCenterZ = cz;
+    newL = curL;
+    newW = curW;
+    newH = curH;
+
+    const deltaSign = deltaYawDeg >= 0 ? "+" : "";
+    msg = `Đã căn TOP Người đi bộ: Xoay Yaw (${newYawDeg}°, Δ=${deltaSign}${deltaYawDeg.toFixed(1)}°), khóa tâm X/Y/Z và kích thước`;
+  } else if (step === "side") {
+    // -------------------------------------------------------------
+    // 2. CĂN SIDE ĐỘC LẬP: Căn cản trước/sau đón tia theo trục dọc X
+    // - 🚨 TUYỆT ĐỐI KHÔNG GHIM ĐẤT: Giữ nguyên 100% cao độ Z (newCenterZ = cz)
+    // - Khóa cứng 100% kích thước L, W, H
+    // - Giữ nguyên trục ngang Y (shiftLy = 0)
+    // -------------------------------------------------------------
+    newYawRad = yaw;
+    newYawDeg = radToDeg(yaw);
+    deltaYawDeg = 0;
+    newL = curL;
+    newW = curW;
+    newH = curH;
+    newCenterZ = cz;
+
+    let shiftLx = 0;
+    let bumperLabel = "Đón tia";
+
+    if (options.egoPos) {
+      const dxEgo = options.egoPos.x - cx;
+      const dyEgo = options.egoPos.y - cy;
+      const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
+      if (lxEgo > 0.25) {
+        shiftLx = (lxMax + 0.03) - curL / 2;
+        bumperLabel = "Mặt trước";
+      } else if (lxEgo < -0.25) {
+        shiftLx = (lxMin - 0.03) + curL / 2;
+        bumperLabel = "Mặt sau";
+      } else {
+        shiftLx = (lxMin + lxMax) / 2;
+        bumperLabel = "Cân đối";
+      }
+    } else {
+      const frontCount = bodyPts.filter((p) => p.lx > 0).length;
+      const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
+      if (frontCount > rearCount * 1.5) {
+        shiftLx = (lxMax + 0.03) - curL / 2;
+        bumperLabel = "Mặt trước";
+      } else if (rearCount > frontCount * 1.5) {
+        shiftLx = (lxMin - 0.03) + curL / 2;
+        bumperLabel = "Mặt sau";
+      } else {
+        shiftLx = (lxMin + lxMax) / 2;
+        bumperLabel = "Cân đối";
+      }
+    }
+
+    shiftLx = Math.max(-0.35, Math.min(0.35, shiftLx));
+    newCenterX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
+    newCenterY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
+
+    const deltaXSign = shiftLx >= 0 ? "+" : "";
+    msg = `Đã căn SIDE Người đi bộ: [${bumperLabel}] đón tia ăn khít trục X (ΔX: ${deltaXSign}${(shiftLx * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
+  } else if (step === "front") {
+    // -------------------------------------------------------------
+    // 3. CĂN FRONT ĐỘC LẬP: Căn mép sườn đón tia theo trục ngang Y
+    // - 🚨 TUYỆT ĐỐI KHÔNG GHIM ĐẤT: Giữ nguyên 100% cao độ Z (newCenterZ = cz)
+    // - Khóa cứng 100% kích thước L, W, H
+    // - Giữ nguyên trục dọc X (shiftLx = 0)
+    // -------------------------------------------------------------
+    newYawRad = yaw;
+    newYawDeg = radToDeg(yaw);
+    deltaYawDeg = 0;
+    newL = curL;
+    newW = curW;
+    newH = curH;
+    newCenterZ = cz;
+
+    let visibleSide: "left" | "right";
+    if (options.egoPos) {
+      const toEgoX = options.egoPos.x - cx;
+      const toEgoY = options.egoPos.y - cy;
+      const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+      visibleSide = egoLocalY >= 0 ? "left" : "right";
+    } else {
+      const leftCount = bodyPts.filter((p) => p.ly > 0.03).length;
+      const rightCount = bodyPts.filter((p) => p.ly < -0.03).length;
+      visibleSide = leftCount >= rightCount ? "left" : "right";
+    }
+
+    const edgePadding = 0.03;
+    let shiftLy = 0;
+    if (lyMin <= -0.05 && lyMax >= 0.05) {
+      shiftLy = (lyMin + lyMax) / 2;
+    } else if (visibleSide === "left") {
+      shiftLy = (lyMax + edgePadding) - curW / 2;
+    } else {
+      shiftLy = (lyMin - edgePadding) + curW / 2;
+    }
+
+    shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+    newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
+    newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
+
+    const deltaYSign = shiftLy >= 0 ? "+" : "";
+    const sideText = visibleSide === "left" ? "Sườn Trái" : "Sườn Phải";
+    msg = `Đã căn FRONT Người đi bộ: [${sideText}] đón tia ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
+  } else if (step === "l") {
+    // -------------------------------------------------------------
+    // 4. FIX RIÊNG CHIỀU DÀI L: Co giãn theo mây điểm thân người
+    // - Căn tâm X theo trung điểm phân bố điểm
+    // - Giữ nguyên 100% Chiều rộng W, Chiều cao H, Cao độ Z và trục Y
+    // -------------------------------------------------------------
+    newYawRad = yaw;
+    newYawDeg = radToDeg(yaw);
+    deltaYawDeg = 0;
+    newW = curW;
+    newH = curH;
+    newCenterZ = cz;
+
+    newL = Number(Math.max(0.35, Math.min(0.85, (lxMax - lxMin) + 0.08)).toFixed(2));
+    let shiftLx = (lxMin + lxMax) / 2;
+    shiftLx = Math.max(-0.35, Math.min(0.35, shiftLx));
+
+    newCenterX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
+    newCenterY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
+
+    const deltaXSign = shiftLx >= 0 ? "+" : "";
+    msg = `Đã fix Chiều Dài (L) Người đi bộ: L=${newL}m (căn tâm X: ${deltaXSign}${(shiftLx * 100).toFixed(1)}cm), giữ nguyên W, H & Z`;
+  } else if (step === "w") {
+    // -------------------------------------------------------------
+    // 5. FIX RIÊNG CHIỀU RỘNG W: Co giãn theo mây điểm thân người
+    // - Căn tâm Y theo trung điểm phân bố điểm
+    // - Giữ nguyên 100% Chiều dài L, Chiều cao H, Cao độ Z và trục X
+    // -------------------------------------------------------------
+    newYawRad = yaw;
+    newYawDeg = radToDeg(yaw);
+    deltaYawDeg = 0;
+    newL = curL;
+    newH = curH;
+    newCenterZ = cz;
+
+    newW = Number(Math.max(0.35, Math.min(0.85, (lyMax - lyMin) + 0.08)).toFixed(2));
+    let shiftLy = (lyMin + lyMax) / 2;
+    shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+
+    newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
+    newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
+
+    const deltaYSign = shiftLy >= 0 ? "+" : "";
+    msg = `Đã fix Chiều Rộng (W) Người đi bộ: W=${newW}m (căn tâm Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm), giữ nguyên L, H & Z`;
+  } else if (step === "h") {
+    // -------------------------------------------------------------
+    // 6. FIX RIÊNG CHIỀU CAO H: Bám sàn Z_base cố định, nở lên đỉnh đầu
+    // - Mặt đáy tiếp đất giữ nguyên cố định 100%
+    // - Đỉnh đầu nở lên + 12cm đệm chống cắt trán
+    // - Giữ nguyên 100% Chiều dài L, Chiều rộng W và vị trí XY
+    // -------------------------------------------------------------
+    newYawRad = yaw;
+    newYawDeg = radToDeg(yaw);
+    deltaYawDeg = 0;
+    newL = curL;
+    newW = curW;
+    newCenterX = cx;
+    newCenterY = cy;
+
+    const currentBaseZ = cz - curH / 2;
+    const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
+
+    roofTopZ = highestPtZ + Math.max(0.12, headBuffer);
+    newH = Number(Math.max(1.00, Math.min(2.15, roofTopZ - effectiveBaseZ)).toFixed(2));
+    newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
+
+    msg = `Đã fix Chiều Cao (H) Người đi bộ: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên đỉnh đầu +12cm), giữ nguyên L, W & XY`;
+  } else {
+    // -------------------------------------------------------------
+    // 7. CHU TRÌNH TOÀN DIỆN (ALL): 1-Click Smart Fit cho Người
+    // -------------------------------------------------------------
     newL = Number(Math.max(0.40, Math.min(0.85, lxMax - lxMin + 0.08)).toFixed(2));
     newW = Number(Math.max(0.40, Math.min(0.85, lyMax - lyMin + 0.08)).toFixed(2));
 
-    // Bù đỉnh đầu chống cắt ngang trán/tai
     roofTopZ = highestPtZ + headBuffer;
     newH = Number(Math.max(1.05, Math.min(2.15, roofTopZ - groundZ)).toFixed(2));
 
-    shiftLx = (lxMin + lxMax) / 2;
-    shiftLy = (lyMin + lyMax) / 2;
+    let shiftLx = (lxMin + lxMax) / 2;
+    let shiftLy = (lyMin + lyMax) / 2;
 
     const maxShift = 0.40;
     shiftLx = Math.max(-maxShift, Math.min(maxShift, shiftLx));
     shiftLy = Math.max(-maxShift, Math.min(maxShift, shiftLy));
+
+    const cosWorld = Math.cos(yaw);
+    const sinWorld = Math.sin(yaw);
+    newCenterX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
+    newCenterY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
+    newCenterZ = Number((groundZ + newH / 2).toFixed(3));
+
+    msg = `Đã fit Người Đi Bộ: ${newL}x${newW}x${newH}m (Khóa thẳng đứng 0°, Ghim đất Z: ${newCenterZ}m, Bù đỉnh đầu +${Math.round(headBuffer * 100)}cm)`;
   }
-
-  const cosWorld = Math.cos(yaw);
-  const sinWorld = Math.sin(yaw);
-  const newCenterX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
-  const newCenterY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
-  const newCenterZ = Number((groundZ + newH / 2).toFixed(3));
-
-  const msg = `Đã fit Người Đi Bộ: ${newL}x${newW}x${newH}m (Khóa thẳng đứng 0°, Ghim đất Z: ${newCenterZ}m, Bù đỉnh đầu +${Math.round(headBuffer * 100)}cm)`;
 
   return {
     newCenterX,
     newCenterY,
     newCenterZ,
+    newYawRad,
+    newYawDeg,
+    deltaYawDeg,
     newL,
     newW,
     newH,
@@ -2639,6 +2882,7 @@ export function fitPedestrianBox(
     groundZ: Number(groundZ.toFixed(3)),
     roofTopZ: Number(roofTopZ.toFixed(3)),
     pointsCount: bodyPts.length,
+    step,
     message: msg,
   };
 }
@@ -3128,6 +3372,57 @@ export function fitTwoWheelerBox(
 }
 
 /**
+ * Fit riêng chiều dài L cho người đi bộ (co giãn L ôm thân người, căn tâm X, giữ nguyên W, H & Z).
+ */
+export function fitPedestrianLength(
+  pts: Array<{ x: number; y: number; z: number }>,
+  cx: number,
+  cy: number,
+  cz: number,
+  yaw: number,
+  curL: number = 0.65,
+  curW: number = 0.65,
+  curH: number = 1.70,
+  options: { egoPos?: { x: number; y: number; z?: number } } = {}
+): PedestrianFitResult {
+  return fitPedestrianBox(pts, cx, cy, cz, yaw, curL, curW, curH, options, "l");
+}
+
+/**
+ * Fit riêng chiều rộng W cho người đi bộ (co giãn W ôm vai/ngực, căn tâm Y, giữ nguyên L, H & Z).
+ */
+export function fitPedestrianWidth(
+  pts: Array<{ x: number; y: number; z: number }>,
+  cx: number,
+  cy: number,
+  cz: number,
+  yaw: number,
+  curL: number = 0.65,
+  curW: number = 0.65,
+  curH: number = 1.70,
+  options: { egoPos?: { x: number; y: number; z?: number } } = {}
+): PedestrianFitResult {
+  return fitPedestrianBox(pts, cx, cy, cz, yaw, curL, curW, curH, options, "w");
+}
+
+/**
+ * Fit riêng chiều cao H cho người đi bộ (mặt đáy tiếp đất Z_base giữ nguyên cố định, nở lên đỉnh đầu +12cm đệm đầu).
+ */
+export function fitPedestrianHeight(
+  pts: Array<{ x: number; y: number; z: number }>,
+  cx: number,
+  cy: number,
+  cz: number,
+  yaw: number,
+  curL: number = 0.65,
+  curW: number = 0.65,
+  curH: number = 1.70,
+  options: { headBuffer?: number } = {}
+): PedestrianFitResult {
+  return fitPedestrianBox(pts, cx, cy, cz, yaw, curL, curW, curH, options, "h");
+}
+
+/**
  * Fit riêng chiều rộng W cho xe 2 bánh (+5cm đệm bắt trọn gương/tay lái, bảo toàn L & H).
  */
 export function fitTwoWheelerWidth(
@@ -3531,6 +3826,9 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).BOX_EDGES = BOX_EDGES;
   (globalThis as any).fitBoxToEgoRayAndGround = fitBoxToEgoRayAndGround;
   (globalThis as any).fitPedestrianBox = fitPedestrianBox;
+  (globalThis as any).fitPedestrianLength = fitPedestrianLength;
+  (globalThis as any).fitPedestrianWidth = fitPedestrianWidth;
+  (globalThis as any).fitPedestrianHeight = fitPedestrianHeight;
   (globalThis as any).fitCyclistBox = fitCyclistBox;
   (globalThis as any).fitTwoWheelerBox = fitTwoWheelerBox;
   (globalThis as any).estimateTwoWheelerHeading = estimateTwoWheelerHeading;
@@ -3540,6 +3838,9 @@ if (typeof window !== "undefined") {
   (window as any).BOX_EDGES = BOX_EDGES;
   (window as any).fitBoxToEgoRayAndGround = fitBoxToEgoRayAndGround;
   (window as any).fitPedestrianBox = fitPedestrianBox;
+  (window as any).fitPedestrianLength = fitPedestrianLength;
+  (window as any).fitPedestrianWidth = fitPedestrianWidth;
+  (window as any).fitPedestrianHeight = fitPedestrianHeight;
   (window as any).fitCyclistBox = fitCyclistBox;
   (window as any).fitTwoWheelerBox = fitTwoWheelerBox;
   (window as any).estimateTwoWheelerHeading = estimateTwoWheelerHeading;

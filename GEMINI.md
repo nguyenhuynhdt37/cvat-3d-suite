@@ -37,11 +37,22 @@
   - **Xe 2 bánh (Cyclist / Motorcycle)**: Cắt bỏ điểm $Z < Z_{\text{ground}} + 0.25\text{m}$ khi căn mép cản và co giãn độ rộng $W$ ôm tay lái.
   - Các điểm sát đất này **CHỈ** được dùng cho thuật toán ghim sàn ($Z_{\text{ground}}$).
 
-### 5. Bộ Kích Thước L, W, H & Vi Chỉnh Center
+### 6. Bộ Kích Thước L, W, H & Vi Chỉnh Center
 - **Dàn đều kích thước**: Chiều dài $L$ và chiều rộng $W$ nới/thu dàn đều ra hai bên từ tâm cố định.
 - **Vi chỉnh Center 2D Dàn Đều**: Hỗ trợ các nút vi chỉnh độc lập $\pm 1\text{cm}, \pm 5\text{cm}$ cho Trục Dọc $X$ (Side View - Tiến/Lùi) và Trục Ngang $Y$ (Front View - Trái/Phải).
 - **Phạm vi [Toàn Track]**: Khi bật toggle "Toàn Track", mọi dịch chuyển tâm $(\Delta X, \Delta Y)$ hoặc thay đổi kích thước $(L, W, H)$ phải **tịnh tiến dàn đều cho toàn bộ các frame trong track**.
 - **Chế độ Quét Golden Anchor**: Khi người dùng bấm nút Quét Best Frame, chạy chế độ `Scan Only` (chỉ điền kết quả vào ô input để người dùng duyệt, không tự ý lưu đè toàn track).
+
+### 7. Chuẩn Căn Chỉnh & Fix Size Cho Người Đi Bộ (Pedestrian)
+- **3 Nút 2D Độc Lập**:
+  - **TOP**: Căn góc xoay Yaw theo trục cơ thể người, **khóa cứng tâm $X, Y, Z$ và kích thước $L, W, H$**.
+  - **SIDE**: Căn mép trước/sau đón tia theo trục dọc $X$, **giữ nguyên 100% cao độ $Z$** (`newCenterZ = cz`, tuyệt đối không auto ghim đất) và bảo toàn $L, W, H$.
+  - **FRONT**: Căn mép sườn đón tia theo trục ngang $Y$, **giữ nguyên 100% cao độ $Z$** (`newCenterZ = cz`, tuyệt đối không auto ghim đất) và bảo toàn $L, W, H$.
+- **3 Nút Fix Size Tách Biệt**:
+  - **Fit Dài (L)**: Co giãn riêng chiều dài $L$ theo mây điểm thân người, căn tâm $X$, giữ nguyên $W, H, Z, Y$.
+  - **Fit Rộng (W)**: Co giãn riêng chiều rộng $W$ theo mây điểm vai/ngực, căn tâm $Y$, giữ nguyên $L, H, Z, X$.
+  - **Fit Cao (H)**: Chuẩn **Ground-Lock**: mặt đáy tiếp đất $Z_{\text{base}}$ giữ nguyên cố định, chiều cao $H$ nở lên đỉnh đầu ($+12\text{cm}$ đệm đầu), giữ nguyên $L, W$ và $XY$.
+- **Khóa Thẳng Đứng**: Luôn khóa cứng $\text{Roll} = 0^\circ, \text{Pitch} = 0^\circ$ tuyệt đối cho người đi bộ.
 
 ---
 

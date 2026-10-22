@@ -1103,6 +1103,8 @@ export class FloatingPanel {
   public async handleFitTop(): Promise<void> {
     if (this.selectedCategory === "cyclist") {
       await this.handleFitCyclist("top");
+    } else if (this.selectedCategory === "pedestrian") {
+      await this.handleFitPedestrian("top");
     } else {
       await this.handleEgoRayFit("top");
     }
@@ -1111,6 +1113,8 @@ export class FloatingPanel {
   public async handleFitSide(): Promise<void> {
     if (this.selectedCategory === "cyclist") {
       await this.handleFitCyclist("side");
+    } else if (this.selectedCategory === "pedestrian") {
+      await this.handleFitPedestrian("side");
     } else {
       await this.handleEgoRayFit("side");
     }
@@ -1119,6 +1123,8 @@ export class FloatingPanel {
   public async handleFitFront(): Promise<void> {
     if (this.selectedCategory === "cyclist") {
       await this.handleFitCyclist("front");
+    } else if (this.selectedCategory === "pedestrian") {
+      await this.handleFitPedestrian("front");
     } else {
       await this.handleEgoRayFit("front");
     }
@@ -1126,12 +1132,14 @@ export class FloatingPanel {
 
   /**
    * Xử lý FIT CHUYÊN BIỆT CHO NGƯỜI ĐI BỘ (PEDESTRIAN FIT)
-   * - Co giãn linh hoạt L, W, H theo người tại frame đó
+   * - Hỗ trợ 3 chiều độc lập (TOP - SIDE - FRONT)
+   * - Hỗ trợ 3 nút Fix Size linh hoạt: Dài (L), Rộng (W), Cao (H)
+   * - Hỗ trợ chu trình hoàn chỉnh toàn diện (ALL)
    * - Khóa thẳng đứng Roll = 0, Pitch = 0
    * - Quét chân siêu hẹp +15cm tránh vỉa hè
    * - Bù đỉnh đầu +12cm chống cắt ngang trán
    */
-  public async handleFitPedestrian(): Promise<void> {
+  public async handleFitPedestrian(step: "all" | "top" | "side" | "front" | "l" | "w" | "h" = "all"): Promise<void> {
     if (!this.currentCtx || !this.currentCtx.jobId) {
       this.showToast("Chưa kết nối Job CVAT!", "warning");
       return;
@@ -1143,21 +1151,41 @@ export class FloatingPanel {
     }
 
     if (this.isProcessing) return;
-    await this.pushUndoSnapshot("Fit Người Đi Bộ", false);
+    const stepLabel =
+      step === "top"
+        ? "Căn TOP (Yaw Trục người)"
+        : step === "side"
+        ? "Căn SIDE (Cản X đón tia, Khóa Size & Z)"
+        : step === "front"
+        ? "Căn FRONT (Sườn Y đón tia, Khóa Size & Z)"
+        : step === "l"
+        ? "Fix Dài L (Co giãn ôm thân, giữ W/H/Z)"
+        : step === "w"
+        ? "Fix Rộng W (Co giãn ôm vai/ngực, giữ L/H/Z)"
+        : step === "h"
+        ? "Fix Cao H (Bám sàn cố định, nở đỉnh đầu +12cm)"
+        : "Fit Người Đi Bộ toàn diện";
+
+    await this.pushUndoSnapshot(stepLabel, false);
     this.isProcessing = true;
+    this.showToast(`Đang ${stepLabel}...`, "info");
 
     try {
       const serverId = this.selectedServerId || this.selectedUiId;
       const res = await CVATBridge.fitPedestrian(
         this.currentCtx.jobId,
         this.selectedUiId,
-        serverId
+        serverId,
+        0.12,
+        step,
+        this.applyToTrack
       );
 
       if (res.success) {
         if (res.newX !== undefined) this.currentX = res.newX;
         if (res.newY !== undefined) this.currentY = res.newY;
         if (res.newZ !== undefined) this.currentZ = res.newZ;
+        if (res.newYawDeg !== undefined) this.currentYawDeg = res.newYawDeg;
         if (res.newL !== undefined) {
           this.currentL = res.newL;
           this.editL = res.newL;
@@ -1171,11 +1199,26 @@ export class FloatingPanel {
           this.editH = res.newH;
         }
 
+        // Cập nhật DOM tức thì cho các ô input số đo (Zero-Delay)
+        const inputW = this.container.querySelector<HTMLInputElement>("#input-dim-w");
+        if (inputW && res.newW !== undefined) {
+          inputW.value = String(res.newW);
+        }
+        const inputH = this.container.querySelector<HTMLInputElement>("#input-dim-h");
+        if (inputH && res.newH !== undefined) {
+          inputH.value = String(res.newH);
+        }
+        const inputL = this.container.querySelector<HTMLInputElement>("#input-dim-l");
+        if (inputL && res.newL !== undefined) {
+          inputL.value = String(res.newL);
+        }
+
         const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
         if (targetItem) {
           if (res.newX !== undefined) targetItem.x = res.newX;
           if (res.newY !== undefined) targetItem.y = res.newY;
           if (res.newZ !== undefined) targetItem.z = res.newZ;
+          if (res.newYawDeg !== undefined) targetItem.yawDeg = res.newYawDeg;
           if (res.newL !== undefined) targetItem.l = res.newL;
           if (res.newW !== undefined) targetItem.w = res.newW;
           if (res.newH !== undefined) targetItem.h = res.newH;
@@ -1186,7 +1229,7 @@ export class FloatingPanel {
         this.showToast(res.message, "error");
       }
     } catch (err: any) {
-      this.showToast(`Lỗi Fit Người Đi Bộ: ${err.message || err}`, "error");
+      this.showToast(`Lỗi ${stepLabel}: ${err.message || err}`, "error");
     } finally {
       this.isProcessing = false;
       this.updateContent();
@@ -2284,38 +2327,171 @@ export class FloatingPanel {
             </button>
           `
               : `
-            <!-- NÚT FIT CHUYÊN BIỆT CHO NGƯỜI HOẶC XE ĐẠP -->
-            <button id="btn-hero-smart-fit" title="${heroTitle}" style="
-              background: ${heroGradient};
-              border: 1px solid ${heroBorder};
-              color: ${heroColor};
-              padding: 9px 12px;
-              border-radius: 8px;
+            <!-- THANH 3 NÚT FIT ĐỘC LẬP CHO NGƯỜI ĐI BỘ (TOP - SIDE - FRONT) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+              <!-- 1. FIT TOP NGƯỜI -->
+              <button id="btn-fit-top" title="Căn góc xoay Yaw theo trục cơ thể người, khóa tâm X/Y/Z và kích thước (Phím 1 hoặc T)" style="
+                background: #faf5ff;
+                border: 1px solid #d8b4fe;
+                color: #7e22ce;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowUp}
+                    <span>TOP</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #f3e8ff; color: #7e22ce;">1</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Trục thân người</span>
+              </button>
+
+              <!-- 2. FIT SIDE NGƯỜI -->
+              <button id="btn-fit-side" title="Căn mép trước/sau đón tia theo trục dọc X (Giữ nguyên Z và kích thước L, W, H) (Phím 2 hoặc S)" style="
+                background: #fdf4ff;
+                border: 1px solid #f0abfc;
+                color: #a21caf;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowRightLeft}
+                    <span>SIDE</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #fae8ff; color: #a21caf;">2</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Cản đón tia X</span>
+              </button>
+
+              <!-- 3. FIT FRONT NGƯỜI -->
+              <button id="btn-fit-front" title="Căn sườn trái/phải đón tia theo trục ngang Y (Giữ nguyên Z và kích thước L, W, H) (Phím 3 hoặc W)" style="
+                background: #f5f3ff;
+                border: 1px solid #c4b5fd;
+                color: #6d28d9;
+                padding: 7px 5px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+                transition: all 0.12s;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="font-size: 11px; font-weight: 700; letter-spacing: -0.2px; display: flex; align-items: center; gap: 3px;">
+                    ${ICONS.arrowUpDown}
+                    <span>FRONT</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #ede9fe; color: #6d28d9;">3</kbd>
+                </div>
+                <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Sườn đón tia Y</span>
+              </button>
+            </div>
+
+            <!-- THANH 3 NÚT TÁCH BIỆT: FIX DÀI (L) - FIX RỘNG (W) - FIX CAO (H) CHO NGƯỜI ĐI BỘ -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;">
+              <!-- 1. NÚT FIX DÀI L -->
+              <button id="btn-fit-ped-l" title="Tự động đo và co giãn riêng Chiều Dài L ôm thân người (giữ nguyên W, H & Z)" style="
+                background: #fdf4ff;
+                border: 1px solid #f0abfc;
+                color: #a21caf;
+                padding: 6px 4px;
+                border-radius: 7px;
+                font-size: 9.5px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+                transition: all 0.12s;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+              ">
+                <span style="display: flex; align-items: center; color: #c026d3;">${ICONS.arrowRightLeft}</span>
+                <span>Fit Dài (L)</span>
+              </button>
+
+              <!-- 2. NÚT FIX RỘNG W -->
+              <button id="btn-fit-ped-w" title="Tự động đo và co giãn riêng Chiều Rộng W ôm vai/ngực (giữ nguyên L, H & Z)" style="
+                background: #faf5ff;
+                border: 1px solid #d8b4fe;
+                color: #7e22ce;
+                padding: 6px 4px;
+                border-radius: 7px;
+                font-size: 9.5px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+                transition: all 0.12s;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+              ">
+                <span style="display: flex; align-items: center; color: #9333ea;">${ICONS.sparkles}</span>
+                <span>Fit Rộng (W)</span>
+              </button>
+
+              <!-- 3. NÚT FIX CAO H -->
+              <button id="btn-fit-ped-h" title="Tự động đo đỉnh đầu và fit riêng Chiều Cao H (Đáy tiếp đất giữ nguyên cố định, đỉnh đầu nở lên +12cm), giữ nguyên L, W và XY" style="
+                background: #fff7ed;
+                border: 1px solid #fdba74;
+                color: #c2410c;
+                padding: 6px 4px;
+                border-radius: 7px;
+                font-size: 9.5px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+                transition: all 0.12s;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+              ">
+                <span style="display: flex; align-items: center; color: #ea580c;">${ICONS.arrowUpDown}</span>
+                <span>Fit Cao (H)</span>
+              </button>
+            </div>
+
+            <!-- NÚT FIT TOÀN DIỆN CHO NGƯỜI ĐI BỘ (1-CHẠM CHU TRÌNH HOÀN CHỈNH) -->
+            <button id="btn-fit-ped-all" title="Fit Người Đi Bộ toàn diện: Khóa đứng 0° • Bù đỉnh đầu +12cm • Co giãn dáng người (Phím P)" style="
+              width: 100%;
+              background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+              border: 1px dashed #c084fc;
+              color: #6b21a8;
+              padding: 5px 8px;
+              border-radius: 6px;
+              font-size: 10px;
+              font-weight: 600;
               cursor: pointer;
               display: flex;
-              flex-direction: column;
-              gap: 3px;
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-              transition: all 0.15s ease;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
             ">
-              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <span style="display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; letter-spacing: -0.2px;">
-                  <span style="display: flex; align-items: center;">${heroIcon}</span>
-                  <span>${heroTitle}</span>
-                </span>
-                <kbd style="
-                  font-size: 9px;
-                  font-family: ui-monospace, monospace;
-                  background: #ffffff;
-                  padding: 1px 6px;
-                  border-radius: 4px;
-                  border: 1px solid ${heroBorder};
-                  color: ${heroColor};
-                ">${heroKey}</kbd>
-              </div>
-              <div style="font-size: 9.5px; opacity: 0.9; text-align: left; font-weight: 500;">
-                ${heroSub}
-              </div>
+              <span style="display: flex; align-items: center; gap: 5px;">
+                ${ICONS.user}
+                <span>Fit Toàn Diện Người Đi Bộ (ALL)</span>
+              </span>
+              <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; border: 1px solid #e9d5ff; padding: 1px 5px; border-radius: 3px; color: #6b21a8;">P</kbd>
             </button>
           `
           }
@@ -2717,6 +2893,30 @@ export class FloatingPanel {
           this.handleFitCyclist();
         }
       });
+    }
+
+    // Nút Fit Toàn Diện cho Người Đi Bộ (ALL)
+    const fitPedAllBtn = this.container.querySelector("#btn-fit-ped-all");
+    if (fitPedAllBtn) {
+      fitPedAllBtn.addEventListener("click", () => this.handleFitPedestrian("all"));
+    }
+
+    // Nút Fix Dài (L) cho Người Đi Bộ
+    const fitPedLBtn = this.container.querySelector("#btn-fit-ped-l");
+    if (fitPedLBtn) {
+      fitPedLBtn.addEventListener("click", () => this.handleFitPedestrian("l"));
+    }
+
+    // Nút Fix Rộng (W) cho Người Đi Bộ
+    const fitPedWBtn = this.container.querySelector("#btn-fit-ped-w");
+    if (fitPedWBtn) {
+      fitPedWBtn.addEventListener("click", () => this.handleFitPedestrian("w"));
+    }
+
+    // Nút Fix Cao (H) cho Người Đi Bộ
+    const fitPedHBtn = this.container.querySelector("#btn-fit-ped-h");
+    if (fitPedHBtn) {
+      fitPedHBtn.addEventListener("click", () => this.handleFitPedestrian("h"));
     }
 
     // Nút Fit Toàn Diện cho Xe 2 Bánh (Chu trình hoàn chỉnh TOP ➔ SIDE ➔ FRONT)

@@ -1525,16 +1525,25 @@ export function mainWorldScript(): void {
   // Thuật toán CHUYÊN BIỆT CHO NGƯỜI ĐI BỘ TRONG MAIN WORLD (PEDESTRIAN FIT)
   function fitPedestrianInMainWorld(
     points: number[],
-    options: { headBuffer?: number; margin?: number } = {}
+    options: {
+      headBuffer?: number;
+      margin?: number;
+      egoPos?: { x: number; y: number; z: number };
+      step?: "all" | "top" | "side" | "front" | "l" | "w" | "h";
+    } = {}
   ): {
     newX: number;
     newY: number;
     newZ: number;
+    newYaw?: number;
+    newYawDeg?: number;
+    deltaYawDeg?: number;
     newL: number;
     newW: number;
     newH: number;
     groundZ: number;
     pointsCount: number;
+    step: "all" | "top" | "side" | "front" | "l" | "w" | "h";
     message: string;
   } {
     const cx = points[0];
@@ -1544,6 +1553,8 @@ export function mainWorldScript(): void {
     const curL = points[6] || 0.65;
     const curW = points[7] || 0.65;
     const curH = points[8] || 1.70;
+    const step = options.step ?? "all";
+    const curYawDeg = Number(((yaw * 180) / Math.PI).toFixed(2));
 
     const lidar = getSceneLidarPoints();
     if (!lidar || lidar.count === 0) {
@@ -1551,11 +1562,15 @@ export function mainWorldScript(): void {
         newX: cx,
         newY: cy,
         newZ: cz,
+        newYaw: yaw,
+        newYawDeg: curYawDeg,
+        deltaYawDeg: 0,
         newL: curL,
         newW: curW,
         newH: curH,
         groundZ: cz - curH / 2,
         pointsCount: 0,
+        step,
         message: "Không tìm thấy điểm LiDAR trong scene",
       };
     }
@@ -1564,7 +1579,7 @@ export function mainWorldScript(): void {
     const headBuffer = options.headBuffer ?? 0.12;
     const margin = options.margin ?? 0.15;
 
-    // 1. Quét mặt đất siêu hẹp sát chân người
+    // 1. Quét mặt đất siêu hẹp sát chân người (R <= 0.45m)
     const footRadius = Math.max(0.35, Math.max(curL, curW) / 2 + margin);
     const footGroundPts: number[] = [];
     const maxFootGroundZ = cz - curH / 2 + 0.35;
@@ -1612,59 +1627,275 @@ export function mainWorldScript(): void {
       }
     }
 
+    let newX = cx;
+    let newY = cy;
+    let newZ = cz;
+    let newYaw = yaw;
+    let newYawDeg = curYawDeg;
+    let deltaYawDeg = 0;
     let newL = curL;
     let newW = curW;
     let newH = curH;
-    let shiftLx = 0;
-    let shiftLy = 0;
-    let roofTopZ = groundZ + curH;
+    let msg = "";
 
-    if (bodyPts.length >= 3) {
-      const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
-      const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
-      const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
+    if (bodyPts.length < 3) {
+      return {
+        newX,
+        newY,
+        newZ,
+        newYaw,
+        newYawDeg,
+        deltaYawDeg: 0,
+        newL,
+        newW,
+        newH,
+        groundZ: Number(groundZ.toFixed(3)),
+        pointsCount: bodyPts.length,
+        step,
+        message: `Không đủ điểm LiDAR thân người (${bodyPts.length} điểm), giữ nguyên box`,
+      };
+    }
 
-      const pMinIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.02) : 0;
-      const pMaxIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.98) : bodyPts.length - 1;
+    const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
+    const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
+    const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
 
-      const lxMin = allLx[pMinIdx];
-      const lxMax = allLx[pMaxIdx];
-      const lyMin = allLy[pMinIdx];
-      const lyMax = allLy[pMaxIdx];
-      const highestPtZ = allZ[allZ.length - 1];
+    const pMinIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.02) : 0;
+    const pMaxIdx = bodyPts.length >= 8 ? Math.floor(bodyPts.length * 0.98) : bodyPts.length - 1;
 
-      // Co giãn kích thước linh hoạt theo thân người thật (chặn trần an toàn max 0.85m chống phình box)
+    const lxMin = allLx[pMinIdx];
+    const lxMax = allLx[pMaxIdx];
+    const lyMin = allLy[pMinIdx];
+    const lyMax = allLy[pMaxIdx];
+    const highestPtZ = allZ[allZ.length - 1];
+
+    const normalizeRad = (r: number) => {
+      let a = r;
+      while (a > Math.PI) a -= 2 * Math.PI;
+      while (a < -Math.PI) a += 2 * Math.PI;
+      return a;
+    };
+
+    if (step === "top") {
+      // 1. CĂN TOP ĐỘC LẬP: Ước lượng trục xoay quanh thân người
+      let sumLx = 0;
+      let sumLy = 0;
+      for (const p of bodyPts) {
+        sumLx += p.lx;
+        sumLy += p.ly;
+      }
+      const meanLx = sumLx / bodyPts.length;
+      const meanLy = sumLy / bodyPts.length;
+      let sxx = 0;
+      let syy = 0;
+      let sxy = 0;
+      for (const p of bodyPts) {
+        const dx = p.lx - meanLx;
+        const dy = p.ly - meanLy;
+        sxx += dx * dx;
+        syy += dy * dy;
+        sxy += dx * dy;
+      }
+      const dTheta = 0.5 * Math.atan2(2 * sxy, sxx - syy);
+      const dThetaDeg = (dTheta * 180) / Math.PI;
+
+      if (Math.abs(dThetaDeg) <= 35) {
+        newYaw = normalizeRad(yaw + dTheta);
+        newYawDeg = Number(((newYaw * 180) / Math.PI).toFixed(2));
+        deltaYawDeg = Number(dThetaDeg.toFixed(2));
+      } else {
+        newYaw = yaw;
+        newYawDeg = curYawDeg;
+        deltaYawDeg = 0;
+      }
+
+      newX = cx;
+      newY = cy;
+      newZ = cz;
+      newL = curL;
+      newW = curW;
+      newH = curH;
+
+      const sign = deltaYawDeg >= 0 ? "+" : "";
+      msg = `Đã căn TOP Người đi bộ: Xoay Yaw (${newYawDeg}°, Δ=${sign}${deltaYawDeg}°) theo trục cơ thể, khóa tâm X/Y/Z & L/W/H`;
+    } else if (step === "side") {
+      // 2. CĂN SIDE ĐỘC LẬP: Căn đón tia X, giữ nguyên 100% Z & size
+      newYaw = yaw;
+      newYawDeg = curYawDeg;
+      deltaYawDeg = 0;
+      newL = curL;
+      newW = curW;
+      newH = curH;
+      newZ = cz;
+
+      let shiftLx = 0;
+      let bumperName = "Đón tia";
+
+      if (options.egoPos) {
+        const dxEgo = options.egoPos.x - cx;
+        const dyEgo = options.egoPos.y - cy;
+        const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
+        if (lxEgo > 0.25) {
+          shiftLx = (lxMax + 0.03) - curL / 2;
+          bumperName = "Mặt trước";
+        } else if (lxEgo < -0.25) {
+          shiftLx = (lxMin - 0.03) + curL / 2;
+          bumperName = "Mặt sau";
+        } else {
+          shiftLx = (lxMin + lxMax) / 2;
+          bumperName = "Cân đối";
+        }
+      } else {
+        const frontCount = bodyPts.filter((p) => p.lx > 0).length;
+        const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
+        if (frontCount > rearCount * 1.5) {
+          shiftLx = (lxMax + 0.03) - curL / 2;
+          bumperName = "Mặt trước";
+        } else if (rearCount > frontCount * 1.5) {
+          shiftLx = (lxMin - 0.03) + curL / 2;
+          bumperName = "Mặt sau";
+        } else {
+          shiftLx = (lxMin + lxMax) / 2;
+          bumperName = "Cân đối";
+        }
+      }
+
+      shiftLx = Math.max(-0.35, Math.min(0.35, shiftLx));
+      newX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
+      newY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
+
+      const signX = shiftLx >= 0 ? "+" : "";
+      msg = `Đã căn SIDE Người đi bộ: [${bumperName}] bám mép đón tia (ΔX: ${signX}${(shiftLx * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
+    } else if (step === "front") {
+      // 3. CĂN FRONT ĐỘC LẬP: Căn mép sườn đón tia Y, giữ nguyên 100% Z & size
+      newYaw = yaw;
+      newYawDeg = curYawDeg;
+      deltaYawDeg = 0;
+      newL = curL;
+      newW = curW;
+      newH = curH;
+      newZ = cz;
+
+      let visibleSide: "left" | "right";
+      if (options.egoPos) {
+        const toEgoX = options.egoPos.x - cx;
+        const toEgoY = options.egoPos.y - cy;
+        const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+        visibleSide = egoLocalY >= 0 ? "left" : "right";
+      } else {
+        const leftCount = bodyPts.filter((p) => p.ly > 0.03).length;
+        const rightCount = bodyPts.filter((p) => p.ly < -0.03).length;
+        visibleSide = leftCount >= rightCount ? "left" : "right";
+      }
+
+      const edgePadding = 0.03;
+      let shiftLy = 0;
+      if (lyMin <= -0.05 && lyMax >= 0.05) {
+        shiftLy = (lyMin + lyMax) / 2;
+      } else if (visibleSide === "left") {
+        shiftLy = (lyMax + edgePadding) - curW / 2;
+      } else {
+        shiftLy = (lyMin - edgePadding) + curW / 2;
+      }
+
+      shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
+      newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
+
+      const signY = shiftLy >= 0 ? "+" : "";
+      const sideText = visibleSide === "left" ? "Sườn Trái" : "Sườn Phải";
+      msg = `Đã căn FRONT Người đi bộ: [${sideText}] đón tia ăn khít phương W (ΔY: ${signY}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
+    } else if (step === "l") {
+      // 4. FIX RIÊNG CHIỀU DÀI L
+      newYaw = yaw;
+      newYawDeg = curYawDeg;
+      deltaYawDeg = 0;
+      newW = curW;
+      newH = curH;
+      newZ = cz;
+
+      newL = Number(Math.max(0.35, Math.min(0.85, (lxMax - lxMin) + 0.08)).toFixed(2));
+      let shiftLx = (lxMin + lxMax) / 2;
+      shiftLx = Math.max(-0.35, Math.min(0.35, shiftLx));
+
+      newX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
+      newY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
+
+      const signX = shiftLx >= 0 ? "+" : "";
+      msg = `Đã fix Chiều Dài (L) Người đi bộ: L=${newL}m (căn tâm X: ${signX}${(shiftLx * 100).toFixed(1)}cm), giữ nguyên W, H & Z`;
+    } else if (step === "w") {
+      // 5. FIX RIÊNG CHIỀU RỘNG W
+      newYaw = yaw;
+      newYawDeg = curYawDeg;
+      deltaYawDeg = 0;
+      newL = curL;
+      newH = curH;
+      newZ = cz;
+
+      newW = Number(Math.max(0.35, Math.min(0.85, (lyMax - lyMin) + 0.08)).toFixed(2));
+      let shiftLy = (lyMin + lyMax) / 2;
+      shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+
+      newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
+      newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
+
+      const signY = shiftLy >= 0 ? "+" : "";
+      msg = `Đã fix Chiều Rộng (W) Người đi bộ: W=${newW}m (căn tâm Y: ${signY}${(shiftLy * 100).toFixed(1)}cm), giữ nguyên L, H & Z`;
+    } else if (step === "h") {
+      // 6. FIX RIÊNG CHIỀU CAO H (Ground-Lock: Đáy Z_base cố định, nở lên nóc +12cm đệm đầu)
+      newYaw = yaw;
+      newYawDeg = curYawDeg;
+      deltaYawDeg = 0;
+      newL = curL;
+      newW = curW;
+      newX = cx;
+      newY = cy;
+
+      const currentBaseZ = cz - curH / 2;
+      const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
+
+      const roofTopZ = highestPtZ + Math.max(0.12, headBuffer);
+      newH = Number(Math.max(1.00, Math.min(2.15, roofTopZ - effectiveBaseZ)).toFixed(2));
+      newZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
+
+      msg = `Đã fix Chiều Cao (H) Người đi bộ: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên đỉnh đầu +12cm), giữ nguyên L, W & XY`;
+    } else {
+      // 7. TOÀN DIỆN (ALL): 1-Click Smart Fit
       newL = Number(Math.max(0.40, Math.min(0.85, lxMax - lxMin + 0.08)).toFixed(2));
       newW = Number(Math.max(0.40, Math.min(0.85, lyMax - lyMin + 0.08)).toFixed(2));
 
-      roofTopZ = highestPtZ + headBuffer;
+      const roofTopZ = highestPtZ + headBuffer;
       newH = Number(Math.max(1.05, Math.min(2.15, roofTopZ - groundZ)).toFixed(2));
 
-      shiftLx = (lxMin + lxMax) / 2;
-      shiftLy = (lyMin + lyMax) / 2;
+      let shiftLx = (lxMin + lxMax) / 2;
+      let shiftLy = (lyMin + lyMax) / 2;
 
       const maxShift = 0.40;
       shiftLx = Math.max(-maxShift, Math.min(maxShift, shiftLx));
       shiftLy = Math.max(-maxShift, Math.min(maxShift, shiftLy));
+
+      const cosWorld = Math.cos(yaw);
+      const sinWorld = Math.sin(yaw);
+      newX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
+      newY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
+      newZ = Number((groundZ + newH / 2).toFixed(3));
+
+      msg = `Đã fit Người Đi Bộ: ${newL}x${newW}x${newH}m (Khóa thẳng đứng 0°, Ghim đất Z: ${newZ}m, Bù đỉnh đầu +${Math.round(headBuffer * 100)}cm)`;
     }
-
-    const cosWorld = Math.cos(yaw);
-    const sinWorld = Math.sin(yaw);
-    const newX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
-    const newY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
-    const newZ = Number((groundZ + newH / 2).toFixed(3));
-
-    const msg = `Đã fit Người Đi Bộ: ${newL}x${newW}x${newH}m (Khóa thẳng đứng 0°, Ghim đất Z: ${newZ}m, Bù đỉnh đầu +${Math.round(headBuffer * 100)}cm)`;
 
     return {
       newX,
       newY,
       newZ,
+      newYaw,
+      newYawDeg,
+      deltaYawDeg,
       newL,
       newW,
       newH,
       groundZ: Number(groundZ.toFixed(3)),
       pointsCount: bodyPts.length,
+      step,
       message: msg,
     };
   }
@@ -3894,17 +4125,17 @@ export function mainWorldScript(): void {
   });
 
   // 5D. Lắng nghe yêu cầu FIT CHUYÊN BIỆT CHO NGƯỜI ĐI BỘ (PEDESTRIAN FIT)
-  // - Co giãn kích thước L, W linh hoạt theo sải bước
+  // - Hỗ trợ các chế độ độc lập: TOP, SIDE, FRONT, L, W, H, ALL
   // - Khóa cứng Roll = 0°, Pitch = 0° (Người luôn đứng thẳng tuyệt đối)
   // - Quét mặt đất siêu hẹp +15cm tránh dính vỉa hè, rào chắn
   // - Bù đỉnh đầu +12cm chống cắt ngang trán người
   window.addEventListener("CVAT_EXT_REQ_FIT_PEDESTRIAN", async (e: any) => {
-    const { jobId, frame, uiId, serverId, headBuffer } = e.detail || {};
+    const { jobId, frame, uiId, serverId, headBuffer, egoPos, step, applyToTrack } = e.detail || {};
     try {
       const job = await getActiveJobInstance(jobId);
       const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
 
-      const fit = fitPedestrianInMainWorld(target.points, { headBuffer });
+      const fit = fitPedestrianInMainWorld(target.points, { headBuffer, egoPos, step });
 
       if (fit.pointsCount === 0) {
         throw new Error(`Không tìm thấy điểm LiDAR nào thuộc người #${uiId}`);
@@ -3916,6 +4147,9 @@ export function mainWorldScript(): void {
       newPoints[2] = fit.newZ;
       newPoints[3] = 0; // Roll = 0° tuyệt đối
       newPoints[4] = 0; // Pitch = 0° tuyệt đối
+      if (fit.newYaw !== undefined) {
+        newPoints[5] = fit.newYaw;
+      }
       newPoints[6] = fit.newL;
       newPoints[7] = fit.newW;
       newPoints[8] = fit.newH;
@@ -3925,12 +4159,77 @@ export function mainWorldScript(): void {
         await target.save();
       }
 
+      // ĐỒNG BỘ PARENT TRACK & REDUX ANNOTATIONS TRONG CVAT
+      let trackCount = 1;
+      const startF = typeof job?.startFrame === "number" ? job.startFrame : 0;
+      const stopF = typeof job?.stopFrame === "number" ? job.stopFrame : (startF + 100);
+
+      try {
+        const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+        if (parentTrack) {
+          const shapes = toArray(parentTrack.shapes || parentTrack.keyframes);
+          for (const sh of shapes) {
+            if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+              if (sh.frame === frame) {
+                // Luôn cập nhật shape của frame hiện tại trong track cha
+                sh.points = [...newPoints];
+              } else if (applyToTrack === true) {
+                // Nếu bật Toàn Track, cập nhật L, W, H cho toàn bộ các frame khác
+                const shPoints = [...sh.points];
+                const sOldH = shPoints[8] || fit.newH;
+                const dh = (fit.newH - sOldH) / 2;
+                shPoints[2] = Number((shPoints[2] + dh).toFixed(3));
+                shPoints[6] = fit.newL;
+                shPoints[7] = fit.newW;
+                shPoints[8] = fit.newH;
+                sh.points = shPoints;
+                trackCount++;
+              }
+            }
+          }
+          if (typeof parentTrack.save === "function") {
+            await parentTrack.save();
+          }
+        }
+
+        // Quét các frame khác nếu applyToTrack === true
+        if (applyToTrack === true && job) {
+          for (let f = startF; f <= stopF; f++) {
+            if (f === frame) continue;
+            try {
+              const states = await job.annotations.get(f);
+              if (Array.isArray(states)) {
+                const st = states.find(
+                  (s: any) => s.clientID === uiId || (serverId && s.serverID === serverId)
+                );
+                if (st && Array.isArray(st.points) && st.points.length >= 9) {
+                  const p = [...st.points];
+                  const sOldH = p[8] || fit.newH;
+                  const dh = (fit.newH - sOldH) / 2;
+                  p[2] = Number((p[2] + dh).toFixed(3));
+                  p[6] = fit.newL;
+                  p[7] = fit.newW;
+                  p[8] = fit.newH;
+                  st.points = p;
+                  if (typeof st.save === "function") {
+                    await st.save();
+                  }
+                  trackCount++;
+                }
+              }
+            } catch (e) {}
+          }
+        }
+      } catch (tErr) {
+        console.warn("[CVAT 3D Suite] Lưu parentTrack khi fit người đi bộ:", tErr);
+      }
+
       updateThreeJsCuboid(
         uiId,
-        target.points[5],
+        newPoints[5],
         { x: fit.newX, y: fit.newY, z: fit.newZ },
         { l: fit.newL, w: fit.newW, h: fit.newH },
-        { rx: 0, ry: 0, rz: target.points[5] }
+        { rx: 0, ry: 0, rz: newPoints[5] }
       );
 
       markCvatSaveButtonUnsaved();
@@ -3944,10 +4243,15 @@ export function mainWorldScript(): void {
             newX: fit.newX,
             newY: fit.newY,
             newZ: fit.newZ,
+            newYaw: fit.newYaw,
+            newYawDeg: fit.newYawDeg,
+            deltaYawDeg: fit.deltaYawDeg,
             newL: fit.newL,
             newW: fit.newW,
             newH: fit.newH,
             pointsCount: fit.pointsCount,
+            step: fit.step,
+            trackCount,
             message: fit.message,
           },
         })

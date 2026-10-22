@@ -2378,7 +2378,227 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
   );
 }
 
-console.log("\n🎉 TẤT CẢ 63 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT & HOÀN TÁC ĐÃ ĐẠT 100%!");
+// =========================================================================
+// TEST 64: NÚT FIT TOP CHO NGƯỜI ĐI BỘ (KHÓA TÂM X/Y/Z & BẢO TOÀN KÍCH THƯỚC L/W/H)
+// =========================================================================
+{
+  const pedPts: Array<{ x: number; y: number; z: number }> = [];
+  // Giả lập thân người: x từ -0.15 đến +0.15, y từ -0.22 đến +0.22, z từ 0.0 đến 1.45 (mặt đất -0.30m)
+  for (let z = -0.30; z <= 1.45; z += 0.1) {
+    pedPts.push({ x: 0, y: 0, z });
+  }
+  for (let z = 0.1; z <= 1.40; z += 0.15) {
+    for (let x = -0.15; x <= 0.15; x += 0.08) {
+      for (let y = -0.22; y <= 0.22; y += 0.08) {
+        pedPts.push({ x: 5.0 + x, y: 3.0 + y, z: 0.5 + z });
+      }
+    }
+  }
+
+  const topRes = fitPedestrianBox(
+    pedPts,
+    5.0, 3.0, 0.85, 0.0,
+    0.60, 0.60, 1.70,
+    {},
+    "top"
+  );
+
+  // 1. Phải khóa 100% vị trí tâm X, Y, Z
+  assert.strictEqual(topRes.newCenterX, 5.0, "Test 64: newCenterX phải giữ nguyên 5.0m");
+  assert.strictEqual(topRes.newCenterY, 3.0, "Test 64: newCenterY phải giữ nguyên 3.0m");
+  assert.strictEqual(topRes.newCenterZ, 0.85, "Test 64: newCenterZ phải giữ nguyên 0.85m (KHÔNG GHIM ĐẤT)");
+
+  // 2. Phải khóa 100% kích thước L, W, H
+  assert.strictEqual(topRes.newL, 0.60, "Test 64: newL phải giữ nguyên 0.60m");
+  assert.strictEqual(topRes.newW, 0.60, "Test 64: newW phải giữ nguyên 0.60m");
+  assert.strictEqual(topRes.newH, 1.70, "Test 64: newH phải giữ nguyên 1.70m");
+
+  console.log(`✅ Test 64: Nút TOP Người đi bộ: Khóa 100% vị trí X=5.0m, Y=3.0m, Z=0.85m (Không ghim đất) & Khóa size 0.6x0.6x1.7m`);
+}
+
+// =========================================================================
+// TEST 65: NÚT FIT SIDE CHO NGƯỜI ĐI BỘ (CĂN ĐÓN TIA X & GIỮ NGUYÊN 100% Z & SIZE)
+// =========================================================================
+{
+  const pedPts: Array<{ x: number; y: number; z: number }> = [];
+  // Người đứng tại x = 10.20m, y = 2.0m, cao từ z = 0.0m đến 1.45m
+  // Ego ở phía trước (x = 15m), mặt đón tia trước của người ở x = 10.35m
+  for (let z = 0.0; z <= 1.401; z += 0.1) {
+    for (let x = 10.05; x <= 10.351; x += 0.05) {
+      for (let y = 1.85; y <= 2.151; y += 0.05) {
+        pedPts.push({ x, y, z });
+      }
+    }
+  }
+
+  const sideRes = fitPedestrianBox(
+    pedPts,
+    10.0, 2.0, 0.70, 0.0,
+    0.60, 0.60, 1.70,
+    { egoPos: { x: 15.0, y: 2.0, z: 0.0 } },
+    "side"
+  );
+
+  // 1. Phải giữ nguyên 100% cao độ Z (TUYỆT ĐỐI KHÔNG GHIM ĐẤT)
+  assert.strictEqual(sideRes.newCenterZ, 0.70, "Test 65: newCenterZ phải giữ nguyên 0.70m");
+  // 2. Phải giữ nguyên Y
+  assert.strictEqual(sideRes.newCenterY, 2.0, "Test 65: newCenterY phải giữ nguyên 2.0m");
+  // 3. Phải bảo toàn kích thước L, W, H
+  assert.strictEqual(sideRes.newL, 0.60, "Test 65: newL phải giữ nguyên 0.60m");
+  assert.strictEqual(sideRes.newW, 0.60, "Test 65: newW phải giữ nguyên 0.60m");
+  assert.strictEqual(sideRes.newH, 1.70, "Test 65: newH phải giữ nguyên 1.70m");
+  // 4. Mép trước box áp sát mép trước đón tia
+  const frontEdge = sideRes.newCenterX + sideRes.newL / 2;
+  assert.ok(frontEdge >= 10.35, `Test 65: Mép trước box (${frontEdge.toFixed(3)}m) phải bao trọn mép người 10.35m`);
+
+  console.log(`✅ Test 65: Nút SIDE Người đi bộ: Căn đón tia X (mép trước ${frontEdge.toFixed(2)}m), Giữ nguyên Z=0.70m & Khóa size 0.6x0.6x1.7m`);
+}
+
+// =========================================================================
+// TEST 66: NÚT FIT FRONT CHO NGƯỜI ĐI BỘ (CĂN SƯỜN ĐÓN TIA Y & GIỮ NGUYÊN 100% Z & SIZE)
+// =========================================================================
+{
+  const pedPts: Array<{ x: number; y: number; z: number }> = [];
+  // Người ở x = 5.0m, y = 3.20m. Ego ở y = 8.0m (bên trái người). Mép trái đón tia ở y = 3.38m.
+  for (let z = 0.0; z <= 1.401; z += 0.1) {
+    for (let x = 4.85; x <= 5.151; x += 0.05) {
+      for (let y = 3.05; y <= 3.381; y += 0.05) {
+        pedPts.push({ x, y, z });
+      }
+    }
+  }
+
+  const frontRes = fitPedestrianBox(
+    pedPts,
+    5.0, 3.0, 0.80, 0.0,
+    0.60, 0.60, 1.70,
+    { egoPos: { x: 5.0, y: 8.0, z: 0.0 } },
+    "front"
+  );
+
+  // 1. Phải giữ nguyên 100% cao độ Z (TUYỆT ĐỐI KHÔNG GHIM ĐẤT)
+  assert.strictEqual(frontRes.newCenterZ, 0.80, "Test 66: newCenterZ phải giữ nguyên 0.80m");
+  // 2. Phải giữ nguyên X
+  assert.strictEqual(frontRes.newCenterX, 5.0, "Test 66: newCenterX phải giữ nguyên 5.0m");
+  // 3. Phải bảo toàn kích thước L, W, H
+  assert.strictEqual(frontRes.newL, 0.60, "Test 66: newL phải giữ nguyên 0.60m");
+  assert.strictEqual(frontRes.newW, 0.60, "Test 66: newW phải giữ nguyên 0.60m");
+  assert.strictEqual(frontRes.newH, 1.70, "Test 66: newH phải giữ nguyên 1.70m");
+  // 4. Mép trái box áp sát mép sườn trái đón tia
+  const leftEdge = frontRes.newCenterY + frontRes.newW / 2;
+  assert.ok(leftEdge >= 3.35, `Test 66: Mép trái box (${leftEdge.toFixed(3)}m) phải bao trọn sườn người 3.35m`);
+
+  console.log(`✅ Test 66: Nút FRONT Người đi bộ: Căn sườn Y đón tia (${leftEdge.toFixed(2)}m), Giữ nguyên Z=0.80m & Khóa size 0.6x0.6x1.7m`);
+}
+
+// =========================================================================
+// TEST 67: NÚT FIX RIÊNG CHIỀU DÀI (L) CHO NGƯỜI ĐI BỘ
+// =========================================================================
+{
+  const pedPts: Array<{ x: number; y: number; z: number }> = [];
+  // Người có sải chân dài x từ -0.22m đến +0.22m, bề ngang hẹp y từ -0.14m đến +0.14m
+  for (let z = 0.0; z <= 1.40; z += 0.1) {
+    for (let x = -0.22; x <= 0.22; x += 0.08) {
+      for (let y = -0.14; y <= 0.14; y += 0.08) {
+        pedPts.push({ x, y, z });
+      }
+    }
+  }
+
+  const fixLRes = fitPedestrianLength(
+    pedPts,
+    0.0, 0.0, 0.70, 0.0,
+    0.75, 0.50, 1.65 // Box ban đầu L=0.75m, W=0.50m, H=1.65m
+  );
+
+  // 1. Chiều dài L phải được fit co giãn chính xác 0.48m
+  assert.ok(
+    Math.abs(fixLRes.newL - 0.48) <= 0.03,
+    `Test 67: newL phải là 0.48m (thực tế: ${fixLRes.newL}m)`
+  );
+  // 2. Chiều rộng W, Chiều cao H và Cao độ Z phải giữ nguyên 100%
+  assert.strictEqual(fixLRes.newW, 0.50, "Test 67: newW phải giữ nguyên 0.50m");
+  assert.strictEqual(fixLRes.newH, 1.65, "Test 67: newH phải giữ nguyên 1.65m");
+  assert.strictEqual(fixLRes.newCenterZ, 0.70, "Test 67: newCenterZ phải giữ nguyên 0.70m");
+
+  console.log(`✅ Test 67: Nút Fix Dài (L) Người đi bộ: L=${fixLRes.newL}m (ôm sải chân +8cm), Giữ nguyên W=0.50m, H=1.65m & Z=0.70m`);
+}
+
+// =========================================================================
+// TEST 68: NÚT FIX RIÊNG CHIỀU RỘNG (W) CHO NGƯỜI ĐI BỘ
+// =========================================================================
+{
+  const pedPts: Array<{ x: number; y: number; z: number }> = [];
+  // Người có bề ngang vai rộng y từ -0.25m đến +0.25m, bề dày ngực x từ -0.15m đến +0.15m
+  for (let z = 0.0; z <= 1.40; z += 0.1) {
+    for (let x = -0.15; x <= 0.15; x += 0.08) {
+      for (let y = -0.25; y <= 0.25; y += 0.08) {
+        pedPts.push({ x, y, z });
+      }
+    }
+  }
+
+  const fixWRes = fitPedestrianWidth(
+    pedPts,
+    0.0, 0.0, 0.70, 0.0,
+    0.45, 0.80, 1.65 // Box ban đầu L=0.45m, W=0.80m, H=1.65m
+  );
+
+  // 1. Chiều rộng W phải được fit co giãn chính xác 0.56m
+  assert.ok(
+    Math.abs(fixWRes.newW - 0.56) <= 0.03,
+    `Test 68: newW phải là 0.56m (thực tế: ${fixWRes.newW}m)`
+  );
+  // 2. Chiều dài L, Chiều cao H và Cao độ Z phải giữ nguyên 100%
+  assert.strictEqual(fixWRes.newL, 0.45, "Test 68: newL phải giữ nguyên 0.45m");
+  assert.strictEqual(fixWRes.newH, 1.65, "Test 68: newH phải giữ nguyên 1.65m");
+  assert.strictEqual(fixWRes.newCenterZ, 0.70, "Test 68: newCenterZ phải giữ nguyên 0.70m");
+
+  console.log(`✅ Test 68: Nút Fix Rộng (W) Người đi bộ: W=${fixWRes.newW}m (ôm vai +8cm), Giữ nguyên L=0.45m, H=1.65m & Z=0.70m`);
+}
+
+// =========================================================================
+// TEST 69: NÚT FIX RIÊNG CHIỀU CAO (H) CHO NGƯỜI ĐI BỘ (GROUND-LOCK: NỞ NÓC +12CM)
+// =========================================================================
+{
+  const pedPts: Array<{ x: number; y: number; z: number }> = [];
+  // Người cao: chân tiếp đất tại Z = -0.30m, đỉnh đầu tại Z = 1.40m
+  // Box ban đầu: cz = 0.50m, curH = 1.60m -> Đáy ban đầu Z_base = 0.50 - 0.80 = -0.30m
+  for (let z = -0.30; z <= 1.401; z += 0.10) {
+    pedPts.push({ x: 0.0, y: 0.0, z });
+    pedPts.push({ x: 0.1, y: -0.1, z });
+  }
+
+  const fixHRes = fitPedestrianHeight(
+    pedPts,
+    0.0, 0.0, 0.50, 0.0,
+    0.50, 0.50, 1.60,
+    { headBuffer: 0.12 }
+  );
+
+  // 1. Đỉnh đầu Z = 1.40m + 0.12m buffer = 1.52m. Mặt đáy cố định tại Z = -0.30m -> H = 1.52 - (-0.30) = 1.82m
+  assert.ok(
+    Math.abs(fixHRes.newH - 1.82) <= 0.03,
+    `Test 69: newH phải là 1.82m (thực tế: ${fixHRes.newH}m)`
+  );
+  // 2. Mặt đáy tiếp đất Z_base phải giữ nguyên cố định -0.30m
+  const newBottomZ = fixHRes.newCenterZ - fixHRes.newH / 2;
+  assert.ok(
+    Math.abs(newBottomZ - (-0.30)) <= 0.01,
+    `Test 69: Mặt đáy phải giữ nguyên cố định -0.30m (thực tế: ${newBottomZ.toFixed(3)}m)`
+  );
+  // 3. Giữ nguyên 100% Chiều dài L, Chiều rộng W và tọa độ XY
+  assert.strictEqual(fixHRes.newL, 0.50, "Test 69: newL phải giữ nguyên 0.50m");
+  assert.strictEqual(fixHRes.newW, 0.50, "Test 69: newW phải giữ nguyên 0.50m");
+  assert.strictEqual(fixHRes.newCenterX, 0.0, "Test 69: newCenterX giữ nguyên 0.0m");
+  assert.strictEqual(fixHRes.newCenterY, 0.0, "Test 69: newCenterY giữ nguyên 0.0m");
+
+  console.log(
+    `✅ Test 69: Nút Fix Cao (H) Người đi bộ (Ground-Lock): H=${fixHRes.newH}m (Đáy bám sàn -0.30m cố định, đỉnh đầu nở lên +12cm), Giữ nguyên L, W & XY`
+  );
+}
+
+console.log("\n🎉 TẤT CẢ 69 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, XE 2 BÁNH & NGƯỜI ĐI BỘ ĐÃ ĐẠT 100%!");
 
 
 
