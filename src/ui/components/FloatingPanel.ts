@@ -426,6 +426,41 @@ export class FloatingPanel {
   }
 
   /**
+   * Đảm bảo luôn có đối tượng được chọn trước khi thực hiện thao tác phím tắt hoặc nút bấm.
+   * Nếu selectedUiId đang null, tự động quét từ Sidebar hoặc lấy xe đầu tiên trong Frame.
+   */
+  public async ensureActiveTrackSelected(): Promise<number | null> {
+    if (this.selectedUiId !== null) return this.selectedUiId;
+
+    // 1. Thử lấy từ Sidebar active item
+    const active = CVATBridge.getActiveTrackId();
+    if (active.id !== null) {
+      console.log(`[CVAT 3D Suite] Tự động chọn xe active #${active.id} từ Sidebar`);
+      await this.selectTrackByUiId(active.id, undefined, false);
+      return this.selectedUiId;
+    }
+
+    // 2. Thử lấy từ frameTracks đã có
+    if (this.frameTracks.length > 0) {
+      console.log(`[CVAT 3D Suite] Tự động chọn xe đầu tiên #${this.frameTracks[0].uiId} trong frame`);
+      await this.selectTrackByUiId(this.frameTracks[0].uiId, undefined, false);
+      return this.selectedUiId;
+    }
+
+    // 3. Thử đồng bộ lại frameTracks rồi lấy
+    if (this.currentCtx?.jobId) {
+      await this.syncFrameTracks();
+      if (this.frameTracks.length > 0) {
+        console.log(`[CVAT 3D Suite] Tự động đồng bộ và chọn xe #${this.frameTracks[0].uiId}`);
+        await this.selectTrackByUiId(this.frameTracks[0].uiId, undefined, false);
+        return this.selectedUiId;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Đồng bộ danh sách xe có mặt tại Frame hiện tại
    */
   public async syncFrameTracks(): Promise<void> {
@@ -755,6 +790,10 @@ export class FloatingPanel {
     }
 
     if (this.selectedUiId === null) {
+      await this.ensureActiveTrackSelected();
+    }
+
+    if (this.selectedUiId === null) {
       this.showToast("Vui lòng chọn xe từ danh sách!", "warning");
       return;
     }
@@ -1009,6 +1048,10 @@ export class FloatingPanel {
     }
 
     if (this.selectedUiId === null) {
+      await this.ensureActiveTrackSelected();
+    }
+
+    if (this.selectedUiId === null) {
       this.showToast("Vui lòng chọn xe trước!", "warning");
       return;
     }
@@ -1059,6 +1102,9 @@ export class FloatingPanel {
       return;
     }
     if (this.selectedUiId === null) {
+      await this.ensureActiveTrackSelected();
+    }
+    if (this.selectedUiId === null) {
       this.showToast("Vui lòng chọn xe trước!", "warning");
       return;
     }
@@ -1098,6 +1144,10 @@ export class FloatingPanel {
     if (!this.currentCtx || !this.currentCtx.jobId) {
       this.showToast("Chưa kết nối Job CVAT!", "warning");
       return;
+    }
+
+    if (this.selectedUiId === null) {
+      await this.ensureActiveTrackSelected();
     }
 
     if (this.selectedUiId === null) {
@@ -1192,6 +1242,10 @@ export class FloatingPanel {
     if (!this.currentCtx || !this.currentCtx.jobId) {
       this.showToast("Chưa kết nối Job CVAT!", "warning");
       return;
+    }
+
+    if (this.selectedUiId === null) {
+      await this.ensureActiveTrackSelected();
     }
 
     if (this.selectedUiId === null) {
@@ -1294,6 +1348,10 @@ export class FloatingPanel {
     if (!this.currentCtx || !this.currentCtx.jobId) {
       this.showToast("Chưa kết nối Job CVAT!", "warning");
       return;
+    }
+
+    if (this.selectedUiId === null) {
+      await this.ensureActiveTrackSelected();
     }
 
     if (this.selectedUiId === null) {

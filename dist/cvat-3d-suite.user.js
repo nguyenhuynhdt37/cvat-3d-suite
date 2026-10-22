@@ -4697,20 +4697,25 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }, 120);
     }
     let isCanvasAutoSelectAttached = false;
-    function setupCanvasAutoSelect() {
+    function setupCanvasAutoSelect(retryCount = 0) {
       if (isCanvasAutoSelectAttached) return;
-      isCanvasAutoSelectAttached = true;
+      const store = getReduxStore();
       const canvasContainers = document.querySelectorAll(
         ".cvat-canvas-container, .cvat-canvas3d-orthographic-view"
       );
+      if ((canvasContainers.length === 0 || !store) && retryCount < 15) {
+        setTimeout(() => setupCanvasAutoSelect(retryCount + 1), 1e3);
+        return;
+      }
+      isCanvasAutoSelectAttached = true;
       canvasContainers.forEach((container) => {
         container.addEventListener("pointerup", () => {
           setTimeout(() => {
             var _a, _b, _c, _d, _e, _f, _g;
             try {
-              const store = getReduxStore();
-              const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-              const activeId = ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
+              const currentStore = getReduxStore() || store;
+              const canvas = (_c = (_b = (_a = currentStore == null ? void 0 : currentStore.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+              const activeId = ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = currentStore == null ? void 0 : currentStore.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
               if (activeId !== null && activeId !== void 0) {
                 const details = extractObjectDetails(Number(activeId));
                 window.dispatchEvent(
@@ -4745,16 +4750,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       });
       try {
-        const store = getReduxStore();
-        if (store) {
+        const store2 = getReduxStore();
+        if (store2) {
           let prevActiveId = null;
           let prevStatesLen = 0;
           let activeDebounceTimer = null;
           let dirtyDebounceTimer = null;
-          store.subscribe(() => {
+          store2.subscribe(() => {
             var _a, _b, _c, _d;
             try {
-              const anno = (_a = store.getState()) == null ? void 0 : _a.annotation;
+              const anno = (_a = store2.getState()) == null ? void 0 : _a.annotation;
               const curActiveId = (_b = anno == null ? void 0 : anno.annotations) == null ? void 0 : _b.activatedStateClientID;
               const curStatesLen = ((_d = (_c = anno == null ? void 0 : anno.annotations) == null ? void 0 : _c.states) == null ? void 0 : _d.length) || 0;
               if (curActiveId !== prevActiveId) {
@@ -4791,10 +4796,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const { clientId } = e.detail || {};
         if (!clientId) return;
         try {
-          const store = getReduxStore();
-          const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+          const store2 = getReduxStore();
+          const canvas = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
           if (canvas && typeof canvas.activate === "function") {
-            const curActive = ((_d = canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
+            const curActive = ((_d = canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
             if (curActive !== clientId) {
               canvas.activate(clientId);
               if (typeof canvas.render === "function") {
@@ -9343,6 +9348,34 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       setTimeout(() => this.syncFrameTracks(), 250);
     }
     /**
+     * Đảm bảo luôn có đối tượng được chọn trước khi thực hiện thao tác phím tắt hoặc nút bấm.
+     * Nếu selectedUiId đang null, tự động quét từ Sidebar hoặc lấy xe đầu tiên trong Frame.
+     */
+    async ensureActiveTrackSelected() {
+      var _a;
+      if (this.selectedUiId !== null) return this.selectedUiId;
+      const active = CVATBridge.getActiveTrackId();
+      if (active.id !== null) {
+        console.log(`[CVAT 3D Suite] Tự động chọn xe active #${active.id} từ Sidebar`);
+        await this.selectTrackByUiId(active.id, void 0, false);
+        return this.selectedUiId;
+      }
+      if (this.frameTracks.length > 0) {
+        console.log(`[CVAT 3D Suite] Tự động chọn xe đầu tiên #${this.frameTracks[0].uiId} trong frame`);
+        await this.selectTrackByUiId(this.frameTracks[0].uiId, void 0, false);
+        return this.selectedUiId;
+      }
+      if ((_a = this.currentCtx) == null ? void 0 : _a.jobId) {
+        await this.syncFrameTracks();
+        if (this.frameTracks.length > 0) {
+          console.log(`[CVAT 3D Suite] Tự động đồng bộ và chọn xe #${this.frameTracks[0].uiId}`);
+          await this.selectTrackByUiId(this.frameTracks[0].uiId, void 0, false);
+          return this.selectedUiId;
+        }
+      }
+      return null;
+    }
+    /**
      * Đồng bộ danh sách xe có mặt tại Frame hiện tại
      */
     async syncFrameTracks() {
@@ -9611,6 +9644,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return;
       }
       if (this.selectedUiId === null) {
+        await this.ensureActiveTrackSelected();
+      }
+      if (this.selectedUiId === null) {
         this.showToast("Vui lòng chọn xe từ danh sách!", "warning");
         return;
       }
@@ -9831,6 +9867,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return;
       }
       if (this.selectedUiId === null) {
+        await this.ensureActiveTrackSelected();
+      }
+      if (this.selectedUiId === null) {
         this.showToast("Vui lòng chọn xe trước!", "warning");
         return;
       }
@@ -9875,6 +9914,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return;
       }
       if (this.selectedUiId === null) {
+        await this.ensureActiveTrackSelected();
+      }
+      if (this.selectedUiId === null) {
         this.showToast("Vui lòng chọn xe trước!", "warning");
         return;
       }
@@ -9910,6 +9952,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (!this.currentCtx || !this.currentCtx.jobId) {
         this.showToast("Chưa kết nối Job CVAT!", "warning");
         return;
+      }
+      if (this.selectedUiId === null) {
+        await this.ensureActiveTrackSelected();
       }
       if (this.selectedUiId === null) {
         this.showToast("Vui lòng chọn xe trước!", "warning");
@@ -9996,6 +10041,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return;
       }
       if (this.selectedUiId === null) {
+        await this.ensureActiveTrackSelected();
+      }
+      if (this.selectedUiId === null) {
         this.showToast("Vui lòng chọn người trước!", "warning");
         return;
       }
@@ -10073,6 +10121,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (!this.currentCtx || !this.currentCtx.jobId) {
         this.showToast("Chưa kết nối Job CVAT!", "warning");
         return;
+      }
+      if (this.selectedUiId === null) {
+        await this.ensureActiveTrackSelected();
       }
       if (this.selectedUiId === null) {
         this.showToast("Vui lòng chọn xe trước!", "warning");
@@ -11983,133 +12034,144 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       panel.render(ctx);
     }, setupGlobalHotkeys = function() {
-      window.addEventListener("keydown", (e) => {
-        const target = e.target;
-        if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) {
-          return;
-        }
-        if (e.key === "`") {
-          e.preventDefault();
-          panel.toggleMinimize();
-          return;
-        }
-        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "z" || e.key === "Z")) {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt Ctrl/Cmd+Z: Hoàn tác (Pre)");
-          panel.handleUndo();
-          return;
-        }
-        if (e.shiftKey && (e.key === "O" || e.key === "o")) {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt Shift+O: Đánh dấu Outside toàn bộ Track");
-          panel.handleSetTrackOutside(true);
-          return;
-        }
-        if (e.shiftKey && (e.key === "M" || e.key === "m")) {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt Shift+M: Mở Fullscreen Track Editor");
-          panel.openFullscreenEditor();
-          return;
-        }
-        if (e.shiftKey && (e.key === "F" || e.key === "f")) {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt Shift+F: Lật toàn bộ Track");
-          panel.handleFlipYaw(false);
-          return;
-        }
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "F" || e.key === "f")) {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt F: Lật Frame hiện tại");
-          panel.handleFlipYaw(true);
-          return;
-        }
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key === "[") {
-          e.preventDefault();
-          panel.selectPrevTrack();
-          return;
-        }
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key === "]") {
-          e.preventDefault();
-          panel.selectNextTrack();
-          return;
-        }
-        if (e.altKey && (e.key === "G" || e.key === "g")) {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt Alt+G: Ghim Nền Vỉa Hè (+15cm)");
-          panel.handleSnapGround("curb", { curbHeight: 0.15 });
-          return;
-        }
-        if (e.shiftKey && (e.key === "G" || e.key === "g")) {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt Shift+G: Xe Gác Lề Vỉa Hè");
-          panel.handleSnapGround("half_curb", { curbHeight: 0.15 });
-          return;
-        }
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "G" || e.key === "g")) {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt G: Ghim Mặt Đường");
-          panel.handleSnapGround("road");
-          return;
-        }
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key === "1") {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt 1: Căn TOP");
-          panel.handleFitTop();
-          return;
-        }
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key === "2") {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt 2: Căn SIDE");
-          panel.handleFitSide();
-          return;
-        }
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && e.key === "3") {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt 3: Căn FRONT");
-          panel.handleFitFront();
-          return;
-        }
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "T" || e.key === "t")) {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt T: Căn TOP");
-          panel.handleFitTop();
-          return;
-        }
-        if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "P" || e.key === "p")) {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt P: Fit Người Đi Bộ (Pedestrian Fit)");
-          panel.handleFitPedestrian();
-          return;
-        }
-        if (e.shiftKey && (e.key === "C" || e.key === "c")) {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt Shift+C: Fit Toàn Diện Xe 2 Bánh");
-          panel.handleFitCyclist("all");
-          return;
-        }
-        if (e.shiftKey && (e.key === "B" || e.key === "b")) {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt Shift+B: Khớp Chuẩn Catalog");
-          panel.handleCatalogFit();
-          return;
-        }
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === "L" || e.key === "l")) {
-          e.preventDefault();
-          console.log("[CVAT 3D Suite] Phím tắt L: Căn Yaw theo Vạch Kẻ Làn Đường 3D");
-          panel.handleSnapYawToLane();
-          return;
-        }
-        if (e.key === "PageUp") {
-          e.preventDefault();
-          panel.handleSnapGround("micro_adjust", { deltaCm: 1 });
-          return;
-        }
-        if (e.key === "PageDown") {
-          e.preventDefault();
-          panel.handleSnapGround("micro_adjust", { deltaCm: -1 });
-          return;
-        }
-      });
+      window.addEventListener(
+        "keydown",
+        (e) => {
+          const target = e.target;
+          if (target && (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) || target.isContentEditable)) {
+            return;
+          }
+          const key = (e.key || "").toLowerCase();
+          const code = e.code || "";
+          const consume = () => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+          };
+          if (key === "`" || key === "~" || code === "Backquote") {
+            consume();
+            panel.toggleMinimize();
+            return;
+          }
+          if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (key === "z" || code === "KeyZ")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Ctrl/Cmd+Z: Hoàn tác (Pre)");
+            panel.handleUndo();
+            return;
+          }
+          if (e.shiftKey && (key === "o" || code === "KeyO")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Shift+O: Đánh dấu Outside toàn bộ Track");
+            panel.handleSetTrackOutside(true);
+            return;
+          }
+          if (e.shiftKey && (key === "m" || code === "KeyM")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Shift+M: Mở Fullscreen Track Editor");
+            panel.openFullscreenEditor();
+            return;
+          }
+          if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "f" || code === "KeyF")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Shift+F: Lật toàn bộ Track");
+            panel.handleFlipYaw(false);
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "f" || code === "KeyF")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt F: Lật Frame hiện tại");
+            panel.handleFlipYaw(true);
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "[" || code === "BracketLeft")) {
+            consume();
+            panel.selectPrevTrack();
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "]" || code === "BracketRight")) {
+            consume();
+            panel.selectNextTrack();
+            return;
+          }
+          if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (key === "g" || code === "KeyG")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Alt+G: Ghim Nền Vỉa Hè (+15cm)");
+            panel.handleSnapGround("curb", { curbHeight: 0.15 });
+            return;
+          }
+          if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && (key === "g" || code === "KeyG")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Shift+G: Xe Gác Lề Vỉa Hè");
+            panel.handleSnapGround("half_curb", { curbHeight: 0.15 });
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "g" || code === "KeyG")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt G: Ghim Mặt Đường");
+            panel.handleSnapGround("road");
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "1" || code === "Digit1" || code === "Numpad1")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt 1: Căn TOP");
+            panel.handleFitTop();
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "2" || code === "Digit2" || code === "Numpad2")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt 2: Căn SIDE");
+            panel.handleFitSide();
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "3" || code === "Digit3" || code === "Numpad3")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt 3: Căn FRONT");
+            panel.handleFitFront();
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "t" || code === "KeyT")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt T: Căn TOP");
+            panel.handleFitTop();
+            return;
+          }
+          if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "p" || code === "KeyP")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt P: Fit Người Đi Bộ (Pedestrian Fit)");
+            panel.handleFitPedestrian();
+            return;
+          }
+          if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "c" || code === "KeyC")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Shift+C: Fit Toàn Diện Xe 2 Bánh");
+            panel.handleFitCyclist("all");
+            return;
+          }
+          if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "b" || code === "KeyB")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Shift+B: Khớp Chuẩn Catalog");
+            panel.handleCatalogFit();
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "l" || code === "KeyL")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt L: Căn Yaw theo Vạch Kẻ Làn Đường 3D");
+            panel.handleSnapYawToLane();
+            return;
+          }
+          if (key === "pageup" || code === "PageUp") {
+            consume();
+            panel.handleSnapGround("micro_adjust", { deltaCm: 1 });
+            return;
+          }
+          if (key === "pagedown" || code === "PageDown") {
+            consume();
+            panel.handleSnapGround("micro_adjust", { deltaCm: -1 });
+            return;
+          }
+        },
+        { capture: true, passive: false }
+      );
     }, bootstrap = function() {
       updateContext();
       setupGlobalHotkeys();

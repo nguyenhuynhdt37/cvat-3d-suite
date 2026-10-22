@@ -3221,23 +3221,31 @@ export function mainWorldScript(): void {
 
   // Thiết lập cơ chế tự động chọn xe khi click vào box trên Canvas 3D & Redux Subscriber Realtime
   let isCanvasAutoSelectAttached = false;
-  function setupCanvasAutoSelect(): void {
+  function setupCanvasAutoSelect(retryCount = 0): void {
     if (isCanvasAutoSelectAttached) return;
-    isCanvasAutoSelectAttached = true;
 
+    const store = getReduxStore();
     const canvasContainers = document.querySelectorAll<HTMLElement>(
       ".cvat-canvas-container, .cvat-canvas3d-orthographic-view"
     );
+
+    // Nếu chưa có canvas containers hoặc Redux store chưa sẵn sàng, retry sau 1s (tối đa 15 lần)
+    if ((canvasContainers.length === 0 || !store) && retryCount < 15) {
+      setTimeout(() => setupCanvasAutoSelect(retryCount + 1), 1000);
+      return;
+    }
+
+    isCanvasAutoSelectAttached = true;
 
     canvasContainers.forEach((container) => {
       container.addEventListener("pointerup", () => {
         setTimeout(() => {
           try {
-            const store = getReduxStore();
-            const canvas = store?.getState()?.annotation?.canvas?.instance;
+            const currentStore = getReduxStore() || store;
+            const canvas = currentStore?.getState()?.annotation?.canvas?.instance;
             const activeId =
               canvas?.view?.activatedElementID ||
-              store?.getState()?.annotation?.annotations?.activatedStateClientID;
+              currentStore?.getState()?.annotation?.annotations?.activatedStateClientID;
 
             if (activeId !== null && activeId !== undefined) {
               const details = extractObjectDetails(Number(activeId));
