@@ -1881,49 +1881,6 @@ export class FloatingPanel {
             </div>
           </div>
 
-          <!-- VỈA HÈ & GÁC LỀ -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-            <button id="btn-snap-curb" style="
-              background: #fffbeb;
-              border: 1px solid #fde68a;
-              color: #b45309;
-              padding: 6px 8px;
-              border-radius: 6px;
-              font-size: 10px;
-              font-weight: 600;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            ">
-              <span style="display: flex; align-items: center; gap: 5px;">
-                <span style="display: flex; align-items: center;">${ICONS.curb}</span>
-                <span>Vỉa Hè +15cm</span>
-              </span>
-              <kbd style="font-size: 8px; font-family: monospace; background: #fef3c7; border: 1px solid #fde68a; padding: 1px 4px; border-radius: 3px; color: #92400e;">⌥G</kbd>
-            </button>
-
-            <button id="btn-snap-half-curb" style="
-              background: #fff1f2;
-              border: 1px solid #fecdd3;
-              color: #be123c;
-              padding: 6px 8px;
-              border-radius: 6px;
-              font-size: 10px;
-              font-weight: 600;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            ">
-              <span style="display: flex; align-items: center; gap: 5px;">
-                <span style="display: flex; align-items: center;">${ICONS.layers}</span>
-                <span>Gác Lề Roll</span>
-              </span>
-              <kbd style="font-size: 8px; font-family: monospace; background: #ffe4e6; border: 1px solid #fecdd3; padding: 1px 4px; border-radius: 3px; color: #9f1239;">⇧G</kbd>
-            </button>
-          </div>
-
           <!-- VI CHỈNH GÓC YAW & CĂN THEO VẠCH KẺ LÀN ĐƯỜNG 3D -->
           <div style="display: flex; flex-direction: column; gap: 4px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -2700,7 +2657,7 @@ export class FloatingPanel {
           <!-- THAO TÁC 1-CHẠM THƯỜNG DÙNG: GHIM ĐẤT (G) & LẬT ĐẦU 180° (F) -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
             <!-- GHIM MẶT ĐẤT -->
-            <button id="btn-quick-ground" title="Đáy xe chạm sát mặt đường chuẩn xác 100%, khóa Roll 0° (Phím G)" style="
+            <button id="btn-quick-ground" title="Tự động nhận diện mặt đường, vỉa hè & gác lề. Chưa đủ điểm tự fit theo Ego (Phím G)" style="
               background: #f0fdf4;
               border: 1px solid #bbf7d0;
               color: #15803d;
@@ -2748,7 +2705,7 @@ export class FloatingPanel {
 
           <!-- NÚT RIÊNG: GHIM ĐẤT TOÀN TRACK -->
           <div style="margin-top: 5px;">
-            <button id="btn-snap-ground-track" title="Ghim toàn bộ đáy xe xuống mặt đất cho TẤT CẢ các frame theo Track ID #${this.selectedUiId !== null ? this.selectedUiId : 'N/A'}" style="
+            <button id="btn-snap-ground-track" title="Tự động ghim đất & vỉa hè cho TẤT CẢ các frame theo Track ID #${this.selectedUiId !== null ? this.selectedUiId : 'N/A'} (Phím Shift+G)" style="
               width: 100%;
               background: #f0fdf4;
               border: 1px solid #86efac;
@@ -3427,15 +3384,9 @@ export class FloatingPanel {
       });
     });
 
-    // 12. Gắn sự kiện Ghim Mặt Đất, Vỉa Hè, Dốc Pitch & Roll (trong accordion)
+    // 12. Gắn sự kiện Ghim Mặt Đất, Dốc Pitch & Roll (trong accordion)
     const snapRoadBtn = this.container.querySelector("#btn-snap-road");
     if (snapRoadBtn) snapRoadBtn.addEventListener("click", () => this.handleSnapGround("road"));
-
-    const snapCurbBtn = this.container.querySelector("#btn-snap-curb");
-    if (snapCurbBtn) snapCurbBtn.addEventListener("click", () => this.handleSnapGround("curb", { curbHeight: 0.15 }));
-
-    const snapHalfCurbBtn = this.container.querySelector("#btn-snap-half-curb");
-    if (snapHalfCurbBtn) snapHalfCurbBtn.addEventListener("click", () => this.handleSnapGround("half_curb", { curbHeight: 0.15 }));
 
     const microBtns = this.container.querySelectorAll<HTMLButtonElement>(".btn-micro-z");
     microBtns.forEach((btn) => {
@@ -3588,7 +3539,7 @@ export class FloatingPanel {
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <!-- CỘT 1 -->
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
-              <div style="font-weight: 700; color: #0f766e; font-size: 11px; margin-bottom: 2px;">🎯 CĂN CHỈNH 3 CHIỀU & FIT ALL</div>
+              <div style="font-weight: 700; color: #0f766e; font-size: 11px; margin-bottom: 2px;">🎯 CĂN CHỈNH 3 CHIỀU ĐỘC LẬP</div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Căn TOP (Yaw & Nóc quanh tâm)</span>
                 <div><kbd style="background: #f0fdfa; border: 1px solid #99f6e4; color: #0f766e; padding: 1px 5px; border-radius: 4px; font-weight: 700;">1</kbd> / <kbd style="background: #f0fdfa; border: 1px solid #99f6e4; color: #0f766e; padding: 1px 5px; border-radius: 4px; font-weight: 700;">T</kbd></div>
@@ -3602,8 +3553,8 @@ export class FloatingPanel {
                 <kbd style="background: #faf5ff; border: 1px solid #e9d5ff; color: #7e22ce; padding: 1px 5px; border-radius: 4px; font-weight: 700;">3</kbd>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 2px;">
-                <span style="font-weight: 600; color: #047857;">1-Click Fit Hoàn Chỉnh (ALL)</span>
-                <kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; padding: 1px 8px; border-radius: 4px; font-weight: 700;">Space</kbd>
+                <span style="font-weight: 600; color: #64748b; font-size: 10px;">Nguyên tắc Front/Side</span>
+                <span style="font-size: 9.5px; color: #059669; font-weight: 600;">Khóa Z & Giữ Kích Thước</span>
               </div>
             </div>
 
@@ -3637,26 +3588,22 @@ export class FloatingPanel {
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <!-- CỘT 3 -->
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
-              <div style="font-weight: 700; color: #b45309; font-size: 11px; margin-bottom: 2px;">⛰️ MẶT ĐẤT, VỈA HÈ & DỐC</div>
+              <div style="font-weight: 700; color: #b45309; font-size: 11px; margin-bottom: 2px;">⛰️ MẶT ĐẤT, VỈA HÈ & DỐC (TỰ ĐỘNG)</div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Ghim Đất (Chạm sát đường, khóa Roll)</span>
+                <span>Ghim Đất (Tự nhận diện vỉa hè/gác lề)</span>
                 <kbd style="background: #fef3c7; border: 1px solid #fde68a; color: #92400e; padding: 1px 6px; border-radius: 4px; font-weight: 700;">G</kbd>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Ghim Đất Toàn Bộ Track</span>
+                <span>Ghim Đất & Vỉa Hè Toàn Bộ Track</span>
                 <kbd style="background: #fef3c7; border: 1px solid #fde68a; color: #92400e; padding: 1px 5px; border-radius: 4px; font-weight: 700;">Shift+G</kbd>
-              </div>
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Ghim Nền Vỉa Hè (+15cm)</span>
-                <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">Alt+G</kbd>
-              </div>
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Xe Đỗ Gác Bánh Vỉa Hè (Half-Curb)</span>
-                <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 6px; border-radius: 4px; font-weight: 700;">H</kbd>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Đặt lại Dốc 0° (Reset phẳng hoàn toàn)</span>
                 <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">Alt+R</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 2px;">
+                <span style="font-size: 9.5px; color: #64748b;">Chưa đủ điểm mặt đất</span>
+                <span style="font-size: 9.5px; color: #b45309; font-weight: 600;">Fit cao & góc thẳng theo Ego</span>
               </div>
             </div>
 

@@ -3372,7 +3372,98 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
   );
 }
 
-console.log("\n🎉 TẤT CẢ 89 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z, CĂN GÓC FRONT ROLL 2 ĐẦU, BẢO TOÀN CURPOINT BIÊN, RIDER 42% VÀ CĂN YAW THEO VẠCH KẺ LÀN LIDAR INTENSITY ĐÃ ĐẠT 100%!");
+// 90. Test Tự Động Nhận Diện Xe Gác Lề Bên Trái & Bên Phải Theo Dải Curpoint 30% - 30% Đầu Cuối
+{
+  // 90a: Xe đỗ gác lề bên Trái (2 bánh trái trên vỉa hè cao z = -0.22m, 2 bánh phải dưới đường z = -0.38m, chênh 16cm)
+  const halfCurbLeftPts: Array<{ x: number; y: number; z: number }> = [];
+  // Mép phải (dải 0%–30% mép phải: ly in [-1.3, -0.6])
+  for (let x = -2.0; x <= 2.0; x += 0.5) {
+    for (let y = -1.3; y <= -0.6; y += 0.2) {
+      halfCurbLeftPts.push({ x, y, z: -0.38 });
+    }
+  }
+  // Mép trái (dải 70%–100% mép trái: ly in [0.6, 1.3])
+  for (let x = -2.0; x <= 2.0; x += 0.5) {
+    for (let y = 0.6; y <= 1.3; y += 0.2) {
+      halfCurbLeftPts.push({ x, y, z: -0.22 });
+    }
+  }
+
+  const res90a = computeGroundSlopesAndZ(halfCurbLeftPts, 0, 0, 0.4, 0, 2.3, 0.9, undefined, { egoRoadZ: -0.38 });
+  assert.strictEqual(res90a.isHalfCurb, true, "Test 90a: Phải tự động phát hiện gác lề");
+  assert.strictEqual(res90a.halfCurbSide, "left", "Test 90a: Phải nhận diện gác lề bên TRÁI");
+  assert.strictEqual(res90a.curbHeightCm, 16, "Test 90a: Chiều cao bậc vỉa hè phải là 16cm");
+  assert.ok(res90a.rollDeg > 3.0, `Test 90a: Góc Front Roll phải nghiêng dương > 3.0° (thực tế: ${res90a.rollDeg}°)`);
+  assert.ok(Math.abs(res90a.groundZ! - (-0.30)) < 0.03, `Test 90a: Tâm c0 phải ở trung điểm -0.30m (thực tế: ${res90a.groundZ}m)`);
+
+  // 90b: Xe đỗ gác lề bên Phải (2 bánh phải trên vỉa hè cao z = -0.24m, 2 bánh trái dưới đường z = -0.38m, chênh 14cm)
+  const halfCurbRightPts: Array<{ x: number; y: number; z: number }> = [];
+  for (let x = -2.0; x <= 2.0; x += 0.5) {
+    for (let y = -1.3; y <= -0.6; y += 0.2) {
+      halfCurbRightPts.push({ x, y, z: -0.24 });
+    }
+  }
+  for (let x = -2.0; x <= 2.0; x += 0.5) {
+    for (let y = 0.6; y <= 1.3; y += 0.2) {
+      halfCurbRightPts.push({ x, y, z: -0.38 });
+    }
+  }
+
+  const res90b = computeGroundSlopesAndZ(halfCurbRightPts, 0, 0, 0.4, 0, 2.3, 0.9, undefined, { egoRoadZ: -0.38 });
+  assert.strictEqual(res90b.isHalfCurb, true, "Test 90b: Phải tự động phát hiện gác lề");
+  assert.strictEqual(res90b.halfCurbSide, "right", "Test 90b: Phải nhận diện gác lề bên PHẢI");
+  assert.strictEqual(res90b.curbHeightCm, 14, "Test 90b: Chiều cao bậc vỉa hè phải là 14cm");
+  assert.ok(res90b.rollDeg < -3.0, `Test 90b: Góc Front Roll phải nghiêng âm < -3.0° (thực tế: ${res90b.rollDeg}°)`);
+
+  console.log(
+    `✅ Test 90: Tự Nhận Diện Xe Gác Lề Theo Curpoint 30%-30% Đầu Cuối: Trái (+16cm, Roll = ${res90a.rollDeg}°) & Phải (+14cm, Roll = ${res90b.rollDeg}°)`
+  );
+}
+
+// 91. Test Tự Động Nhận Diện Xe Đỗ Hoàn Toàn Trên Vỉa Hè (Cả 2 bên phẳng, cao hơn Ego Road Z +15cm)
+{
+  const fullCurbPts: Array<{ x: number; y: number; z: number }> = [];
+  // Mây điểm vỉa hè phẳng ở z = 0.15m (Ego Road Z = 0)
+  for (let x = -2.0; x <= 2.0; x += 0.4) {
+    for (let y = -1.2; y <= 1.2; y += 0.3) {
+      fullCurbPts.push({ x, y, z: 0.15 });
+    }
+  }
+
+  const res91 = computeGroundSlopesAndZ(fullCurbPts, 0, 0, 0.8, 0, 2.3, 0.9, undefined, { egoRoadZ: 0.0 });
+  assert.strictEqual(res91.isCurbGround, true, "Test 91: Phải tự động nhận diện xe đỗ trên nền vỉa hè");
+  assert.strictEqual(res91.isHalfCurb, false, "Test 91: Không phải gác lề");
+  assert.strictEqual(res91.rollDeg, 0, "Test 91: Vỉa hè phẳng phải khóa cứng Roll = 0°");
+  assert.strictEqual(res91.curbHeightCm, 15, "Test 91: Chiều cao bậc vỉa hè phải là 15cm so với Ego");
+  assert.ok(Math.abs(res91.groundZ! - 0.15) < 0.02, `Test 91: Đáy xe phải bám sát mặt vỉa hè 0.15m (thực tế: ${res91.groundZ}m)`);
+
+  console.log(
+    `✅ Test 91: Tự Nhận Diện Xe Đỗ Trên Vỉa Hè (Full-Curb): Z = ${res91.groundZ}m (+${res91.curbHeightCm}cm so với Ego Z=0), Khóa Roll = 0°`
+  );
+}
+
+// 92. Test Chưa Đủ Point Cloud Mặt Đất ➔ Fit Theo Độ Cao & Góc Thẳng Theo Ego
+{
+  // Chỉ có 3 điểm thưa dưới chân xe
+  const sparseGroundPts: Array<{ x: number; y: number; z: number }> = [
+    { x: 10.0, y: 5.0, z: -0.2 },
+    { x: 10.2, y: 5.1, z: -0.1 },
+    { x: 9.8, y: 4.9, z: -0.3 },
+  ];
+
+  const res92 = computeGroundSlopesAndZ(sparseGroundPts, 10.0, 5.0, 0.5, 0, 2.3, 0.9, undefined, { egoRoadZ: -1.75 });
+  assert.strictEqual(res92.isFallbackZeroGround, true, "Test 92: Phải kích hoạt fallback khi chưa đủ điểm mặt đất");
+  assert.strictEqual(res92.groundZ, -1.75, "Test 92: Đáy xe phải neo chuẩn theo Ego Road Z = -1.75m");
+  assert.strictEqual(res92.rollDeg, 0, "Test 92: Phải fit góc thẳng theo Ego: Khóa Roll = 0°");
+  assert.strictEqual(res92.pitchDeg, 0, "Test 92: Phải fit góc thẳng theo Ego: Khóa Pitch = 0°");
+
+  console.log(
+    `✅ Test 92: Chưa Đủ Point Cloud Mặt Đất: Tự động fit theo Ego Z = ${res92.groundZ}m & Góc thẳng theo Ego (Roll = 0°, Pitch = 0°)`
+  );
+}
+
+console.log("\n🎉 TẤT CẢ 92 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z, CĂN GÓC FRONT ROLL 2 ĐẦU, BẢO TOÀN CURPOINT BIÊN, RIDER 42%, CĂN YAW THEO VẠCH KẺ LÀN LIDAR INTENSITY VÀ TỰ ĐỘNG NHẬN DIỆN VỈA HÈ / GÁC LỀ / EGO FALLBACK ĐÃ ĐẠT 100%!");
+
 
 
 

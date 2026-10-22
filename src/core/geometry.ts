@@ -1541,6 +1541,32 @@ export function estimateEgoRoadGroundZ(
  * - Tham chiếu mốc Z mặt đường Ego (Ego Road Z) chống lún âm đất và nhận diện nền vỉa hè.
  * - Hồi quy mặt phẳng 3D dốc chéo: z = a * lx + b * ly + c0.
  */
+export interface GroundSlopeResult {
+  groundZ: number | null;
+  pitchRad: number;
+  rollRad: number;
+  pitchDeg: number;
+  rollDeg: number;
+  groundPointsCount: number;
+  isFallbackZeroGround?: boolean;
+  isCurbGround?: boolean;
+  isHalfCurb?: boolean;
+  halfCurbSide?: "left" | "right" | "none";
+  curbHeightCm?: number;
+}
+
+/**
+ * Thuật toán Tính Toán Độ Dốc Mặt Đường 3D Theo Vết Đè Của Box (Footprint Ground Snap):
+ * - Thu hẹp bán kính triệt để vào đúng Footprint của Box (+0.55m dọc, +0.45m ngang quanh lốp xe).
+ * - Miễn nhiễm 100% với nhiễu từ xe khác đỗ bên cạnh, dải phân cách hay tường rào.
+ * - Quét sâu Z xuống tới -4.5m để bắt cụm điểm sàn (curpoint đáy) ngay dưới chân xe.
+ * - Phân vùng 4 hốc bánh xe (FL, FR, RL, RR) cân bằng tính chuẩn xác dốc dọc Side (Pitch) và dốc ngang Front (Roll).
+ * - Căn dải curpoint tiếp đất theo khoảng 30% - 30% đầu cuối (0%–30% mép phải & 70%–100% mép trái):
+ *   + Tự động phát hiện xe gác lề (Half-Curb) khi 2 bên chênh lệch >= 7cm: tự động nghiêng Roll và bù Z.
+ *   + Tự động nhận diện xe đỗ hoàn toàn trên nền vỉa hè (Full-Curb) khi cao hơn Ego Road Z từ +8cm ~ +35cm.
+ * - Nếu chưa đủ point cloud mặt đất (< 6 điểm hoặc thiếu điểm 2 mép): Tự động fit theo độ cao mốc Ego Road Z (mốc 0) và khóa góc thẳng theo Ego (Roll = 0°, Pitch = 0°).
+ * - Hồi quy mặt phẳng 3D dốc chéo: z = a * lx + b * ly + c0.
+ */
 export function computeGroundSlopesAndZ(
   pts: Array<{ x: number; y: number; z: number }>,
   cx: number,
@@ -1555,16 +1581,7 @@ export function computeGroundSlopesAndZ(
     egoRoadZ?: number;
     egoPos?: { x: number; y: number; z: number };
   } = {}
-): {
-  groundZ: number | null;
-  pitchRad: number;
-  rollRad: number;
-  pitchDeg: number;
-  rollDeg: number;
-  groundPointsCount: number;
-  isFallbackZeroGround?: boolean;
-  isCurbGround?: boolean;
-} {
+): GroundSlopeResult {
   const cosY = Math.cos(-yaw);
   const sinY = Math.sin(-yaw);
 
@@ -1623,7 +1640,7 @@ export function computeGroundSlopesAndZ(
       : 0;
 
   if (groundPts.length < 6) {
-    // Dưới chân không có điểm hoặc rất ít điểm (< 6 điểm) -> Neo chuẩn theo mốc Z mặt đường của Ego
+    // Dưới chân không có điểm hoặc chưa đủ point cloud mặt đất (< 6 điểm) -> Fit theo độ cao Ego Road Z và góc thẳng theo Ego (Roll 0°, Pitch 0°)
     return {
       groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
       pitchRad: 0,
@@ -1633,6 +1650,9 @@ export function computeGroundSlopesAndZ(
       groundPointsCount: groundPts.length,
       isFallbackZeroGround: true,
       isCurbGround: false,
+      isHalfCurb: false,
+      halfCurbSide: "none",
+      curbHeightCm: 0,
     };
   }
 
@@ -1795,13 +1815,16 @@ export function computeGroundSlopesAndZ(
   // =========================================================================
 
   // Phân vị thấp 12% đại diện cho cao độ mặt đường dưới lòng đường (Lowest Road Surface)
-  const p12Idx = Math.max(0, Math.floor(validPts.length * 0.12));
-  const lowestRoadZ = validPts[p12Idx].z;
+  const p12Idx = Math.max(0, Math.floor(sorted.length * 0.12));
+  const lowestRoadZ = sorted[p12Idx].z;
 
-  const leftPtsZ = validPts.filter((p) => p.ly > 0.15).map((p) => p.z).sort((a, b) => a - b);
-  const rightPtsZ = validPts.filter((p) => p.ly < -0.15).map((p) => p.z).sort((a, b) => a - b);
+  const leftPtsZ = sorted.filter((p) => p.ly > 0.15).map((p) => p.z).sort((a, b) => a - b);
+  const rightPtsZ = sorted.filter((p) => p.ly < -0.15).map((p) => p.z).sort((a, b) => a - b);
 
   let isCurbOrRamp = options.lockRollFlat === true;
+  let isHalfCurb = false;
+  let halfCurbSide: "left" | "right" | "none" = "none";
+  let curbHeightCm = 0;
 
   if (!isCurbOrRamp && leftPtsZ.length >= 3 && rightPtsZ.length >= 3) {
     const leftMedian = leftPtsZ[Math.floor(leftPtsZ.length * 0.25)];
@@ -1818,99 +1841,138 @@ export function computeGroundSlopesAndZ(
     }
   }
 
-  if (isCurbOrRamp) {
-    rollRad = 0;
-    c0 = lowestRoadZ;
+  // =========================================================================
+  // CĂN DẢI CURPOINT TIẾP ĐẤT THEO KHOẢNG 30% - 30% ĐẦU CUỐI:
+  // - Dải 0%–30% (Mép Phải): Khoảng ly từ [-halfW - 0.45m] đến [-halfW + W * 0.30m].
+  // - Dải 70%–100% (Mép Trái): Khoảng ly từ [halfW - W * 0.30m] đến [halfW + 0.45m].
+  // 1. TỰ ĐỘNG PHÁT HIỆN GÁC LỀ (Half-Curb): Nếu chênh lệch cao độ |zLeft - zRight| >= 7cm
+  //    so với mốc Ego Road Z (1 bên lòng đường, 1 bên trên vỉa hè): tự động tính Roll và bù Z.
+  // 2. MẶT ĐƯỜNG DỐC TỰ NHIÊN: Bám theo góc nghiêng tự nhiên của mặt đường.
+  // 3. NẾU CHƯA ĐỦ ĐIỂM Ở 1 TRONG 2 ĐẦU MÉP: Fit góc thẳng theo Ego, KHÓA CỨNG Roll = 0°!
+  // =========================================================================
+  const W = halfW * 2;
+  const edgeRightPts = sorted.filter(
+    (p) => p.ly >= -halfW - 0.45 && p.ly <= -halfW + W * 0.30
+  );
+  const edgeLeftPts = sorted.filter(
+    (p) => p.ly >= halfW - W * 0.30 && p.ly <= halfW + 0.45
+  );
 
-    // Bảo lưu dốc dọc xe (Pitch) từ các điểm thuộc mặt đường bên dưới
-    const roadPts = validPts.filter((p) => p.z <= lowestRoadZ + 0.10);
-    if (roadPts.length >= 4) {
-      let sLx = 0;
-      let sZ = 0;
-      for (const p of roadPts) {
-        sLx += p.lx;
-        sZ += p.z;
+  if (edgeRightPts.length >= 2 && edgeLeftPts.length >= 2) {
+    // Khử thành phần dốc dọc (Pitch) để đo độ dốc ngang Front theo 2 đầu mép biên độc lập
+    const aSlope = -Math.tan(pitchRad);
+    
+    // Trích xuất cao độ tiếp đất chuẩn xác cho từng sườn (kháng nhiễu thân xe & nhận diện bậc vỉa hè)
+    const baseFloorZ = sorted[0].z;
+    const extractEdgeZ = (edgePts: typeof sorted) => {
+      const transPts = edgePts
+        .map((p) => ({ lx: p.lx, ly: p.ly, zTrans: p.z - aSlope * p.lx }))
+        .sort((a, b) => a.zTrans - b.zTrans);
+      const basePts = transPts.filter((p) => p.zTrans <= baseFloorZ + 0.08);
+      if (basePts.length >= 2) {
+        return basePts[Math.floor(basePts.length / 2)].zTrans;
       }
-      const mLx = sLx / roadPts.length;
-      const mZ = sZ / roadPts.length;
-      let vLx = 0;
-      let cLxZ = 0;
-      for (const p of roadPts) {
-        const dlx = p.lx - mLx;
-        const dz = p.z - mZ;
-        vLx += dlx * dlx;
-        cLxZ += dlx * dz;
+      const curbPts = transPts.filter((p) => p.zTrans >= baseFloorZ + 0.07 && p.zTrans <= baseFloorZ + 0.35);
+      if (curbPts.length >= 2) {
+        return curbPts[Math.floor(curbPts.length * 0.25)].zTrans;
       }
-      if (vLx > 1e-4) {
-        const aRoad = cLxZ / vLx;
-        pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(aRoad)));
-      }
-    }
-  } else {
-    // =========================================================================
-    // CĂN GÓC DỐC NGANG FRONT ROLL THEO 2 ĐẦU MÉP BIÊN 0–10% VÀ 90–100%:
-    // - Dải 0–10% (Mép Phải): Khoảng ly từ [-halfW - 0.45m] đến [-halfW + W * 0.20m].
-    // - Dải 90–100% (Mép Trái): Khoảng ly từ [halfW - W * 0.20m] đến [halfW + 0.45m].
-    // 1. Nếu cả 2 đầu đều có điểm tiếp đất (>= 2 điểm mỗi bên):
-    //    -> Bẻ góc Roll theo độ dốc: rollRad = atan((zLeft - zRight) / spanY).
-    //    -> Đặt tâm c0 = (zLeft + zRight) / 2 để 2 mép đáy box cách đều mặt đường.
-    // 2. Nếu ít điểm hoặc không check được điểm mặt đường ở cả 2 đầu mép:
-    //    -> BẮT BUỘC KHÓA CỨNG Roll = 0° phẳng hoàn toàn.
-    // =========================================================================
-    const W = halfW * 2;
-    const edgeRightPts = validPts.filter(
-      (p) => p.ly >= -halfW - 0.45 && p.ly <= -halfW + W * 0.20
-    );
-    const edgeLeftPts = validPts.filter(
-      (p) => p.ly >= halfW - W * 0.20 && p.ly <= halfW + 0.45
-    );
+      return transPts[0].zTrans;
+    };
 
-    if (edgeRightPts.length >= 2 && edgeLeftPts.length >= 2) {
-      // Khử thành phần dốc dọc (Pitch) để đo độ dốc ngang Front theo 2 đầu mép biên độc lập
-      const aSlope = -Math.tan(pitchRad);
-      const zRightTrans = edgeRightPts.map((p) => p.z - aSlope * p.lx).sort((a, b) => a - b);
-      const zLeftTrans = edgeLeftPts.map((p) => p.z - aSlope * p.lx).sort((a, b) => a - b);
-      const zRight = zRightTrans[Math.floor(zRightTrans.length / 2)];
-      const zLeft = zLeftTrans[Math.floor(zLeftTrans.length / 2)];
+    const zRight = extractEdgeZ(edgeRightPts);
+    const zLeft = extractEdgeZ(edgeLeftPts);
 
-      const sumRightLy = edgeRightPts.reduce((s, p) => s + p.ly, 0);
-      const sumLeftLy = edgeLeftPts.reduce((s, p) => s + p.ly, 0);
-      const meanRightLy = sumRightLy / edgeRightPts.length;
-      const meanLeftLy = sumLeftLy / edgeLeftPts.length;
-      const spanY = Math.max(0.5, meanLeftLy - meanRightLy);
+    const sumRightLy = edgeRightPts.reduce((s, p) => s + p.ly, 0);
+    const sumLeftLy = edgeLeftPts.reduce((s, p) => s + p.ly, 0);
+    const meanRightLy = sumRightLy / edgeRightPts.length;
+    const meanLeftLy = sumLeftLy / edgeLeftPts.length;
+    const spanY = Math.max(0.6, meanLeftLy - meanRightLy);
 
-      const deltaZ = zLeft - zRight;
-      const edgeRoll = Math.atan(deltaZ / spanY);
+    const deltaZ = zLeft - zRight;
+    const absDeltaZ = Math.abs(deltaZ);
 
-      if (Math.abs(rollRad - edgeRoll) < 0.05) {
-        // Nếu OLS và 2 đầu mép biên đã tương thích cao, giữ nguyên rollRad OLS và tinh chỉnh c0
-        c0 = (zLeft + zRight) / 2;
-      } else {
-        // Bẻ góc Roll theo 2 đầu mép biên để 2 đầu đáy box đều nhau với mặt đường
+    const hasEgoRef = options.egoRoadZ !== undefined;
+    const egoZ = resolvedEgoRoadZ;
+    const diffLeftEgo = zLeft - egoZ;
+    const diffRightEgo = zRight - egoZ;
+
+    if (hasEgoRef && absDeltaZ >= 0.07 && absDeltaZ <= 0.35) {
+      const isLeftCurb = Math.abs(diffRightEgo) <= 0.08 && diffLeftEgo >= 0.07 && diffLeftEgo <= 0.35;
+      const isRightCurb = Math.abs(diffLeftEgo) <= 0.08 && diffRightEgo >= 0.07 && diffRightEgo <= 0.35;
+
+      if (isLeftCurb || isRightCurb) {
+        isHalfCurb = true;
+        halfCurbSide = isLeftCurb ? "left" : "right";
+        curbHeightCm = Math.round(absDeltaZ * 100);
+        const edgeRoll = Math.atan(deltaZ / spanY);
         rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, edgeRoll));
         c0 = (zLeft + zRight) / 2;
       }
-    } else {
-      // Ít điểm hoặc không check được mây điểm mặt đường ở cả 2 đầu mép -> BẮT BUỘC KHÓA CỨNG Roll = 0°
-      rollRad = 0;
+    }
+
+    if (!isHalfCurb) {
+      if (isCurbOrRamp) {
+        rollRad = 0;
+        c0 = lowestRoadZ;
+
+        // Bảo lưu dốc dọc xe (Pitch) từ các điểm thuộc mặt đường bên dưới
+        const roadPts = validPts.filter((p) => p.z <= lowestRoadZ + 0.10);
+        if (roadPts.length >= 4) {
+          let sLx = 0;
+          let sZ = 0;
+          for (const p of roadPts) {
+            sLx += p.lx;
+            sZ += p.z;
+          }
+          const mLx = sLx / roadPts.length;
+          const mZ = sZ / roadPts.length;
+          let vLx = 0;
+          let cLxZ = 0;
+          for (const p of roadPts) {
+            const dlx = p.lx - mLx;
+            const dz = p.z - mZ;
+            vLx += dlx * dlx;
+            cLxZ += dlx * dz;
+          }
+          if (vLx > 1e-4) {
+            const aRoad = cLxZ / vLx;
+            pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(aRoad)));
+          }
+        }
+      } else {
+        const edgeRoll = Math.atan(deltaZ / spanY);
+        if (Math.abs(rollRad - edgeRoll) < 0.05) {
+          c0 = (zLeft + zRight) / 2;
+        } else {
+          rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, edgeRoll));
+          c0 = (zLeft + zRight) / 2;
+        }
+      }
+    }
+  } else {
+    // Chưa đủ điểm ở 1 trong 2 đầu mép biên -> Fit góc thẳng theo Ego: Khóa cứng Roll = 0°
+    rollRad = 0;
+    if (isCurbOrRamp) {
+      c0 = lowestRoadZ;
     }
   }
 
   // =========================================================================
-  // NHẬN DIỆN NỀN VỈA HÈ & CHỐNG LÚN ÂM ĐẤT THEO EGO ROAD Z REFERENCE:
+  // NHẬN DIỆN NỀN VỈA HÈ TOÀN PHẦN & CHỐNG LÚN ÂM ĐẤT THEO EGO ROAD Z REFERENCE:
   // =========================================================================
   let isCurbGround = false;
-  if (!isCurbOrRamp && options.egoRoadZ !== undefined) {
+  if (!isCurbOrRamp && !isHalfCurb && options.egoRoadZ !== undefined) {
     const egoZ = options.egoRoadZ;
     // 1. Xe đỗ hoàn toàn trên vỉa hè: Mây điểm mặt đất cao hơn Ego Road Z từ +8cm đến +35cm
     if (c0 >= egoZ + 0.08 && c0 <= egoZ + 0.35) {
       isCurbGround = true;
-      // Nền vỉa hè phẳng -> khóa Roll = 0° để xe đứng ngay ngắn, bảo toàn cao độ vỉa hè c0
+      curbHeightCm = Math.round((c0 - egoZ) * 100);
+      // Nền vỉa hè phẳng -> khóa Roll = 0° theo góc thẳng Ego để xe đứng ngay ngắn
       if (Math.abs(rollRad) < (5 * Math.PI) / 180) {
         rollRad = 0;
       }
     }
-    // 2. Chống lún âm đất cho xe ít điểm: Không cho c0 tụt sâu âm hơn mặt đường Ego quá 25cm
+    // 2. Chống lún âm đất khi chưa đủ điểm: Fit độ cao theo mốc Ego Z và khóa góc thẳng theo Ego
     else if (c0 < egoZ - 0.25 && validPts.length < 15) {
       c0 = egoZ;
       rollRad = 0;
@@ -1936,6 +1998,9 @@ export function computeGroundSlopesAndZ(
     rollDeg: rollDegVal,
     groundPointsCount: finalPts.length,
     isCurbGround,
+    isHalfCurb,
+    halfCurbSide,
+    curbHeightCm,
   };
 }
 

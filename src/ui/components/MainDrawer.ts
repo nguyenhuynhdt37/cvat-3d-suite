@@ -400,17 +400,18 @@ export class MainDrawer {
           </div>
         </div>
 
-        <!-- CỤM 3: ĐỊA HÌNH & VỈA HÈ -->
+        <!-- CỤM 3: ĐỊA HÌNH & MẶT ĐẤT -->
         <div>
           <div style="font-size: 11px; font-weight: 600; color: #a1a1aa; margin-bottom: 6px;">
             ĐỊA HÌNH & GẮN MẶT ĐƯỜNG (TERRAIN)
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+          <div>
             <button id="btn-snap-road" style="
+              width: 100%;
               background: #09090b;
               border: 1px solid #27272a;
               color: #2dd4bf;
-              padding: 7px 8px;
+              padding: 7px 10px;
               border-radius: 10px;
               font-size: 11px;
               cursor: pointer;
@@ -418,24 +419,8 @@ export class MainDrawer {
               justify-content: space-between;
               align-items: center;
             ">
-              <span>Ghim Dốc Đường</span>
-              <kbd style="font-size: 9px; font-family: monospace; padding: 1px 3px; border-radius: 3px; background: #27272a; color: #71717a;">G</kbd>
-            </button>
-
-            <button id="btn-snap-curb" style="
-              background: #09090b;
-              border: 1px solid #27272a;
-              color: #fb7185;
-              padding: 7px 8px;
-              border-radius: 10px;
-              font-size: 11px;
-              cursor: pointer;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-            ">
-              <span>Vỉa Hè (+15cm)</span>
-              <kbd style="font-size: 9px; font-family: monospace; padding: 1px 3px; border-radius: 3px; background: #27272a; color: #71717a;">⌥G</kbd>
+              <span>Ghim Đất (Tự nhận diện Vỉa Hè / Gác Lề)</span>
+              <kbd style="font-size: 9px; font-family: monospace; padding: 1px 4px; border-radius: 3px; background: #27272a; color: #71717a;">G</kbd>
             </button>
           </div>
         </div>

@@ -146,8 +146,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     sparkles: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>`,
     // Địa hình & Ghim mặt đất
     road: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19 8 5"/><path d="m16 5 4 14"/><path d="M12 8v2"/><path d="M12 14v2"/></svg>`,
-    curb: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h6v-6h12"/><path d="M3 21h18"/></svg>`,
-    layers: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`,
     // Cửa sổ & Điều khiển
     minimize: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>`,
     // Trạng thái Toast
@@ -748,7 +746,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         rollDeg: 0,
         groundPointsCount: groundPts.length,
         isFallbackZeroGround: true,
-        isCurbGround: false
+        isCurbGround: false,
+        isHalfCurb: false,
+        halfCurbSide: "none",
+        curbHeightCm: 0
       };
     }
     groundPts.sort((a, b) => a.z - b.z);
@@ -867,11 +868,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       sumRes / finalPts.length;
     }
-    const p12Idx = Math.max(0, Math.floor(validPts.length * 0.12));
-    const lowestRoadZ = validPts[p12Idx].z;
-    const leftPtsZ = validPts.filter((p) => p.ly > 0.15).map((p) => p.z).sort((a, b) => a - b);
-    const rightPtsZ = validPts.filter((p) => p.ly < -0.15).map((p) => p.z).sort((a, b) => a - b);
+    const p12Idx = Math.max(0, Math.floor(sorted.length * 0.12));
+    const lowestRoadZ = sorted[p12Idx].z;
+    const leftPtsZ = sorted.filter((p) => p.ly > 0.15).map((p) => p.z).sort((a, b) => a - b);
+    const rightPtsZ = sorted.filter((p) => p.ly < -0.15).map((p) => p.z).sort((a, b) => a - b);
     let isCurbOrRamp = options.lockRollFlat === true;
+    let isHalfCurb = false;
+    let halfCurbSide = "none";
+    let curbHeightCm = 0;
     if (!isCurbOrRamp && leftPtsZ.length >= 3 && rightPtsZ.length >= 3) {
       const leftMedian = leftPtsZ[Math.floor(leftPtsZ.length * 0.25)];
       const rightMedian = rightPtsZ[Math.floor(rightPtsZ.length * 0.25)];
@@ -882,68 +886,102 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         isCurbOrRamp = true;
       }
     }
-    if (isCurbOrRamp) {
-      rollRad = 0;
-      c0 = lowestRoadZ;
-      const roadPts = validPts.filter((p) => p.z <= lowestRoadZ + 0.1);
-      if (roadPts.length >= 4) {
-        let sLx = 0;
-        let sZ = 0;
-        for (const p of roadPts) {
-          sLx += p.lx;
-          sZ += p.z;
+    const W = halfW * 2;
+    const edgeRightPts = sorted.filter(
+      (p) => p.ly >= -halfW - 0.45 && p.ly <= -halfW + W * 0.3
+    );
+    const edgeLeftPts = sorted.filter(
+      (p) => p.ly >= halfW - W * 0.3 && p.ly <= halfW + 0.45
+    );
+    if (edgeRightPts.length >= 2 && edgeLeftPts.length >= 2) {
+      const aSlope = -Math.tan(pitchRad);
+      const baseFloorZ = sorted[0].z;
+      const extractEdgeZ = (edgePts) => {
+        const transPts = edgePts.map((p) => ({ lx: p.lx, ly: p.ly, zTrans: p.z - aSlope * p.lx })).sort((a, b) => a.zTrans - b.zTrans);
+        const basePts = transPts.filter((p) => p.zTrans <= baseFloorZ + 0.08);
+        if (basePts.length >= 2) {
+          return basePts[Math.floor(basePts.length / 2)].zTrans;
         }
-        const mLx = sLx / roadPts.length;
-        const mZ = sZ / roadPts.length;
-        let vLx = 0;
-        let cLxZ = 0;
-        for (const p of roadPts) {
-          const dlx = p.lx - mLx;
-          const dz = p.z - mZ;
-          vLx += dlx * dlx;
-          cLxZ += dlx * dz;
+        const curbPts = transPts.filter((p) => p.zTrans >= baseFloorZ + 0.07 && p.zTrans <= baseFloorZ + 0.35);
+        if (curbPts.length >= 2) {
+          return curbPts[Math.floor(curbPts.length * 0.25)].zTrans;
         }
-        if (vLx > 1e-4) {
-          const aRoad = cLxZ / vLx;
-          pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(aRoad)));
-        }
-      }
-    } else {
-      const W = halfW * 2;
-      const edgeRightPts = validPts.filter(
-        (p) => p.ly >= -halfW - 0.45 && p.ly <= -halfW + W * 0.2
-      );
-      const edgeLeftPts = validPts.filter(
-        (p) => p.ly >= halfW - W * 0.2 && p.ly <= halfW + 0.45
-      );
-      if (edgeRightPts.length >= 2 && edgeLeftPts.length >= 2) {
-        const aSlope = -Math.tan(pitchRad);
-        const zRightTrans = edgeRightPts.map((p) => p.z - aSlope * p.lx).sort((a, b) => a - b);
-        const zLeftTrans = edgeLeftPts.map((p) => p.z - aSlope * p.lx).sort((a, b) => a - b);
-        const zRight = zRightTrans[Math.floor(zRightTrans.length / 2)];
-        const zLeft = zLeftTrans[Math.floor(zLeftTrans.length / 2)];
-        const sumRightLy = edgeRightPts.reduce((s, p) => s + p.ly, 0);
-        const sumLeftLy = edgeLeftPts.reduce((s, p) => s + p.ly, 0);
-        const meanRightLy = sumRightLy / edgeRightPts.length;
-        const meanLeftLy = sumLeftLy / edgeLeftPts.length;
-        const spanY = Math.max(0.5, meanLeftLy - meanRightLy);
-        const deltaZ = zLeft - zRight;
-        const edgeRoll = Math.atan(deltaZ / spanY);
-        if (Math.abs(rollRad - edgeRoll) < 0.05) {
-          c0 = (zLeft + zRight) / 2;
-        } else {
+        return transPts[0].zTrans;
+      };
+      const zRight = extractEdgeZ(edgeRightPts);
+      const zLeft = extractEdgeZ(edgeLeftPts);
+      const sumRightLy = edgeRightPts.reduce((s, p) => s + p.ly, 0);
+      const sumLeftLy = edgeLeftPts.reduce((s, p) => s + p.ly, 0);
+      const meanRightLy = sumRightLy / edgeRightPts.length;
+      const meanLeftLy = sumLeftLy / edgeLeftPts.length;
+      const spanY = Math.max(0.6, meanLeftLy - meanRightLy);
+      const deltaZ = zLeft - zRight;
+      const absDeltaZ = Math.abs(deltaZ);
+      const hasEgoRef = options.egoRoadZ !== void 0;
+      const egoZ = resolvedEgoRoadZ;
+      const diffLeftEgo = zLeft - egoZ;
+      const diffRightEgo = zRight - egoZ;
+      if (hasEgoRef && absDeltaZ >= 0.07 && absDeltaZ <= 0.35) {
+        const isLeftCurb = Math.abs(diffRightEgo) <= 0.08 && diffLeftEgo >= 0.07 && diffLeftEgo <= 0.35;
+        const isRightCurb = Math.abs(diffLeftEgo) <= 0.08 && diffRightEgo >= 0.07 && diffRightEgo <= 0.35;
+        if (isLeftCurb || isRightCurb) {
+          isHalfCurb = true;
+          halfCurbSide = isLeftCurb ? "left" : "right";
+          curbHeightCm = Math.round(absDeltaZ * 100);
+          const edgeRoll = Math.atan(deltaZ / spanY);
           rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, edgeRoll));
           c0 = (zLeft + zRight) / 2;
         }
-      } else {
-        rollRad = 0;
+      }
+      if (!isHalfCurb) {
+        if (isCurbOrRamp) {
+          rollRad = 0;
+          c0 = lowestRoadZ;
+          const roadPts = validPts.filter((p) => p.z <= lowestRoadZ + 0.1);
+          if (roadPts.length >= 4) {
+            let sLx = 0;
+            let sZ = 0;
+            for (const p of roadPts) {
+              sLx += p.lx;
+              sZ += p.z;
+            }
+            const mLx = sLx / roadPts.length;
+            const mZ = sZ / roadPts.length;
+            let vLx = 0;
+            let cLxZ = 0;
+            for (const p of roadPts) {
+              const dlx = p.lx - mLx;
+              const dz = p.z - mZ;
+              vLx += dlx * dlx;
+              cLxZ += dlx * dz;
+            }
+            if (vLx > 1e-4) {
+              const aRoad = cLxZ / vLx;
+              pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(aRoad)));
+            }
+          }
+        } else {
+          const edgeRoll = Math.atan(deltaZ / spanY);
+          if (Math.abs(rollRad - edgeRoll) < 0.05) {
+            c0 = (zLeft + zRight) / 2;
+          } else {
+            rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, edgeRoll));
+            c0 = (zLeft + zRight) / 2;
+          }
+        }
+      }
+    } else {
+      rollRad = 0;
+      if (isCurbOrRamp) {
+        c0 = lowestRoadZ;
       }
     }
     let isCurbGround = false;
-    if (!isCurbOrRamp && options.egoRoadZ !== void 0) {
+    if (!isCurbOrRamp && !isHalfCurb && options.egoRoadZ !== void 0) {
       const egoZ = options.egoRoadZ;
       if (c0 >= egoZ + 0.08 && c0 <= egoZ + 0.35) {
         isCurbGround = true;
+        curbHeightCm = Math.round((c0 - egoZ) * 100);
         if (Math.abs(rollRad) < 5 * Math.PI / 180) {
           rollRad = 0;
         }
@@ -968,7 +1006,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       pitchDeg: pitchDegVal,
       rollDeg: rollDegVal,
       groundPointsCount: finalPts.length,
-      isCurbGround
+      isCurbGround,
+      isHalfCurb,
+      halfCurbSide,
+      curbHeightCm
     };
   }
   function fitBoxToEgoRayAndGround(pts, cx, cy, cz, yaw, L, W, H, egoPos = { x: 0, y: 0, z: 0 }, options = {}) {
@@ -2400,7 +2441,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           pitchDeg: 0,
           rollDeg: 0,
           groundPointsCount: 0,
-          isFallbackZeroGround: true
+          isFallbackZeroGround: true,
+          isCurbGround: false,
+          isHalfCurb: false,
+          halfCurbSide: "none",
+          curbHeightCm: 0
         };
       }
       const { count, array } = lidar;
@@ -2453,7 +2498,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           rollDeg: 0,
           groundPointsCount: groundPts.length,
           isFallbackZeroGround: true,
-          isCurbGround: false
+          isCurbGround: false,
+          isHalfCurb: false,
+          halfCurbSide: "none",
+          curbHeightCm: 0
         };
       }
       groundPts.sort((a2, b2) => a2.z - b2.z);
@@ -2572,11 +2620,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         sumRes / finalPts.length;
       }
-      const p12Idx = Math.max(0, Math.floor(validPts.length * 0.12));
-      const lowestRoadZ = validPts[p12Idx].z;
-      const leftPtsZ = validPts.filter((p) => p.ly > 0.15).map((p) => p.z).sort((a2, b2) => a2 - b2);
-      const rightPtsZ = validPts.filter((p) => p.ly < -0.15).map((p) => p.z).sort((a2, b2) => a2 - b2);
+      const p12Idx = Math.max(0, Math.floor(sorted.length * 0.12));
+      const lowestRoadZ = sorted[p12Idx].z;
+      const leftPtsZ = sorted.filter((p) => p.ly > 0.15).map((p) => p.z).sort((a2, b2) => a2 - b2);
+      const rightPtsZ = sorted.filter((p) => p.ly < -0.15).map((p) => p.z).sort((a2, b2) => a2 - b2);
       let isCurbOrRamp = lockRollFlat === true;
+      let isHalfCurb = false;
+      let halfCurbSide = "none";
+      let curbHeightCm = 0;
       if (!isCurbOrRamp && leftPtsZ.length >= 3 && rightPtsZ.length >= 3) {
         const leftMedian = leftPtsZ[Math.floor(leftPtsZ.length * 0.25)];
         const rightMedian = rightPtsZ[Math.floor(rightPtsZ.length * 0.25)];
@@ -2587,68 +2638,101 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           isCurbOrRamp = true;
         }
       }
-      if (isCurbOrRamp) {
-        rollRad = 0;
-        c0 = lowestRoadZ;
-        const roadPts = validPts.filter((p) => p.z <= lowestRoadZ + 0.1);
-        if (roadPts.length >= 4) {
-          let sLx = 0;
-          let sZ = 0;
-          for (const p of roadPts) {
-            sLx += p.lx;
-            sZ += p.z;
+      const W = halfW * 2;
+      const edgeRightPts = sorted.filter(
+        (p) => p.ly >= -halfW - 0.45 && p.ly <= -halfW + W * 0.3
+      );
+      const edgeLeftPts = sorted.filter(
+        (p) => p.ly >= halfW - W * 0.3 && p.ly <= halfW + 0.45
+      );
+      if (edgeRightPts.length >= 2 && edgeLeftPts.length >= 2) {
+        const aSlope = -Math.tan(pitchRad);
+        const baseFloorZ = sorted[0].z;
+        const extractEdgeZ = (edgePts) => {
+          const transPts = edgePts.map((p) => ({ lx: p.lx, ly: p.ly, zTrans: p.z - aSlope * p.lx })).sort((a2, b2) => a2.zTrans - b2.zTrans);
+          const basePts = transPts.filter((p) => p.zTrans <= baseFloorZ + 0.08);
+          if (basePts.length >= 2) {
+            return basePts[Math.floor(basePts.length / 2)].zTrans;
           }
-          const mLx = sLx / roadPts.length;
-          const mZ = sZ / roadPts.length;
-          let vLx = 0;
-          let cLxZ = 0;
-          for (const p of roadPts) {
-            const dlx = p.lx - mLx;
-            const dz = p.z - mZ;
-            vLx += dlx * dlx;
-            cLxZ += dlx * dz;
+          const curbPts = transPts.filter((p) => p.zTrans >= baseFloorZ + 0.07 && p.zTrans <= baseFloorZ + 0.35);
+          if (curbPts.length >= 2) {
+            return curbPts[Math.floor(curbPts.length * 0.25)].zTrans;
           }
-          if (vLx > 1e-4) {
-            const aRoad = cLxZ / vLx;
-            pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(aRoad)));
-          }
-        }
-      } else {
-        const W = halfW * 2;
-        const edgeRightPts = validPts.filter(
-          (p) => p.ly >= -halfW - 0.45 && p.ly <= -halfW + W * 0.2
-        );
-        const edgeLeftPts = validPts.filter(
-          (p) => p.ly >= halfW - W * 0.2 && p.ly <= halfW + 0.45
-        );
-        if (edgeRightPts.length >= 2 && edgeLeftPts.length >= 2) {
-          const aSlope = -Math.tan(pitchRad);
-          const zRightTrans = edgeRightPts.map((p) => p.z - aSlope * p.lx).sort((a2, b2) => a2 - b2);
-          const zLeftTrans = edgeLeftPts.map((p) => p.z - aSlope * p.lx).sort((a2, b2) => a2 - b2);
-          const zRight = zRightTrans[Math.floor(zRightTrans.length / 2)];
-          const zLeft = zLeftTrans[Math.floor(zLeftTrans.length / 2)];
-          const sumRightLy = edgeRightPts.reduce((s, p) => s + p.ly, 0);
-          const sumLeftLy = edgeLeftPts.reduce((s, p) => s + p.ly, 0);
-          const meanRightLy = sumRightLy / edgeRightPts.length;
-          const meanLeftLy = sumLeftLy / edgeLeftPts.length;
-          const spanY = Math.max(0.5, meanLeftLy - meanRightLy);
-          const deltaZ = zLeft - zRight;
-          const edgeRoll = Math.atan(deltaZ / spanY);
-          if (Math.abs(rollRad - edgeRoll) < 0.05) {
-            c0 = (zLeft + zRight) / 2;
-          } else {
+          return transPts[0].zTrans;
+        };
+        const zRight = extractEdgeZ(edgeRightPts);
+        const zLeft = extractEdgeZ(edgeLeftPts);
+        const sumRightLy = edgeRightPts.reduce((s, p) => s + p.ly, 0);
+        const sumLeftLy = edgeLeftPts.reduce((s, p) => s + p.ly, 0);
+        const meanRightLy = sumRightLy / edgeRightPts.length;
+        const meanLeftLy = sumLeftLy / edgeLeftPts.length;
+        const spanY = Math.max(0.6, meanLeftLy - meanRightLy);
+        const deltaZ = zLeft - zRight;
+        const absDeltaZ = Math.abs(deltaZ);
+        const egoZ = resolvedEgoRoadZ;
+        const diffLeftEgo = zLeft - egoZ;
+        const diffRightEgo = zRight - egoZ;
+        if (absDeltaZ >= 0.07 && absDeltaZ <= 0.35) {
+          const isLeftCurb = Math.abs(diffRightEgo) <= 0.08 && diffLeftEgo >= 0.07 && diffLeftEgo <= 0.35;
+          const isRightCurb = Math.abs(diffLeftEgo) <= 0.08 && diffRightEgo >= 0.07 && diffRightEgo <= 0.35;
+          if (isLeftCurb || isRightCurb) {
+            isHalfCurb = true;
+            halfCurbSide = isLeftCurb ? "left" : "right";
+            curbHeightCm = Math.round(absDeltaZ * 100);
+            const edgeRoll = Math.atan(deltaZ / spanY);
             rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, edgeRoll));
             c0 = (zLeft + zRight) / 2;
           }
-        } else {
-          rollRad = 0;
+        }
+        if (!isHalfCurb) {
+          if (isCurbOrRamp) {
+            rollRad = 0;
+            c0 = lowestRoadZ;
+            const roadPts = validPts.filter((p) => p.z <= lowestRoadZ + 0.1);
+            if (roadPts.length >= 4) {
+              let sLx = 0;
+              let sZ = 0;
+              for (const p of roadPts) {
+                sLx += p.lx;
+                sZ += p.z;
+              }
+              const mLx = sLx / roadPts.length;
+              const mZ = sZ / roadPts.length;
+              let vLx = 0;
+              let cLxZ = 0;
+              for (const p of roadPts) {
+                const dlx = p.lx - mLx;
+                const dz = p.z - mZ;
+                vLx += dlx * dlx;
+                cLxZ += dlx * dz;
+              }
+              if (vLx > 1e-4) {
+                const aRoad = cLxZ / vLx;
+                pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(aRoad)));
+              }
+            }
+          } else {
+            const edgeRoll = Math.atan(deltaZ / spanY);
+            if (Math.abs(rollRad - edgeRoll) < 0.05) {
+              c0 = (zLeft + zRight) / 2;
+            } else {
+              rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, edgeRoll));
+              c0 = (zLeft + zRight) / 2;
+            }
+          }
+        }
+      } else {
+        rollRad = 0;
+        if (isCurbOrRamp) {
+          c0 = lowestRoadZ;
         }
       }
       let isCurbGround = false;
       const refEgoZ = getEgoRoadGroundZInMainWorld();
-      if (!isCurbOrRamp && refEgoZ !== 0) {
+      if (!isCurbOrRamp && !isHalfCurb) {
         if (c0 >= refEgoZ + 0.08 && c0 <= refEgoZ + 0.35) {
           isCurbGround = true;
+          curbHeightCm = Math.round((c0 - refEgoZ) * 100);
           if (Math.abs(rollRad) < 5 * Math.PI / 180) {
             rollRad = 0;
           }
@@ -2673,7 +2757,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         pitchDeg: pitchDegVal,
         rollDeg: rollDegVal,
         groundPointsCount: finalPts.length,
-        isCurbGround
+        isCurbGround,
+        isHalfCurb,
+        halfCurbSide,
+        curbHeightCm
       };
     }
     function detectCurbStepAndRollInMainWorld(cx, cy, cz, yaw, halfL, halfW, trackW) {
@@ -5436,16 +5523,23 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             newRotX = 0;
             newRotY = 0;
             newZ = Number((baseZ + curH / 2).toFixed(3));
-            msg = `Dưới chân ít điểm LiDAR (${groundInfo.groundPointsCount} điểm) ➔ Neo đáy xe theo mốc Ego Road Z: ${baseZ}m (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
+            msg = `Chưa đủ point cloud mặt đất (${groundInfo.groundPointsCount} điểm) ➔ Fit độ cao & góc thẳng theo Ego (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
           } else if (groundInfo.groundZ !== null) {
             const cosPitch = Math.cos(groundInfo.pitchRad);
             const cosRoll = Math.cos(groundInfo.rollRad);
-            newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch * cosRoll).toFixed(3));
-            newRotX = groundInfo.rollRad;
             newRotY = groundInfo.pitchRad;
-            if (groundInfo.isCurbGround) {
-              msg = `Đã nhận diện xe #${uiId} đỗ trên nền vỉa hè (Z đất: ${groundInfo.groundZ}m, Tâm Z: ${newZ}m, Khóa Roll: ${groundInfo.rollDeg}°)`;
+            if (groundInfo.isHalfCurb) {
+              newRotX = groundInfo.rollRad;
+              newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch * cosRoll).toFixed(3));
+              const sideText = groundInfo.halfCurbSide === "left" ? "bên TRÁI" : "bên PHẢI";
+              msg = `Đã tự động nhận diện xe #${uiId} gác lề ${sideText} (Bậc vỉa hè: +${groundInfo.curbHeightCm}cm, Nghiêng Front Roll: ${groundInfo.rollDeg}°, Tâm Z: ${newZ}m)`;
+            } else if (groundInfo.isCurbGround) {
+              newRotX = 0;
+              newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch).toFixed(3));
+              msg = `Đã tự động nhận diện xe #${uiId} đỗ trên nền vỉa hè (+${groundInfo.curbHeightCm || 15}cm so với Ego, Khóa Roll 0°, Tâm Z: ${newZ}m)`;
             } else {
+              newRotX = groundInfo.rollRad;
+              newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch * cosRoll).toFixed(3));
               msg = `Đã ghim đáy xe #${uiId} bám sát mặt đường (Z: ${newZ}m, Roll: ${groundInfo.rollDeg}°, Pitch: ${groundInfo.pitchDeg}°)`;
             }
           } else {
@@ -5453,7 +5547,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             newRotX = 0;
             newRotY = 0;
             newZ = Number((egoZ + curH / 2).toFixed(3));
-            msg = `Không có điểm mặt đất ➔ Neo theo mốc Ego Road Z: ${egoZ}m (Tâm Z: ${newZ}m)`;
+            msg = `Không có điểm mặt đất ➔ Fit độ cao & góc thẳng theo Ego (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
           }
         } else if (mode === "curb") {
           const curL = newPoints[6] || 4.6;
@@ -10551,49 +10645,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             </div>
           </div>
 
-          <!-- VỈA HÈ & GÁC LỀ -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-            <button id="btn-snap-curb" style="
-              background: #fffbeb;
-              border: 1px solid #fde68a;
-              color: #b45309;
-              padding: 6px 8px;
-              border-radius: 6px;
-              font-size: 10px;
-              font-weight: 600;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            ">
-              <span style="display: flex; align-items: center; gap: 5px;">
-                <span style="display: flex; align-items: center;">${ICONS.curb}</span>
-                <span>Vỉa Hè +15cm</span>
-              </span>
-              <kbd style="font-size: 8px; font-family: monospace; background: #fef3c7; border: 1px solid #fde68a; padding: 1px 4px; border-radius: 3px; color: #92400e;">⌥G</kbd>
-            </button>
-
-            <button id="btn-snap-half-curb" style="
-              background: #fff1f2;
-              border: 1px solid #fecdd3;
-              color: #be123c;
-              padding: 6px 8px;
-              border-radius: 6px;
-              font-size: 10px;
-              font-weight: 600;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-            ">
-              <span style="display: flex; align-items: center; gap: 5px;">
-                <span style="display: flex; align-items: center;">${ICONS.layers}</span>
-                <span>Gác Lề Roll</span>
-              </span>
-              <kbd style="font-size: 8px; font-family: monospace; background: #ffe4e6; border: 1px solid #fecdd3; padding: 1px 4px; border-radius: 3px; color: #9f1239;">⇧G</kbd>
-            </button>
-          </div>
-
           <!-- VI CHỈNH GÓC YAW & CĂN THEO VẠCH KẺ LÀN ĐƯỜNG 3D -->
           <div style="display: flex; flex-direction: column; gap: 4px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -11357,7 +11408,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           <!-- THAO TÁC 1-CHẠM THƯỜNG DÙNG: GHIM ĐẤT (G) & LẬT ĐẦU 180° (F) -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
             <!-- GHIM MẶT ĐẤT -->
-            <button id="btn-quick-ground" title="Đáy xe chạm sát mặt đường chuẩn xác 100%, khóa Roll 0° (Phím G)" style="
+            <button id="btn-quick-ground" title="Tự động nhận diện mặt đường, vỉa hè & gác lề. Chưa đủ điểm tự fit theo Ego (Phím G)" style="
               background: #f0fdf4;
               border: 1px solid #bbf7d0;
               color: #15803d;
@@ -11405,7 +11456,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
 
           <!-- NÚT RIÊNG: GHIM ĐẤT TOÀN TRACK -->
           <div style="margin-top: 5px;">
-            <button id="btn-snap-ground-track" title="Ghim toàn bộ đáy xe xuống mặt đất cho TẤT CẢ các frame theo Track ID #${this.selectedUiId !== null ? this.selectedUiId : "N/A"}" style="
+            <button id="btn-snap-ground-track" title="Tự động ghim đất & vỉa hè cho TẤT CẢ các frame theo Track ID #${this.selectedUiId !== null ? this.selectedUiId : "N/A"} (Phím Shift+G)" style="
               width: 100%;
               background: #f0fdf4;
               border: 1px solid #86efac;
@@ -12010,10 +12061,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       });
       const snapRoadBtn = this.container.querySelector("#btn-snap-road");
       if (snapRoadBtn) snapRoadBtn.addEventListener("click", () => this.handleSnapGround("road"));
-      const snapCurbBtn = this.container.querySelector("#btn-snap-curb");
-      if (snapCurbBtn) snapCurbBtn.addEventListener("click", () => this.handleSnapGround("curb", { curbHeight: 0.15 }));
-      const snapHalfCurbBtn = this.container.querySelector("#btn-snap-half-curb");
-      if (snapHalfCurbBtn) snapHalfCurbBtn.addEventListener("click", () => this.handleSnapGround("half_curb", { curbHeight: 0.15 }));
       const microBtns = this.container.querySelectorAll(".btn-micro-z");
       microBtns.forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -12150,7 +12197,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <!-- CỘT 1 -->
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
-              <div style="font-weight: 700; color: #0f766e; font-size: 11px; margin-bottom: 2px;">🎯 CĂN CHỈNH 3 CHIỀU & FIT ALL</div>
+              <div style="font-weight: 700; color: #0f766e; font-size: 11px; margin-bottom: 2px;">🎯 CĂN CHỈNH 3 CHIỀU ĐỘC LẬP</div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Căn TOP (Yaw & Nóc quanh tâm)</span>
                 <div><kbd style="background: #f0fdfa; border: 1px solid #99f6e4; color: #0f766e; padding: 1px 5px; border-radius: 4px; font-weight: 700;">1</kbd> / <kbd style="background: #f0fdfa; border: 1px solid #99f6e4; color: #0f766e; padding: 1px 5px; border-radius: 4px; font-weight: 700;">T</kbd></div>
@@ -12164,8 +12211,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 <kbd style="background: #faf5ff; border: 1px solid #e9d5ff; color: #7e22ce; padding: 1px 5px; border-radius: 4px; font-weight: 700;">3</kbd>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 2px;">
-                <span style="font-weight: 600; color: #047857;">1-Click Fit Hoàn Chỉnh (ALL)</span>
-                <kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; padding: 1px 8px; border-radius: 4px; font-weight: 700;">Space</kbd>
+                <span style="font-weight: 600; color: #64748b; font-size: 10px;">Nguyên tắc Front/Side</span>
+                <span style="font-size: 9.5px; color: #059669; font-weight: 600;">Khóa Z & Giữ Kích Thước</span>
               </div>
             </div>
 
@@ -12199,26 +12246,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <!-- CỘT 3 -->
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
-              <div style="font-weight: 700; color: #b45309; font-size: 11px; margin-bottom: 2px;">⛰️ MẶT ĐẤT, VỈA HÈ & DỐC</div>
+              <div style="font-weight: 700; color: #b45309; font-size: 11px; margin-bottom: 2px;">⛰️ MẶT ĐẤT, VỈA HÈ & DỐC (TỰ ĐỘNG)</div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Ghim Đất (Chạm sát đường, khóa Roll)</span>
+                <span>Ghim Đất (Tự nhận diện vỉa hè/gác lề)</span>
                 <kbd style="background: #fef3c7; border: 1px solid #fde68a; color: #92400e; padding: 1px 6px; border-radius: 4px; font-weight: 700;">G</kbd>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Ghim Đất Toàn Bộ Track</span>
+                <span>Ghim Đất & Vỉa Hè Toàn Bộ Track</span>
                 <kbd style="background: #fef3c7; border: 1px solid #fde68a; color: #92400e; padding: 1px 5px; border-radius: 4px; font-weight: 700;">Shift+G</kbd>
-              </div>
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Ghim Nền Vỉa Hè (+15cm)</span>
-                <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">Alt+G</kbd>
-              </div>
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Xe Đỗ Gác Bánh Vỉa Hè (Half-Curb)</span>
-                <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 6px; border-radius: 4px; font-weight: 700;">H</kbd>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Đặt lại Dốc 0° (Reset phẳng hoàn toàn)</span>
                 <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">Alt+R</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 2px;">
+                <span style="font-size: 9.5px; color: #64748b;">Chưa đủ điểm mặt đất</span>
+                <span style="font-size: 9.5px; color: #b45309; font-weight: 600;">Fit cao & góc thẳng theo Ego</span>
               </div>
             </div>
 
@@ -12354,12 +12397,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             panel.toggleScope();
             return;
           }
-          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === " " || code === "Space")) {
-            consume();
-            console.log("[CVAT 3D Suite] Phím tắt Space: 1-Click Smart Fit ALL");
-            panel.handleSmartFitAll();
-            return;
-          }
           if (e.shiftKey && (key === "o" || code === "KeyO")) {
             consume();
             console.log("[CVAT 3D Suite] Phím tắt Shift+O: Đánh dấu Outside toàn bộ Track");
@@ -12414,28 +12451,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             panel.rotateYawByDelta(1);
             return;
           }
-          if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (key === "g" || code === "KeyG")) {
-            consume();
-            console.log("[CVAT 3D Suite] Phím tắt Alt+G: Ghim Nền Vỉa Hè (+15cm)");
-            panel.handleSnapGround("curb", { curbHeight: 0.15 });
-            return;
-          }
           if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && (key === "g" || code === "KeyG")) {
             consume();
-            console.log("[CVAT 3D Suite] Phím tắt Shift+G: Ghim Đất Toàn Bộ Track");
+            console.log("[CVAT 3D Suite] Phím tắt Shift+G: Ghim Đất & Vỉa Hè Toàn Bộ Track");
             panel.handleSnapGroundTrack();
             return;
           }
           if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "g" || code === "KeyG")) {
             consume();
-            console.log("[CVAT 3D Suite] Phím tắt G: Ghim Mặt Đường");
+            console.log("[CVAT 3D Suite] Phím tắt G: Ghim Mặt Đất, Vỉa Hè & Gác Lề Tự Động");
             panel.handleSnapGround("road");
-            return;
-          }
-          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "h" || code === "KeyH")) {
-            consume();
-            console.log("[CVAT 3D Suite] Phím tắt H: Xe Gác Lề Vỉa Hè");
-            panel.handleSnapGround("half_curb", { curbHeight: 0.15 });
             return;
           }
           if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (key === "r" || code === "KeyR")) {

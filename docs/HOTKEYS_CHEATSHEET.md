@@ -9,14 +9,13 @@
 > [!TIP]
 > Tất cả các phím tắt được thiết kế tối ưu cho **bàn tay trái**, không làm gián đoạn tay phải đang cầm chuột điều khiển camera 3D.
 
-### 1.1. Nhóm Căn Chỉnh 3 Chiều & 1-Click Smart Fit
+### 1.1. Nhóm Căn Chỉnh 3 Chiều Độc Lập
 
 | Phím tắt | Thao tác thực hiện | Mô tả chi tiết |
 | :---: | :--- | :--- |
 | <kbd>1</kbd> hoặc <kbd>T</kbd> | **Căn TOP (Yaw & Nóc)** | Căn góc xoay Yaw theo viền đón tia tổng thể, khóa cứng tâm $X, Y, Z$ và kích thước (kháng dính đám đông). |
 | <kbd>2</kbd> | **Căn SIDE (Cản Dọc X)** | Căn cản trước/sau đón tia theo trục dọc $X$. Giữ nguyên $100\%$ cao độ $Z$, không tự động ghim đất. |
 | <kbd>3</kbd> | **Căn FRONT (Sườn Ngang W/Y)** | Sườn đón tia laser áp sát viền ngoài cùng đón tia. Giữ nguyên $100\%$ cao độ $Z$. |
-| <kbd>Space</kbd> *(Phím cách)* | **1-Click Smart Fit (ALL)** | Chạy chu trình fit toàn diện: **TOP $\rightarrow$ SIDE $\rightarrow$ FRONT** hoàn chỉnh cho đối tượng đang chọn chỉ trong 1 nốt nhạc! |
 
 ---
 
@@ -32,14 +31,12 @@
 
 ---
 
-### 1.3. Nhóm Ghim Mặt Đường & Địa Hình (Terrain & Ground Snap)
+### 1.3. Nhóm Ghim Mặt Đất, Vỉa Hè & Địa Hình Tự Động
 
 | Phím tắt | Thao tác thực hiện | Mô tả chi tiết |
 | :---: | :--- | :--- |
-| <kbd>G</kbd> | **Ghim Mặt Đường (Road Snap)** | Đáy xe chạm sát mặt đường chuẩn xác 100%, khóa Roll $0^\circ$. |
-| <kbd>Shift</kbd> + <kbd>G</kbd> | **Ghim Đất Toàn Bộ Track** | Duyệt và ghim toàn bộ các frame của Track hiện tại xuống mặt đường. |
-| <kbd>Alt</kbd> + <kbd>G</kbd> | **Chế Độ Vỉa Hè (Curb Offset)** | Nâng cao độ đáy xe $+15\text{cm}$ khi xe hoặc người nằm trên mặt vỉa hè. |
-| <kbd>H</kbd> | **Đỗ Gác Bánh (Half-on-Curb)** | Tự động tính góc nghiêng thân xe (Roll) khi 2 bánh gác lên vỉa hè và 2 bánh dưới lòng đường. |
+| <kbd>G</kbd> | **Ghim Đất, Vỉa Hè & Gác Lề Tự Động** | Tự động phân tích curpoint 30% - 30% hai đầu mép: nhận diện mặt đường dốc, gác lề (half-curb), vỉa hè toàn phần (full-curb). Chưa đủ điểm tự fit theo mốc Ego Z và khóa góc thẳng theo Ego. |
+| <kbd>Shift</kbd> + <kbd>G</kbd> | **Ghim Đất & Vỉa Hè Toàn Bộ Track** | Tự động ghim đất và vỉa hè cho toàn bộ các frame của Track hiện tại. |
 | <kbd>Alt</kbd> + <kbd>R</kbd> | **Reset Dốc Phẳng 0°** | Trả lại góc nghiêng Roll = $0^\circ$ và Pitch = $0^\circ$ phẳng hoàn toàn. |
 
 ---

@@ -112,14 +112,6 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
-        // Phím Space (Phím cách): 1-Click Smart Fit hoàn chỉnh toàn diện (TOP -> SIDE -> FRONT)
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === " " || code === "Space")) {
-          consume();
-          console.log("[CVAT 3D Suite] Phím tắt Space: 1-Click Smart Fit ALL");
-          panel.handleSmartFitAll();
-          return;
-        }
-
         // Phím Shift + O: Đánh dấu Outside toàn bộ Track
         if (e.shiftKey && (key === "o" || code === "KeyO")) {
           consume();
@@ -194,35 +186,19 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
-        // Phím Alt + G: Ghim Nền Vỉa Hè (+15cm)
-        if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (key === "g" || code === "KeyG")) {
-          consume();
-          console.log("[CVAT 3D Suite] Phím tắt Alt+G: Ghim Nền Vỉa Hè (+15cm)");
-          panel.handleSnapGround("curb", { curbHeight: 0.15 });
-          return;
-        }
-
-        // Phím Shift + G: Ghim Đất Toàn Bộ Track
+        // Phím Shift + G: Ghim Đất & Vỉa Hè Toàn Bộ Track
         if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && (key === "g" || code === "KeyG")) {
           consume();
-          console.log("[CVAT 3D Suite] Phím tắt Shift+G: Ghim Đất Toàn Bộ Track");
+          console.log("[CVAT 3D Suite] Phím tắt Shift+G: Ghim Đất & Vỉa Hè Toàn Bộ Track");
           panel.handleSnapGroundTrack();
           return;
         }
 
-        // Phím G đơn: Ghim Tiếp Đất Mặt Đường
+        // Phím G đơn: Ghim Mặt Đất, Vỉa Hè & Gác Lề Tự Động (Chưa đủ điểm tự fit theo Ego)
         if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "g" || code === "KeyG")) {
           consume();
-          console.log("[CVAT 3D Suite] Phím tắt G: Ghim Mặt Đường");
+          console.log("[CVAT 3D Suite] Phím tắt G: Ghim Mặt Đất, Vỉa Hè & Gác Lề Tự Động");
           panel.handleSnapGround("road");
-          return;
-        }
-
-        // Phím H: Xe Đỗ Gác Bánh Vỉa Hè (Half-Curb Roll)
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "h" || code === "KeyH")) {
-          consume();
-          console.log("[CVAT 3D Suite] Phím tắt H: Xe Gác Lề Vỉa Hè");
-          panel.handleSnapGround("half_curb", { curbHeight: 0.15 });
           return;
         }
 
