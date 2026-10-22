@@ -83,6 +83,20 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
+        // Phím ? hoặc Shift + /: Bật/Tắt Bảng Tra Cứu Phím Tắt CheatSheet
+        if (key === "?" || (e.shiftKey && (key === "/" || code === "Slash"))) {
+          consume();
+          panel.toggleHotkeysHelpModal();
+          return;
+        }
+
+        // Phím Escape: Đóng Modal Trợ Giúp nếu đang mở
+        if ((key === "escape" || code === "Escape") && panel.isHelpModalOpen) {
+          consume();
+          panel.toggleHotkeysHelpModal();
+          return;
+        }
+
         // Phím Ctrl+Z hoặc Cmd+Z: Hoàn Tác (Pre) thao tác vừa làm
         if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (key === "z" || code === "KeyZ")) {
           consume();
@@ -138,15 +152,15 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
-        // Phím [ : Xe liền trước
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "[" || code === "BracketLeft")) {
+        // Phím A đơn hoặc [ : Xe liền trước
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "a" || code === "KeyA" || key === "[" || code === "BracketLeft")) {
           consume();
           panel.selectPrevTrack();
           return;
         }
 
-        // Phím ] : Xe kế tiếp
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "]" || code === "BracketRight")) {
+        // Phím D đơn hoặc ] : Xe kế tiếp
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "d" || code === "KeyD" || key === "]" || code === "BracketRight")) {
           consume();
           panel.selectNextTrack();
           return;

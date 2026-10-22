@@ -9042,6 +9042,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       __publicField(this, "autoSelectListenerAttached", false);
       // Trạng thái xử lý
       __publicField(this, "isProcessing", false);
+      __publicField(this, "isHelpModalOpen", false);
+      __publicField(this, "helpModalContainer", null);
       // Tọa độ kéo thả
       __publicField(this, "isDragging", false);
       __publicField(this, "startX", 0);
@@ -10711,6 +10713,18 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           ">
             ${ICONS.refresh}
           </button>
+          <button id="floating-btn-help" title="Bảng tra cứu phím tắt (?)" style="
+            background: transparent;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            padding: 3px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+          ">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </button>
           <button id="floating-btn-minimize" title="Thu nhỏ (\`)" style="
             background: transparent;
             border: none;
@@ -11783,6 +11797,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (undoBtn) undoBtn.addEventListener("click", () => this.handleUndo());
       const minBtn = this.container.querySelector("#floating-btn-minimize");
       if (minBtn) minBtn.addEventListener("click", () => this.toggleMinimize());
+      const helpBtn = this.container.querySelector("#floating-btn-help");
+      if (helpBtn) helpBtn.addEventListener("click", () => this.toggleHotkeysHelpModal());
       const syncBtn = this.container.querySelector("#floating-btn-sync-frame");
       if (syncBtn) {
         syncBtn.addEventListener("click", async () => {
@@ -12046,6 +12062,216 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.frameTracks
       );
     }
+    /**
+     * Bật / Tắt bảng hướng dẫn phím tắt nổi (Speedrun Hotkeys Cheatsheet Modal)
+     */
+    toggleHotkeysHelpModal() {
+      if (this.isHelpModalOpen) {
+        if (this.helpModalContainer && this.helpModalContainer.parentNode) {
+          this.helpModalContainer.parentNode.removeChild(this.helpModalContainer);
+        }
+        this.helpModalContainer = null;
+        this.isHelpModalOpen = false;
+        return;
+      }
+      this.isHelpModalOpen = true;
+      this.helpModalContainer = document.createElement("div");
+      this.helpModalContainer.id = "cvat-3d-suite-hotkeys-modal";
+      this.helpModalContainer.style.position = "fixed";
+      this.helpModalContainer.style.top = "0";
+      this.helpModalContainer.style.left = "0";
+      this.helpModalContainer.style.width = "100vw";
+      this.helpModalContainer.style.height = "100vh";
+      this.helpModalContainer.style.backgroundColor = "rgba(15, 23, 42, 0.55)";
+      this.helpModalContainer.style.backdropFilter = "blur(6px)";
+      this.helpModalContainer.style.zIndex = "1000000";
+      this.helpModalContainer.style.display = "flex";
+      this.helpModalContainer.style.alignItems = "center";
+      this.helpModalContainer.style.justifyContent = "center";
+      this.helpModalContainer.style.userSelect = "none";
+      this.helpModalContainer.style.fontFamily = "ui-sans-serif, system-ui, -apple-system, sans-serif";
+      this.helpModalContainer.innerHTML = `
+      <div style="
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        border: 1px solid #e2e8f0;
+        width: 92%;
+        max-width: 660px;
+        max-height: 88vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        color: #0f172a;
+      ">
+        <!-- HEADER -->
+        <div style="
+          padding: 14px 18px;
+          border-bottom: 1px solid #e2e8f0;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: #f8fafc;
+          border-radius: 16px 16px 0 0;
+        ">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 16px;">⌨️</span>
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: #0f172a;">BẢNG PHÍM TẮT SPEEDRUN (TAY TRÁI SIÊU TỐC)</div>
+              <div style="font-size: 10px; color: #64748b;">Tay phải giữ nguyên chuột 3D · 100% phím bấm nằm gọn ở bàn tay trái</div>
+            </div>
+          </div>
+          <button id="btn-close-help-modal" style="
+            background: transparent;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 8px;
+            border-radius: 6px;
+          ">✕</button>
+        </div>
+
+        <!-- CONTENT MATRIX -->
+        <div style="padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; font-size: 11px;">
+          <!-- HÀNG 1: 3 CHIỀU & HƯỚNG XE -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <!-- CỘT 1 -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="font-weight: 700; color: #0f766e; font-size: 11px; margin-bottom: 2px;">🎯 CĂN CHỈNH 3 CHIỀU & FIT ALL</div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Căn TOP (Yaw & Nóc quanh tâm)</span>
+                <div><kbd style="background: #f0fdfa; border: 1px solid #99f6e4; color: #0f766e; padding: 1px 5px; border-radius: 4px; font-weight: 700;">1</kbd> / <kbd style="background: #f0fdfa; border: 1px solid #99f6e4; color: #0f766e; padding: 1px 5px; border-radius: 4px; font-weight: 700;">T</kbd></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Căn SIDE (Cản trước/sau trục X)</span>
+                <kbd style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; padding: 1px 5px; border-radius: 4px; font-weight: 700;">2</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Căn FRONT (Sườn ngang W, giữ Z)</span>
+                <kbd style="background: #faf5ff; border: 1px solid #e9d5ff; color: #7e22ce; padding: 1px 5px; border-radius: 4px; font-weight: 700;">3</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 2px;">
+                <span style="font-weight: 600; color: #047857;">1-Click Fit Hoàn Chỉnh (ALL)</span>
+                <kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; padding: 1px 8px; border-radius: 4px; font-weight: 700;">Space</kbd>
+              </div>
+            </div>
+
+            <!-- CỘT 2 -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="font-weight: 700; color: #1d4ed8; font-size: 11px; margin-bottom: 2px;">🛣️ HƯỚNG XE, LÀN ĐƯỜNG & YAW</div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Căn theo Vạch Kẻ Làn Đường 3D</span>
+                <kbd style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; padding: 1px 6px; border-radius: 4px; font-weight: 700;">L</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Lật ngược đầu xe 180° (Frame này)</span>
+                <kbd style="background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; padding: 1px 6px; border-radius: 4px; font-weight: 700;">F</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Lật ngược đầu xe (Toàn bộ Track)</span>
+                <kbd style="background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; padding: 1px 5px; border-radius: 4px; font-weight: 700;">Shift+F</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Vi chỉnh Xoay Trái / Phải ±1°</span>
+                <div><kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 5px; border-radius: 4px;">Q</kbd> / <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 5px; border-radius: 4px;">E</kbd></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Xoay nhanh Trái / Phải ±5°</span>
+                <div><kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">Shift+Q/E</kbd></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- HÀNG 2: MẶT ĐẤT & ĐIỀU HƯỚNG -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <!-- CỘT 3 -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="font-weight: 700; color: #b45309; font-size: 11px; margin-bottom: 2px;">⛰️ MẶT ĐẤT, VỈA HÈ & DỐC</div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Ghim Đất (Chạm sát đường, khóa Roll)</span>
+                <kbd style="background: #fef3c7; border: 1px solid #fde68a; color: #92400e; padding: 1px 6px; border-radius: 4px; font-weight: 700;">G</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Ghim Đất Toàn Bộ Track</span>
+                <kbd style="background: #fef3c7; border: 1px solid #fde68a; color: #92400e; padding: 1px 5px; border-radius: 4px; font-weight: 700;">Shift+G</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Ghim Nền Vỉa Hè (+15cm)</span>
+                <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">Alt+G</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Xe Đỗ Gác Bánh Vỉa Hè (Half-Curb)</span>
+                <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 6px; border-radius: 4px; font-weight: 700;">H</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Đặt lại Dốc 0° (Reset phẳng hoàn toàn)</span>
+                <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">Alt+R</kbd>
+              </div>
+            </div>
+
+            <!-- CỘT 4 -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="font-weight: 700; color: #4338ca; font-size: 11px; margin-bottom: 2px;">⚡ ĐIỀU HƯỚNG & KÍCH THƯỚC</div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Xe Liền Trước / Xe Kế Tiếp</span>
+                <div><kbd style="background: #e0e7ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 1px 5px; border-radius: 4px; font-weight: 700;">A</kbd> / <kbd style="background: #e0e7ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 1px 5px; border-radius: 4px; font-weight: 700;">D</kbd></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Đổi Phạm Vi: Frame Này ⟷ Toàn Track</span>
+                <div><kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">Tab</kbd> / <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">X</kbd></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Hoàn Tác Thao Tác Vừa Làm (Pre)</span>
+                <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Ctrl+Z</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Fit Người Đi Bộ / Xe 2 Bánh</span>
+                <div><kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 5px; border-radius: 4px;">P</kbd> / <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 5px; border-radius: 4px;">C</kbd></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Khớp Chuẩn Kích Thước Catalog</span>
+                <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 6px; border-radius: 4px; font-weight: 700;">B</kbd>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div style="
+          padding: 10px 18px;
+          border-top: 1px solid #e2e8f0;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: #f8fafc;
+          border-radius: 0 0 16px 16px;
+        ">
+          <span style="font-size: 10px; color: #64748b;">Mẹo: Bấm <strong>?</strong> bất cứ lúc nào để mở/đóng bảng này</span>
+          <button id="btn-close-help-footer" style="
+            background: #0f172a;
+            border: none;
+            color: #ffffff;
+            padding: 5px 14px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+          ">Đóng (Esc)</button>
+        </div>
+      </div>
+    `;
+      document.body.appendChild(this.helpModalContainer);
+      const closeBtn = this.helpModalContainer.querySelector("#btn-close-help-modal");
+      if (closeBtn) closeBtn.addEventListener("click", () => this.toggleHotkeysHelpModal());
+      const footerCloseBtn = this.helpModalContainer.querySelector("#btn-close-help-footer");
+      if (footerCloseBtn) footerCloseBtn.addEventListener("click", () => this.toggleHotkeysHelpModal());
+      this.helpModalContainer.addEventListener("click", (e) => {
+        if (e.target === this.helpModalContainer) {
+          this.toggleHotkeysHelpModal();
+        }
+      });
+    }
     destroy() {
       if (this.pollInterval) {
         clearInterval(this.pollInterval);
@@ -12095,6 +12321,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             panel.toggleMinimize();
             return;
           }
+          if (key === "?" || e.shiftKey && (key === "/" || code === "Slash")) {
+            consume();
+            panel.toggleHotkeysHelpModal();
+            return;
+          }
+          if ((key === "escape" || code === "Escape") && panel.isHelpModalOpen) {
+            consume();
+            panel.toggleHotkeysHelpModal();
+            return;
+          }
           if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (key === "z" || code === "KeyZ")) {
             consume();
             console.log("[CVAT 3D Suite] Phím tắt Ctrl/Cmd+Z: Hoàn tác (Pre)");
@@ -12136,12 +12372,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             panel.handleFlipYaw(true);
             return;
           }
-          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "[" || code === "BracketLeft")) {
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "a" || code === "KeyA" || key === "[" || code === "BracketLeft")) {
             consume();
             panel.selectPrevTrack();
             return;
           }
-          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "]" || code === "BracketRight")) {
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "d" || code === "KeyD" || key === "]" || code === "BracketRight")) {
             consume();
             panel.selectNextTrack();
             return;
