@@ -1188,7 +1188,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const outerW = Math.max(0.4, curW / 2 + 0.25);
     const cosY = Math.cos(-yaw);
     const sinY = Math.sin(-yaw);
-    const bodyPts = [];
+    const rawBodyPts = [];
     for (const p of pts) {
       if (p.z < minBodyZ || p.z > maxBodyZ) continue;
       const dx = p.x - cx;
@@ -1196,9 +1196,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const lx = dx * cosY - dy * sinY;
       const ly = dx * sinY + dy * cosY;
       if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
-        bodyPts.push({ lx, ly, z: p.z });
+        rawBodyPts.push({ lx, ly, z: p.z });
       }
     }
+    const clusterLy = filterDenseConnectedCluster1D(rawBodyPts, "ly", 0.14, 0);
+    const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", 0.14, 0);
     let newCenterX = cx;
     let newCenterY = cy;
     let newCenterZ = cz;
@@ -1244,7 +1246,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const highestPtZ = allZ[allZ.length - 1];
     if (step === "top") {
       const headingRes = estimateTwoWheelerHeading(bodyPts, yaw);
-      if (Math.abs(headingRes.deltaYawDeg) <= 35) {
+      if (Math.abs(headingRes.deltaYawDeg) <= 25) {
         newYawRad = headingRes.newYawRad;
         newYawDeg = headingRes.newYawDeg;
         deltaYawDeg = headingRes.deltaYawDeg;
@@ -1260,7 +1262,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newW = curW;
       newH = curH;
       const deltaSign = deltaYawDeg >= 0 ? "+" : "";
-      msg = `Đã căn TOP Người đi bộ: Xoay Yaw (${newYawDeg}°, Δ=${deltaSign}${deltaYawDeg.toFixed(1)}°), khóa tâm X/Y/Z và kích thước`;
+      msg = `Đã căn TOP Người đi bộ: Xoay Yaw (${newYawDeg}°, Δ=${deltaSign}${deltaYawDeg.toFixed(1)}°), khóa tâm X/Y/Z và kích thước (kháng dính đám đông)`;
     } else if (step === "side") {
       newYawRad = yaw;
       newYawDeg = radToDeg(yaw);
@@ -1275,11 +1277,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const dxEgo = options.egoPos.x - cx;
         const dyEgo = options.egoPos.y - cy;
         const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
-        if (lxEgo > 0.25) {
-          shiftLx = lxMax + 0.03 - curL / 2;
+        if (lxEgo > 0.15) {
+          shiftLx = lxMax + 0.01 - curL / 2;
           bumperLabel = "Mặt trước";
-        } else if (lxEgo < -0.25) {
-          shiftLx = lxMin - 0.03 + curL / 2;
+        } else if (lxEgo < -0.15) {
+          shiftLx = lxMin - 0.01 + curL / 2;
           bumperLabel = "Mặt sau";
         } else {
           shiftLx = (lxMin + lxMax) / 2;
@@ -1289,10 +1291,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const frontCount = bodyPts.filter((p) => p.lx > 0).length;
         const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
         if (frontCount > rearCount * 1.5) {
-          shiftLx = lxMax + 0.03 - curL / 2;
+          shiftLx = lxMax + 0.01 - curL / 2;
           bumperLabel = "Mặt trước";
         } else if (rearCount > frontCount * 1.5) {
-          shiftLx = lxMin - 0.03 + curL / 2;
+          shiftLx = lxMin - 0.01 + curL / 2;
           bumperLabel = "Mặt sau";
         } else {
           shiftLx = (lxMin + lxMax) / 2;
@@ -1303,7 +1305,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newCenterX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
       newCenterY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
       const deltaXSign = shiftLx >= 0 ? "+" : "";
-      msg = `Đã căn SIDE Người đi bộ: [${bumperLabel}] đón tia ăn khít trục X (ΔX: ${deltaXSign}${(shiftLx * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
+      msg = `Đã căn SIDE Người đi bộ: [${bumperLabel}] bám mép đón tia (ΔX: ${deltaXSign}${(shiftLx * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
     } else if (step === "front") {
       newYawRad = yaw;
       newYawDeg = radToDeg(yaw);
@@ -1312,32 +1314,43 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newW = curW;
       newH = curH;
       newCenterZ = cz;
-      let visibleSide;
+      let visibleSide = "center";
       if (options.egoPos) {
         const toEgoX = options.egoPos.x - cx;
         const toEgoY = options.egoPos.y - cy;
         const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-        visibleSide = egoLocalY >= 0 ? "left" : "right";
+        if (egoLocalY > 0.04) {
+          visibleSide = "left";
+        } else if (egoLocalY < -0.04) {
+          visibleSide = "right";
+        } else {
+          visibleSide = "center";
+        }
       } else {
         const leftCount = bodyPts.filter((p) => p.ly > 0.03).length;
         const rightCount = bodyPts.filter((p) => p.ly < -0.03).length;
-        visibleSide = leftCount >= rightCount ? "left" : "right";
+        if (leftCount > rightCount * 1.3) {
+          visibleSide = "left";
+        } else if (rightCount > leftCount * 1.3) {
+          visibleSide = "right";
+        } else {
+          visibleSide = "center";
+        }
       }
-      const edgePadding = 0.03;
       let shiftLy = 0;
-      if (lyMin <= -0.05 && lyMax >= 0.05) {
-        shiftLy = (lyMin + lyMax) / 2;
-      } else if (visibleSide === "left") {
-        shiftLy = lyMax + edgePadding - curW / 2;
+      if (visibleSide === "left") {
+        shiftLy = lyMax + 0.01 - curW / 2;
+      } else if (visibleSide === "right") {
+        shiftLy = lyMin - 0.01 + curW / 2;
       } else {
-        shiftLy = lyMin - edgePadding + curW / 2;
+        shiftLy = (lyMin + lyMax) / 2;
       }
       shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
       newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
       newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
       const deltaYSign = shiftLy >= 0 ? "+" : "";
-      const sideText = visibleSide === "left" ? "Sườn Trái" : "Sườn Phải";
-      msg = `Đã căn FRONT Người đi bộ: [${sideText}] đón tia ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
+      const sideText = visibleSide === "left" ? "Sườn Trái đón tia Ego" : visibleSide === "right" ? "Sườn Phải đón tia Ego" : "Cân đối 2 sườn";
+      msg = `Đã căn FRONT Người đi bộ: [${sideText}] ôm sát viền đón tia (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
     } else if (step === "l") {
       newYawRad = yaw;
       newYawDeg = radToDeg(yaw);
@@ -3049,7 +3062,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const outerW = Math.max(0.4, curW / 2 + 0.25);
       const cosY = Math.cos(-yaw);
       const sinY = Math.sin(-yaw);
-      const bodyPts = [];
+      const rawBodyPts = [];
       for (let i = 0; i < count; i++) {
         const z = array[i * 3 + 2];
         if (z < minBodyZ || z > maxBodyZ) continue;
@@ -3060,9 +3073,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const lx = dx * cosY - dy * sinY;
         const ly = dx * sinY + dy * cosY;
         if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
-          bodyPts.push({ lx, ly, z });
+          rawBodyPts.push({ lx, ly, z });
         }
       }
+      const clusterLy = filterDenseConnectedCluster1D2(rawBodyPts, "ly", 0.14, 0);
+      const bodyPts = filterDenseConnectedCluster1D2(clusterLy, "lx", 0.14, 0);
       let newX = cx;
       let newY = cy;
       let newZ = cz;
@@ -3127,7 +3142,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         const dTheta = 0.5 * Math.atan2(2 * sxy, sxx - syy);
         const dThetaDeg = dTheta * 180 / Math.PI;
-        if (Math.abs(dThetaDeg) <= 35) {
+        if (Math.abs(dThetaDeg) <= 25) {
           newYaw = normalizeRad(yaw + dTheta);
           newYawDeg = Number((newYaw * 180 / Math.PI).toFixed(2));
           deltaYawDeg = Number(dThetaDeg.toFixed(2));
@@ -3143,7 +3158,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newW = curW;
         newH = curH;
         const sign = deltaYawDeg >= 0 ? "+" : "";
-        msg = `Đã căn TOP Người đi bộ: Xoay Yaw (${newYawDeg}°, Δ=${sign}${deltaYawDeg}°) theo trục cơ thể, khóa tâm X/Y/Z & L/W/H`;
+        msg = `Đã căn TOP Người đi bộ: Xoay Yaw (${newYawDeg}°, Δ=${sign}${deltaYawDeg}°) theo trục cơ thể, khóa tâm X/Y/Z & L/W/H (kháng dính đám đông)`;
       } else if (step === "side") {
         newYaw = yaw;
         newYawDeg = curYawDeg;
@@ -3158,11 +3173,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           const dxEgo = options.egoPos.x - cx;
           const dyEgo = options.egoPos.y - cy;
           const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
-          if (lxEgo > 0.25) {
-            shiftLx = lxMax + 0.03 - curL / 2;
+          if (lxEgo > 0.15) {
+            shiftLx = lxMax + 0.01 - curL / 2;
             bumperName = "Mặt trước";
-          } else if (lxEgo < -0.25) {
-            shiftLx = lxMin - 0.03 + curL / 2;
+          } else if (lxEgo < -0.15) {
+            shiftLx = lxMin - 0.01 + curL / 2;
             bumperName = "Mặt sau";
           } else {
             shiftLx = (lxMin + lxMax) / 2;
@@ -3172,10 +3187,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           const frontCount = bodyPts.filter((p) => p.lx > 0).length;
           const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
           if (frontCount > rearCount * 1.5) {
-            shiftLx = lxMax + 0.03 - curL / 2;
+            shiftLx = lxMax + 0.01 - curL / 2;
             bumperName = "Mặt trước";
           } else if (rearCount > frontCount * 1.5) {
-            shiftLx = lxMin - 0.03 + curL / 2;
+            shiftLx = lxMin - 0.01 + curL / 2;
             bumperName = "Mặt sau";
           } else {
             shiftLx = (lxMin + lxMax) / 2;
@@ -3195,32 +3210,43 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newW = curW;
         newH = curH;
         newZ = cz;
-        let visibleSide;
+        let visibleSide = "center";
         if (options.egoPos) {
           const toEgoX = options.egoPos.x - cx;
           const toEgoY = options.egoPos.y - cy;
           const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-          visibleSide = egoLocalY >= 0 ? "left" : "right";
+          if (egoLocalY > 0.04) {
+            visibleSide = "left";
+          } else if (egoLocalY < -0.04) {
+            visibleSide = "right";
+          } else {
+            visibleSide = "center";
+          }
         } else {
           const leftCount = bodyPts.filter((p) => p.ly > 0.03).length;
           const rightCount = bodyPts.filter((p) => p.ly < -0.03).length;
-          visibleSide = leftCount >= rightCount ? "left" : "right";
+          if (leftCount > rightCount * 1.3) {
+            visibleSide = "left";
+          } else if (rightCount > leftCount * 1.3) {
+            visibleSide = "right";
+          } else {
+            visibleSide = "center";
+          }
         }
-        const edgePadding = 0.03;
         let shiftLy = 0;
-        if (lyMin <= -0.05 && lyMax >= 0.05) {
-          shiftLy = (lyMin + lyMax) / 2;
-        } else if (visibleSide === "left") {
-          shiftLy = lyMax + edgePadding - curW / 2;
+        if (visibleSide === "left") {
+          shiftLy = lyMax + 0.01 - curW / 2;
+        } else if (visibleSide === "right") {
+          shiftLy = lyMin - 0.01 + curW / 2;
         } else {
-          shiftLy = lyMin - edgePadding + curW / 2;
+          shiftLy = (lyMin + lyMax) / 2;
         }
         shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
         newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
         newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
         const signY = shiftLy >= 0 ? "+" : "";
-        const sideText = visibleSide === "left" ? "Sườn Trái" : "Sườn Phải";
-        msg = `Đã căn FRONT Người đi bộ: [${sideText}] đón tia ăn khít phương W (ΔY: ${signY}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
+        const sideText = visibleSide === "left" ? "Sườn Trái đón tia Ego" : visibleSide === "right" ? "Sườn Phải đón tia Ego" : "Cân đối 2 sườn";
+        msg = `Đã căn FRONT Người đi bộ: [${sideText}] ôm sát viền đón tia (ΔY: ${signY}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
       } else if (step === "l") {
         newYaw = yaw;
         newYawDeg = curYawDeg;

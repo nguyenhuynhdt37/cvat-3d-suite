@@ -2598,7 +2598,118 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
   );
 }
 
-console.log("\n🎉 TẤT CẢ 69 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, XE 2 BÁNH & NGƯỜI ĐI BỘ ĐÃ ĐẠT 100%!");
+// =========================================================================
+// TEST 70: KHÁNG NHIỄU CỤM ĐÁM ĐÔNG Ở NGƯỜI ĐI BỘ (PHÂN CỤM MẬT ĐỘ 2D DENSITY VALLEY)
+// =========================================================================
+{
+  const crowdPts: Array<{ x: number; y: number; z: number }> = [];
+
+  // 1. Người A (Mục tiêu đang chọn tại tâm x=0, y=0):
+  // Chiều rộng y từ -0.18m đến +0.18m (bề ngang 0.36m), x từ -0.15m đến +0.15m
+  for (let z = 0.0; z <= 1.40; z += 0.1) {
+    for (let x = -0.15; x <= 0.151; x += 0.06) {
+      for (let y = -0.18; y <= 0.181; y += 0.06) {
+        crowdPts.push({ x, y, z });
+      }
+    }
+  }
+
+  // 2. Người B (Người đi cùng trong đám đông, đứng cách người A 22cm gap):
+  // y từ +0.40m đến +0.70m, x từ -0.15m đến +0.15m
+  for (let z = 0.0; z <= 1.40; z += 0.1) {
+    for (let x = -0.15; x <= 0.151; x += 0.06) {
+      for (let y = 0.40; y <= 0.701; y += 0.06) {
+        crowdPts.push({ x, y, z });
+      }
+    }
+  }
+
+  // Chạy fit TOP cho Người A:
+  const topCrowdRes = fitPedestrianBox(
+    crowdPts,
+    0.0, 0.0, 0.70, 0.0,
+    0.60, 0.60, 1.70,
+    {},
+    "top"
+  );
+
+  // Nhờ phân cụm mật độ (chém đứt gap >= 14cm):
+  // 1. Góc Yaw KHÔNG được bị xoay 90° theo trục nối Người A - Người B! (deltaYawDeg phải gần 0°)
+  assert.ok(
+    Math.abs(topCrowdRes.deltaYawDeg || 0) <= 15,
+    `Test 70: Yaw Người A không bị kéo xoay theo đám đông (thực tế: ${topCrowdRes.deltaYawDeg}°)`
+  );
+
+  // Chạy fit ALL cho Người A:
+  const allCrowdRes = fitPedestrianBox(
+    crowdPts,
+    0.0, 0.0, 0.70, 0.0,
+    0.60, 0.60, 1.70,
+    {},
+    "all"
+  );
+
+  // 2. Chiều rộng W của Người A KHÔNG được phình to ôm cả Người B (W phải <= 0.55m, nếu dính Người B thì W sẽ > 0.85m)
+  assert.ok(
+    allCrowdRes.newW <= 0.55,
+    `Test 70: Chiều rộng W Người A không bị phình ôm đám đông (thực tế: ${allCrowdRes.newW}m)`
+  );
+  // 3. Tâm Y của Người A không bị hút sang phía Người B (newCenterY phải quanh 0.0m)
+  assert.ok(
+    Math.abs(allCrowdRes.newCenterY) <= 0.10,
+    `Test 70: Tâm Y Người A không bị hút sang đám đông (thực tế: ${allCrowdRes.newCenterY}m)`
+  );
+
+  console.log(
+    `✅ Test 70: Kháng Nhiễu Cụm Đám Đông Người Đi Bộ: Chém đứt người bên cạnh, Yaw=${topCrowdRes.newYawDeg}°, W=${allCrowdRes.newW}m (không phình to sang Người B)`
+  );
+}
+
+// =========================================================================
+// TEST 71: NÚT FRONT ÔM SÁT MÂY ĐIỂM ĐÓN TIA EGO (LINE-OF-SIGHT BOUNDARY SNAP)
+// =========================================================================
+{
+  const pedPts: Array<{ x: number; y: number; z: number }> = [];
+  // Người đi bộ tại (x = 8.0m, y = 2.0m). Xe Ego tại (x = 8.0m, y = 6.0m) (Ego nằm ở phía bên TRÁI người, ly > 0).
+  // Thân người có bề ngang y từ 1.82m đến 2.18m (bán kính 18cm quanh tâm y=2.0m).
+  // Mép đón tia ngoài cùng phía Ego là y = 2.18m!
+  for (let z = 0.0; z <= 1.40; z += 0.1) {
+    for (let x = 7.85; x <= 8.151; x += 0.06) {
+      for (let y = 1.82; y <= 2.181; y += 0.06) {
+        pedPts.push({ x, y, z });
+      }
+    }
+  }
+
+  const frontRes = fitPedestrianBox(
+    pedPts,
+    8.0, 2.0, 0.75, 0.0,
+    0.60, 0.60, 1.70, // Box rộng W=0.60m
+    { egoPos: { x: 8.0, y: 6.0, z: 0.0 } },
+    "front"
+  );
+
+  // 1. Phải nhận diện sườn Trái đón tia từ xe Ego
+  assert.ok(frontRes.message.includes("Sườn Trái đón tia Ego"), "Test 71: Phải nhận diện sườn Trái đón tia Ego");
+
+  // 2. Mép trái của Box (+newW/2) phải ÔM SÁT viền đón tia ngoài cùng (2.18m + 0.01m = 2.19m)
+  const leftBoxEdge = frontRes.newCenterY + frontRes.newW / 2;
+  assert.ok(
+    Math.abs(leftBoxEdge - 2.19) <= 0.02,
+    `Test 71: Mép trái box phải ôm sát viền đón tia 2.19m (thực tế: ${leftBoxEdge.toFixed(3)}m)`
+  );
+
+  // 3. Giữ nguyên 100% cao độ Z và kích thước L, W, H
+  assert.strictEqual(frontRes.newCenterZ, 0.75, "Test 71: newCenterZ giữ nguyên 0.75m (Không ghim đất)");
+  assert.strictEqual(frontRes.newW, 0.60, "Test 71: newW giữ nguyên 0.60m");
+  assert.strictEqual(frontRes.newL, 0.60, "Test 71: newL giữ nguyên 0.60m");
+
+  console.log(
+    `✅ Test 71: Nút FRONT Ôm Sát Point Cloud Đón Tia Ego: Mép trái box bám khít ${leftBoxEdge.toFixed(2)}m (khớp viền đón tia 2.19m, giữ Z=0.75m & Size)`
+  );
+}
+
+console.log("\n🎉 TẤT CẢ 71 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG & ÔM SÁT EGO ĐÃ ĐẠT 100%!");
 
 
 

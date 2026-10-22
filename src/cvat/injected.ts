@@ -1611,7 +1611,7 @@ export function mainWorldScript(): void {
 
     const cosY = Math.cos(-yaw);
     const sinY = Math.sin(-yaw);
-    const bodyPts: Array<{ lx: number; ly: number; z: number }> = [];
+    const rawBodyPts: Array<{ lx: number; ly: number; z: number }> = [];
 
     for (let i = 0; i < count; i++) {
       const z = array[i * 3 + 2];
@@ -1623,9 +1623,15 @@ export function mainWorldScript(): void {
       const lx = dx * cosY - dy * sinY;
       const ly = dx * sinY + dy * cosY;
       if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
-        bodyPts.push({ lx, ly, z });
+        rawBodyPts.push({ lx, ly, z });
       }
     }
+
+    // 3. Phân cụm mật độ liên tục 2D (Continuous Density-Connected Clustering)
+    // - Cắt đứt thung lũng khoảng cách >= 14cm để chống dính sang người bên cạnh trong đám đông
+    // - Ưu tiên chọn cụm điểm thân người cốt lõi nằm gần tâm box nhất (centerBias = 0)
+    const clusterLy = filterDenseConnectedCluster1D(rawBodyPts, "ly", 0.14, 0);
+    const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", 0.14, 0);
 
     let newX = cx;
     let newY = cy;
@@ -1677,7 +1683,7 @@ export function mainWorldScript(): void {
     };
 
     if (step === "top") {
-      // 1. CĂN TOP ĐỘC LẬP: Ước lượng trục xoay quanh thân người
+      // 1. CĂN TOP ĐỘC LẬP: Ước lượng trục xoay quanh thân người mục tiêu (kháng dính đám đông)
       let sumLx = 0;
       let sumLy = 0;
       for (const p of bodyPts) {
@@ -1699,7 +1705,7 @@ export function mainWorldScript(): void {
       const dTheta = 0.5 * Math.atan2(2 * sxy, sxx - syy);
       const dThetaDeg = (dTheta * 180) / Math.PI;
 
-      if (Math.abs(dThetaDeg) <= 35) {
+      if (Math.abs(dThetaDeg) <= 25) {
         newYaw = normalizeRad(yaw + dTheta);
         newYawDeg = Number(((newYaw * 180) / Math.PI).toFixed(2));
         deltaYawDeg = Number(dThetaDeg.toFixed(2));
@@ -1717,7 +1723,7 @@ export function mainWorldScript(): void {
       newH = curH;
 
       const sign = deltaYawDeg >= 0 ? "+" : "";
-      msg = `Đã căn TOP Người đi bộ: Xoay Yaw (${newYawDeg}°, Δ=${sign}${deltaYawDeg}°) theo trục cơ thể, khóa tâm X/Y/Z & L/W/H`;
+      msg = `Đã căn TOP Người đi bộ: Xoay Yaw (${newYawDeg}°, Δ=${sign}${deltaYawDeg}°) theo trục cơ thể, khóa tâm X/Y/Z & L/W/H (kháng dính đám đông)`;
     } else if (step === "side") {
       // 2. CĂN SIDE ĐỘC LẬP: Căn đón tia X, giữ nguyên 100% Z & size
       newYaw = yaw;
@@ -1735,11 +1741,11 @@ export function mainWorldScript(): void {
         const dxEgo = options.egoPos.x - cx;
         const dyEgo = options.egoPos.y - cy;
         const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
-        if (lxEgo > 0.25) {
-          shiftLx = (lxMax + 0.03) - curL / 2;
+        if (lxEgo > 0.15) {
+          shiftLx = (lxMax + 0.01) - curL / 2;
           bumperName = "Mặt trước";
-        } else if (lxEgo < -0.25) {
-          shiftLx = (lxMin - 0.03) + curL / 2;
+        } else if (lxEgo < -0.15) {
+          shiftLx = (lxMin - 0.01) + curL / 2;
           bumperName = "Mặt sau";
         } else {
           shiftLx = (lxMin + lxMax) / 2;
@@ -1749,10 +1755,10 @@ export function mainWorldScript(): void {
         const frontCount = bodyPts.filter((p) => p.lx > 0).length;
         const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
         if (frontCount > rearCount * 1.5) {
-          shiftLx = (lxMax + 0.03) - curL / 2;
+          shiftLx = (lxMax + 0.01) - curL / 2;
           bumperName = "Mặt trước";
         } else if (rearCount > frontCount * 1.5) {
-          shiftLx = (lxMin - 0.03) + curL / 2;
+          shiftLx = (lxMin - 0.01) + curL / 2;
           bumperName = "Mặt sau";
         } else {
           shiftLx = (lxMin + lxMax) / 2;
@@ -1767,7 +1773,7 @@ export function mainWorldScript(): void {
       const signX = shiftLx >= 0 ? "+" : "";
       msg = `Đã căn SIDE Người đi bộ: [${bumperName}] bám mép đón tia (ΔX: ${signX}${(shiftLx * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
     } else if (step === "front") {
-      // 3. CĂN FRONT ĐỘC LẬP: Căn mép sườn đón tia Y, giữ nguyên 100% Z & size
+      // 3. CĂN FRONT ĐỘC LẬP: ÔM SÁT POINT CLOUD HƯỚNG VỀ PHÍA EGO
       newYaw = yaw;
       newYawDeg = curYawDeg;
       deltaYawDeg = 0;
@@ -1776,26 +1782,39 @@ export function mainWorldScript(): void {
       newH = curH;
       newZ = cz;
 
-      let visibleSide: "left" | "right";
+      let visibleSide: "left" | "right" | "center" = "center";
       if (options.egoPos) {
         const toEgoX = options.egoPos.x - cx;
         const toEgoY = options.egoPos.y - cy;
         const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-        visibleSide = egoLocalY >= 0 ? "left" : "right";
+        if (egoLocalY > 0.04) {
+          visibleSide = "left";
+        } else if (egoLocalY < -0.04) {
+          visibleSide = "right";
+        } else {
+          visibleSide = "center";
+        }
       } else {
         const leftCount = bodyPts.filter((p) => p.ly > 0.03).length;
         const rightCount = bodyPts.filter((p) => p.ly < -0.03).length;
-        visibleSide = leftCount >= rightCount ? "left" : "right";
+        if (leftCount > rightCount * 1.3) {
+          visibleSide = "left";
+        } else if (rightCount > leftCount * 1.3) {
+          visibleSide = "right";
+        } else {
+          visibleSide = "center";
+        }
       }
 
-      const edgePadding = 0.03;
       let shiftLy = 0;
-      if (lyMin <= -0.05 && lyMax >= 0.05) {
-        shiftLy = (lyMin + lyMax) / 2;
-      } else if (visibleSide === "left") {
-        shiftLy = (lyMax + edgePadding) - curW / 2;
+      if (visibleSide === "left") {
+        // Sườn TRÁI đón tia Ego: Mép trái (+W/2) ôm sát mép ngoài cùng đón tia lyMax (+1cm)
+        shiftLy = (lyMax + 0.01) - curW / 2;
+      } else if (visibleSide === "right") {
+        // Sườn PHẢI đón tia Ego: Mép phải (-W/2) ôm sát mép ngoài cùng đón tia lyMin (-1cm)
+        shiftLy = (lyMin - 0.01) + curW / 2;
       } else {
-        shiftLy = (lyMin - edgePadding) + curW / 2;
+        shiftLy = (lyMin + lyMax) / 2;
       }
 
       shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
@@ -1803,8 +1822,8 @@ export function mainWorldScript(): void {
       newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
 
       const signY = shiftLy >= 0 ? "+" : "";
-      const sideText = visibleSide === "left" ? "Sườn Trái" : "Sườn Phải";
-      msg = `Đã căn FRONT Người đi bộ: [${sideText}] đón tia ăn khít phương W (ΔY: ${signY}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
+      const sideText = visibleSide === "left" ? "Sườn Trái đón tia Ego" : visibleSide === "right" ? "Sườn Phải đón tia Ego" : "Cân đối 2 sườn";
+      msg = `Đã căn FRONT Người đi bộ: [${sideText}] ôm sát viền đón tia (ΔY: ${signY}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
     } else if (step === "l") {
       // 4. FIX RIÊNG CHIỀU DÀI L
       newYaw = yaw;

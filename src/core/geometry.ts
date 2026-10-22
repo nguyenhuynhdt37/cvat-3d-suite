@@ -2583,7 +2583,7 @@ export function fitPedestrianBox(
 
   const cosY = Math.cos(-yaw);
   const sinY = Math.sin(-yaw);
-  const bodyPts: Array<{ lx: number; ly: number; z: number }> = [];
+  const rawBodyPts: Array<{ lx: number; ly: number; z: number }> = [];
 
   for (const p of pts) {
     if (p.z < minBodyZ || p.z > maxBodyZ) continue;
@@ -2592,9 +2592,15 @@ export function fitPedestrianBox(
     const lx = dx * cosY - dy * sinY;
     const ly = dx * sinY + dy * cosY;
     if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
-      bodyPts.push({ lx, ly, z: p.z });
+      rawBodyPts.push({ lx, ly, z: p.z });
     }
   }
+
+  // 3. Phân cụm mật độ liên tục 2D (Continuous Density-Connected Clustering)
+  // - Cắt đứt thung lũng khoảng cách >= 14cm để chống dính sang người bên cạnh trong đám đông
+  // - Ưu tiên chọn cụm điểm thân người cốt lõi nằm gần tâm box nhất (centerBias = 0)
+  const clusterLy = filterDenseConnectedCluster1D(rawBodyPts, "ly", 0.14, 0);
+  const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", 0.14, 0);
 
   let newCenterX = cx;
   let newCenterY = cy;
@@ -2650,13 +2656,14 @@ export function fitPedestrianBox(
 
   if (step === "top") {
     // -------------------------------------------------------------
-    // 1. CĂN TOP ĐỘC LẬP: Ước lượng trục xoay quanh thân người
+    // 1. CĂN TOP ĐỘC LẬP: Ước lượng trục xoay quanh thân người mục tiêu
+    // - Kháng đám đông: Điểm thân đã được bóc tách đơn lẻ sạch sẽ
     // - Khóa cứng vị trí X, Y, Z (Không ghim đất)
     // - Khóa cứng 100% kích thước L, W, H
     // -------------------------------------------------------------
     const headingRes = estimateTwoWheelerHeading(bodyPts, yaw);
-    // Giới hạn biên độ xoay để không bị lật vuông góc 90° bất ngờ nếu dáng người tròn
-    if (Math.abs(headingRes.deltaYawDeg) <= 35) {
+    // Giới hạn biên độ xoay delta <= 25° để tránh lật vuông góc nếu người đứng chéo
+    if (Math.abs(headingRes.deltaYawDeg) <= 25) {
       newYawRad = headingRes.newYawRad;
       newYawDeg = headingRes.newYawDeg;
       deltaYawDeg = headingRes.deltaYawDeg;
@@ -2674,7 +2681,7 @@ export function fitPedestrianBox(
     newH = curH;
 
     const deltaSign = deltaYawDeg >= 0 ? "+" : "";
-    msg = `Đã căn TOP Người đi bộ: Xoay Yaw (${newYawDeg}°, Δ=${deltaSign}${deltaYawDeg.toFixed(1)}°), khóa tâm X/Y/Z và kích thước`;
+    msg = `Đã căn TOP Người đi bộ: Xoay Yaw (${newYawDeg}°, Δ=${deltaSign}${deltaYawDeg.toFixed(1)}°), khóa tâm X/Y/Z và kích thước (kháng dính đám đông)`;
   } else if (step === "side") {
     // -------------------------------------------------------------
     // 2. CĂN SIDE ĐỘC LẬP: Căn cản trước/sau đón tia theo trục dọc X
@@ -2697,11 +2704,11 @@ export function fitPedestrianBox(
       const dxEgo = options.egoPos.x - cx;
       const dyEgo = options.egoPos.y - cy;
       const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
-      if (lxEgo > 0.25) {
-        shiftLx = (lxMax + 0.03) - curL / 2;
+      if (lxEgo > 0.15) {
+        shiftLx = (lxMax + 0.01) - curL / 2;
         bumperLabel = "Mặt trước";
-      } else if (lxEgo < -0.25) {
-        shiftLx = (lxMin - 0.03) + curL / 2;
+      } else if (lxEgo < -0.15) {
+        shiftLx = (lxMin - 0.01) + curL / 2;
         bumperLabel = "Mặt sau";
       } else {
         shiftLx = (lxMin + lxMax) / 2;
@@ -2711,10 +2718,10 @@ export function fitPedestrianBox(
       const frontCount = bodyPts.filter((p) => p.lx > 0).length;
       const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
       if (frontCount > rearCount * 1.5) {
-        shiftLx = (lxMax + 0.03) - curL / 2;
+        shiftLx = (lxMax + 0.01) - curL / 2;
         bumperLabel = "Mặt trước";
       } else if (rearCount > frontCount * 1.5) {
-        shiftLx = (lxMin - 0.03) + curL / 2;
+        shiftLx = (lxMin - 0.01) + curL / 2;
         bumperLabel = "Mặt sau";
       } else {
         shiftLx = (lxMin + lxMax) / 2;
@@ -2727,13 +2734,15 @@ export function fitPedestrianBox(
     newCenterY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
 
     const deltaXSign = shiftLx >= 0 ? "+" : "";
-    msg = `Đã căn SIDE Người đi bộ: [${bumperLabel}] đón tia ăn khít trục X (ΔX: ${deltaXSign}${(shiftLx * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
+    msg = `Đã căn SIDE Người đi bộ: [${bumperLabel}] bám mép đón tia (ΔX: ${deltaXSign}${(shiftLx * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
   } else if (step === "front") {
     // -------------------------------------------------------------
-    // 3. CĂN FRONT ĐỘC LẬP: Căn mép sườn đón tia theo trục ngang Y
+    // 3. CĂN FRONT ĐỘC LẬP: ÔM SÁT POINT CLOUD HƯỚNG VỀ PHÍA EGO
+    // - Mặt phẳng 2D Y - Z theo phương W: Căn sườn đón tia Ego
     // - 🚨 TUYỆT ĐỐI KHÔNG GHIM ĐẤT: Giữ nguyên 100% cao độ Z (newCenterZ = cz)
     // - Khóa cứng 100% kích thước L, W, H
     // - Giữ nguyên trục dọc X (shiftLx = 0)
+    // - Ôm sát khít khao mép đón tia Ego (Line-of-Sight Boundary Snap)
     // -------------------------------------------------------------
     newYawRad = yaw;
     newYawDeg = radToDeg(yaw);
@@ -2743,26 +2752,40 @@ export function fitPedestrianBox(
     newH = curH;
     newCenterZ = cz;
 
-    let visibleSide: "left" | "right";
+    let visibleSide: "left" | "right" | "center" = "center";
     if (options.egoPos) {
       const toEgoX = options.egoPos.x - cx;
       const toEgoY = options.egoPos.y - cy;
       const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-      visibleSide = egoLocalY >= 0 ? "left" : "right";
+      if (egoLocalY > 0.04) {
+        visibleSide = "left";
+      } else if (egoLocalY < -0.04) {
+        visibleSide = "right";
+      } else {
+        visibleSide = "center";
+      }
     } else {
       const leftCount = bodyPts.filter((p) => p.ly > 0.03).length;
       const rightCount = bodyPts.filter((p) => p.ly < -0.03).length;
-      visibleSide = leftCount >= rightCount ? "left" : "right";
+      if (leftCount > rightCount * 1.3) {
+        visibleSide = "left";
+      } else if (rightCount > leftCount * 1.3) {
+        visibleSide = "right";
+      } else {
+        visibleSide = "center";
+      }
     }
 
-    const edgePadding = 0.03;
     let shiftLy = 0;
-    if (lyMin <= -0.05 && lyMax >= 0.05) {
-      shiftLy = (lyMin + lyMax) / 2;
-    } else if (visibleSide === "left") {
-      shiftLy = (lyMax + edgePadding) - curW / 2;
+    if (visibleSide === "left") {
+      // Sườn TRÁI đón tia laser từ Ego: Mép trái box (+W/2) phải ÔM SÁT mép ngoài cùng đón tia lyMax
+      shiftLy = (lyMax + 0.01) - curW / 2;
+    } else if (visibleSide === "right") {
+      // Sườn PHẢI đón tia laser từ Ego: Mép phải box (-W/2) phải ÔM SÁT mép ngoài cùng đón tia lyMin
+      shiftLy = (lyMin - 0.01) + curW / 2;
     } else {
-      shiftLy = (lyMin - edgePadding) + curW / 2;
+      // Ego chính diện (hoặc cân bằng 2 bên): Căn tâm cân bằng
+      shiftLy = (lyMin + lyMax) / 2;
     }
 
     shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
@@ -2770,8 +2793,8 @@ export function fitPedestrianBox(
     newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
 
     const deltaYSign = shiftLy >= 0 ? "+" : "";
-    const sideText = visibleSide === "left" ? "Sườn Trái" : "Sườn Phải";
-    msg = `Đã căn FRONT Người đi bộ: [${sideText}] đón tia ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
+    const sideText = visibleSide === "left" ? "Sườn Trái đón tia Ego" : visibleSide === "right" ? "Sườn Phải đón tia Ego" : "Cân đối 2 sườn";
+    msg = `Đã căn FRONT Người đi bộ: [${sideText}] ôm sát viền đón tia (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
   } else if (step === "l") {
     // -------------------------------------------------------------
     // 4. FIX RIÊNG CHIỀU DÀI L: Co giãn theo mây điểm thân người

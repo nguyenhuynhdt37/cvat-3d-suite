@@ -45,12 +45,12 @@
 
 ### 7. Chuẩn Căn Chỉnh & Fix Size Cho Người Đi Bộ (Pedestrian)
 - **3 Nút 2D Độc Lập**:
-  - **TOP**: Căn góc xoay Yaw theo trục cơ thể người, **khóa cứng tâm $X, Y, Z$ và kích thước $L, W, H$**.
+  - **TOP (Kháng dính đám đông)**: Áp dụng thuật toán **Cắt thung lũng mật độ (Density Valley Clustering với maxGap = 14cm)** để chém đứt các điểm của người đi cùng/đám đông xung quanh; chỉ căn góc xoay Yaw theo trục thân người mục tiêu tại tâm box, **khóa cứng tâm $X, Y, Z$ và kích thước $L, W, H$**.
   - **SIDE**: Căn mép trước/sau đón tia theo trục dọc $X$, **giữ nguyên 100% cao độ $Z$** (`newCenterZ = cz`, tuyệt đối không auto ghim đất) và bảo toàn $L, W, H$.
-  - **FRONT**: Căn mép sườn đón tia theo trục ngang $Y$, **giữ nguyên 100% cao độ $Z$** (`newCenterZ = cz`, tuyệt đối không auto ghim đất) và bảo toàn $L, W, H$.
+  - **FRONT (Ôm sát tia Ego)**: Sườn đón tia laser từ xe Ego ($+W/2$ hoặc $-W/2$) phải **áp sát khít khao viền ngoài cùng đón tia** (Line-of-Sight Boundary Snap), tuyệt đối không lấy trung bình cộng làm thụt mép đón tia; **giữ nguyên 100% cao độ $Z$** (`newCenterZ = cz`) và bảo toàn $L, W, H$.
 - **3 Nút Fix Size Tách Biệt**:
-  - **Fit Dài (L)**: Co giãn riêng chiều dài $L$ theo mây điểm thân người, căn tâm $X$, giữ nguyên $W, H, Z, Y$.
-  - **Fit Rộng (W)**: Co giãn riêng chiều rộng $W$ theo mây điểm vai/ngực, căn tâm $Y$, giữ nguyên $L, H, Z, X$.
+  - **Fit Dài (L)**: Co giãn riêng chiều dài $L$ theo mây điểm thân người mục tiêu (kháng đám đông), căn tâm $X$, giữ nguyên $W, H, Z, Y$.
+  - **Fit Rộng (W)**: Co giãn riêng chiều rộng $W$ theo mây điểm vai/ngực người mục tiêu (kháng đám đông), căn tâm $Y$, giữ nguyên $L, H, Z, X$.
   - **Fit Cao (H)**: Chuẩn **Ground-Lock**: mặt đáy tiếp đất $Z_{\text{base}}$ giữ nguyên cố định, chiều cao $H$ nở lên đỉnh đầu ($+12\text{cm}$ đệm đầu), giữ nguyên $L, W$ và $XY$.
 - **Khóa Thẳng Đứng**: Luôn khóa cứng $\text{Roll} = 0^\circ, \text{Pitch} = 0^\circ$ tuyệt đối cho người đi bộ.
 
