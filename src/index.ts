@@ -91,6 +91,21 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
+        // Phím Tab hoặc X: Bật/tắt phạm vi Scope (Chỉ Frame Này <-> Toàn Bộ Track)
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "tab" || code === "Tab" || key === "x" || code === "KeyX")) {
+          consume();
+          panel.toggleScope();
+          return;
+        }
+
+        // Phím Space (Phím cách): 1-Click Smart Fit hoàn chỉnh toàn diện (TOP -> SIDE -> FRONT)
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === " " || code === "Space")) {
+          consume();
+          console.log("[CVAT 3D Suite] Phím tắt Space: 1-Click Smart Fit ALL");
+          panel.handleSmartFitAll();
+          return;
+        }
+
         // Phím Shift + O: Đánh dấu Outside toàn bộ Track
         if (e.shiftKey && (key === "o" || code === "KeyO")) {
           consume();
@@ -137,6 +152,34 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
+        // Phím Shift + Q: Xoay Trái Mạnh (-5°)
+        if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "q" || code === "KeyQ")) {
+          consume();
+          panel.rotateYawByDelta(-5);
+          return;
+        }
+
+        // Phím Shift + E: Xoay Phải Mạnh (+5°)
+        if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "e" || code === "KeyE")) {
+          consume();
+          panel.rotateYawByDelta(5);
+          return;
+        }
+
+        // Phím Q: Vi chỉnh Xoay Trái Nhẹ (-1°)
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "q" || code === "KeyQ")) {
+          consume();
+          panel.rotateYawByDelta(-1);
+          return;
+        }
+
+        // Phím E: Vi chỉnh Xoay Phải Nhẹ (+1°)
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "e" || code === "KeyE")) {
+          consume();
+          panel.rotateYawByDelta(1);
+          return;
+        }
+
         // Phím Alt + G: Ghim Nền Vỉa Hè (+15cm)
         if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (key === "g" || code === "KeyG")) {
           consume();
@@ -145,11 +188,11 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
-        // Phím Shift + G: Xe Đỗ Gác Bánh Vỉa Hè (Nghiêng Roll)
+        // Phím Shift + G: Ghim Đất Toàn Bộ Track
         if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && (key === "g" || code === "KeyG")) {
           consume();
-          console.log("[CVAT 3D Suite] Phím tắt Shift+G: Xe Gác Lề Vỉa Hè");
-          panel.handleSnapGround("half_curb", { curbHeight: 0.15 });
+          console.log("[CVAT 3D Suite] Phím tắt Shift+G: Ghim Đất Toàn Bộ Track");
+          panel.handleSnapGroundTrack();
           return;
         }
 
@@ -161,10 +204,26 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
-        // Phím 1: Căn TOP (Yaw & Nóc xe & Auto Ghim Đất)
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "1" || code === "Digit1" || code === "Numpad1")) {
+        // Phím H: Xe Đỗ Gác Bánh Vỉa Hè (Half-Curb Roll)
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "h" || code === "KeyH")) {
           consume();
-          console.log("[CVAT 3D Suite] Phím tắt 1: Căn TOP");
+          console.log("[CVAT 3D Suite] Phím tắt H: Xe Gác Lề Vỉa Hè");
+          panel.handleSnapGround("half_curb", { curbHeight: 0.15 });
+          return;
+        }
+
+        // Phím Alt + R: Reset Dốc Phẳng 0°
+        if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (key === "r" || code === "KeyR")) {
+          consume();
+          console.log("[CVAT 3D Suite] Phím tắt Alt+R: Đặt lại dốc phẳng 0°");
+          panel.handleSnapGround("reset_slope");
+          return;
+        }
+
+        // Phím 1 hoặc T: Căn TOP (Yaw & Nóc xe)
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "1" || code === "Digit1" || code === "Numpad1" || key === "t" || code === "KeyT")) {
+          consume();
+          console.log("[CVAT 3D Suite] Phím tắt 1/T: Căn TOP");
           panel.handleFitTop();
           return;
         }
@@ -185,34 +244,42 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
-        // Phím T đơn: Căn TOP (Yaw & Nóc xe)
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "t" || code === "KeyT")) {
+        // Phím Shift + P: Fix Cao H cho Người Đi Bộ (Ground-Lock)
+        if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "p" || code === "KeyP")) {
           consume();
-          console.log("[CVAT 3D Suite] Phím tắt T: Căn TOP");
-          panel.handleFitTop();
+          console.log("[CVAT 3D Suite] Phím tắt Shift+P: Fix Cao H Người");
+          panel.handleFitPedestrian("h");
           return;
         }
 
-        // Phím P hoặc Shift + P: Fit Người Đi Bộ (Pedestrian Fit)
-        if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "p" || code === "KeyP")) {
+        // Phím P đơn: Fit Người Đi Bộ Toàn Diện (Pedestrian Fit)
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "p" || code === "KeyP")) {
           consume();
-          console.log("[CVAT 3D Suite] Phím tắt P: Fit Người Đi Bộ (Pedestrian Fit)");
-          panel.handleFitPedestrian();
+          console.log("[CVAT 3D Suite] Phím tắt P: Fit Người Đi Bộ Toàn Diện");
+          panel.handleFitPedestrian("all");
           return;
         }
 
-        // Phím Shift + C: Fit Toàn Diện Xe 2 Bánh (Cyclist / Two-Wheeler)
+        // Phím Shift + C: Fit Rộng W Xe 2 Bánh (Bắt gương xe)
         if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "c" || code === "KeyC")) {
           consume();
-          console.log("[CVAT 3D Suite] Phím tắt Shift+C: Fit Toàn Diện Xe 2 Bánh");
+          console.log("[CVAT 3D Suite] Phím tắt Shift+C: Fit Rộng W Xe 2 Bánh");
+          panel.handleFitCyclist("w");
+          return;
+        }
+
+        // Phím C đơn: Fit Toàn Diện Xe 2 Bánh (Cyclist / Two-Wheeler)
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "c" || code === "KeyC")) {
+          consume();
+          console.log("[CVAT 3D Suite] Phím tắt C: Fit Toàn Diện Xe 2 Bánh");
           panel.handleFitCyclist("all");
           return;
         }
 
-        // Phím Shift + B: Khớp Chuẩn Catalog (Catalog Best-Fit)
-        if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "b" || code === "KeyB")) {
+        // Phím B hoặc Shift + B: Khớp Chuẩn Catalog (Catalog Best-Fit)
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "b" || code === "KeyB")) {
           consume();
-          console.log("[CVAT 3D Suite] Phím tắt Shift+B: Khớp Chuẩn Catalog");
+          console.log("[CVAT 3D Suite] Phím tắt B: Khớp Chuẩn Catalog");
           panel.handleCatalogFit();
           return;
         }
@@ -222,6 +289,48 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           consume();
           console.log("[CVAT 3D Suite] Phím tắt L: Căn Yaw theo Vạch Kẻ Làn Đường 3D");
           panel.handleSnapYawToLane();
+          return;
+        }
+
+        // Phím Shift + ArrowUp: Tăng Chiều Dài L (+10cm)
+        if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && (code === "ArrowUp" || key === "arrowup")) {
+          consume();
+          panel.handleStepDimension("l", 0.1);
+          return;
+        }
+
+        // Phím Shift + ArrowDown: Giảm Chiều Dài L (-10cm)
+        if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && (code === "ArrowDown" || key === "arrowdown")) {
+          consume();
+          panel.handleStepDimension("l", -0.1);
+          return;
+        }
+
+        // Phím Shift + ArrowRight: Tăng Chiều Rộng W (+10cm)
+        if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && (code === "ArrowRight" || key === "arrowright")) {
+          consume();
+          panel.handleStepDimension("w", 0.1);
+          return;
+        }
+
+        // Phím Shift + ArrowLeft: Giảm Chiều Rộng W (-10cm)
+        if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && (code === "ArrowLeft" || key === "arrowleft")) {
+          consume();
+          panel.handleStepDimension("w", -0.1);
+          return;
+        }
+
+        // Phím Alt + ArrowUp: Tăng Chiều Cao H (+5cm Ground-Lock)
+        if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (code === "ArrowUp" || key === "arrowup")) {
+          consume();
+          panel.handleStepDimension("h", 0.05);
+          return;
+        }
+
+        // Phím Alt + ArrowDown: Giảm Chiều Cao H (-5cm Ground-Lock)
+        if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (code === "ArrowDown" || key === "arrowdown")) {
+          consume();
+          panel.handleStepDimension("h", -0.05);
           return;
         }
 

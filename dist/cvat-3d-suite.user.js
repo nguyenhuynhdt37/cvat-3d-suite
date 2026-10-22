@@ -9738,6 +9738,60 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.handleUpdateDimensions(this.editL, this.editW, this.editH, this.applyToTrack);
     }
     /**
+     * Xoay vi chỉnh góc Yaw tương đối một lượng deltaDeg (ví dụ: -1°, +1°, -5°, +5°)
+     */
+    async rotateYawByDelta(deg) {
+      if (!this.currentCtx || !this.currentCtx.jobId) return;
+      if (this.selectedUiId === null) {
+        await this.ensureActiveTrackSelected();
+      }
+      if (this.selectedUiId === null) {
+        this.showToast("Vui lòng chọn xe trước!", "warning");
+        return;
+      }
+      let newDeg = Math.round(this.currentYawDeg + deg);
+      while (newDeg > 180) newDeg -= 360;
+      while (newDeg < -180) newDeg += 360;
+      const rad = newDeg * Math.PI / 180;
+      await this.pushUndoSnapshot(`Xoay Yaw ${deg > 0 ? "+" : ""}${deg}°`, this.applyToTrack);
+      this.currentYawDeg = newDeg;
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_FLIP_YAW", {
+          detail: {
+            jobId: this.currentCtx.jobId,
+            frame: this.currentFrameNumber,
+            uiId: this.selectedUiId,
+            serverId: this.selectedServerId,
+            currentFrameOnly: !this.applyToTrack,
+            customYawRad: rad
+          }
+        })
+      );
+      const sign = deg > 0 ? "+" : "";
+      this.showToast(`Xoay Yaw ${sign}${deg}° ➔ ${newDeg}°`, "info");
+      this.updateContent();
+    }
+    /**
+     * Chuyển đổi giữa 2 phạm vi: Chỉ Frame Này <-> Toàn Bộ Track
+     */
+    toggleScope() {
+      this.applyToTrack = !this.applyToTrack;
+      this.updateContent();
+      this.showToast(`Phạm vi: ${this.applyToTrack ? "Toàn Bộ Track" : "Chỉ Frame Này"}`, "info");
+    }
+    /**
+     * 1-Click Smart Fit hoàn chỉnh toàn diện (TOP -> SIDE -> FRONT)
+     */
+    async handleSmartFitAll() {
+      if (this.selectedCategory === "cyclist") {
+        await this.handleFitCyclist("all");
+      } else if (this.selectedCategory === "pedestrian") {
+        await this.handleFitPedestrian("all");
+      } else {
+        await this.handleEgoRayFit("all");
+      }
+    }
+    /**
      * Fit Box trực tiếp tại Frame Hiện Tại với Padding 5cm mỗi bên (+10cm L, +10cm W, +5cm H, Đáy bám sàn cố định)
      */
     async handleFitCurrentBox() {
@@ -12059,6 +12113,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             panel.handleUndo();
             return;
           }
+          if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "tab" || code === "Tab" || key === "x" || code === "KeyX")) {
+            consume();
+            panel.toggleScope();
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === " " || code === "Space")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Space: 1-Click Smart Fit ALL");
+            panel.handleSmartFitAll();
+            return;
+          }
           if (e.shiftKey && (key === "o" || code === "KeyO")) {
             consume();
             console.log("[CVAT 3D Suite] Phím tắt Shift+O: Đánh dấu Outside toàn bộ Track");
@@ -12093,6 +12158,26 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             panel.selectNextTrack();
             return;
           }
+          if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "q" || code === "KeyQ")) {
+            consume();
+            panel.rotateYawByDelta(-5);
+            return;
+          }
+          if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "e" || code === "KeyE")) {
+            consume();
+            panel.rotateYawByDelta(5);
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "q" || code === "KeyQ")) {
+            consume();
+            panel.rotateYawByDelta(-1);
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "e" || code === "KeyE")) {
+            consume();
+            panel.rotateYawByDelta(1);
+            return;
+          }
           if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (key === "g" || code === "KeyG")) {
             consume();
             console.log("[CVAT 3D Suite] Phím tắt Alt+G: Ghim Nền Vỉa Hè (+15cm)");
@@ -12101,8 +12186,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
           if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && (key === "g" || code === "KeyG")) {
             consume();
-            console.log("[CVAT 3D Suite] Phím tắt Shift+G: Xe Gác Lề Vỉa Hè");
-            panel.handleSnapGround("half_curb", { curbHeight: 0.15 });
+            console.log("[CVAT 3D Suite] Phím tắt Shift+G: Ghim Đất Toàn Bộ Track");
+            panel.handleSnapGroundTrack();
             return;
           }
           if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "g" || code === "KeyG")) {
@@ -12111,9 +12196,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             panel.handleSnapGround("road");
             return;
           }
-          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "1" || code === "Digit1" || code === "Numpad1")) {
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "h" || code === "KeyH")) {
             consume();
-            console.log("[CVAT 3D Suite] Phím tắt 1: Căn TOP");
+            console.log("[CVAT 3D Suite] Phím tắt H: Xe Gác Lề Vỉa Hè");
+            panel.handleSnapGround("half_curb", { curbHeight: 0.15 });
+            return;
+          }
+          if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (key === "r" || code === "KeyR")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Alt+R: Đặt lại dốc phẳng 0°");
+            panel.handleSnapGround("reset_slope");
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "1" || code === "Digit1" || code === "Numpad1" || key === "t" || code === "KeyT")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt 1/T: Căn TOP");
             panel.handleFitTop();
             return;
           }
@@ -12129,27 +12226,33 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             panel.handleFitFront();
             return;
           }
-          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "t" || code === "KeyT")) {
+          if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "p" || code === "KeyP")) {
             consume();
-            console.log("[CVAT 3D Suite] Phím tắt T: Căn TOP");
-            panel.handleFitTop();
+            console.log("[CVAT 3D Suite] Phím tắt Shift+P: Fix Cao H Người");
+            panel.handleFitPedestrian("h");
             return;
           }
-          if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "p" || code === "KeyP")) {
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "p" || code === "KeyP")) {
             consume();
-            console.log("[CVAT 3D Suite] Phím tắt P: Fit Người Đi Bộ (Pedestrian Fit)");
-            panel.handleFitPedestrian();
+            console.log("[CVAT 3D Suite] Phím tắt P: Fit Người Đi Bộ Toàn Diện");
+            panel.handleFitPedestrian("all");
             return;
           }
           if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "c" || code === "KeyC")) {
             consume();
-            console.log("[CVAT 3D Suite] Phím tắt Shift+C: Fit Toàn Diện Xe 2 Bánh");
+            console.log("[CVAT 3D Suite] Phím tắt Shift+C: Fit Rộng W Xe 2 Bánh");
+            panel.handleFitCyclist("w");
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "c" || code === "KeyC")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt C: Fit Toàn Diện Xe 2 Bánh");
             panel.handleFitCyclist("all");
             return;
           }
-          if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "b" || code === "KeyB")) {
+          if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "b" || code === "KeyB")) {
             consume();
-            console.log("[CVAT 3D Suite] Phím tắt Shift+B: Khớp Chuẩn Catalog");
+            console.log("[CVAT 3D Suite] Phím tắt B: Khớp Chuẩn Catalog");
             panel.handleCatalogFit();
             return;
           }
@@ -12157,6 +12260,36 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             consume();
             console.log("[CVAT 3D Suite] Phím tắt L: Căn Yaw theo Vạch Kẻ Làn Đường 3D");
             panel.handleSnapYawToLane();
+            return;
+          }
+          if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && (code === "ArrowUp" || key === "arrowup")) {
+            consume();
+            panel.handleStepDimension("l", 0.1);
+            return;
+          }
+          if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && (code === "ArrowDown" || key === "arrowdown")) {
+            consume();
+            panel.handleStepDimension("l", -0.1);
+            return;
+          }
+          if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && (code === "ArrowRight" || key === "arrowright")) {
+            consume();
+            panel.handleStepDimension("w", 0.1);
+            return;
+          }
+          if (e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && (code === "ArrowLeft" || key === "arrowleft")) {
+            consume();
+            panel.handleStepDimension("w", -0.1);
+            return;
+          }
+          if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (code === "ArrowUp" || key === "arrowup")) {
+            consume();
+            panel.handleStepDimension("h", 0.05);
+            return;
+          }
+          if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && (code === "ArrowDown" || key === "arrowdown")) {
+            consume();
+            panel.handleStepDimension("h", -0.05);
             return;
           }
           if (key === "pageup" || code === "PageUp") {

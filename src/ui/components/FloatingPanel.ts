@@ -899,6 +899,67 @@ export class FloatingPanel {
   }
 
   /**
+   * Xoay vi chỉnh góc Yaw tương đối một lượng deltaDeg (ví dụ: -1°, +1°, -5°, +5°)
+   */
+  public async rotateYawByDelta(deg: number): Promise<void> {
+    if (!this.currentCtx || !this.currentCtx.jobId) return;
+    if (this.selectedUiId === null) {
+      await this.ensureActiveTrackSelected();
+    }
+    if (this.selectedUiId === null) {
+      this.showToast("Vui lòng chọn xe trước!", "warning");
+      return;
+    }
+
+    let newDeg = Math.round(this.currentYawDeg + deg);
+    while (newDeg > 180) newDeg -= 360;
+    while (newDeg < -180) newDeg += 360;
+    const rad = (newDeg * Math.PI) / 180;
+
+    await this.pushUndoSnapshot(`Xoay Yaw ${deg > 0 ? "+" : ""}${deg}°`, this.applyToTrack);
+    this.currentYawDeg = newDeg;
+
+    window.dispatchEvent(
+      new CustomEvent("CVAT_EXT_REQ_FLIP_YAW", {
+        detail: {
+          jobId: this.currentCtx.jobId,
+          frame: this.currentFrameNumber,
+          uiId: this.selectedUiId,
+          serverId: this.selectedServerId,
+          currentFrameOnly: !this.applyToTrack,
+          customYawRad: rad,
+        },
+      })
+    );
+
+    const sign = deg > 0 ? "+" : "";
+    this.showToast(`Xoay Yaw ${sign}${deg}° ➔ ${newDeg}°`, "info");
+    this.updateContent();
+  }
+
+  /**
+   * Chuyển đổi giữa 2 phạm vi: Chỉ Frame Này <-> Toàn Bộ Track
+   */
+  public toggleScope(): void {
+    this.applyToTrack = !this.applyToTrack;
+    this.updateContent();
+    this.showToast(`Phạm vi: ${this.applyToTrack ? "Toàn Bộ Track" : "Chỉ Frame Này"}`, "info");
+  }
+
+  /**
+   * 1-Click Smart Fit hoàn chỉnh toàn diện (TOP -> SIDE -> FRONT)
+   */
+  public async handleSmartFitAll(): Promise<void> {
+    if (this.selectedCategory === "cyclist") {
+      await this.handleFitCyclist("all");
+    } else if (this.selectedCategory === "pedestrian") {
+      await this.handleFitPedestrian("all");
+    } else {
+      await this.handleEgoRayFit("all");
+    }
+  }
+
+  /**
    * Fit Box trực tiếp tại Frame Hiện Tại với Padding 5cm mỗi bên (+10cm L, +10cm W, +5cm H, Đáy bám sàn cố định)
    */
   public async handleFitCurrentBox(): Promise<void> {
