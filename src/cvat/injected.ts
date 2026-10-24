@@ -5019,6 +5019,190 @@ export function mainWorldScript(): void {
       }
     });
 
+    // =========================================================================
+    // XỬ LÝ SỰ KIỆN HOVER ĐỐI TƯỢNG (TỰ ĐỘNG CẬP NHẬT ID TỨC THÌ KHI RÊ CHUỘT)
+    // =========================================================================
+    let hoverActivateTimer: any = null;
+    function handleObjectHovered(id: number): void {
+      if (id === null || id === undefined || isNaN(id) || id <= 0) return;
+      if (id === lastActiveTrackId && id === persistentActiveTrackId) return;
+
+      if (hoverActivateTimer) clearTimeout(hoverActivateTimer);
+      hoverActivateTimer = setTimeout(() => {
+        hoverActivateTimer = null;
+        if (id === lastActiveTrackId && id === persistentActiveTrackId) return;
+
+        console.log(`[CVAT 3D Suite] Hover sang đối tượng #${id} -> Tự động update ID và thông số`);
+        lastActiveTrackId = id;
+        updateLockedTrackId(id);
+
+        const details = extractObjectDetails(id);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+            detail: { clientId: id, details, isHover: true },
+          })
+        );
+
+        if (currentColorizeBoxed) {
+          applyPointCloudColorizationInMainWorld();
+        }
+
+        try {
+          const store = getReduxStore();
+          const canvas = store?.getState()?.annotation?.canvas?.instance;
+          if (canvas && typeof canvas.activate === "function") {
+            const curActive =
+              canvas.view?.activatedElementID ||
+              store?.getState()?.annotation?.annotations?.activatedStateClientID;
+            if (curActive !== id) {
+              canvas.activate(id);
+              if (typeof canvas.render === "function") {
+                canvas.render();
+              }
+            }
+          }
+
+          if (store && typeof store.dispatch === "function") {
+            store.dispatch({
+              type: "ACTIVATE_OBJECT",
+              payload: { activatedStateClientID: id, activatedElementID: id },
+            });
+          }
+        } catch (_) {}
+
+        try {
+          const sidebarItem =
+            document.querySelector<HTMLElement>(`#cvat-objects-sidebar-state-item-${id}`) ||
+            document.querySelector<HTMLElement>(`[data-cvat-state-item-id="${id}"]`) ||
+            document.querySelector<HTMLElement>(`[class*="cvat-objects-sidebar-state-item"][id*="${id}"]`);
+          if (sidebarItem) {
+            sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            const allItems = document.querySelectorAll<HTMLElement>("[class*='cvat-objects-sidebar-state-item']");
+            allItems.forEach((el) => el.classList.remove("cvat-objects-sidebar-state-item-active", "selected"));
+            sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
+          }
+        } catch (_) {}
+      }, 50);
+    }
+
+    // 1. Theo dõi Hover trên Sidebar của CVAT
+    document.addEventListener(
+      "mouseover",
+      (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        if (!target) return;
+        const sidebarItem = target.closest<HTMLElement>(
+          "[class*='cvat-objects-sidebar-state-item'], [class*='cvat-objects-sidebar-states-list-item'], [data-cvat-state-item-id]"
+        );
+        if (sidebarItem) {
+          let id: number | null = null;
+          const dataId = sidebarItem.getAttribute("data-cvat-state-item-id") || sidebarItem.getAttribute("data-item-id");
+          if (dataId && /^\d+$/.test(dataId)) {
+            id = parseInt(dataId, 10);
+          } else {
+            const match = (sidebarItem.id || sidebarItem.innerText || sidebarItem.textContent || "").match(/#?(\d+)/);
+            if (match) id = parseInt(match[1], 10);
+          }
+          if (id && id > 0 && id !== lastActiveTrackId) {
+            handleObjectHovered(id);
+          }
+        }
+      },
+      { passive: true }
+    );
+
+    // 2. Theo dõi Hover trên Canvas 3D Three.js qua Raycasting siêu nhẹ
+    let sharedRaycaster: any = null;
+    let sharedMouse: any = null;
+    let canvasHoverThrottleTimer: any = null;
+
+    function attachCanvas3DHoverWatcher(): void {
+      try {
+        const store = getReduxStore();
+        const canvas = store?.getState()?.annotation?.canvas?.instance;
+        if (!canvas || !canvas.view || !canvas.view.views) return;
+
+        const winThree = (window as any).THREE || canvas?.view?.THREE;
+        if (!winThree) return;
+
+        if (!sharedRaycaster && typeof winThree.Raycaster === "function") {
+          sharedRaycaster = new winThree.Raycaster();
+        }
+        if (!sharedMouse && typeof winThree.Vector2 === "function") {
+          sharedMouse = new winThree.Vector2();
+        }
+
+        const views = canvas.view.views;
+        const viewKeys = ["perspective", "top", "side", "front"];
+
+        for (const key of viewKeys) {
+          const v = views[key];
+          const domEl = v?.renderer?.domElement;
+          if (!domEl || (domEl as any).__cvat_hover_watcher_attached__) continue;
+          (domEl as any).__cvat_hover_watcher_attached__ = true;
+
+          domEl.addEventListener(
+            "pointermove",
+            (e: PointerEvent) => {
+              if (isCanvasInteracting) return;
+              if (canvasHoverThrottleTimer) return;
+
+              canvasHoverThrottleTimer = setTimeout(() => {
+                canvasHoverThrottleTimer = null;
+                try {
+                  if (!sharedRaycaster || !sharedMouse || !v.camera) return;
+
+                  const rect = domEl.getBoundingClientRect();
+                  if (rect.width <= 0 || rect.height <= 0) return;
+
+                  sharedMouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                  sharedMouse.y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+
+                  sharedRaycaster.setFromCamera(sharedMouse, v.camera);
+
+                  const drawnObjects = canvas.view?.drawnObjects || {};
+                  const meshToId = new Map<any, number>();
+                  const targetMeshes: any[] = [];
+
+                  for (const idStr of Object.keys(drawnObjects)) {
+                    const item = drawnObjects[idStr];
+                    const cid = Number(idStr);
+                    const cuboid = item?.cuboid;
+                    if (!cuboid) continue;
+
+                    const viewObj = cuboid[key] || cuboid.perspective;
+                    if (viewObj) {
+                      viewObj.traverse((child: any) => {
+                        if (child && (child.isMesh || child.type === "Mesh" || child.isLine || child.isLineSegments)) {
+                          targetMeshes.push(child);
+                          meshToId.set(child, cid);
+                        }
+                      });
+                    }
+                  }
+
+                  if (targetMeshes.length === 0) return;
+
+                  const intersects = sharedRaycaster.intersectObjects(targetMeshes, false);
+                  if (intersects && intersects.length > 0) {
+                    const hitMesh = intersects[0].object;
+                    const hitId = meshToId.get(hitMesh);
+                    if (hitId !== undefined && hitId !== null && hitId > 0 && hitId !== lastActiveTrackId) {
+                      handleObjectHovered(hitId);
+                    }
+                  }
+                } catch (_) {}
+              }, 40);
+            },
+            { passive: true }
+          );
+        }
+      } catch (_) {}
+    }
+
+    attachCanvas3DHoverWatcher();
+    setInterval(attachCanvas3DHoverWatcher, 2000);
+
     // LẮNG NGHE REDUX STORE SUBSCRIBE ĐỂ PHÁT HIỆN TỨC THÌ KHI VỪA VẼ XONG BOX MỚI VÀ KHI TUA FRAME
     try {
       const store = getReduxStore();

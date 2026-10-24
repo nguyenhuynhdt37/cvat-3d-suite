@@ -6816,21 +6816,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     function setupCanvasInteractiveWatcher() {
       if (isInteractiveWatcherAttached) return;
       isInteractiveWatcherAttached = true;
-      let isCanvasInteracting = false;
+      let isCanvasInteracting2 = false;
       let dragRafId = null;
       const onPointerMove = () => {
-        if (!isCanvasInteracting || !currentColorizeBoxed) return;
+        if (!isCanvasInteracting2 || !currentColorizeBoxed) return;
         if (dragRafId !== null) return;
         dragRafId = requestAnimationFrame(() => {
           dragRafId = null;
-          if (isCanvasInteracting && currentColorizeBoxed) {
+          if (isCanvasInteracting2 && currentColorizeBoxed) {
             applyPointCloudColorizationInMainWorld();
           }
         });
       };
       const onPointerUp = () => {
-        if (!isCanvasInteracting) return;
-        isCanvasInteracting = false;
+        if (!isCanvasInteracting2) return;
+        isCanvasInteracting2 = false;
         if (dragRafId !== null) {
           cancelAnimationFrame(dragRafId);
           dragRafId = null;
@@ -6846,7 +6846,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         (e) => {
           const target = e.target;
           if (target && target.closest && target.closest(".cvat-canvas-container, .cvat-canvas3d-orthographic-view, [class*='cvat-canvas3d'], canvas")) {
-            isCanvasInteracting = true;
+            isCanvasInteracting2 = true;
           }
         },
         { capture: true, passive: true }
@@ -6865,7 +6865,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             "pointerdown",
             () => {
               var _a, _b, _c, _d, _e, _f, _g;
-              isCanvasInteracting = true;
+              isCanvasInteracting2 = true;
               try {
                 const store = getReduxStore();
                 const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
@@ -6982,6 +6982,161 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }, 60);
         }
       });
+      let hoverActivateTimer = null;
+      function handleObjectHovered(id) {
+        if (id === null || id === void 0 || isNaN(id) || id <= 0) return;
+        if (id === lastActiveTrackId && id === persistentActiveTrackId) return;
+        if (hoverActivateTimer) clearTimeout(hoverActivateTimer);
+        hoverActivateTimer = setTimeout(() => {
+          var _a, _b, _c, _d, _e, _f, _g;
+          hoverActivateTimer = null;
+          if (id === lastActiveTrackId && id === persistentActiveTrackId) return;
+          console.log(`[CVAT 3D Suite] Hover sang đối tượng #${id} -> Tự động update ID và thông số`);
+          lastActiveTrackId = id;
+          updateLockedTrackId(id);
+          const details = extractObjectDetails(id);
+          window.dispatchEvent(
+            new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+              detail: { clientId: id, details, isHover: true }
+            })
+          );
+          if (currentColorizeBoxed) {
+            applyPointCloudColorizationInMainWorld();
+          }
+          try {
+            const store2 = getReduxStore();
+            const canvas = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+            if (canvas && typeof canvas.activate === "function") {
+              const curActive = ((_d = canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
+              if (curActive !== id) {
+                canvas.activate(id);
+                if (typeof canvas.render === "function") {
+                  canvas.render();
+                }
+              }
+            }
+            if (store2 && typeof store2.dispatch === "function") {
+              store2.dispatch({
+                type: "ACTIVATE_OBJECT",
+                payload: { activatedStateClientID: id, activatedElementID: id }
+              });
+            }
+          } catch (_) {
+          }
+          try {
+            const sidebarItem = document.querySelector(`#cvat-objects-sidebar-state-item-${id}`) || document.querySelector(`[data-cvat-state-item-id="${id}"]`) || document.querySelector(`[class*="cvat-objects-sidebar-state-item"][id*="${id}"]`);
+            if (sidebarItem) {
+              sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+              const allItems = document.querySelectorAll("[class*='cvat-objects-sidebar-state-item']");
+              allItems.forEach((el) => el.classList.remove("cvat-objects-sidebar-state-item-active", "selected"));
+              sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
+            }
+          } catch (_) {
+          }
+        }, 50);
+      }
+      document.addEventListener(
+        "mouseover",
+        (e) => {
+          const target = e.target;
+          if (!target) return;
+          const sidebarItem = target.closest(
+            "[class*='cvat-objects-sidebar-state-item'], [class*='cvat-objects-sidebar-states-list-item'], [data-cvat-state-item-id]"
+          );
+          if (sidebarItem) {
+            let id = null;
+            const dataId = sidebarItem.getAttribute("data-cvat-state-item-id") || sidebarItem.getAttribute("data-item-id");
+            if (dataId && /^\d+$/.test(dataId)) {
+              id = parseInt(dataId, 10);
+            } else {
+              const match = (sidebarItem.id || sidebarItem.innerText || sidebarItem.textContent || "").match(/#?(\d+)/);
+              if (match) id = parseInt(match[1], 10);
+            }
+            if (id && id > 0 && id !== lastActiveTrackId) {
+              handleObjectHovered(id);
+            }
+          }
+        },
+        { passive: true }
+      );
+      let sharedRaycaster = null;
+      let sharedMouse = null;
+      let canvasHoverThrottleTimer = null;
+      function attachCanvas3DHoverWatcher() {
+        var _a, _b, _c, _d, _e;
+        try {
+          const store2 = getReduxStore();
+          const canvas = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+          if (!canvas || !canvas.view || !canvas.view.views) return;
+          const winThree = window.THREE || ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.THREE);
+          if (!winThree) return;
+          if (!sharedRaycaster && typeof winThree.Raycaster === "function") {
+            sharedRaycaster = new winThree.Raycaster();
+          }
+          if (!sharedMouse && typeof winThree.Vector2 === "function") {
+            sharedMouse = new winThree.Vector2();
+          }
+          const views = canvas.view.views;
+          const viewKeys = ["perspective", "top", "side", "front"];
+          for (const key of viewKeys) {
+            const v = views[key];
+            const domEl = (_e = v == null ? void 0 : v.renderer) == null ? void 0 : _e.domElement;
+            if (!domEl || domEl.__cvat_hover_watcher_attached__) continue;
+            domEl.__cvat_hover_watcher_attached__ = true;
+            domEl.addEventListener(
+              "pointermove",
+              (e) => {
+                if (isCanvasInteracting) return;
+                if (canvasHoverThrottleTimer) return;
+                canvasHoverThrottleTimer = setTimeout(() => {
+                  var _a2;
+                  canvasHoverThrottleTimer = null;
+                  try {
+                    if (!sharedRaycaster || !sharedMouse || !v.camera) return;
+                    const rect = domEl.getBoundingClientRect();
+                    if (rect.width <= 0 || rect.height <= 0) return;
+                    sharedMouse.x = (e.clientX - rect.left) / rect.width * 2 - 1;
+                    sharedMouse.y = -((e.clientY - rect.top) / rect.height * 2 - 1);
+                    sharedRaycaster.setFromCamera(sharedMouse, v.camera);
+                    const drawnObjects = ((_a2 = canvas.view) == null ? void 0 : _a2.drawnObjects) || {};
+                    const meshToId = /* @__PURE__ */ new Map();
+                    const targetMeshes = [];
+                    for (const idStr of Object.keys(drawnObjects)) {
+                      const item = drawnObjects[idStr];
+                      const cid = Number(idStr);
+                      const cuboid = item == null ? void 0 : item.cuboid;
+                      if (!cuboid) continue;
+                      const viewObj = cuboid[key] || cuboid.perspective;
+                      if (viewObj) {
+                        viewObj.traverse((child) => {
+                          if (child && (child.isMesh || child.type === "Mesh" || child.isLine || child.isLineSegments)) {
+                            targetMeshes.push(child);
+                            meshToId.set(child, cid);
+                          }
+                        });
+                      }
+                    }
+                    if (targetMeshes.length === 0) return;
+                    const intersects = sharedRaycaster.intersectObjects(targetMeshes, false);
+                    if (intersects && intersects.length > 0) {
+                      const hitMesh = intersects[0].object;
+                      const hitId = meshToId.get(hitMesh);
+                      if (hitId !== void 0 && hitId !== null && hitId > 0 && hitId !== lastActiveTrackId) {
+                        handleObjectHovered(hitId);
+                      }
+                    }
+                  } catch (_) {
+                  }
+                }, 40);
+              },
+              { passive: true }
+            );
+          }
+        } catch (_) {
+        }
+      }
+      attachCanvas3DHoverWatcher();
+      setInterval(attachCanvas3DHoverWatcher, 2e3);
       try {
         const store2 = getReduxStore();
         if (store2) {
