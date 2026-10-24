@@ -2438,32 +2438,32 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     out[k] = [0, 1, 2].map((i) => -s * ej[i] + c * ek[i]);
     return axesToEuler(out);
   }
-  const dotVec = (u, v) => u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
-  const addVec = (u, v) => [
+  const dotVec$1 = (u, v) => u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
+  const addVec$1 = (u, v) => [
     u[0] + v[0],
     u[1] + v[1],
     u[2] + v[2]
   ];
-  const subVec = (u, v) => [
+  const subVec$1 = (u, v) => [
     u[0] - v[0],
     u[1] - v[1],
     u[2] - v[2]
   ];
-  const scaleVec = (u, k) => [
+  const scaleVec$1 = (u, k) => [
     u[0] * k,
     u[1] * k,
     u[2] * k
   ];
   function worldToLocal(p, c, ax) {
-    const v = subVec(p, c);
-    return [dotVec(v, ax.ex), dotVec(v, ax.ey), dotVec(v, ax.ez)];
+    const v = subVec$1(p, c);
+    return [dotVec$1(v, ax.ex), dotVec$1(v, ax.ey), dotVec$1(v, ax.ez)];
   }
   function localToWorld(q, c, ax) {
-    return addVec(
+    return addVec$1(
       c,
-      addVec(
-        scaleVec(ax.ex, q[0]),
-        addVec(scaleVec(ax.ey, q[1]), scaleVec(ax.ez, q[2]))
+      addVec$1(
+        scaleVec$1(ax.ex, q[0]),
+        addVec$1(scaleVec$1(ax.ey, q[1]), scaleVec$1(ax.ez, q[2]))
       )
     );
   }
@@ -2501,7 +2501,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const out = cloneBox(box);
     const ax = axes(box.r);
     const dh = (newSize[2] - box.s[2]) / 2;
-    out.c = addVec(box.c, scaleVec(ax.ez, dh));
+    out.c = addVec$1(box.c, scaleVec$1(ax.ez, dh));
     out.s = [newSize[0], newSize[1], newSize[2]];
     return out;
   }
@@ -2513,7 +2513,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return angleDiff;
   }
-  function interpolatePoints(left, right, offset) {
+  function interpolatePoints$1(left, right, offset) {
     const out = left.map((v, i) => v + (right[i] - v) * offset);
     const angles = left.slice(3, 6).concat(right.slice(3, 6)).map((a) => a < 0 ? a + Math.PI * 2 : a).map((a) => a * (180 / Math.PI));
     for (let i = 0; i < 3; i++) {
@@ -2522,6 +2522,88 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       out[3 + i] = angle;
     }
     return out;
+  }
+  function percentile(sorted, p) {
+    if (!sorted.length) return NaN;
+    const i = Math.min(
+      sorted.length - 1,
+      Math.max(0, Math.round((sorted.length - 1) * p))
+    );
+    return sorted[i];
+  }
+  function estimateGround(xyz, box, opts = {}) {
+    if (!xyz || !xyz.length || xyz.length < 3) return null;
+    const minPoints = opts.minPoints ?? 4;
+    const margin = opts.margin ?? 0.45;
+    const below = opts.below ?? 4;
+    const above = opts.above ?? 0.35;
+    const ax = axes(box.r);
+    const ix = box.s[0] / 2;
+    const iy = box.s[1] / 2;
+    const hx = ix + margin;
+    const hy = iy + margin;
+    const bottom = -box.s[2] / 2;
+    const ring = [];
+    const inner = [];
+    const c = box.c;
+    for (let i = 0; i < xyz.length; i += 3) {
+      const vx = xyz[i] - c[0];
+      const vy = xyz[i + 1] - c[1];
+      const vz = xyz[i + 2] - c[2];
+      const qx = vx * ax.ex[0] + vy * ax.ex[1] + vz * ax.ex[2];
+      if (qx < -hx || qx > hx) continue;
+      const qy = vx * ax.ey[0] + vy * ax.ey[1] + vz * ax.ey[2];
+      if (qy < -hy || qy > hy) continue;
+      const qz = vx * ax.ez[0] + vy * ax.ez[1] + vz * ax.ez[2];
+      if (qz < bottom - below || qz > bottom + above) continue;
+      if (Math.abs(qx) > ix || Math.abs(qy) > iy) {
+        ring.push(qz);
+      } else {
+        inner.push(qz);
+      }
+    }
+    if (ring.length >= minPoints) {
+      const bin = 0.02;
+      const lo = bottom - below;
+      const binCount = Math.ceil((below + above) / bin) + 1;
+      const bins = new Float64Array(binCount);
+      for (const z of ring) {
+        const idx = Math.min(bins.length - 1, Math.max(0, Math.floor((z - lo) / bin)));
+        bins[idx] += 1;
+      }
+      let best = 0;
+      let bestScore = -1;
+      for (let i = 0; i < bins.length; i++) {
+        const score = bins[i] + 0.5 * ((bins[i - 1] || 0) + (bins[i + 1] || 0));
+        if (score > bestScore) {
+          bestScore = score;
+          best = i;
+        }
+      }
+      const peak = lo + (best + 0.5) * bin;
+      const near = ring.filter((z) => Math.abs(z - peak) <= 0.05).sort((p, q) => p - q);
+      if (near.length >= minPoints) {
+        return { localZ: percentile(near, 0.5), count: near.length };
+      }
+    }
+    const all = ring.concat(inner).sort((p, q) => p - q);
+    if (all.length >= minPoints) {
+      return { localZ: percentile(all, 0.15), count: all.length };
+    }
+    if (margin < 0.8 && xyz.length >= 3) {
+      return estimateGround(xyz, box, { ...opts, margin: 0.85, below: 4.5, minPoints: 3 });
+    }
+    return null;
+  }
+  function snapToGround(xyz, box, opts) {
+    if (!xyz || !xyz.length) return null;
+    const g = estimateGround(xyz, box, opts);
+    if (!g) return null;
+    const ax = axes(box.r);
+    const shift = g.localZ + box.s[2] / 2;
+    const out = cloneBox(box);
+    out.c = addVec$1(box.c, scaleVec$1(ax.ez, shift));
+    return { box: out, shift, count: g.count };
   }
   function fitYawToLaneIntensity$1(pts, cx, cy, cz, curYaw, curL = 4.6, curW = 1.85, curH = 1.5, options = {}) {
     const defaultYawDeg = radToDeg(curYaw);
@@ -2663,6 +2745,166 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       message: msg
     };
   }
+  function isPointInsideBox3D(px, py, pz, box) {
+    const dx = px - box.cx;
+    const dy = py - box.cy;
+    const dz = pz - box.cz;
+    const maxR = Math.max(box.l, box.w, box.h) * 0.75;
+    if (Math.abs(dx) > maxR || Math.abs(dy) > maxR || Math.abs(dz) > maxR) {
+      return false;
+    }
+    const cosY = Math.cos(-box.rz);
+    const sinY = Math.sin(-box.rz);
+    let lx = dx * cosY - dy * sinY;
+    let ly = dx * sinY + dy * cosY;
+    let lz = dz;
+    if (box.rx || box.ry) {
+      const rx = box.rx || 0;
+      const ry = box.ry || 0;
+      const cosP = Math.cos(-ry);
+      const sinP = Math.sin(-ry);
+      const lx2 = lx * cosP + lz * sinP;
+      const lz2 = -lx * sinP + lz * cosP;
+      const cosR = Math.cos(-rx);
+      const sinR = Math.sin(-rx);
+      const ly2 = ly * cosR - lz2 * sinR;
+      const lz3 = ly * sinR + lz2 * cosR;
+      lx = lx2;
+      ly = ly2;
+      lz = lz3;
+    }
+    const halfL = box.l / 2;
+    const halfW = box.w / 2;
+    const halfH = box.h / 2;
+    return Math.abs(lx) <= halfL && Math.abs(ly) <= halfW && Math.abs(lz) <= halfH;
+  }
+  const DEFAULT_LABEL_COLORS = {
+    car: { r: 0.96, g: 0.62, b: 0.04 },
+    // Cam hổ phách ấm (#f59e0b)
+    pedestrian: { r: 0.51, g: 0.55, b: 0.97 },
+    // Xanh tím Indigo (#818cf8)
+    cyclist: { r: 0.06, g: 0.73, b: 0.51 },
+    // Xanh lục Emerald (#10b981)
+    truck: { r: 0.94, g: 0.38, b: 0.57 },
+    // Hồng Ruby (#f43f5e)
+    bus: { r: 0.65, g: 0.43, b: 0.95 },
+    // Tím tím Purple (#a855f7)
+    active: { r: 0.98, g: 0.8, b: 0.08 }
+    // Vàng chanh Neon (#facc15)
+  };
+  function computePointCloudColors(positions, intensities, boxes, options, outColors) {
+    var _a, _b, _c;
+    const count = Math.floor(positions.length / 3);
+    const colors = outColors && outColors.length === count * 3 ? outColors : new Float32Array(count * 3);
+    const isPlainMode = options.mode === "plain";
+    const colorizeBoxed = options.colorizeBoxed !== false && boxes.length > 0;
+    const plainR = ((_a = options.plainColor) == null ? void 0 : _a.r) ?? 0.72;
+    const plainG = ((_b = options.plainColor) == null ? void 0 : _b.g) ?? 0.76;
+    const plainB = ((_c = options.plainColor) == null ? void 0 : _c.b) ?? 0.82;
+    const fastBoxes = [];
+    if (colorizeBoxed) {
+      for (const b of boxes) {
+        if (!b || b.l <= 0 || b.w <= 0 || b.h <= 0) continue;
+        const cosY = Math.cos(-b.rz);
+        const sinY = Math.sin(-b.rz);
+        const maxR = Math.max(b.l, b.w, b.h) * 0.75;
+        let c = b.color;
+        if (!c) {
+          if (b.isActive) {
+            c = DEFAULT_LABEL_COLORS.active;
+          } else {
+            const cat = (b.category || "car").toLowerCase();
+            c = DEFAULT_LABEL_COLORS[cat] || DEFAULT_LABEL_COLORS.car;
+          }
+        }
+        fastBoxes.push({
+          cx: b.cx,
+          cy: b.cy,
+          cz: b.cz,
+          rx: b.rx || 0,
+          ry: b.ry || 0,
+          rz: b.rz,
+          cosY,
+          sinY,
+          halfL: b.l / 2,
+          halfW: b.w / 2,
+          halfH: b.h / 2,
+          maxR,
+          colorR: c.r,
+          colorG: c.g,
+          colorB: c.b
+        });
+      }
+    }
+    const numBoxes = fastBoxes.length;
+    for (let i = 0; i < count; i++) {
+      const idx3 = i * 3;
+      const px = positions[idx3];
+      const py = positions[idx3 + 1];
+      const pz = positions[idx3 + 2];
+      let v = 0.5;
+      if (intensities && i < intensities.length) {
+        const rawInt = intensities[i];
+        v = rawInt <= 1 ? rawInt : Math.min(1, rawInt / 255);
+      }
+      let matchedBox = null;
+      if (numBoxes > 0) {
+        for (let k = 0; k < numBoxes; k++) {
+          const b = fastBoxes[k];
+          const dx = px - b.cx;
+          const dy = py - b.cy;
+          const dz = pz - b.cz;
+          if (Math.abs(dx) > b.maxR || Math.abs(dy) > b.maxR || Math.abs(dz) > b.maxR) {
+            continue;
+          }
+          let lx = dx * b.cosY - dy * b.sinY;
+          let ly = dx * b.sinY + dy * b.cosY;
+          let lz = dz;
+          if (b.rx || b.ry) {
+            const cosP = Math.cos(-b.ry);
+            const sinP = Math.sin(-b.ry);
+            const lx2 = lx * cosP + lz * sinP;
+            const lz2 = -lx * sinP + lz * cosP;
+            const cosR = Math.cos(-b.rx);
+            const sinR = Math.sin(-b.rx);
+            const ly2 = ly * cosR - lz2 * sinR;
+            const lz3 = ly * sinR + lz2 * cosR;
+            lx = lx2;
+            ly = ly2;
+            lz = lz3;
+          }
+          if (Math.abs(lx) <= b.halfL && Math.abs(ly) <= b.halfW && Math.abs(lz) <= b.halfH) {
+            matchedBox = b;
+            break;
+          }
+        }
+      }
+      if (matchedBox) {
+        const factor = isPlainMode ? 0.9 : 0.4 + 0.6 * v;
+        colors[idx3] = matchedBox.colorR * factor;
+        colors[idx3 + 1] = matchedBox.colorG * factor;
+        colors[idx3 + 2] = matchedBox.colorB * factor;
+      } else {
+        if (isPlainMode) {
+          colors[idx3] = plainR;
+          colors[idx3 + 1] = plainG;
+          colors[idx3 + 2] = plainB;
+        } else {
+          const boostV = Math.min(1, v * 1.25);
+          if (v >= 0.7) {
+            colors[idx3] = 1;
+            colors[idx3 + 1] = 0.96;
+            colors[idx3 + 2] = 0.5 + 0.5 * boostV;
+          } else {
+            colors[idx3] = boostV;
+            colors[idx3 + 1] = boostV;
+            colors[idx3 + 2] = boostV;
+          }
+        }
+      }
+    }
+    return colors;
+  }
   if (typeof globalThis !== "undefined") {
     globalThis.boxCorners = boxCorners;
     globalThis.BOX_EDGES = BOX_EDGES;
@@ -2678,6 +2920,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     globalThis.detectTrueHeadZ = detectTrueHeadZ;
     globalThis.computeGroundSlopesAndZ = computeGroundSlopesAndZ;
     globalThis.fitYawToLaneIntensity = fitYawToLaneIntensity$1;
+    globalThis.isPointInsideBox3D = isPointInsideBox3D;
+    globalThis.computePointCloudColors = computePointCloudColors;
   }
   if (typeof window !== "undefined") {
     window.boxCorners = boxCorners;
@@ -2694,6 +2938,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     window.detectTrueHeadZ = detectTrueHeadZ;
     window.computeGroundSlopesAndZ = computeGroundSlopesAndZ;
     window.fitYawToLaneIntensity = fitYawToLaneIntensity$1;
+    window.isPointInsideBox3D = isPointInsideBox3D;
+    window.computePointCloudColors = computePointCloudColors;
   }
   function mainWorldScript() {
     if (window.__CVAT_3D_SUITE_INJECTED__) return;
@@ -2775,6 +3021,221 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       } catch (e) {
         console.warn("[CVAT 3D Suite] Không thể trích xuất LiDAR points:", e);
         return null;
+      }
+    }
+    let currentPointColorMode = "intensity";
+    let currentColorizeBoxed = true;
+    function getAllScenePointsObjects() {
+      var _a, _b, _c;
+      try {
+        const store = getReduxStore();
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (!canvas || !canvas.view || !canvas.view.views) return [];
+        const pointsObjects = [];
+        const views = canvas.view.views;
+        const viewKeys = ["perspective", "top", "side", "front"];
+        for (const key of viewKeys) {
+          const v = views[key];
+          const scene = v == null ? void 0 : v.scene;
+          if (!scene) continue;
+          scene.traverse((obj) => {
+            var _a2, _b2, _c2;
+            if ((obj.isPoints || obj.type === "Points") && ((_c2 = (_b2 = (_a2 = obj.geometry) == null ? void 0 : _a2.attributes) == null ? void 0 : _b2.position) == null ? void 0 : _c2.count) > 5e3 && !pointsObjects.includes(obj)) {
+              pointsObjects.push(obj);
+            }
+          });
+        }
+        return pointsObjects;
+      } catch (e) {
+        return [];
+      }
+    }
+    function applyPointCloudColorizationInMainWorld(options) {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+      try {
+        if (options == null ? void 0 : options.mode) currentPointColorMode = options.mode;
+        if ((options == null ? void 0 : options.colorizeBoxed) !== void 0) currentColorizeBoxed = !!options.colorizeBoxed;
+        const store = getReduxStore();
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (!canvas) return false;
+        const ptsObjs = getAllScenePointsObjects();
+        if (ptsObjs.length === 0) return false;
+        const defaultColors = {
+          car: { r: 0.96, g: 0.62, b: 0.04 },
+          // Cam hổ phách (#f59e0b)
+          pedestrian: { r: 0.51, g: 0.55, b: 0.97 },
+          // Xanh tím Indigo (#818cf8)
+          cyclist: { r: 0.06, g: 0.73, b: 0.51 },
+          // Xanh lục Emerald (#10b981)
+          truck: { r: 0.94, g: 0.38, b: 0.57 },
+          // Hồng Ruby (#f43f5e)
+          bus: { r: 0.65, g: 0.43, b: 0.95 },
+          // Tím tím Purple (#a855f7)
+          active: { r: 0.98, g: 0.8, b: 0.08 }
+          // Vàng chanh Neon (#facc15)
+        };
+        const fastBoxes = [];
+        if (currentColorizeBoxed) {
+          const drawnObjects = ((_d = canvas.view) == null ? void 0 : _d.drawnObjects) || {};
+          const activeClientId = ((_e = canvas.view) == null ? void 0 : _e.activatedElementID) || ((_h = (_g = (_f = store == null ? void 0 : store.getState()) == null ? void 0 : _f.annotation) == null ? void 0 : _g.annotations) == null ? void 0 : _h.activatedStateClientID);
+          for (const idStr of Object.keys(drawnObjects)) {
+            const drawnItem = drawnObjects[idStr];
+            const data = drawnItem == null ? void 0 : drawnItem.data;
+            if (data && Array.isArray(data.points) && data.points.length >= 9 && !data.outside) {
+              const pts = data.points;
+              const l = pts[6];
+              const w = pts[7];
+              const h2 = pts[8];
+              if (l <= 0 || w <= 0 || h2 <= 0) continue;
+              const clientId = Number(idStr);
+              const isActive = clientId === Number(activeClientId);
+              const labelName = (((_i = data.label) == null ? void 0 : _i.name) || "").toLowerCase();
+              let c = defaultColors.car;
+              if (isActive) {
+                c = defaultColors.active;
+              } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
+                c = defaultColors.pedestrian;
+              } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
+                c = defaultColors.cyclist;
+              } else if (labelName.includes("truck")) {
+                c = defaultColors.truck;
+              } else if (labelName.includes("bus")) {
+                c = defaultColors.bus;
+              }
+              const yaw = pts[5] || 0;
+              fastBoxes.push({
+                cx: pts[0],
+                cy: pts[1],
+                cz: pts[2],
+                rx: pts[3] || 0,
+                ry: pts[4] || 0,
+                rz: yaw,
+                cosY: Math.cos(-yaw),
+                sinY: Math.sin(-yaw),
+                halfL: l / 2,
+                halfW: w / 2,
+                halfH: h2 / 2,
+                maxR: Math.max(l, w, h2) * 0.75,
+                colorR: c.r,
+                colorG: c.g,
+                colorB: c.b
+              });
+            }
+          }
+        }
+        const numBoxes = fastBoxes.length;
+        const isPlain = currentPointColorMode === "plain";
+        const plainR = 0.72;
+        const plainG = 0.76;
+        const plainB = 0.82;
+        let anyUpdated = false;
+        for (const obj of ptsObjs) {
+          const geom = obj.geometry;
+          const posAttr = (_j = geom == null ? void 0 : geom.attributes) == null ? void 0 : _j.position;
+          if (!posAttr || !posAttr.array) continue;
+          const count = posAttr.count;
+          const posArray = posAttr.array;
+          const intensityAttr = (_k = geom.attributes.intensity || geom.attributes.intensities) == null ? void 0 : _k.array;
+          let colorAttr = geom.attributes.color;
+          let colorArray;
+          const winThree = window.THREE;
+          if (!colorAttr || !colorAttr.array || colorAttr.array.length !== count * 3) {
+            colorArray = new Float32Array(count * 3);
+            if (winThree && typeof winThree.BufferAttribute === "function") {
+              geom.setAttribute("color", new winThree.BufferAttribute(colorArray, 3));
+              colorAttr = geom.attributes.color;
+            } else {
+              colorAttr = {
+                array: colorArray,
+                count,
+                itemSize: 3,
+                needsUpdate: true
+              };
+              geom.attributes.color = colorAttr;
+            }
+          } else {
+            colorArray = colorAttr.array;
+          }
+          for (let i = 0; i < count; i++) {
+            const idx3 = i * 3;
+            const px = posArray[idx3];
+            const py = posArray[idx3 + 1];
+            const pz = posArray[idx3 + 2];
+            let v = 0.5;
+            if (intensityAttr && i < intensityAttr.length) {
+              const rawInt = intensityAttr[i];
+              v = rawInt <= 1 ? rawInt : Math.min(1, rawInt / 255);
+            }
+            let matched = null;
+            if (numBoxes > 0) {
+              for (let k = 0; k < numBoxes; k++) {
+                const b = fastBoxes[k];
+                const dx = px - b.cx;
+                const dy = py - b.cy;
+                const dz = pz - b.cz;
+                if (Math.abs(dx) > b.maxR || Math.abs(dy) > b.maxR || Math.abs(dz) > b.maxR) {
+                  continue;
+                }
+                let lx = dx * b.cosY - dy * b.sinY;
+                let ly = dx * b.sinY + dy * b.cosY;
+                let lz = dz;
+                if (b.rx || b.ry) {
+                  const cosP = Math.cos(-b.ry);
+                  const sinP = Math.sin(-b.ry);
+                  const lx2 = lx * cosP + lz * sinP;
+                  const lz2 = -lx * sinP + lz * cosP;
+                  const cosR = Math.cos(-b.rx);
+                  const sinR = Math.sin(-b.rx);
+                  const ly2 = ly * cosR - lz2 * sinR;
+                  const lz3 = ly * sinR + lz2 * cosR;
+                  lx = lx2;
+                  ly = ly2;
+                  lz = lz3;
+                }
+                if (Math.abs(lx) <= b.halfL && Math.abs(ly) <= b.halfW && Math.abs(lz) <= b.halfH) {
+                  matched = b;
+                  break;
+                }
+              }
+            }
+            if (matched) {
+              const factor = isPlain ? 0.9 : 0.4 + 0.6 * v;
+              colorArray[idx3] = matched.colorR * factor;
+              colorArray[idx3 + 1] = matched.colorG * factor;
+              colorArray[idx3 + 2] = matched.colorB * factor;
+            } else {
+              if (isPlain) {
+                colorArray[idx3] = plainR;
+                colorArray[idx3 + 1] = plainG;
+                colorArray[idx3 + 2] = plainB;
+              } else {
+                const boostV = Math.min(1, v * 1.25);
+                if (v >= 0.7) {
+                  colorArray[idx3] = 1;
+                  colorArray[idx3 + 1] = 0.96;
+                  colorArray[idx3 + 2] = 0.5 + 0.5 * boostV;
+                } else {
+                  colorArray[idx3] = boostV;
+                  colorArray[idx3 + 1] = boostV;
+                  colorArray[idx3 + 2] = boostV;
+                }
+              }
+            }
+          }
+          colorAttr.needsUpdate = true;
+          if (obj.material) {
+            obj.material.vertexColors = true;
+            obj.material.needsUpdate = true;
+          }
+          anyUpdated = true;
+        }
+        if (anyUpdated && typeof canvas.render === "function") {
+          canvas.render();
+        }
+        return anyUpdated;
+      } catch (err) {
+        console.warn("[CVAT 3D Suite] Lỗi applyPointCloudColorizationInMainWorld:", err);
+        return false;
       }
     }
     function getEgoRoadGroundZInMainWorld(egoPos = { x: 0, y: 0, z: 0 }) {
@@ -5078,7 +5539,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       let yaw = points[5];
       let l = points[6];
       let w = points[7];
-      let h = points[8];
+      let h2 = points[8];
       const lidar = getSceneLidarPoints();
       if (!lidar || lidar.count === 0) {
         return {
@@ -5089,7 +5550,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           newYaw: yaw,
           newL: l,
           newW: w,
-          newH: h,
+          newH: h2,
           pointsCount: 0
         };
       }
@@ -5097,7 +5558,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const isInitialBox = l <= 2.2 || w <= 1.3;
       const halfL = isInitialBox ? 3 : l / 2 + 0.35;
       const halfW = isInitialBox ? 2 : w / 2 + 0.35;
-      const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, l / 2, w / 2, h / 2, isInitialBox, false);
+      const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, l / 2, w / 2, h2 / 2, isInitialBox, false);
       const detectedGroundZ = groundInfo.groundZ;
       const effectiveGroundZ = detectedGroundZ !== null ? detectedGroundZ : 0;
       let cosY = Math.cos(-yaw);
@@ -5126,11 +5587,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       let newX = cx;
       let newY = cy;
-      let newZ = Number((effectiveGroundZ + h / 2).toFixed(3));
+      let newZ = Number((effectiveGroundZ + h2 / 2).toFixed(3));
       let newYaw = yaw;
       let newL = l;
       let newW = w;
-      let newH = h;
+      let newH = h2;
       if (isInitialBox && candidateBodyPts.length >= 12) {
         let sumPtsX = 0, sumPtsY = 0;
         for (const p of candidateBodyPts) {
@@ -5444,6 +5905,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (typeof canvas.render === "function") {
           canvas.render();
         }
+        if (currentColorizeBoxed) {
+          applyPointCloudColorizationInMainWorld();
+        }
         return true;
       } catch (err) {
         console.warn("[CVAT 3D Suite] Lỗi cập nhật trực tiếp Three.js:", err);
@@ -5756,6 +6220,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                   if (activeIdToLock !== null && !isNaN(activeIdToLock)) {
                     lockOnActiveObjectAtFrame(activeIdToLock, curFrame);
                   }
+                  setTimeout(() => {
+                    applyPointCloudColorizationInMainWorld();
+                  }, 150);
                 }
               }
               if (curActiveId !== prevActiveId) {
@@ -5771,6 +6238,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                         detail: { clientId: Number(curActiveId), details }
                       })
                     );
+                    applyPointCloudColorizationInMainWorld();
                   }, 80);
                 }
               }
@@ -5780,6 +6248,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 dirtyDebounceTimer = setTimeout(() => {
                   dirtyDebounceTimer = null;
                   window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS_DIRTY"));
+                  applyPointCloudColorizationInMainWorld();
                 }, 400);
               }
             } catch (err) {
@@ -6400,7 +6869,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     });
     window.addEventListener("CVAT_EXT_REQ_UPDATE_DIMENSIONS", async (e) => {
-      const { jobId, frame, uiId, serverId, l, w, h, applyToTrack } = e.detail || {};
+      const { jobId, frame, uiId, serverId, l, w, h: h2, applyToTrack } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
@@ -6420,13 +6889,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           };
         };
         const newPoints = [...target.points];
-        const offset = computeGroundLockOffset(newPoints, h);
+        const offset = computeGroundLockOffset(newPoints, h2);
         newPoints[0] = Number((newPoints[0] + offset.dx).toFixed(3));
         newPoints[1] = Number((newPoints[1] + offset.dy).toFixed(3));
         newPoints[2] = Number((newPoints[2] + offset.dz).toFixed(3));
         newPoints[6] = l;
         newPoints[7] = w;
-        newPoints[8] = h;
+        newPoints[8] = h2;
         target.points = newPoints;
         if (!isDrawn && typeof target.save === "function") {
           await target.save();
@@ -6435,7 +6904,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           uiId,
           void 0,
           { x: newPoints[0], y: newPoints[1], z: newPoints[2] },
-          { l, w, h }
+          { l, w, h: h2 }
         );
         let trackCount = 1;
         const startF = typeof job.startFrame === "number" ? job.startFrame : 0;
@@ -6448,13 +6917,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               for (const sh of shapes) {
                 if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
                   const shPoints = [...sh.points];
-                  const shOffset = computeGroundLockOffset(shPoints, h);
+                  const shOffset = computeGroundLockOffset(shPoints, h2);
                   shPoints[0] = Number((shPoints[0] + shOffset.dx).toFixed(3));
                   shPoints[1] = Number((shPoints[1] + shOffset.dy).toFixed(3));
                   shPoints[2] = Number((shPoints[2] + shOffset.dz).toFixed(3));
                   shPoints[6] = l;
                   shPoints[7] = w;
-                  shPoints[8] = h;
+                  shPoints[8] = h2;
                   sh.points = shPoints;
                   if (sh.frame !== frame) {
                     trackCount++;
@@ -6475,13 +6944,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                   );
                   if (st && Array.isArray(st.points) && st.points.length >= 9) {
                     const p = [...st.points];
-                    const stOffset = computeGroundLockOffset(p, h);
+                    const stOffset = computeGroundLockOffset(p, h2);
                     p[0] = Number((p[0] + stOffset.dx).toFixed(3));
                     p[1] = Number((p[1] + stOffset.dy).toFixed(3));
                     p[2] = Number((p[2] + stOffset.dz).toFixed(3));
                     p[6] = l;
                     p[7] = w;
-                    p[8] = h;
+                    p[8] = h2;
                     st.points = p;
                     if (typeof st.save === "function") {
                       await st.save();
@@ -6498,12 +6967,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         markCvatSaveButtonUnsaved();
         const scopeText = applyToTrack ? `toàn bộ track (từ Frame #${startF} ➔ #${stopF}, ${trackCount} frames, Realtime)` : `chỉ frame #${frame}`;
-        const msg = `Đã cập nhật xe #${uiId} kích thước ${l}x${w}x${h}m cho ${scopeText}`;
+        const msg = `Đã cập nhật xe #${uiId} kích thước ${l}x${w}x${h2}m cho ${scopeText}`;
         console.log(`[CVAT 3D Suite] ${msg} (Three.js Re-rendered Realtime)`);
         const newZ = newPoints[2];
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_UPDATE_DIMENSIONS", {
-            detail: { success: true, uiId, newZ, l, w, h, applyToTrack, message: msg }
+            detail: { success: true, uiId, newZ, l, w, h: h2, applyToTrack, message: msg }
           })
         );
       } catch (err) {
@@ -7288,14 +7757,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const yaw = points[5];
       const l = points[6] || 4.65;
       const w = points[7] || 1.85;
-      const h = points[8] || 1.45;
+      const h2 = points[8] || 1.45;
       const lidar = getSceneLidarPoints();
       if (!lidar || lidar.count === 0) {
         throw new Error("Không trích xuất được điểm LiDAR từ Three.js scene!");
       }
       const { count, array } = lidar;
-      const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, l / 2, w / 2, h / 2, false, false);
-      const groundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : cz - h / 2;
+      const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, l / 2, w / 2, h2 / 2, false, false);
+      const groundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : cz - h2 / 2;
       const cosY = Math.cos(-yaw);
       const sinY = Math.sin(-yaw);
       const minBodyZ = groundZ + 0.22;
@@ -7915,6 +8384,46 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         );
       }
     });
+    window.addEventListener("CVAT_EXT_REQ_SET_POINT_COLOR_MODE", (e) => {
+      const { mode, colorizeBoxed } = e.detail || {};
+      if (mode === "intensity" || mode === "plain") {
+        currentPointColorMode = mode;
+      }
+      if (colorizeBoxed !== void 0) {
+        currentColorizeBoxed = !!colorizeBoxed;
+      }
+      applyPointCloudColorizationInMainWorld({
+        mode: currentPointColorMode,
+        colorizeBoxed: currentColorizeBoxed
+      });
+      const modeText = currentPointColorMode === "intensity" ? "Độ phản xạ (Intensity)" : "Màu phẳng (Plain)";
+      const boxedText = currentColorizeBoxed ? "BẬT" : "TẮT";
+      const msg = `Chế độ màu Point: ${modeText} | Nhuộm màu xe bọc: ${boxedText}`;
+      console.log(`[CVAT 3D Suite] ${msg}`);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_SET_POINT_COLOR_MODE", {
+          detail: {
+            success: true,
+            mode: currentPointColorMode,
+            colorizeBoxed: currentColorizeBoxed,
+            message: msg
+          }
+        })
+      );
+    });
+    window.addEventListener("CVAT_EXT_REQ_GET_POINT_COLOR_MODE", () => {
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_GET_POINT_COLOR_MODE", {
+          detail: {
+            mode: currentPointColorMode,
+            colorizeBoxed: currentColorizeBoxed
+          }
+        })
+      );
+    });
+    setTimeout(() => {
+      applyPointCloudColorizationInMainWorld();
+    }, 1500);
   }
   class CVATBridge {
     /**
@@ -8169,7 +8678,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
      * Hỗ trợ áp dụng chỉ Frame hiện tại hoặc Đồng bộ cho Toàn bộ Track.
      * Dữ liệu được lưu trực tiếp vào cvat-core thông qua Main World Bridge (Realtime 100%).
      */
-    static async updateTrackDimensions(jobId, uiId, serverId, l, w, h, applyToTrack = false) {
+    static async updateTrackDimensions(jobId, uiId, serverId, l, w, h2, applyToTrack = false) {
       this.ensureMainWorldBridge();
       const currentFrame = this.getCurrentFrame();
       const mwPromise = new Promise((resolve) => {
@@ -8186,7 +8695,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         window.addEventListener("CVAT_EXT_RES_UPDATE_DIMENSIONS", onResponse);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_REQ_UPDATE_DIMENSIONS", {
-            detail: { jobId, frame: currentFrame, uiId, serverId, l, w, h, applyToTrack }
+            detail: { jobId, frame: currentFrame, uiId, serverId, l, w, h: h2, applyToTrack }
           })
         );
       });
@@ -8198,8 +8707,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newZ: Number(lastZ.toFixed(3)),
         l,
         w,
-        h,
-        message: (mwRes == null ? void 0 : mwRes.message) || `Đã cập nhật xe #${uiId} (${l}x${w}x${h}m cho ${scope})`
+        h: h2,
+        message: (mwRes == null ? void 0 : mwRes.message) || `Đã cập nhật xe #${uiId} (${l}x${w}x${h2}m cho ${scope})`
       };
     }
     /**
@@ -9251,6 +9760,29 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       throw new Error("DecompressionStream not available");
     }
+    /**
+     * Cấu hình chế độ màu mây điểm LiDAR (Intensity vs Plain & Nhuộm màu điểm trong xe bọc).
+     */
+    static async setPointCloudColorMode(mode, colorizeBoxed) {
+      this.ensureMainWorldBridge();
+      return new Promise((resolve) => {
+        const timeout = setTimeout(
+          () => resolve({ success: false, mode, colorizeBoxed: colorizeBoxed ?? true, message: "Hết thời gian chờ" }),
+          800
+        );
+        const onRes = (e) => {
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_SET_POINT_COLOR_MODE", onRes);
+          resolve(e.detail || { success: true, mode, colorizeBoxed: colorizeBoxed ?? true, message: "OK" });
+        };
+        window.addEventListener("CVAT_EXT_RES_SET_POINT_COLOR_MODE", onRes);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_SET_POINT_COLOR_MODE", {
+            detail: { mode, colorizeBoxed }
+          })
+        );
+      });
+    }
   }
   __publicField(CVATBridge, "cachedAnnotations", null);
   __publicField(CVATBridge, "cachedJobId", null);
@@ -9574,7 +10106,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       if (left && right) {
         const offset = (frame - left.frame) / (right.frame - left.frame);
-        const points = interpolatePoints(left.points, right.points, offset);
+        const points = interpolatePoints$1(left.points, right.points, offset);
         return {
           points,
           box: pointsToBox(points),
@@ -9760,12 +10292,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     /**
      * Tính tỷ lệ điểm ảnh trên mét (Pixels Per Meter - PPM).
      */
-    static calculatePpm(cell, w, h, refSize, globalViewZoom, isContextMode = true) {
+    static calculatePpm(cell, w, h2, refSize, globalViewZoom, isContextMode = true) {
       const V = VIEWS_DEF[cell.view];
       const fitFactor = isContextMode ? 2.6 : 1.7;
       const k = Math.min(
         w / (Math.max(0.3, refSize[V.ui]) * fitFactor),
-        h / (Math.max(0.3, refSize[V.vi]) * fitFactor)
+        h2 / (Math.max(0.3, refSize[V.vi]) * fitFactor)
       );
       return k * (globalViewZoom[cell.view] || 1) * (cell.zoom || 1);
     }
@@ -9786,10 +10318,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
      */
     static project(p, cam, view, rect, ppm) {
       const V = VIEWS_DEF[view];
-      const w = subVec(p, cam.c);
+      const w = subVec$1(p, cam.c);
       return [
-        rect.w / 2 + cam.pan[0] + dotVec(w, cam.ax[V.u]) * ppm,
-        rect.h / 2 + cam.pan[1] - dotVec(w, cam.ax[V.v]) * ppm
+        rect.w / 2 + cam.pan[0] + dotVec$1(w, cam.ax[V.u]) * ppm,
+        rect.h / 2 + cam.pan[1] - dotVec$1(w, cam.ax[V.v]) * ppm
       ];
     }
     /**
@@ -9799,9 +10331,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const V = VIEWS_DEF[view];
       const u = (px - rect.w / 2 - cam.pan[0]) / ppm;
       const v = -(py - rect.h / 2 - cam.pan[1]) / ppm;
-      return addVec(
+      return addVec$1(
         cam.c,
-        addVec(scaleVec(cam.ax[V.u], u), scaleVec(cam.ax[V.v], v))
+        addVec$1(scaleVec$1(cam.ax[V.u], u), scaleVec$1(cam.ax[V.v], v))
       );
     }
     /**
@@ -9810,11 +10342,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     static calculateHandles(box, cam, view, rect, ppm) {
       const V = VIEWS_DEF[view];
       const ax = axes(box.r);
-      const h = [box.s[0] / 2, box.s[1] / 2, box.s[2] / 2];
+      const h2 = [box.s[0] / 2, box.s[1] / 2, box.s[2] / 2];
       const P = (a, b) => {
         const q = [0, 0, 0];
-        q[V.ui] = a * h[V.ui];
-        q[V.vi] = b * h[V.vi];
+        q[V.ui] = a * h2[V.ui];
+        q[V.vi] = b * h2[V.vi];
         const worldP = localToWorld(q, box.c, ax);
         return this.project(worldP, cam, view, rect, ppm);
       };
@@ -9912,8 +10444,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const box = cloneBox(startBox);
       const p = this.unproject(mx, my, cam, cell.view, rect, ppm);
       if (kind === "move") {
-        const deltaWorld = subVec(p, p0);
-        box.c = addVec(startBox.c, deltaWorld);
+        const deltaWorld = subVec$1(p, p0);
+        box.c = addVec$1(startBox.c, deltaWorld);
       } else if (kind === "resize") {
         const ax = axes(startBox.r);
         const q = worldToLocal(p, startBox.c, ax);
@@ -10084,7 +10616,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       });
       const l = fData.box.s[0].toFixed(2);
       const w = fData.box.s[1].toFixed(2);
-      const h = fData.box.s[2].toFixed(2);
+      const h2 = fData.box.s[2].toFixed(2);
       header.innerHTML = `
       <div style="display: flex; align-items: center; gap: 4px; overflow: hidden;">
         <span style="font-size: 11px; font-weight: bold; font-family: monospace; color: ${isActive ? "#38bdf8" : "#94a3b8"};">#${f}</span>
@@ -10106,7 +10638,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           border-radius: 3px;
         ">ACTIVE</span>
       </div>
-      <span style="font-size: 9px; color: #64748b; font-family: monospace;">${l}×${w}×${h}</span>
+      <span style="font-size: 9px; color: #64748b; font-family: monospace;">${l}×${w}×${h2}</span>
     `;
       col.appendChild(header);
       const viewsWrap = document.createElement("div");
@@ -10188,27 +10720,27 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (!ctx) return;
       const rect = canvas.getBoundingClientRect();
       const w = Math.max(10, Math.floor(rect.width));
-      const h = Math.max(10, Math.floor(rect.height));
-      if (canvas.width !== w || canvas.height !== h) {
+      const h2 = Math.max(10, Math.floor(rect.height));
+      if (canvas.width !== w || canvas.height !== h2) {
         canvas.width = w;
-        canvas.height = h;
+        canvas.height = h2;
       }
       const isActive = cell.frame === this.activeFrame;
       ctx.fillStyle = isActive ? "#09090b" : "#020617";
-      ctx.fillRect(0, 0, w, h);
+      ctx.fillRect(0, 0, w, h2);
       const box = fData.box;
       const refSize = [box.s[0], box.s[1], box.s[2]];
       const ppm = OrthoInteractionEngine.calculatePpm(
         cell,
         w,
-        h,
+        h2,
         refSize,
         this.globalZoom,
         this.isContextMode
       );
       const cam = OrthoInteractionEngine.getCamera(cell, box);
-      this.drawSubtleGrid(ctx, cam, cell.view, { w, h }, ppm, isActive);
-      this.drawLidarPoints(ctx, cell, box, fData.points, cam, { w, h }, ppm);
+      this.drawSubtleGrid(ctx, cam, cell.view, { w, h: h2 }, ppm, isActive);
+      this.drawLidarPoints(ctx, cell, box, fData.points, cam, { w, h: h2 }, ppm);
       this.drawBoundingBox(
         ctx,
         cell,
@@ -10217,7 +10749,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         fData.outside,
         fData.labelColor,
         cam,
-        { w, h },
+        { w, h: h2 },
         ppm,
         isActive
       );
@@ -11042,7 +11574,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const pts = sh.points;
         const l = (pts[6] || 0).toFixed(2);
         const w = (pts[7] || 0).toFixed(2);
-        const h = (pts[8] || 0).toFixed(2);
+        const h2 = (pts[8] || 0).toFixed(2);
         return `
           <div class="filmstrip-card ${isSel ? "active" : ""}" data-frame="${f}" style="
             display: inline-flex;
@@ -11069,7 +11601,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 color: ${sh.outside ? "#dc2626" : "#059669"};
               ">${sh.outside ? "OUT" : "KF"}</span>
             </div>
-            <span style="font-size: 10px; color: #64748b; font-family: monospace; margin-top: 2px;">${l}×${w}×${h}</span>
+            <span style="font-size: 10px; color: #64748b; font-family: monospace; margin-top: 2px;">${l}×${w}×${h2}</span>
           </div>
         `;
       }).join("");
@@ -12398,13 +12930,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   function d14RadialFoldR2(dist) {
     const d = d14DistCoeffs(dist);
     const c = [1, 3 * d[0], 5 * d[1], 7 * d[4]];
-    let deg = 3;
-    while (deg > 0 && c[deg] === 0) deg -= 1;
-    if (deg === 0) return Infinity;
+    let deg2 = 3;
+    while (deg2 > 0 && c[deg2] === 0) deg2 -= 1;
+    if (deg2 === 0) return Infinity;
     const g = (s) => c[0] + s * (c[1] + s * (c[2] + s * c[3]));
     let top = 0;
-    for (let i = 0; i < deg; i += 1) top = Math.max(top, Math.abs(c[i]));
-    const bound = 1 + top / Math.abs(c[deg]);
+    for (let i = 0; i < deg2; i += 1) top = Math.max(top, Math.abs(c[i]));
+    const bound = 1 + top / Math.abs(c[deg2]);
     let crit = [];
     const [qa, qb, qc] = [3 * c[3], 2 * c[2], c[1]];
     if (qa !== 0) {
@@ -12460,8 +12992,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const disc = qb * qb - 4 * qa * qc;
       if (disc > 0) {
         const sq = Math.sqrt(disc);
-        const h = qb >= 0 ? -0.5 * (qb + sq) : -0.5 * (qb - sq);
-        roots = [h / qa, qc / h];
+        const h2 = qb >= 0 ? -0.5 * (qb + sq) : -0.5 * (qb - sq);
+        roots = [h2 / qa, qc / h2];
       }
     } else if (qb !== 0) {
       roots = [-qc / qb];
@@ -13723,6 +14255,3800 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   __publicField(_HeaderSuiteButton, "STORAGE_KEY", "CVAT_3D_SUITE_AUTO_ENABLED");
   __publicField(_HeaderSuiteButton, "BUTTON_ID", "cvat-3d-suite-header-btn");
   let HeaderSuiteButton = _HeaderSuiteButton;
+  function cookie(name) {
+    const m = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+  function orgSlug() {
+    try {
+      return localStorage.getItem("currentOrganization") || "";
+    } catch {
+      return "";
+    }
+  }
+  function buildUrl(path, params, withOrg) {
+    const url = new URL(path, location.origin);
+    if (url.origin !== location.origin) {
+      throw new Error(`Chặn request ra ngoài: ${url.origin}`);
+    }
+    const all = {
+      ...withOrg ? { org: orgSlug() } : {},
+      ...params || {}
+    };
+    for (const [k, v] of Object.entries(all)) {
+      if (v !== void 0 && v !== null) {
+        url.searchParams.set(k, String(v));
+      }
+    }
+    return url;
+  }
+  async function readWithProgress(res, onProgress) {
+    if (!onProgress || !res.body) {
+      return res.arrayBuffer();
+    }
+    const total = Number(res.headers.get("Content-Length")) || 0;
+    const reader = res.body.getReader();
+    const parts = [];
+    let loaded = 0;
+    for (; ; ) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      parts.push(value);
+      loaded += value.length;
+      onProgress(loaded, total);
+    }
+    const out = new Uint8Array(loaded);
+    let o = 0;
+    for (const p of parts) {
+      out.set(p, o);
+      o += p.length;
+    }
+    return out.buffer;
+  }
+  async function request(method, path, opts = {}) {
+    const {
+      params,
+      body,
+      responseType = "json",
+      withOrg = true,
+      onProgress
+    } = opts;
+    const headers = {
+      Accept: "application/vnd.cvat+json, application/json, */*"
+    };
+    const csrf = cookie("csrftoken");
+    if (csrf) {
+      headers["X-CSRFToken"] = csrf;
+    }
+    if (body !== void 0) {
+      headers["Content-Type"] = "application/json";
+    }
+    const res = await fetch(buildUrl(path, params, withOrg), {
+      method,
+      headers,
+      body: body === void 0 ? void 0 : JSON.stringify(body),
+      credentials: "same-origin",
+      cache: "no-store",
+      referrerPolicy: "same-origin"
+    });
+    if (!res.ok) {
+      let detail = "";
+      try {
+        detail = (await res.text()).slice(0, 300);
+      } catch {
+      }
+      throw new Error(`${method} ${path} → HTTP ${res.status} ${detail}`);
+    }
+    if (responseType === "arraybuffer") {
+      return readWithProgress(res, onProgress);
+    }
+    if (res.status === 204) {
+      return null;
+    }
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  }
+  const helperApi = {
+    /** Lấy thông tin job */
+    getJob(jid) {
+      return request("GET", `/api/jobs/${jid}`, { withOrg: false });
+    },
+    /** Lấy metadata (danh sách frame, chunk info) */
+    getMeta(jid) {
+      return request("GET", `/api/jobs/${jid}/data/meta`);
+    },
+    /** Lấy toàn bộ annotation (tags, shapes, tracks) */
+    getAnnotations(jid) {
+      return request("GET", `/api/jobs/${jid}/annotations`);
+    },
+    /** Cập nhật (PATCH) danh sách tracks */
+    updateTracks(jid, tracks) {
+      return request("PATCH", `/api/jobs/${jid}/annotations`, {
+        params: { action: "update" },
+        body: { version: 0, tags: [], shapes: [], tracks }
+      });
+    },
+    /** Tải chunk point cloud (arraybuffer) với progress callback */
+    getChunk(jid, index, quality, onProgress) {
+      return request("GET", `/api/jobs/${jid}/data`, {
+        params: { type: "chunk", index, quality },
+        responseType: "arraybuffer",
+        onProgress
+      });
+    },
+    /** Tải ảnh context (camera images) cho 1 frame */
+    getContextImages(jid, frame) {
+      return request("GET", `/api/jobs/${jid}/data`, {
+        params: {
+          type: "context_image",
+          number: frame,
+          quality: "original"
+        },
+        responseType: "arraybuffer"
+      });
+    },
+    /** Lấy danh sách label của job (phân trang tự động) */
+    async getLabels(jid) {
+      const out = [];
+      let page = 1;
+      for (; ; ) {
+        const data = await request("GET", "/api/labels", {
+          params: { job_id: jid, page_size: 500, page }
+        });
+        out.push(...data.results || []);
+        if (!data.next) break;
+        page += 1;
+      }
+      return out;
+    }
+  };
+  const REQ_EVENT = "cvat-helper:req";
+  const RES_EVENT = "cvat-helper:res";
+  const pending = /* @__PURE__ */ new Map();
+  let seq = 0;
+  function initResponseListener() {
+    document.addEventListener(RES_EVENT, (e) => {
+      let msg;
+      try {
+        msg = JSON.parse(e.detail);
+      } catch {
+        return;
+      }
+      const p = pending.get((msg == null ? void 0 : msg.id) ?? "");
+      if (!p) return;
+      pending.delete(msg.id);
+      clearTimeout(p.timer);
+      if (msg.ok) p.resolve(msg.result);
+      else p.reject(new Error(msg.error || "Bridge error"));
+    });
+  }
+  let listenerInited = false;
+  function call(method, args, timeoutMs = 12e4) {
+    if (!listenerInited) {
+      initResponseListener();
+      listenerInited = true;
+    }
+    const id = `${Date.now()}-${++seq}`;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        pending.delete(id);
+        reject(new Error(`Bridge CVAT không phản hồi (${method})`));
+      }, timeoutMs);
+      pending.set(id, { resolve, reject, timer });
+      document.dispatchEvent(
+        new CustomEvent(REQ_EVENT, {
+          detail: JSON.stringify({ id, method, args })
+        })
+      );
+    });
+  }
+  async function connect(jid) {
+    try {
+      const st = await call("status", {}, 1500);
+      return !!(st && st.ready && st.jobId === jid);
+    } catch {
+      return false;
+    }
+  }
+  const helperLiveBridge = {
+    call,
+    connect
+  };
+  function getHelperBridgeMainScript() {
+    return `(function() {
+  if (window.__cvatHelperBridge) return;
+  window.__cvatHelperBridge = true;
+
+  var REQ = 'cvat-helper:req';
+  var RES = 'cvat-helper:res';
+  var ctx = null;
+
+  function register() {
+    if (ctx || !window.cvatUI || typeof window.cvatUI.registerComponent !== 'function') return !!ctx;
+    window.cvatUI.registerComponent(function(args) {
+      ctx = args;
+      return { name: 'CVAT 3D Label Helper', destructor: function() { ctx = null; } };
+    });
+    return !!ctx;
+  }
+
+  if (!register()) {
+    document.addEventListener('plugins.ready', register);
+    var tries = 0;
+    var timer = setInterval(function() { if (register() || ++tries > 120) clearInterval(timer); }, 500);
+  }
+
+  function annotationState() {
+    if (!ctx) throw new Error('Chưa kết nối được plugin CVAT');
+    var st = ctx.store.getState().annotation;
+    var job = st && st.job && st.job.instance;
+    if (!job) throw new Error('Chưa mở job trên CVAT');
+    return { job: job, frame: st.player.frame.number };
+  }
+
+  function trackStatesAt(job, frame) {
+    return job.annotations.get(frame, true, [])
+      .then(function(states) {
+        return states.filter(function(s) {
+          return s.objectType === 'track' && s.shapeType === 'cuboid';
+        });
+      });
+  }
+
+  var methods = {
+    status: function() {
+      if (!ctx) return Promise.resolve({ ready: false });
+      var st = ctx.store.getState().annotation;
+      var job = st && st.job && st.job.instance;
+      return Promise.resolve({
+        ready: !!job,
+        jobId: job ? job.id : null,
+        dimension: job ? job.dimension : null,
+        unsaved: job ? job.annotations.hasUnsavedChanges() : false
+      });
+    },
+
+    readTracks: function(args) {
+      var frames = args.frames;
+      var result = annotationState();
+      var job = result.job;
+      var tracks = new Map();
+      var work = Promise.resolve();
+      frames.forEach(function(frame) {
+        work = work.then(function() {
+          return trackStatesAt(job, frame).then(function(states) {
+            states.forEach(function(s) {
+              var t = tracks.get(s.clientID);
+              if (!t) {
+                t = { clientID: s.clientID, serverID: s.serverID || null, labelId: s.label.id, shapes: [] };
+                tracks.set(s.clientID, t);
+              }
+              if (s.keyframe) {
+                t.shapes.push({
+                  type: 'cuboid', frame: frame, points: Array.from(s.points), outside: !!s.outside,
+                  occluded: !!s.occluded, z_order: s.zOrder || 0, rotation: 0, attributes: []
+                });
+              }
+            });
+          }).catch(function() {});
+        });
+      });
+      return work.then(function() {
+        var out = [];
+        tracks.forEach(function(t) { if (t.shapes.length) out.push(t); });
+        return out;
+      });
+    },
+
+    applyTrack: function(args) {
+      var clientID = args.clientID;
+      var shapes = args.shapes;
+      var current = args.current;
+      var result = annotationState();
+      var job = result.job;
+      var want = new Map(shapes.map(function(s) { return [s.frame, s]; }));
+      var have = new Map(current.map(function(s) { return [s.frame, s]; }));
+      var same = function(a, b) {
+        return a.length === b.length && a.every(function(v, i) { return Math.abs(v - b[i]) < 1e-9; });
+      };
+      var changed = 0;
+      var work = Promise.resolve();
+
+      want.forEach(function(s, frame) {
+        work = work.then(function() {
+          var old = have.get(frame);
+          if (old && same(old.points, s.points) && old.outside === s.outside) return;
+          return trackStatesAt(job, frame).then(function(states) {
+            var state = states.find(function(x) { return x.clientID === clientID; });
+            if (!state) throw new Error('Không tìm thấy track ' + clientID + ' ở frame ' + frame);
+            if (!old || !same(old.points, s.points)) state.points = s.points;
+            if (!old || old.outside !== s.outside) state.outside = s.outside;
+            return state.save();
+          }).then(function() { changed += 1; });
+        });
+      });
+
+      have.forEach(function(_v, frame) {
+        if (want.has(frame)) return;
+        work = work.then(function() {
+          return trackStatesAt(job, frame).then(function(states) {
+            var state = states.find(function(x) { return x.clientID === clientID; });
+            if (!state) return;
+            state.keyframe = false;
+            return state.save();
+          }).then(function() { changed += 1; });
+        });
+      });
+
+      return work.then(function() { return { changed: changed }; });
+    },
+
+    refresh: function() {
+      var result = annotationState();
+      return ctx.dispatch(ctx.actionCreators.changeFrameAsync(result.frame, undefined, undefined, true))
+        .then(function() { return true; });
+    },
+
+    saveCvat: function() {
+      var result = annotationState();
+      var job = result.job;
+      var btn = document.querySelector('.cvat-annotation-header-save-button');
+      if (btn && !btn.classList.contains('cvat-annotation-disabled-header-button')) {
+        btn.click();
+        var attempts = 0;
+        return new Promise(function(resolve, reject) {
+          var check = setInterval(function() {
+            attempts++;
+            if (!job.annotations.hasUnsavedChanges()) {
+              clearInterval(check);
+              resolve({ saved: true, via: 'button' });
+            } else if (attempts >= 600) {
+              clearInterval(check);
+              reject(new Error('CVAT lưu quá lâu (60s) – kiểm tra lại trên CVAT'));
+            }
+          }, 100);
+        });
+      }
+      return job.annotations.save().then(function() {
+        return methods.refresh();
+      }).then(function() {
+        return { saved: true, via: 'core' };
+      });
+    }
+  };
+
+  document.addEventListener(REQ, function(e) {
+    var msg;
+    try { msg = JSON.parse(e.detail); } catch(_) { return; }
+    if (!msg || !methods[msg.method]) return;
+    var reply;
+    Promise.resolve().then(function() {
+      return methods[msg.method](msg.args || {});
+    }).then(function(result) {
+      reply = { id: msg.id, ok: true, result: result };
+    }).catch(function(err) {
+      reply = { id: msg.id, ok: false, error: String((err && err.message) || err) };
+    }).then(function() {
+      document.dispatchEvent(new CustomEvent(RES, { detail: JSON.stringify(reply) }));
+    });
+  });
+})();`;
+  }
+  const deepClone = (v) => JSON.parse(JSON.stringify(v));
+  function interpolatePoints(left, right, offset) {
+    return interpolatePoints$1(left, right, offset);
+  }
+  const MAX_UNDO = 200;
+  class HelperTrackState {
+    constructor(serverTrack, uiId, key) {
+      __publicField(this, "uiId");
+      __publicField(this, "key");
+      __publicField(this, "server");
+      __publicField(this, "shapes");
+      __publicField(this, "undoStack");
+      __publicField(this, "redoStack");
+      __publicField(this, "dirty");
+      this.uiId = uiId;
+      this.key = key;
+      this.load(serverTrack);
+    }
+    load(serverTrack) {
+      this.server = deepClone(serverTrack);
+      this.shapes = deepClone(serverTrack.shapes).sort((a, b) => a.frame - b.frame);
+      this.undoStack = [];
+      this.redoStack = [];
+      this.dirty = false;
+    }
+    get id() {
+      return this.key;
+    }
+    get serverId() {
+      return this.server.id ?? null;
+    }
+    get labelId() {
+      return this.server.label_id;
+    }
+    get firstFrame() {
+      return this.shapes.length ? this.shapes[0].frame : this.server.frame;
+    }
+    get lastFrame() {
+      return this.shapes.length ? this.shapes[this.shapes.length - 1].frame : this.server.frame;
+    }
+    keyframeIndex(frame) {
+      return this.shapes.findIndex((s) => s.frame === frame);
+    }
+    /**
+     * Vị trí box tại frame, giống Track.getPosition của cvat-core.
+     * Trả về PositionResult hoặc null nếu frame trước keyframe đầu.
+     */
+    at(frame) {
+      let left = null;
+      let right = null;
+      for (const s of this.shapes) {
+        if (s.frame <= frame) left = s;
+        else {
+          right = s;
+          break;
+        }
+      }
+      if (left && left.frame === frame) {
+        return {
+          points: left.points.slice(),
+          box: pointsToBox(left.points),
+          keyframe: true,
+          outside: left.outside,
+          left
+        };
+      }
+      if (left && right) {
+        const offset = (frame - left.frame) / (right.frame - left.frame);
+        const points = interpolatePoints(left.points, right.points, offset);
+        return {
+          points,
+          box: pointsToBox(points),
+          keyframe: left.frame === frame,
+          outside: left.outside,
+          left
+        };
+      }
+      const single = left || right;
+      if (!single) return null;
+      return {
+        points: single.points.slice(),
+        box: pointsToBox(single.points),
+        keyframe: single.frame === frame,
+        outside: single === right ? true : single.outside,
+        left: single
+      };
+    }
+    snapshot() {
+      this.undoStack.push(deepClone(this.shapes));
+      if (this.undoStack.length > MAX_UNDO) this.undoStack.shift();
+      this.redoStack = [];
+    }
+    undo() {
+      if (!this.undoStack.length) return false;
+      this.redoStack.push(deepClone(this.shapes));
+      this.shapes = this.undoStack.pop();
+      this.dirty = JSON.stringify(this.shapes) !== JSON.stringify(this.serverShapesSorted());
+      return true;
+    }
+    redo() {
+      if (!this.redoStack.length) return false;
+      this.undoStack.push(deepClone(this.shapes));
+      this.shapes = this.redoStack.pop();
+      this.dirty = true;
+      return true;
+    }
+    serverShapesSorted() {
+      return deepClone(this.server.shapes).sort((a, b) => a.frame - b.frame);
+    }
+    /**
+     * Ghi box vào frame. Nếu frame chưa là keyframe thì tạo keyframe mới
+     * (giống khi sửa trên CVAT).
+     */
+    setBox(frame, box) {
+      const idx = this.keyframeIndex(frame);
+      if (idx >= 0) {
+        this.shapes[idx].points = boxToPoints(box, this.shapes[idx].points);
+      } else {
+        const pos = this.at(frame);
+        const base = pos ? pos.left : this.shapes[0];
+        const shape = {
+          type: "cuboid",
+          frame,
+          points: boxToPoints(box, pos ? pos.points : base.points),
+          outside: false,
+          occluded: base ? base.occluded : false,
+          z_order: base ? base.z_order : 0,
+          rotation: 0,
+          attributes: base ? deepClone(base.attributes || []) : []
+        };
+        this.shapes.push(shape);
+        this.shapes.sort((a, b) => a.frame - b.frame);
+      }
+      this.dirty = true;
+    }
+    /**
+     * Bật/tắt outside tại frame (giống phím O của CVAT):
+     * tạo keyframe tại frame nếu chưa có.
+     */
+    setOutside(frame, outside) {
+      const idx = this.keyframeIndex(frame);
+      if (idx >= 0) {
+        this.shapes[idx].outside = outside;
+      } else {
+        const pos = this.at(frame);
+        if (!pos) return;
+        const base = pos.left;
+        this.shapes.push({
+          type: "cuboid",
+          frame,
+          points: pos.points.slice(),
+          outside,
+          occluded: base.occluded,
+          z_order: base.z_order,
+          rotation: 0,
+          attributes: deepClone(base.attributes || [])
+        });
+        this.shapes.sort((a, b) => a.frame - b.frame);
+      }
+      this.dirty = true;
+    }
+    /**
+     * Payload gửi lên CVAT (PATCH action=update):
+     * nguyên track từ server + shapes đã sửa.
+     */
+    toServer() {
+      const t = deepClone(this.server);
+      t.shapes = deepClone(this.shapes);
+      return t;
+    }
+  }
+  class HelperJobStore {
+    constructor(jid) {
+      __publicField(this, "jid");
+      __publicField(this, "job", null);
+      __publicField(this, "meta", null);
+      __publicField(this, "labels", /* @__PURE__ */ new Map());
+      __publicField(this, "frames", []);
+      __publicField(this, "tracks", /* @__PURE__ */ new Map());
+      __publicField(this, "mode", "api");
+      __publicField(this, "extraShapes", 0);
+      __publicField(this, "listeners", /* @__PURE__ */ new Set());
+      this.jid = jid;
+    }
+    on(cb) {
+      this.listeners.add(cb);
+      return () => {
+        this.listeners.delete(cb);
+      };
+    }
+    emit(what) {
+      for (const cb of this.listeners) cb(what);
+    }
+    /**
+     * mode 'live': đọc/ghi thẳng bộ nhớ trang CVAT qua plugin bridge (không cần reload).
+     * mode 'api' : dự phòng khi không kết nối được bridge – đọc/ghi qua REST, phải reload CVAT sau khi lưu.
+     */
+    async load() {
+      const [job, meta, labels, live] = await Promise.all([
+        helperApi.getJob(this.jid),
+        helperApi.getMeta(this.jid),
+        helperApi.getLabels(this.jid),
+        helperLiveBridge.connect(this.jid)
+      ]);
+      this.job = job;
+      this.meta = meta;
+      this.labels = new Map(
+        labels.map((l) => [l.id, l])
+      );
+      this.frames = this.computeFrames();
+      this.mode = live ? "live" : "api";
+      if (live) {
+        const liveTracks = await helperLiveBridge.call("readTracks", { frames: this.frames });
+        this.setLiveTracks(liveTracks);
+      } else {
+        const ann = await helperApi.getAnnotations(this.jid);
+        this.setAnnotations(ann);
+      }
+      this.emit("load");
+    }
+    setLiveTracks(list) {
+      this.extraShapes = 0;
+      this.tracks = /* @__PURE__ */ new Map();
+      for (const t of list) {
+        const serverTrack = {
+          id: t.serverID,
+          label_id: t.labelId,
+          frame: t.shapes[0].frame,
+          shapes: t.shapes
+        };
+        this.tracks.set(
+          t.clientID,
+          new HelperTrackState(serverTrack, t.clientID, t.clientID)
+        );
+      }
+    }
+    /**
+     * Danh sách số frame (tuyệt đối, theo task) thuộc job, theo đúng thứ tự trong chunk.
+     */
+    computeFrames() {
+      const m = this.meta;
+      if (!m) return [];
+      const included = m.included_frames;
+      if (Array.isArray(included) && included.length) {
+        return included.slice().sort((a, b) => a - b);
+      }
+      const frameFilter = m.frame_filter || "";
+      const stepMatch = /step\s*=\s*(\d+)/.exec(frameFilter);
+      const step = stepMatch ? Number(stepMatch[1]) : 1;
+      const startFrame = m.start_frame ?? 0;
+      const stopFrame = m.stop_frame ?? startFrame;
+      const out = [];
+      for (let f = startFrame; f <= stopFrame; f += step) out.push(f);
+      return out;
+    }
+    setAnnotations(ann) {
+      const tags = ann.tags || [];
+      const shapes = ann.shapes || [];
+      const before = tags.length + shapes.length;
+      this.extraShapes = shapes.filter(
+        (s) => s.type === "cuboid"
+      ).length;
+      this.tracks = /* @__PURE__ */ new Map();
+      const tracks = ann.tracks || [];
+      tracks.forEach((t, i) => {
+        if (!t.shapes || !t.shapes.length) return;
+        if (t.shapes[0].type !== "cuboid") return;
+        this.tracks.set(
+          t.id,
+          new HelperTrackState(t, before + i + 1, t.id)
+        );
+      });
+    }
+    track(id) {
+      return this.tracks.get(id);
+    }
+    labelName(labelId) {
+      var _a;
+      return ((_a = this.labels.get(labelId)) == null ? void 0 : _a.name) ?? `label ${labelId}`;
+    }
+    labelColor(labelId) {
+      var _a;
+      return ((_a = this.labels.get(labelId)) == null ? void 0 : _a.color) || "#5ad17a";
+    }
+    dirtyTracks() {
+      return [...this.tracks.values()].filter((t) => t.dirty);
+    }
+    /**
+     * Lưu các track đã sửa. Trước khi ghi, kiểm tra track trên server
+     * có bị đổi từ lúc tải không.
+     */
+    async save(opts = {}) {
+      const dirty = this.dirtyTracks();
+      if (!dirty.length) return { saved: 0 };
+      if (this.mode === "live") return this.saveLive(dirty);
+      const fresh = await helperApi.getAnnotations(this.jid);
+      const freshTracks = fresh.tracks || [];
+      const freshById = new Map(freshTracks.map((t) => [t.id, t]));
+      const conflicts = dirty.filter((t) => {
+        const f = freshById.get(t.serverId);
+        if (!f) return true;
+        const a = JSON.stringify(
+          deepClone(f.shapes).sort((x, y) => x.frame - y.frame).map((s) => [s.frame, s.points, s.outside])
+        );
+        const b = JSON.stringify(
+          t.serverShapesSorted().map((s) => [s.frame, s.points, s.outside])
+        );
+        return a !== b;
+      });
+      if (conflicts.length && !opts.force) {
+        return { conflicts: conflicts.map((t) => t.uiId) };
+      }
+      await helperApi.updateTracks(
+        this.jid,
+        dirty.map((t) => t.toServer())
+      );
+      const after = await helperApi.getAnnotations(this.jid);
+      const afterTracks = after.tracks || [];
+      const afterById = new Map(afterTracks.map((t) => [t.id, t]));
+      for (const t of dirty) {
+        const srv = afterById.get(t.serverId);
+        if (!srv) continue;
+        const undo = t.undoStack;
+        const redo = t.redoStack;
+        t.load(srv);
+        t.undoStack = undo;
+        t.redoStack = redo;
+      }
+      this.emit("saved");
+      return { saved: dirty.length };
+    }
+    /**
+     * Ghi vào bộ nhớ CVAT rồi bấm Save của CVAT. CVAT tự vẽ lại → không cần reload.
+     */
+    async saveLive(dirty) {
+      let changed = 0;
+      for (const t of dirty) {
+        const res = await helperLiveBridge.call("applyTrack", {
+          clientID: t.key,
+          shapes: t.shapes,
+          current: t.serverShapesSorted()
+        });
+        changed += res.changed;
+      }
+      await helperLiveBridge.call("saveCvat", {});
+      const freshList = await helperLiveBridge.call("readTracks", {
+        frames: this.frames
+      });
+      const freshMap = new Map(freshList.map((t) => [t.clientID, t]));
+      for (const t of dirty) {
+        const f = freshMap.get(t.key);
+        if (!f) continue;
+        const undo = t.undoStack;
+        const redo = t.redoStack;
+        t.load({
+          ...t.server,
+          id: f.serverID,
+          shapes: f.shapes
+        });
+        t.undoStack = undo;
+        t.redoStack = redo;
+      }
+      this.emit("saved");
+      return { saved: dirty.length, changed, live: true };
+    }
+  }
+  function lzfDecompress(input, outLength) {
+    const out = new Uint8Array(outLength);
+    let ip = 0;
+    let op = 0;
+    while (ip < input.length) {
+      let ctrl = input[ip++];
+      if (ctrl < 32) {
+        ctrl += 1;
+        if (op + ctrl > outLength) {
+          throw new Error("LZF: dữ liệu hỏng (literal overflow)");
+        }
+        out.set(input.subarray(ip, ip + ctrl), op);
+        ip += ctrl;
+        op += ctrl;
+      } else {
+        let len = ctrl >> 5;
+        let ref = op - ((ctrl & 31) << 8) - 1;
+        if (len === 7) {
+          len += input[ip++];
+        }
+        ref -= input[ip++];
+        len += 2;
+        if (ref < 0 || op + len > outLength) {
+          throw new Error("LZF: dữ liệu hỏng (back-reference overflow)");
+        }
+        for (let k = 0; k < len; k++) {
+          out[op++] = out[ref++];
+        }
+      }
+    }
+    return out;
+  }
+  function createReader(view, type, size) {
+    if (type === "F" && size === 4) return (o) => view.getFloat32(o, true);
+    if (type === "F" && size === 8) return (o) => view.getFloat64(o, true);
+    if (type === "I" && size === 1) return (o) => view.getInt8(o);
+    if (type === "I" && size === 2) return (o) => view.getInt16(o, true);
+    if (type === "I" && size === 4) return (o) => view.getInt32(o, true);
+    if (type === "U" && size === 1) return (o) => view.getUint8(o);
+    if (type === "U" && size === 2) return (o) => view.getUint16(o, true);
+    if (type === "U" && size === 4) return (o) => view.getUint32(o, true);
+    throw new Error(`PCD: kiểu ${type}${size} chưa hỗ trợ`);
+  }
+  function parsePCD(bytes) {
+    var _a, _b;
+    let headerEnd = -1;
+    const limit = Math.min(bytes.length, 65536);
+    let lineStart = 0;
+    const header = {};
+    const td = new TextDecoder();
+    for (let i = 0; i < limit; i++) {
+      if (bytes[i] !== 10) continue;
+      const line = td.decode(bytes.subarray(lineStart, i)).trim();
+      lineStart = i + 1;
+      if (!line || line.startsWith("#")) continue;
+      const [key, ...rest] = line.split(/\s+/);
+      header[key.toUpperCase()] = rest;
+      if (key.toUpperCase() === "DATA") {
+        headerEnd = i + 1;
+        break;
+      }
+    }
+    if (headerEnd < 0) {
+      throw new Error("PCD: không tìm thấy header DATA");
+    }
+    const fields = header.FIELDS;
+    const sizes = header.SIZE.map(Number);
+    const types = header.TYPE;
+    const counts = header.COUNT ? header.COUNT.map(Number) : fields.map(() => 1);
+    const pointsRaw = (_a = header.POINTS) == null ? void 0 : _a[0];
+    const points = Number(
+      pointsRaw ?? Number(header.WIDTH[0]) * Number(((_b = header.HEIGHT) == null ? void 0 : _b[0]) ?? 1)
+    );
+    const mode = header.DATA[0].toLowerCase();
+    const idx = ["x", "y", "z"].map((f) => fields.indexOf(f));
+    if (idx.some((v) => v < 0)) {
+      throw new Error("PCD: thiếu field x/y/z");
+    }
+    const out = new Float32Array(points * 3);
+    let n = 0;
+    if (mode === "ascii") {
+      const text = td.decode(bytes.subarray(headerEnd));
+      const col = [];
+      let c = 0;
+      fields.forEach((_, k) => {
+        col.push(c);
+        c += counts[k];
+      });
+      for (const line of text.split("\n")) {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length < c) continue;
+        const x = +parts[col[idx[0]]];
+        const y = +parts[col[idx[1]]];
+        const z = +parts[col[idx[2]]];
+        if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
+          out[n++] = x;
+          out[n++] = y;
+          out[n++] = z;
+        }
+      }
+      return out.subarray(0, n);
+    }
+    let data;
+    let offsetOf;
+    if (mode === "binary") {
+      data = bytes.subarray(headerEnd);
+      const stride = sizes.reduce((s, sz, k) => s + sz * counts[k], 0);
+      const fieldOff = [];
+      let o = 0;
+      fields.forEach((_, k) => {
+        fieldOff.push(o);
+        o += sizes[k] * counts[k];
+      });
+      offsetOf = (field, i) => i * stride + fieldOff[field];
+    } else if (mode === "binary_compressed") {
+      const hv = new DataView(bytes.buffer, bytes.byteOffset + headerEnd, 8);
+      const compressed = hv.getUint32(0, true);
+      const uncompressed = hv.getUint32(4, true);
+      data = lzfDecompress(
+        bytes.subarray(headerEnd + 8, headerEnd + 8 + compressed),
+        uncompressed
+      );
+      const fieldOff = [];
+      let o = 0;
+      fields.forEach((_, k) => {
+        fieldOff.push(o);
+        o += sizes[k] * counts[k] * points;
+      });
+      offsetOf = (field, i) => fieldOff[field] + i * sizes[field] * counts[field];
+    } else {
+      throw new Error(`PCD: DATA ${mode} chưa hỗ trợ`);
+    }
+    const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    const rd = idx.map((f) => createReader(view, types[f], sizes[f]));
+    for (let i = 0; i < points; i++) {
+      const x = rd[0](offsetOf(idx[0], i));
+      const y = rd[1](offsetOf(idx[1], i));
+      const z = rd[2](offsetOf(idx[2], i));
+      if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
+        out[n++] = x;
+        out[n++] = y;
+        out[n++] = z;
+      }
+    }
+    return out.subarray(0, n);
+  }
+  async function inflateRaw(bytes) {
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+  function findEOCD(view) {
+    const min = Math.max(0, view.byteLength - 65557);
+    for (let i = view.byteLength - 22; i >= min; i--) {
+      if (view.getUint32(i, true) === 101010256) return i;
+    }
+    throw new Error("Không phải file zip hợp lệ");
+  }
+  function listZipEntries(buffer) {
+    const view = new DataView(buffer);
+    const eocd = findEOCD(view);
+    let count = view.getUint16(eocd + 10, true);
+    let cdOffset = view.getUint32(eocd + 16, true);
+    if (cdOffset === 4294967295 || count === 65535) {
+      const locator = eocd - 20;
+      if (locator >= 0 && view.getUint32(locator, true) === 117853008) {
+        const z64 = Number(view.getBigUint64(locator + 8, true));
+        count = Number(view.getBigUint64(z64 + 32, true));
+        cdOffset = Number(view.getBigUint64(z64 + 48, true));
+      }
+    }
+    const decoder = new TextDecoder();
+    const entries = [];
+    let p = cdOffset;
+    for (let n = 0; n < count; n++) {
+      if (view.getUint32(p, true) !== 33639248) {
+        throw new Error("Central directory zip bị hỏng");
+      }
+      const method = view.getUint16(p + 10, true);
+      let compSize = view.getUint32(p + 20, true);
+      const nameLen = view.getUint16(p + 28, true);
+      const extraLen = view.getUint16(p + 30, true);
+      const commentLen = view.getUint16(p + 32, true);
+      let localOffset = view.getUint32(p + 42, true);
+      const name = decoder.decode(new Uint8Array(buffer, p + 46, nameLen));
+      let e = p + 46 + nameLen;
+      const eEnd = e + extraLen;
+      while (e + 4 <= eEnd) {
+        const id = view.getUint16(e, true);
+        const size = view.getUint16(e + 2, true);
+        if (id === 1) {
+          let q = e + 4;
+          if (view.getUint32(p + 24, true) === 4294967295) {
+            q += 8;
+          }
+          if (compSize === 4294967295) {
+            compSize = Number(view.getBigUint64(q, true));
+            q += 8;
+          }
+          if (localOffset === 4294967295) {
+            localOffset = Number(view.getBigUint64(q, true));
+          }
+        }
+        e += 4 + size;
+      }
+      p = eEnd + commentLen;
+      if (name.endsWith("/")) continue;
+      const capturedCompSize = compSize;
+      const capturedLocalOffset = localOffset;
+      const capturedMethod = method;
+      const capturedName = name;
+      entries.push({
+        name,
+        async read() {
+          const lNameLen = view.getUint16(capturedLocalOffset + 26, true);
+          const lExtraLen = view.getUint16(capturedLocalOffset + 28, true);
+          const start = capturedLocalOffset + 30 + lNameLen + lExtraLen;
+          const data = new Uint8Array(buffer, start, capturedCompSize);
+          if (capturedMethod === 0) {
+            return data.slice();
+          }
+          if (capturedMethod === 8) {
+            return inflateRaw(data);
+          }
+          throw new Error(
+            `Zip method ${capturedMethod} chưa hỗ trợ (${capturedName})`
+          );
+        }
+      });
+    }
+    return entries;
+  }
+  const MIME = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    bmp: "image/bmp",
+    webp: "image/webp"
+  };
+  class FrameData {
+    constructor(store, opts = {}) {
+      __publicField(this, "clouds", /* @__PURE__ */ new Map());
+      __publicField(this, "store");
+      __publicField(this, "quality");
+      __publicField(this, "chunkSize");
+      __publicField(this, "chunks", /* @__PURE__ */ new Map());
+      __publicField(this, "images", /* @__PURE__ */ new Map());
+      __publicField(this, "urls", []);
+      this.store = store;
+      this.quality = opts.quality || "compressed";
+      const meta = store.meta;
+      this.chunkSize = (meta == null ? void 0 : meta.chunk_size) || 1;
+    }
+    /**
+     * Tính vị trí chunk và offset cho frame.
+     */
+    position(frame) {
+      const k = this.store.frames.indexOf(frame);
+      if (k < 0) throw new Error(`Frame ${frame} không thuộc job`);
+      return {
+        chunk: Math.floor(k / this.chunkSize),
+        offset: k % this.chunkSize
+      };
+    }
+    /**
+     * Tải chunk (nếu chưa tải), parse từng PCD entry trong zip.
+     */
+    loadChunk(index, onBytes) {
+      if (!this.chunks.has(index)) {
+        const p = (async () => {
+          const buf = await helperApi.getChunk(
+            this.store.jid,
+            index,
+            this.quality,
+            onBytes
+          );
+          const entries = listZipEntries(buf);
+          const base = index * this.chunkSize;
+          await Promise.all(
+            entries.map(async (entry, i) => {
+              const frame = this.store.frames[base + i];
+              if (frame === void 0) return;
+              this.clouds.set(frame, parsePCD(await entry.read()));
+            })
+          );
+        })();
+        p.catch(() => this.chunks.delete(index));
+        this.chunks.set(index, p);
+      }
+      return this.chunks.get(index);
+    }
+    /**
+     * Lấy point cloud cho frame (tải chunk nếu cần).
+     */
+    async cloud(frame) {
+      if (this.clouds.has(frame)) return this.clouds.get(frame);
+      await this.loadChunk(this.position(frame).chunk);
+      return this.clouds.get(frame) || new Float32Array(0);
+    }
+    /**
+     * Tải trước point cloud cho dải frame (song song `concurrency` chunk), báo tiến độ.
+     */
+    async preload(frames, onProgress, concurrency = 3) {
+      const needed = [
+        ...new Set(frames.map((f) => this.position(f).chunk))
+      ];
+      const parts = new Map(
+        needed.map((c) => [c, this.chunks.has(c) ? null : 0])
+      );
+      let done = 0;
+      let loadedBytes = 0;
+      const bytes = /* @__PURE__ */ new Map();
+      const report = (chunk = null) => {
+        let partial = 0;
+        for (const v of parts.values()) if (v) partial += v;
+        onProgress == null ? void 0 : onProgress({
+          done,
+          total: needed.length,
+          loadedBytes,
+          chunk,
+          fraction: needed.length ? Math.min(1, (done + partial) / needed.length) : 1
+        });
+      };
+      report();
+      const queue = needed.slice();
+      const worker = async () => {
+        while (queue.length) {
+          const c = queue.shift();
+          await this.loadChunk(c, (loaded, total) => {
+            loadedBytes += loaded - (bytes.get(c) || 0);
+            bytes.set(c, loaded);
+            parts.set(c, total ? Math.min(0.99, loaded / total) : 0);
+            report();
+          });
+          parts.set(c, null);
+          done += 1;
+          report(c);
+        }
+      };
+      await Promise.all(
+        Array.from(
+          { length: Math.min(concurrency, needed.length) },
+          () => worker()
+        )
+      );
+    }
+    /**
+     * Lấy context images (ảnh camera) cho frame.
+     */
+    contextImages(frame) {
+      if (!this.images.has(frame)) {
+        const p = (async () => {
+          const meta = this.store.meta;
+          const framesArr = (meta == null ? void 0 : meta.frames) || [];
+          const frameIndex = this.store.frames.indexOf(frame);
+          const frameMeta = framesArr[frameIndex] || framesArr[0];
+          if (frameMeta && frameMeta.related_files === 0) return [];
+          const buf = await helperApi.getContextImages(this.store.jid, frame);
+          const entries = listZipEntries(buf);
+          const out = [];
+          for (const entry of entries) {
+            const ext = entry.name.split(".").pop().toLowerCase();
+            const rawBytes = await entry.read();
+            const url = URL.createObjectURL(
+              new Blob([rawBytes.buffer], {
+                type: MIME[ext] || "application/octet-stream"
+              })
+            );
+            this.urls.push(url);
+            out.push({ name: entry.name.split("/").pop(), url });
+          }
+          return out;
+        })();
+        p.catch(() => this.images.delete(frame));
+        this.images.set(frame, p);
+      }
+      return this.images.get(frame);
+    }
+    /**
+     * Giải phóng toàn bộ tài nguyên (Object URLs, clouds, chunks, images).
+     */
+    dispose() {
+      for (const url of this.urls) URL.revokeObjectURL(url);
+      this.urls = [];
+      this.clouds.clear();
+      this.chunks.clear();
+      this.images.clear();
+    }
+  }
+  function h$3(tag, props = {}, ...children) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(props ?? {})) {
+      if (v === void 0 || v === null || v === false) continue;
+      if (k.startsWith("on") && typeof v === "function") {
+        el.addEventListener(k.slice(2).toLowerCase(), v);
+      } else if (k === "class") {
+        el.className = v;
+      } else if (k === "style" && typeof v === "object") {
+        Object.assign(el.style, v);
+      } else if (k in el && typeof v !== "string") {
+        el[k] = v;
+      } else {
+        el.setAttribute(k, v === true ? "" : String(v));
+      }
+    }
+    for (const c of children.flat()) {
+      if (c === null || c === void 0 || c === false) continue;
+      el.append(c instanceof Node ? c : document.createTextNode(String(c)));
+    }
+    return el;
+  }
+  const MODES = [
+    ["bottom", "Giữ đáy box (khuyên dùng)"],
+    ["center", "Giữ tâm box (giống CVAT)"],
+    ["ground", "Bám mặt đất theo point cloud"]
+  ];
+  function median(values) {
+    const s = values.slice().sort((a, b) => a - b);
+    return s.length ? s[Math.floor(s.length / 2)] : NaN;
+  }
+  function fmt$1(v, n = 2) {
+    return Number.isFinite(v) ? v.toFixed(n) : "–";
+  }
+  function mountCase1(app, root) {
+    const store = app.store;
+    const frames = store.frames;
+    const range = { from: frames[0], to: frames[frames.length - 1] };
+    const inputs = /* @__PURE__ */ new Map();
+    const modeSel = h$3(
+      "select",
+      { onchange: () => {
+        app.settings.sizeMode = modeSel.value;
+      } },
+      ...MODES.map(
+        ([v, t]) => h$3("option", { value: v, selected: app.settings.sizeMode === v }, t)
+      )
+    );
+    const fromIn = h$3("input", {
+      type: "number",
+      value: String(range.from),
+      min: String(frames[0]),
+      max: String(frames[frames.length - 1]),
+      onchange: () => {
+        range.from = Number(fromIn.value);
+      }
+    });
+    const toIn = h$3("input", {
+      type: "number",
+      value: String(range.to),
+      min: String(frames[0]),
+      max: String(frames[frames.length - 1]),
+      onchange: () => {
+        range.to = Number(toIn.value);
+      }
+    });
+    const progress = h$3("span", { class: "progress" });
+    const tbody = h$3("tbody");
+    const table = h$3(
+      "table",
+      {},
+      h$3(
+        "thead",
+        {},
+        h$3(
+          "tr",
+          {},
+          ...[
+            "ID",
+            "Label",
+            "Frame",
+            "Keyframe",
+            "L / W / H hiện tại (trung vị)",
+            "L mới",
+            "W mới",
+            "H mới",
+            "Lấy kích thước từ frame",
+            "",
+            ""
+          ].map(
+            (t) => h$3("th", {}, t)
+          )
+        )
+      ),
+      tbody
+    );
+    root.append(
+      h$3(
+        "div",
+        { class: "bar" },
+        h$3("label", {}, "Khi đổi kích thước:", modeSel),
+        h$3("label", {}, "Áp dụng cho frame", fromIn, "→", toIn),
+        progress
+      ),
+      h$3(
+        "div",
+        { class: "bar help" },
+        "Giữ đáy: đổi H thì đáy box đứng yên, chỉ nóc box dịch chuyển. ",
+        "Bám mặt đất: đặt đáy box lên mặt đất ước lượng từ point cloud quanh box (tải point cloud, chậm hơn). ",
+        'Chỉ keyframe được sửa – frame nội suy tự đi theo. Thay đổi chỉ nằm trong tool cho tới khi bấm "Lưu lên CVAT".'
+      ),
+      h$3("div", { class: "scroll" }, table)
+    );
+    function inRange(f) {
+      return f >= Math.min(range.from, range.to) && f <= Math.max(range.from, range.to);
+    }
+    async function apply(track2, size) {
+      const keyframes = track2.shapes.filter((s) => inRange(s.frame));
+      if (!keyframes.length) {
+        app.setStatus("Không có keyframe nào trong dải frame.", "err");
+        return;
+      }
+      const mode = app.settings.sizeMode;
+      if (mode === "ground") {
+        await app.getFrames().preload(
+          keyframes.map((s) => s.frame),
+          (p) => {
+            progress.textContent = `Tải point cloud ${Math.round(p.fraction * 100)}% (${p.done}/${p.total} chunk)…`;
+          }
+        );
+      }
+      app.snapshot([track2.id]);
+      let failed = 0;
+      for (const shape of keyframes) {
+        const box = pointsToBox(shape.points);
+        const res = await app.resizeBox(box, size, shape.frame, mode);
+        if (!res.ok) failed += 1;
+        shape.points = boxToPoints(res.box, shape.points);
+      }
+      track2.dirty = true;
+      progress.textContent = "";
+      app.setStatus(
+        `ID ${track2.uiId}: đã sửa ${keyframes.length} keyframe (chưa lưu)` + (failed ? ` · ${failed} frame không đủ điểm mặt đất → giữ đáy` : ""),
+        failed ? "err" : "ok"
+      );
+      app.changed();
+    }
+    async function snapOnly(track2) {
+      const keyframes = track2.shapes.filter((s) => inRange(s.frame) && !s.outside);
+      await app.getFrames().preload(
+        keyframes.map((s) => s.frame),
+        (p) => {
+          progress.textContent = `Tải point cloud ${Math.round(p.fraction * 100)}% (${p.done}/${p.total} chunk)…`;
+        }
+      );
+      app.snapshot([track2.id]);
+      let failed = 0;
+      for (const shape of keyframes) {
+        const cloud = await app.getFrames().cloud(shape.frame);
+        const res = snapToGround(cloud, pointsToBox(shape.points));
+        if (!res) {
+          failed += 1;
+          continue;
+        }
+        shape.points = boxToPoints(res.box, shape.points);
+      }
+      track2.dirty = true;
+      progress.textContent = "";
+      app.setStatus(
+        `ID ${track2.uiId}: đã đặt ${keyframes.length - failed} keyframe chạm đất` + (failed ? ` · ${failed} frame không đủ điểm` : ""),
+        failed ? "err" : "ok"
+      );
+      app.changed();
+    }
+    function render() {
+      tbody.replaceChildren();
+      const tracks = [...store.tracks.values()].sort((a, b) => a.uiId - b.uiId);
+      if (!tracks.length) {
+        tbody.append(
+          h$3("tr", {}, h$3("td", { colSpan: "11", class: "muted" }, "Job không có track cuboid nào."))
+        );
+        return;
+      }
+      for (const t of tracks) {
+        const sizes = t.shapes.map((s) => s.points.slice(6, 9));
+        const med = [0, 1, 2].map((i) => median(sizes.map((s) => s[i])));
+        const lo = [0, 1, 2].map((i) => Math.min(...sizes.map((s) => s[i])));
+        const hi = [0, 1, 2].map((i) => Math.max(...sizes.map((s) => s[i])));
+        const varies = [0, 1, 2].some((i) => hi[i] - lo[i] > 5e-3);
+        const state = inputs.get(t.id) || { L: "", W: "", H: "", from: t.firstFrame };
+        inputs.set(t.id, state);
+        const mk = (key) => {
+          const input = h$3("input", {
+            type: "number",
+            step: "0.01",
+            min: "0.05",
+            value: state[key],
+            placeholder: fmt$1(med["LWH".indexOf(key)]),
+            oninput: (e) => {
+              state[key] = e.target.value;
+            }
+          });
+          return input;
+        };
+        const L = mk("L");
+        const W = mk("W");
+        const H = mk("H");
+        const fromFrame = h$3("input", {
+          type: "number",
+          value: String(state.from),
+          min: String(t.firstFrame),
+          max: String(t.lastFrame),
+          oninput: (e) => {
+            state.from = Number(e.target.value);
+          }
+        });
+        const pick = () => {
+          const pos = t.at(Number(fromFrame.value));
+          if (!pos) return;
+          [state.L, state.W, state.H] = pos.box.s.map((v) => v.toFixed(3));
+          L.value = state.L;
+          W.value = state.W;
+          H.value = state.H;
+        };
+        const applyBtn = h$3(
+          "button",
+          {
+            class: "primary small",
+            onclick: async () => {
+              const size = [L, W, H].map(
+                (el, i) => el.value === "" ? med[i] : Number(el.value)
+              );
+              if (size.some((v) => !Number.isFinite(v) || v <= 0)) {
+                app.setStatus("L/W/H không hợp lệ", "err");
+                return;
+              }
+              applyBtn.disabled = true;
+              try {
+                await apply(t, size);
+              } catch (err) {
+                app.setStatus(`Lỗi: ${err.message}`, "err");
+              } finally {
+                applyBtn.disabled = false;
+              }
+            }
+          },
+          "Áp dụng"
+        );
+        const kfCount = t.shapes.length;
+        tbody.append(
+          h$3(
+            "tr",
+            { class: t.dirty ? "dirty" : "" },
+            h$3(
+              "td",
+              {},
+              h$3("b", {}, `#${t.uiId}`),
+              h$3("span", { class: "muted" }, t.serverId ? ` (server ${t.serverId})` : " (mới)")
+            ),
+            h$3(
+              "td",
+              {},
+              h$3("span", { class: "dot", style: { background: store.labelColor(t.labelId) } }),
+              store.labelName(t.labelId)
+            ),
+            h$3("td", {}, `f${t.firstFrame} → f${t.lastFrame}`),
+            h$3("td", {}, String(kfCount)),
+            h$3(
+              "td",
+              {
+                title: varies ? `min ${lo.map((v) => fmt$1(v)).join(" / ")}
+max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
+              },
+              med.map((v) => fmt$1(v)).join(" / "),
+              varies ? h$3("span", { class: "kf out", style: { marginLeft: "6px" } }, "không đều") : null
+            ),
+            h$3("td", {}, L),
+            h$3("td", {}, W),
+            h$3("td", {}, H),
+            h$3(
+              "td",
+              {},
+              fromFrame,
+              " ",
+              h$3("button", { class: "small", onclick: pick }, "⤵ lấy")
+            ),
+            h$3(
+              "td",
+              {},
+              applyBtn,
+              " ",
+              h$3(
+                "button",
+                {
+                  class: "small",
+                  title: "Chỉ nâng/hạ box cho đáy chạm đất, không đổi kích thước",
+                  onclick: () => snapOnly(t).catch(
+                    (err) => app.setStatus(`Lỗi: ${err.message}`, "err")
+                  )
+                },
+                "⇩ Chạm đất"
+              )
+            ),
+            h$3(
+              "td",
+              {},
+              h$3(
+                "button",
+                { class: "small", onclick: () => app.switchTab("case2", t.id) },
+                "Mở Case 2 →"
+              )
+            )
+          )
+        );
+      }
+    }
+    render();
+    return {
+      refresh: render,
+      unmount() {
+      }
+    };
+  }
+  const VIEWS = {
+    // u = trục ngang màn hình, v = trục dọc (lên trên), d = trục chiều sâu (đều là trục cục bộ của box)
+    top: { u: "ex", v: "ey", d: "ez", ui: 0, vi: 1, di: 2 },
+    side: { u: "ex", v: "ez", d: "ey", ui: 0, vi: 2, di: 1 },
+    front: { u: "ey", v: "ez", d: "ex", ui: 1, vi: 2, di: 0 }
+  };
+  const VS = `#version 300 es
+  in vec3 aPos;
+  uniform vec3 uC, uU, uV, uD;
+  uniform vec2 uScale, uDepth, uPan;
+  uniform float uPointSize;
+  uniform vec3 uBC, uBx, uBy, uBz, uBHalf;
+  uniform vec3 uColIn, uColOut;
+  out vec3 vCol;
+  void main() {
+    vec3 w = aPos - uC;
+    float d = dot(w, uD);
+    if (d < uDepth.x || d > uDepth.y) {
+      gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+      gl_PointSize = 0.0;
+      vCol = vec3(0.0);
+      return;
+    }
+    gl_Position = vec4(dot(w, uU) * uScale.x + uPan.x, dot(w, uV) * uScale.y + uPan.y, 0.0, 1.0);
+    gl_PointSize = uPointSize;
+    vec3 b = aPos - uBC;
+    vec3 q = vec3(dot(b, uBx), dot(b, uBy), dot(b, uBz));
+    vCol = all(lessThanEqual(abs(q), uBHalf)) ? uColIn : uColOut;
+  }`;
+  const FS = `#version 300 es
+  precision mediump float;
+  in vec3 vCol;
+  out vec4 outColor;
+  void main() { outColor = vec4(vCol, 1.0); }`;
+  function compile(gl, type, src) {
+    const s = gl.createShader(type);
+    if (!s) throw new Error("Không thể tạo WebGL shader");
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+      const info = gl.getShaderInfoLog(s);
+      gl.deleteShader(s);
+      throw new Error(info || "Lỗi biên dịch shader");
+    }
+    return s;
+  }
+  function hexToRgb(hex) {
+    const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(hex || "");
+    return m ? [parseInt(m[1], 16) / 255, parseInt(m[2], 16) / 255, parseInt(m[3], 16) / 255] : [0.35, 0.82, 0.48];
+  }
+  const HANDLE_R = 7;
+  const dotVec = (u, v) => u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
+  const addVec = (u, v) => [u[0] + v[0], u[1] + v[1], u[2] + v[2]];
+  const subVec = (u, v) => [u[0] - v[0], u[1] - v[1], u[2] - v[2]];
+  const scaleVec = (u, k) => [u[0] * k, u[1] * k, u[2] * k];
+  function localToWorldVec(q, c, ax) {
+    return addVec(c, addVec(scaleVec(ax.ex, q[0]), addVec(scaleVec(ax.ey, q[1]), scaleVec(ax.ez, q[2]))));
+  }
+  function worldToLocalVec(p, c, ax) {
+    const v = subVec(p, c);
+    return [dotVec(v, ax.ex), dotVec(v, ax.ey), dotVec(v, ax.ez)];
+  }
+  class GridViewWebGL {
+    constructor(opts) {
+      __publicField(this, "wrap");
+      __publicField(this, "scroller");
+      __publicField(this, "getCloud");
+      __publicField(this, "getBox");
+      __publicField(this, "onEditStart");
+      __publicField(this, "onEdit");
+      __publicField(this, "onEditEnd");
+      __publicField(this, "onEditCancel");
+      __publicField(this, "onZoom");
+      __publicField(this, "settings");
+      __publicField(this, "cells", /* @__PURE__ */ new Set());
+      __publicField(this, "buffers", /* @__PURE__ */ new Map());
+      __publicField(this, "drag", null);
+      __publicField(this, "pending", false);
+      __publicField(this, "dpr", 1);
+      __publicField(this, "glCanvas");
+      __publicField(this, "uiCanvas");
+      __publicField(this, "gl");
+      __publicField(this, "ctx");
+      __publicField(this, "prog");
+      __publicField(this, "loc", {});
+      __publicField(this, "aPos");
+      __publicField(this, "vao");
+      __publicField(this, "onScroll");
+      __publicField(this, "resizeObs");
+      this.wrap = opts.wrap;
+      this.scroller = opts.scroller;
+      this.getCloud = opts.getCloud;
+      this.getBox = opts.getBox;
+      this.onEditStart = opts.onEditStart;
+      this.onEdit = opts.onEdit;
+      this.onEditEnd = opts.onEditEnd;
+      this.onEditCancel = opts.onEditCancel;
+      this.onZoom = opts.onZoom;
+      this.settings = opts.settings;
+      this.glCanvas = document.createElement("canvas");
+      this.uiCanvas = document.createElement("canvas");
+      for (const c of [this.uiCanvas, this.glCanvas]) {
+        Object.assign(c.style, { position: "absolute", left: "0", top: "0", pointerEvents: "none" });
+        this.wrap.insertBefore(c, this.wrap.firstChild);
+      }
+      if (getComputedStyle(this.scroller).position === "static") {
+        this.scroller.style.position = "relative";
+      }
+      this.scroller.style.zIndex = "1";
+      const gl = this.glCanvas.getContext("webgl2", {
+        antialias: false,
+        premultipliedAlpha: false,
+        preserveDrawingBuffer: false
+      });
+      if (!gl) throw new Error("Trình duyệt không hỗ trợ WebGL2");
+      this.gl = gl;
+      const ctx = this.uiCanvas.getContext("2d");
+      if (!ctx) throw new Error("Không thể khởi tạo 2D Context");
+      this.ctx = ctx;
+      const prog = gl.createProgram();
+      if (!prog) throw new Error("Không thể tạo WebGL Program");
+      gl.attachShader(prog, compile(gl, gl.VERTEX_SHADER, VS));
+      gl.attachShader(prog, compile(gl, gl.FRAGMENT_SHADER, FS));
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+        throw new Error(gl.getProgramInfoLog(prog) || "Lỗi link shader");
+      }
+      this.prog = prog;
+      for (const n of [
+        "uC",
+        "uU",
+        "uV",
+        "uD",
+        "uScale",
+        "uDepth",
+        "uPan",
+        "uPointSize",
+        "uBC",
+        "uBx",
+        "uBy",
+        "uBz",
+        "uBHalf",
+        "uColIn",
+        "uColOut"
+      ]) {
+        this.loc[n] = gl.getUniformLocation(prog, n);
+      }
+      this.aPos = gl.getAttribLocation(prog, "aPos");
+      this.vao = gl.createVertexArray();
+      this.onScroll = () => this.requestRender();
+      this.scroller.addEventListener("scroll", this.onScroll, { passive: true });
+      this.resizeObs = new ResizeObserver(() => this.resize());
+      this.resizeObs.observe(this.wrap);
+      this.resize();
+    }
+    destroy() {
+      var _a;
+      this.scroller.removeEventListener("scroll", this.onScroll);
+      this.resizeObs.disconnect();
+      for (const b of this.buffers.values()) {
+        this.gl.deleteBuffer(b.buf);
+      }
+      this.buffers.clear();
+      (_a = this.gl.getExtension("WEBGL_lose_context")) == null ? void 0 : _a.loseContext();
+      this.glCanvas.remove();
+      this.uiCanvas.remove();
+    }
+    resize() {
+      const dpr = window.devicePixelRatio || 1;
+      const w = this.wrap.clientWidth;
+      const h2 = this.wrap.clientHeight;
+      this.dpr = dpr;
+      for (const c of [this.glCanvas, this.uiCanvas]) {
+        c.width = Math.max(1, Math.round(w * dpr));
+        c.height = Math.max(1, Math.round(h2 * dpr));
+        c.style.width = `${w}px`;
+        c.style.height = `${h2}px`;
+      }
+      this.requestRender();
+    }
+    addCell(el, frame, view) {
+      const cell = { el, frame, view, zoom: 1, pan: [0, 0] };
+      this.cells.add(cell);
+      el.addEventListener("pointerdown", (e) => this.pointerDown(e, cell));
+      el.addEventListener("pointermove", (e) => this.pointerHover(e, cell));
+      el.addEventListener("wheel", (e) => this.wheel(e, cell), { passive: false });
+      el.addEventListener("contextmenu", (e) => e.preventDefault());
+      el.addEventListener("dblclick", (e) => {
+        const r = el.getBoundingClientRect();
+        if (!this.hit(cell, e.clientX - r.left, e.clientY - r.top)) {
+          this.resetCell(cell);
+        }
+      });
+      return cell;
+    }
+    removeCell(cell) {
+      this.cells.delete(cell);
+      this.requestRender();
+    }
+    zoomCell(cell, k, mx, my) {
+      var _a;
+      const rect = this.cellRect(cell);
+      if (mx === void 0) mx = rect.w / 2;
+      if (my === void 0) my = rect.h / 2;
+      const nz = Math.min(30, Math.max(0.1, cell.zoom * k));
+      k = nz / cell.zoom;
+      cell.pan[0] = mx - rect.w / 2 - (mx - rect.w / 2 - cell.pan[0]) * k;
+      cell.pan[1] = my - rect.h / 2 - (my - rect.h / 2 - cell.pan[1]) * k;
+      cell.zoom = nz;
+      (_a = this.onZoom) == null ? void 0 : _a.call(this, cell);
+      this.requestRender();
+    }
+    resetCell(cell) {
+      var _a;
+      cell.zoom = 1;
+      cell.pan = [0, 0];
+      (_a = this.onZoom) == null ? void 0 : _a.call(this, cell);
+      this.requestRender();
+    }
+    clearCells() {
+      this.cells.clear();
+    }
+    invalidateCloud(frame) {
+      const b = this.buffers.get(frame);
+      if (b) {
+        this.gl.deleteBuffer(b.buf);
+        this.buffers.delete(frame);
+      }
+      this.requestRender();
+    }
+    requestRender() {
+      if (this.pending) return;
+      this.pending = true;
+      requestAnimationFrame(() => {
+        this.pending = false;
+        this.render();
+      });
+    }
+    // ---------- camera ----------
+    ppm(cell, w, h2) {
+      const S = this.settings;
+      let k;
+      if (S.sceneSpan) {
+        k = w / S.sceneSpan;
+      } else {
+        const s = S.refSize;
+        const V = VIEWS[cell.view];
+        const fit = S.context ? 2.6 : 1.7;
+        k = Math.min(w / (s[V.ui] * fit), h2 / (s[V.vi] * fit));
+      }
+      return k * (S.zoom[cell.view] || 1) * (cell.zoom || 1);
+    }
+    camera(cell, pos) {
+      if (this.drag && this.drag.cell === cell && this.drag.cam) return this.drag.cam;
+      return {
+        c: [pos.box.c[0], pos.box.c[1], pos.box.c[2]],
+        ax: axes(pos.box.r),
+        half: [pos.box.s[0] / 2, pos.box.s[1] / 2, pos.box.s[2] / 2],
+        pan: cell.pan
+      };
+    }
+    cellRect(cell) {
+      const r = cell.el.getBoundingClientRect();
+      const wr = this.wrap.getBoundingClientRect();
+      return { x: r.left - wr.left, y: r.top - wr.top, w: r.width, h: r.height };
+    }
+    visibleRect() {
+      const sr = this.scroller.getBoundingClientRect();
+      const wr = this.wrap.getBoundingClientRect();
+      return {
+        x: sr.left - wr.left,
+        y: sr.top - wr.top,
+        w: this.scroller.clientWidth,
+        h: this.scroller.clientHeight
+      };
+    }
+    project(p, cam, view, rect, ppm) {
+      const V = VIEWS[view];
+      const w = subVec(p, cam.c);
+      return [
+        rect.w / 2 + cam.pan[0] + dotVec(w, cam.ax[V.u]) * ppm,
+        rect.h / 2 + cam.pan[1] - dotVec(w, cam.ax[V.v]) * ppm
+      ];
+    }
+    unproject(px, py, cam, view, rect, ppm) {
+      const V = VIEWS[view];
+      const u = (px - rect.w / 2 - cam.pan[0]) / ppm;
+      const v = -(py - rect.h / 2 - cam.pan[1]) / ppm;
+      return addVec(cam.c, addVec(scaleVec(cam.ax[V.u], u), scaleVec(cam.ax[V.v], v)));
+    }
+    // ---------- render ----------
+    uploadCloud(frame) {
+      const array = this.getCloud(frame);
+      if (!array) return null;
+      let b = this.buffers.get(frame);
+      if (b && b.array === array) return b;
+      const gl = this.gl;
+      if (b) gl.deleteBuffer(b.buf);
+      const buf = gl.createBuffer();
+      if (!buf) return null;
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, array, gl.STATIC_DRAW);
+      b = { array, buf, count: array.length / 3 };
+      this.buffers.set(frame, b);
+      return b;
+    }
+    render() {
+      const gl = this.gl;
+      const ctx = this.ctx;
+      const dpr = this.dpr;
+      const H = this.glCanvas.height;
+      const vis = this.visibleRect();
+      const S = this.settings;
+      const colIn = hexToRgb(S.color);
+      const colOut = [0.78, 0.78, 0.78];
+      gl.disable(gl.SCISSOR_TEST);
+      gl.viewport(0, 0, this.glCanvas.width, H);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, this.uiCanvas.width, this.uiCanvas.height);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      gl.useProgram(this.prog);
+      gl.bindVertexArray(this.vao);
+      gl.enable(gl.SCISSOR_TEST);
+      for (const cell of this.cells) {
+        const r = this.cellRect(cell);
+        const x0 = Math.max(r.x, vis.x);
+        const y0 = Math.max(r.y, vis.y);
+        const x1 = Math.min(r.x + r.w, vis.x + vis.w);
+        const y1 = Math.min(r.y + r.h, vis.y + vis.h);
+        if (x1 <= x0 || y1 <= y0) continue;
+        const pos = this.getBox(cell.frame);
+        gl.scissor(
+          Math.round(x0 * dpr),
+          Math.round(H - y1 * dpr),
+          Math.round((x1 - x0) * dpr),
+          Math.round((y1 - y0) * dpr)
+        );
+        gl.viewport(
+          Math.round(r.x * dpr),
+          Math.round(H - (r.y + r.h) * dpr),
+          Math.round(r.w * dpr),
+          Math.round(r.h * dpr)
+        );
+        gl.clearColor(0.02, 0.02, 0.03, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        if (!pos) continue;
+        const V = VIEWS[cell.view];
+        const cam = this.camera(cell, pos);
+        const ppm = this.ppm(cell, r.w, r.h);
+        const buf = this.uploadCloud(cell.frame);
+        if (buf && buf.count) {
+          const slab = S.slab;
+          const hd = cam.half[V.di];
+          let depth;
+          if (cell.view === "top") {
+            if (S.topAll || S.context) {
+              depth = [S.hideGround ? -cam.half[2] + 0.12 : -1e6, 1e6];
+            } else {
+              depth = [S.hideGround ? -cam.half[2] + 0.12 : -cam.half[2] - 1.5, cam.half[2] + 0.5];
+            }
+          } else {
+            depth = [-hd - slab, hd + slab];
+          }
+          const bax = axes(pos.box.r);
+          const l = this.loc;
+          gl.uniform3fv(l.uC, cam.c);
+          gl.uniform3fv(l.uU, cam.ax[V.u]);
+          gl.uniform3fv(l.uV, cam.ax[V.v]);
+          gl.uniform3fv(l.uD, cam.ax[V.d]);
+          gl.uniform2f(l.uScale, 2 * ppm / r.w, 2 * ppm / r.h);
+          gl.uniform2f(l.uPan, 2 * cam.pan[0] / r.w, -2 * cam.pan[1] / r.h);
+          gl.uniform2f(l.uDepth, depth[0], depth[1]);
+          gl.uniform1f(l.uPointSize, S.pointSize * dpr);
+          gl.uniform3fv(l.uBC, pos.box.c);
+          gl.uniform3fv(l.uBx, bax.ex);
+          gl.uniform3fv(l.uBy, bax.ey);
+          gl.uniform3fv(l.uBz, bax.ez);
+          gl.uniform3fv(l.uBHalf, [pos.box.s[0] / 2 + 0.02, pos.box.s[1] / 2 + 0.02, pos.box.s[2] / 2 + 0.02]);
+          gl.uniform3fv(l.uColIn, colIn);
+          gl.uniform3fv(l.uColOut, colOut);
+          gl.bindBuffer(gl.ARRAY_BUFFER, buf.buf);
+          gl.enableVertexAttribArray(this.aPos);
+          gl.vertexAttribPointer(this.aPos, 3, gl.FLOAT, false, 0, 0);
+          gl.drawArrays(gl.POINTS, 0, buf.count);
+        }
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x0, y0, x1 - x0, y1 - y0);
+        ctx.clip();
+        ctx.translate(r.x, r.y);
+        this.drawBox(ctx, cell, pos, cam, r, ppm, !buf);
+        ctx.restore();
+      }
+      gl.disable(gl.SCISSOR_TEST);
+    }
+    handles(cell, pos, cam, rect, ppm) {
+      const V = VIEWS[cell.view];
+      const box = pos.box;
+      const ax = axes(box.r);
+      const h2 = [box.s[0] / 2, box.s[1] / 2, box.s[2] / 2];
+      const P = (a, b) => {
+        const q = [0, 0, 0];
+        q[V.ui] = a * h2[V.ui];
+        q[V.vi] = b * h2[V.vi];
+        return this.project(localToWorldVec(q, box.c, ax), cam, cell.view, rect, ppm);
+      };
+      const list = [];
+      for (const a of [-1, 0, 1]) {
+        for (const b of [-1, 0, 1]) {
+          if (a === 0 && b === 0) continue;
+          list.push({ kind: "resize", a, b, p: P(a, b) });
+        }
+      }
+      const center = P(0, 0);
+      const top = P(0, 1);
+      const dx = top[0] - center[0];
+      const dy = top[1] - center[1];
+      const len = Math.hypot(dx, dy) || 1;
+      const rot = [top[0] + dx / len * 22, top[1] + dy / len * 22];
+      return { list, center, top, rot, P };
+    }
+    drawBox(ctx, cell, pos, cam, rect, ppm, noCloud) {
+      const color = pos.outside ? "#888888" : this.settings.color;
+      const corners = boxCorners(pos.box).map(
+        (p) => this.project([p[0], p[1], p[2]], cam, cell.view, rect, ppm)
+      );
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = color;
+      ctx.setLineDash(pos.keyframe ? [] : [5, 4]);
+      ctx.beginPath();
+      for (const [i, j] of BOX_EDGES) {
+        ctx.moveTo(corners[i][0], corners[i][1]);
+        ctx.lineTo(corners[j][0], corners[j][1]);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = "11px system-ui, sans-serif";
+      ctx.fillStyle = "#dddddd";
+      ctx.fillText(cell.view.toUpperCase(), 6, 14);
+      if (pos.outside) {
+        ctx.fillStyle = "#f0a020";
+        ctx.fillText("OUTSIDE", 6, 28);
+      }
+      if (noCloud) {
+        ctx.fillStyle = "#aaaaaa";
+        ctx.fillText("đang tải point cloud…", 6, rect.h - 8);
+      }
+      if (pos.outside) return;
+      const hs = this.handles(cell, pos, cam, rect, ppm);
+      const canRotate = cell.view === "top" || this.settings.allowTilt;
+      if (canRotate) {
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(hs.top[0], hs.top[1]);
+        ctx.lineTo(hs.rot[0], hs.rot[1]);
+        ctx.stroke();
+        ctx.fillStyle = "#ffd33d";
+        ctx.beginPath();
+        ctx.arc(hs.rot[0], hs.rot[1], 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      for (const hd of hs.list) {
+        ctx.fillStyle = hd.a !== 0 && hd.b !== 0 ? "#ff4d4d" : "#ffffff";
+        ctx.fillRect(hd.p[0] - 3, hd.p[1] - 3, 6, 6);
+      }
+      if (cell.view === "top") {
+        const front = hs.P(1, 0);
+        ctx.strokeStyle = "#ff4d4d";
+        ctx.beginPath();
+        ctx.moveTo(hs.center[0], hs.center[1]);
+        ctx.lineTo(front[0], front[1]);
+        ctx.stroke();
+      }
+    }
+    // ---------- interaction ----------
+    hit(cell, mx, my) {
+      const pos = this.getBox(cell.frame);
+      if (!pos || pos.outside) return null;
+      const rect = this.cellRect(cell);
+      const cam = this.camera(cell, pos);
+      const ppm = this.ppm(cell, rect.w, rect.h);
+      const hs = this.handles(cell, pos, cam, rect, ppm);
+      const canRotate = cell.view === "top" || this.settings.allowTilt;
+      if (canRotate && Math.hypot(mx - hs.rot[0], my - hs.rot[1]) <= HANDLE_R + 2) {
+        return { kind: "rotate", pos, cam, rect, ppm, hs };
+      }
+      let best = null;
+      for (const hd of hs.list) {
+        const d = Math.hypot(mx - hd.p[0], my - hd.p[1]);
+        if (d <= HANDLE_R && (!best || d < best.d)) {
+          best = { a: hd.a, b: hd.b, d };
+        }
+      }
+      if (best) {
+        return { kind: "resize", a: best.a, b: best.b, pos, cam, rect, ppm, hs };
+      }
+      const V = VIEWS[cell.view];
+      const ax = axes(pos.box.r);
+      const p = this.unproject(mx, my, cam, cell.view, rect, ppm);
+      const q = worldToLocalVec(p, pos.box.c, ax);
+      const hu = pos.box.s[V.ui] / 2;
+      const hv = pos.box.s[V.vi] / 2;
+      const tol = 5 / ppm;
+      const inU = Math.abs(q[V.ui]) <= hu + tol;
+      const inV = Math.abs(q[V.vi]) <= hv + tol;
+      if (inV && Math.abs(Math.abs(q[V.ui]) - hu) <= tol) {
+        return { kind: "resize", a: Math.sign(q[V.ui]) || 1, b: 0, pos, cam, rect, ppm, hs };
+      }
+      if (inU && Math.abs(Math.abs(q[V.vi]) - hv) <= tol) {
+        return { kind: "resize", a: 0, b: Math.sign(q[V.vi]) || 1, pos, cam, rect, ppm, hs };
+      }
+      if (Math.abs(q[V.ui]) < hu && Math.abs(q[V.vi]) < hv) {
+        return { kind: "move", pos, cam, rect, ppm, hs };
+      }
+      return null;
+    }
+    pointerHover(e, cell) {
+      if (this.drag) return;
+      const r = cell.el.getBoundingClientRect();
+      const h2 = this.hit(cell, e.clientX - r.left, e.clientY - r.top);
+      let cursor = "grab";
+      if (h2) {
+        if (h2.kind === "move") cursor = "move";
+        else if (h2.kind === "rotate") cursor = "grab";
+        else if (h2.a && h2.b) cursor = "nwse-resize";
+        else cursor = h2.a ? "ew-resize" : "ns-resize";
+      }
+      cell.el.style.cursor = cursor;
+    }
+    panDrag(e, cell) {
+      e.preventDefault();
+      cell.el.setPointerCapture(e.pointerId);
+      cell.el.style.cursor = "grabbing";
+      let lx = e.clientX;
+      let ly = e.clientY;
+      const move = (ev) => {
+        cell.pan[0] += ev.clientX - lx;
+        cell.pan[1] += ev.clientY - ly;
+        lx = ev.clientX;
+        ly = ev.clientY;
+        this.requestRender();
+      };
+      const up = () => {
+        cell.el.style.cursor = "";
+        cell.el.removeEventListener("pointermove", move);
+        cell.el.removeEventListener("pointerup", up);
+        cell.el.removeEventListener("pointercancel", up);
+      };
+      cell.el.addEventListener("pointermove", move);
+      cell.el.addEventListener("pointerup", up);
+      cell.el.addEventListener("pointercancel", up);
+    }
+    pointerDown(e, cell) {
+      var _a;
+      if (e.target !== cell.el) return;
+      const r = cell.el.getBoundingClientRect();
+      const mx = e.clientX - r.left;
+      const my = e.clientY - r.top;
+      if (e.button === 1 || e.button === 2) {
+        this.panDrag(e, cell);
+        return;
+      }
+      if (e.button !== 0) return;
+      const h2 = this.hit(cell, mx, my);
+      if (!h2) {
+        this.panDrag(e, cell);
+        return;
+      }
+      e.preventDefault();
+      cell.el.setPointerCapture(e.pointerId);
+      const startBox = cloneBox(h2.pos.box);
+      const cam = {
+        c: [h2.cam.c[0], h2.cam.c[1], h2.cam.c[2]],
+        ax: h2.cam.ax,
+        half: [h2.cam.half[0], h2.cam.half[1], h2.cam.half[2]],
+        pan: [h2.cam.pan[0], h2.cam.pan[1]]
+      };
+      this.drag = {
+        cell,
+        kind: h2.kind,
+        a: h2.a,
+        b: h2.b,
+        startBox,
+        cam,
+        rect: h2.rect,
+        ppm: h2.ppm,
+        p0: this.unproject(mx, my, cam, cell.view, h2.rect, h2.ppm),
+        ang0: Math.atan2(-(my - h2.hs.center[1]), mx - h2.hs.center[0]),
+        moved: false
+      };
+      (_a = this.onEditStart) == null ? void 0 : _a.call(this, cell.frame);
+      const move = (ev) => this.pointerMove(ev, cell);
+      const up = () => {
+        var _a2, _b;
+        cell.el.removeEventListener("pointermove", move);
+        cell.el.removeEventListener("pointerup", up);
+        cell.el.removeEventListener("pointercancel", up);
+        const d = this.drag;
+        this.drag = null;
+        if (d) {
+          if (d.moved) {
+            const currentPos = this.getBox(cell.frame);
+            if (currentPos) {
+              (_a2 = this.onEditEnd) == null ? void 0 : _a2.call(this, cell.frame, d.startBox, currentPos.box);
+            }
+          } else {
+            (_b = this.onEditCancel) == null ? void 0 : _b.call(this, cell.frame);
+          }
+        }
+        this.requestRender();
+      };
+      cell.el.addEventListener("pointermove", move);
+      cell.el.addEventListener("pointerup", up);
+      cell.el.addEventListener("pointercancel", up);
+    }
+    pointerMove(e, cell) {
+      var _a;
+      const d = this.drag;
+      if (!d || d.cell !== cell) return;
+      const r = cell.el.getBoundingClientRect();
+      const mx = e.clientX - r.left;
+      const my = e.clientY - r.top;
+      const V = VIEWS[cell.view];
+      const box = cloneBox(d.startBox);
+      const p = this.unproject(mx, my, d.cam, cell.view, d.rect, d.ppm);
+      if (d.kind === "move") {
+        box.c = addVec(d.startBox.c, subVec(p, d.p0));
+      } else if (d.kind === "resize") {
+        const ax = axes(d.startBox.r);
+        const q = worldToLocalVec(p, d.startBox.c, ax);
+        const shift = [0, 0, 0];
+        for (const [axis, sign] of [
+          [V.ui, d.a],
+          [V.vi, d.b]
+        ]) {
+          if (!sign) continue;
+          const half = d.startBox.s[axis] / 2;
+          const size = Math.max(0.05, sign * q[axis] + half);
+          shift[axis] = sign * (size - d.startBox.s[axis]) / 2;
+          box.s[axis] = size;
+        }
+        box.c = localToWorldVec(shift, d.startBox.c, ax);
+      } else if (d.kind === "rotate") {
+        const center = this.project(d.startBox.c, d.cam, cell.view, d.rect, d.ppm);
+        const ang = Math.atan2(-(my - center[1]), mx - center[0]);
+        let delta = ang - d.ang0;
+        if (e.shiftKey) delta = Math.round(delta / (Math.PI / 36)) * (Math.PI / 36);
+        if (cell.view === "top") {
+          if (!d.startBox.r[0] && !d.startBox.r[1]) {
+            box.r[2] = d.startBox.r[2] + delta;
+          } else {
+            box.r = rotateLocal(d.startBox.r, 2, delta);
+          }
+        } else if (cell.view === "side") {
+          box.r = rotateLocal(d.startBox.r, 1, -delta);
+        } else {
+          box.r = rotateLocal(d.startBox.r, 0, delta);
+        }
+      }
+      d.moved = true;
+      (_a = this.onEdit) == null ? void 0 : _a.call(this, cell.frame, box);
+      this.requestRender();
+    }
+    wheel(e, cell) {
+      var _a;
+      e.preventDefault();
+      e.stopPropagation();
+      const delta = e.deltaY || e.deltaX;
+      if (!delta) return;
+      const k = delta < 0 ? 1.15 : 1 / 1.15;
+      if (e.shiftKey) {
+        const z = this.settings.zoom;
+        z[cell.view] = Math.min(20, Math.max(0.2, (z[cell.view] || 1) * k));
+        (_a = this.onZoom) == null ? void 0 : _a.call(this);
+        this.requestRender();
+        return;
+      }
+      const r = cell.el.getBoundingClientRect();
+      this.zoomCell(cell, k, e.clientX - r.left, e.clientY - r.top);
+    }
+  }
+  const HELPER_CSS = `
+  :host { all: initial; }
+  * { box-sizing: border-box; }
+
+  .fab {
+    position: fixed; left: 12px; bottom: 12px; z-index: 2147483000;
+    font: 600 13px system-ui, sans-serif;
+    background: #2563eb; color: #fff; border: 0; border-radius: 20px;
+    padding: 8px 14px; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,.12);
+  }
+  .fab:hover { background: #3b82f6; }
+
+  .overlay {
+    position: fixed; inset: 0; z-index: 2147483001;
+    background: rgba(255, 255, 255, 0.98); color: #09090b;
+    font: 13px/1.4 system-ui, sans-serif;
+    display: flex; flex-direction: column;
+  }
+
+  .bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; background: #fafafa;
+    border-bottom: 1px solid #e4e4e7; flex-wrap: wrap;
+  }
+  .bar .title { font-weight: 700; margin-right: 8px; }
+
+  .grow { flex: 1; }
+
+  button, select, input { font: inherit; color: inherit; }
+
+  button {
+    background: #f4f4f5; border: 1px solid #e4e4e7; border-radius: 6px;
+    padding: 5px 10px; cursor: pointer;
+  }
+  button:hover:not(:disabled) { background: #e4e4e7; }
+  button:disabled { opacity: .45; cursor: default; }
+
+  button.primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+  button.primary:hover:not(:disabled) { background: #3b82f6; }
+
+  button.warn { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+
+  button.small { padding: 2px 6px; font-size: 12px; }
+
+  button.tab { border-radius: 6px 6px 0 0; }
+  button.tab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+
+  select, input {
+    background: #ffffff; border: 1px solid #d4d4d8;
+    border-radius: 5px; padding: 4px 6px;
+  }
+  input[type=number] { width: 72px; }
+  input[type=checkbox] { accent-color: #2563eb; }
+
+  label { display: inline-flex; align-items: center; gap: 4px; }
+
+  .status { color: #71717a; }
+  .status.err { color: #dc2626; }
+  .status.ok { color: #16a34a; }
+
+  .body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+  .banner {
+    background: #fefce8; color: #854d0e;
+    border-bottom: 1px solid #fef08a;
+    padding: 6px 12px; display: flex; gap: 10px; align-items: center;
+  }
+
+  .muted { color: #71717a; }
+
+  .kf {
+    display: inline-block; padding: 0 5px; border-radius: 4px;
+    font-size: 11px; font-weight: 700;
+  }
+  .kf.on { background: #16a34a; color: #fff; }
+  .kf.off { background: #f4f4f5; color: #71717a; }
+  .kf.out { background: #f59e0b; color: #fff; }
+
+  .dot {
+    display: inline-block; width: 10px; height: 10px;
+    border-radius: 50%; margin-right: 6px; vertical-align: middle;
+  }
+
+  table { border-collapse: collapse; width: 100%; }
+  th, td {
+    padding: 6px 8px; border-bottom: 1px solid #e4e4e7;
+    text-align: left; white-space: nowrap;
+  }
+  th {
+    position: sticky; top: 0; background: #fafafa;
+    z-index: 1; font-weight: 600;
+  }
+  tr.dirty td { background: #f0fdf4; }
+
+  .scroll { overflow: auto; flex: 1; min-height: 0; }
+
+  .modal {
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 2147483002;
+    display: flex; flex-direction: column;
+    padding: 16px; gap: 8px;
+    font: 13px/1.4 system-ui, sans-serif; color: #09090b;
+  }
+  .modal:focus, .overlay:focus { outline: none; }
+  .modal > .bar { border-radius: 6px; }
+
+  .modal .bar button.close {
+    background: #09090b; color: #fff;
+    border-color: #09090b; font-weight: 700;
+  }
+  .modal .bar button.close:hover { background: #27272a; }
+
+  .modal .imgs {
+    flex: 1; min-height: 0;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 10px; overflow: auto; padding: 4px;
+    align-content: start; align-items: start;
+  }
+
+  .imgbox {
+    position: relative; margin: 0;
+    border: 2px solid transparent; border-radius: 6px;
+    overflow: hidden; background: #f4f4f5;
+    transition: border-color .1s;
+  }
+  .imgbox:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  }
+  .imgbox img { width: 100%; height: auto; display: block; cursor: zoom-in; }
+  .imgbox figcaption { padding: 4px 8px; color: #52525b; font-size: 12px; }
+
+  .imgbox .max {
+    position: absolute; top: 6px; right: 6px; opacity: 0;
+    transition: opacity .1s;
+    background: rgba(255, 255, 255, 0.95); color: #09090b;
+    border: 1px solid #e4e4e7; font-weight: 700;
+  }
+  .imgbox:hover .max { opacity: 1; }
+
+  .viewer {
+    position: relative; flex: 1; min-height: 0;
+    background: #f8fafc; border: 1px solid #e4e4e7;
+    border-radius: 6px; overflow: hidden;
+    cursor: grab; touch-action: none;
+  }
+  .viewer.dragging { cursor: grabbing; }
+  .viewer canvas { position: absolute; inset: 0; }
+
+  .zoomlbl { min-width: 52px; text-align: center; color: #52525b; }
+  .help { color: #71717a; font-size: 12px; }
+  .progress { color: #2563eb; }
+`;
+  const CASE2_CSS = `
+  .c2-head, .c2-row {
+    display: grid;
+    grid-template-columns: 190px var(--img-col) 1fr 1fr 1fr;
+    gap: 4px;
+  }
+  .c2-head {
+    padding: 4px 8px; background: #fafafa;
+    border-bottom: 1px solid #e4e4e7; font-weight: 600;
+  }
+
+  .c2-wrap { position: relative; flex: 1; min-height: 0; }
+  .c2-scroll {
+    position: absolute; inset: 0;
+    overflow-y: auto; overflow-x: hidden; padding: 4px 8px;
+  }
+
+  .c2-row { height: var(--row-h); margin-bottom: 4px; }
+  .c2-row.sel .c2-info { outline: 2px solid #2563eb; }
+
+  .c2-info {
+    background: #fafafa; border: 1px solid #e4e4e7; border-radius: 4px;
+    padding: 6px; display: flex; flex-direction: column;
+    gap: 4px; overflow: hidden;
+  }
+  .c2-info .head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .c2-info .grid {
+    display: grid; grid-template-columns: auto 1fr;
+    gap: 2px 6px; align-items: center;
+  }
+  .c2-info input[type=number] { width: 100%; padding: 1px 4px; }
+  .c2-info .btns { display: flex; flex-wrap: wrap; gap: 3px; margin-top: auto; }
+
+  .c2-img {
+    background: #f4f4f5; border: 1px solid #e4e4e7; border-radius: 4px;
+    overflow: hidden; display: flex; align-items: center;
+    justify-content: center; cursor: zoom-in;
+    color: #71717a; font-size: 12px;
+  }
+  .c2-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+  .c2-view {
+    position: relative; border-radius: 4px;
+    background: transparent; touch-action: none; user-select: none;
+    outline: 1px solid transparent;
+  }
+  .c2-view:hover { outline-color: #3b82f6; }
+
+  .vtools {
+    position: absolute; top: 4px; right: 4px;
+    display: flex; gap: 3px;
+    opacity: 0; transition: opacity .12s;
+  }
+  .c2-view:hover .vtools { opacity: 1; }
+  .vtools button {
+    padding: 1px 7px; font-size: 13px; line-height: 18px;
+    background: rgba(255, 255, 255, 0.95); color: #09090b;
+    border: 1px solid #e4e4e7; border-radius: 4px;
+  }
+  .vtools button:hover { background: #fff; }
+
+  .osw {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 1px 8px 1px 3px; border-radius: 10px;
+    font-size: 11px; font-weight: 700;
+    border: 1px solid #e4e4e7; background: #f4f4f5;
+    color: #71717a; cursor: pointer;
+  }
+  .osw .knob {
+    width: 14px; height: 14px; border-radius: 50%; background: #a1a1aa;
+  }
+  .osw.on {
+    background: #fefce8; border-color: #facc15; color: #854d0e;
+  }
+  .osw.on .knob { background: #f59e0b; }
+
+  .pbar {
+    position: relative; width: 300px; height: 20px;
+    background: #f4f4f5; border: 1px solid #d4d4d8;
+    border-radius: 10px; overflow: hidden;
+  }
+  .pbar .fill {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 0;
+    background: linear-gradient(90deg, #2563eb, #16a34a);
+    transition: width .2s;
+  }
+  .pbar .ptext {
+    position: relative; display: block; text-align: center;
+    font-size: 11px; line-height: 18px; color: #09090b;
+  }
+
+  .big-wrap {
+    position: relative; flex: 1; min-height: 0;
+    background: #f8fafc; border: 1px solid #e4e4e7;
+    border-radius: 6px; overflow: hidden;
+  }
+  .big-inner { position: absolute; inset: 0; }
+  .big-cell {
+    position: absolute; inset: 0;
+    touch-action: none; user-select: none;
+  }
+
+  .seg button.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+`;
+  function h$2(tag, props = {}, ...children) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(props ?? {})) {
+      if (v === void 0 || v === null || v === false) continue;
+      if (k.startsWith("on") && typeof v === "function") {
+        el.addEventListener(k.slice(2).toLowerCase(), v);
+      } else if (k === "class") {
+        el.className = v;
+      } else if (k === "style" && typeof v === "object") {
+        Object.assign(el.style, v);
+      } else if (k in el && typeof v !== "string") {
+        el[k] = v;
+      } else {
+        el.setAttribute(k, v === true ? "" : String(v));
+      }
+    }
+    for (const c of children.flat()) {
+      if (c === null || c === void 0 || c === false) continue;
+      el.append(c instanceof Node ? c : document.createTextNode(String(c)));
+    }
+    return el;
+  }
+  const fmt = (v, n = 2) => Number.isFinite(v) ? v.toFixed(n) : "–";
+  const deg = (rad) => rad * 180 / Math.PI;
+  const VIEW_NAMES = { top: "Top", side: "Side", front: "Front" };
+  const BIG = { fullScene: true, sceneSpan: 40, slab: 3 };
+  function mountCase2(app, root, initialTrackId) {
+    var _a;
+    const store = app.store;
+    const frameData = app.getFrames();
+    const tracks = [...store.tracks.values()].sort((a, b) => Number(a.uiId) - Number(b.uiId));
+    const S = (_a = app.settings).case2 || (_a.case2 = {
+      zoom: { top: 1, side: 1, front: 1 },
+      pointSize: 2,
+      slab: 1,
+      hideGround: false,
+      allowTilt: false,
+      context: true,
+      syncSize: false,
+      rowH: 230,
+      camera: 0,
+      showImage: true
+    });
+    root.append(h$2("style", {}, CASE2_CSS));
+    if (!tracks.length) {
+      root.append(h$2("div", { class: "bar muted" }, "Job không có track cuboid nào."));
+      return {
+        refresh() {
+        },
+        unmount() {
+        },
+        onKey() {
+        }
+      };
+    }
+    let track2 = (initialTrackId ? store.track(initialTrackId) : null) || tracks[0];
+    let range = null;
+    let grid = null;
+    const extraGrids = /* @__PURE__ */ new Set();
+    let rows = /* @__PURE__ */ new Map();
+    let crops = /* @__PURE__ */ new Map();
+    let observer = null;
+    let cameraNames = [];
+    const settings = {
+      ...S,
+      refSize: [1, 1, 1],
+      color: "#2563eb"
+    };
+    settings.zoom = S.zoom;
+    const trackSel = h$2(
+      "select",
+      { onchange: () => openTrack(store.track(Number(trackSel.value))) },
+      ...tracks.map(
+        (t) => h$2(
+          "option",
+          { value: String(t.id), selected: t.id === track2.id },
+          `#${t.uiId} · ${store.labelName(t.labelId)} · f${t.firstFrame}–f${t.lastFrame}`
+        )
+      )
+    );
+    const fromIn = h$2("input", { type: "number" });
+    const toIn = h$2("input", { type: "number" });
+    const gotoIn = h$2("input", { type: "number", placeholder: "frame" });
+    const camSel = h$2("select", {
+      onchange: () => {
+        S.camera = Number(camSel.value);
+        reloadImages();
+      }
+    });
+    const pfill = h$2("div", { class: "fill" });
+    const ptext = h$2("span", { class: "ptext" });
+    const pbar = h$2("div", { class: "pbar", hidden: true, title: "Tiến độ tải point cloud" }, pfill, ptext);
+    const check = (key, text, title, after) => h$2(
+      "label",
+      { title },
+      h$2("input", {
+        type: "checkbox",
+        checked: !!S[key],
+        onchange: (e) => {
+          S[key] = e.target.checked;
+          settings[key] = S[key];
+          after == null ? void 0 : after();
+          renderAll();
+        }
+      }),
+      text
+    );
+    const num = (key, text, step, min, max, after) => h$2(
+      "label",
+      {},
+      text,
+      h$2("input", {
+        type: "number",
+        value: String(S[key]),
+        step: String(step),
+        min: String(min),
+        max: String(max),
+        style: { width: "60px" },
+        onchange: (e) => {
+          const v = Number(e.target.value);
+          if (Number.isFinite(v)) {
+            S[key] = v;
+            settings[key] = v;
+            after == null ? void 0 : after();
+            renderAll();
+          }
+        }
+      })
+    );
+    const head = h$2(
+      "div",
+      { class: "c2-head" },
+      h$2("span", {}, "Frame"),
+      h$2("span", {}, "Camera"),
+      h$2("span", {}, "Top"),
+      h$2("span", {}, "Side"),
+      h$2("span", {}, "Front")
+    );
+    const scroller = h$2("div", { class: "c2-scroll" });
+    const wrap = h$2("div", { class: "c2-wrap" }, scroller);
+    function applyLayout() {
+      root.style.setProperty("--row-h", `${S.rowH}px`);
+      root.style.setProperty("--img-col", S.showImage ? "1.15fr" : "0px");
+      grid == null ? void 0 : grid.resize();
+    }
+    root.append(
+      h$2(
+        "div",
+        { class: "bar" },
+        h$2("label", {}, "ID", trackSel),
+        h$2("label", {}, "Frame", fromIn, "→", toIn),
+        h$2("button", { class: "small", onclick: () => buildRows() }, "Hiện"),
+        h$2("label", {}, "Đi tới", gotoIn),
+        h$2("label", {}, "Camera", camSel),
+        check("showImage", "Ảnh", "Hiện cột ảnh camera", applyLayout),
+        num("rowH", "Cao dòng", 10, 120, 600, applyLayout),
+        h$2("button", { class: "small", onclick: fitZoom, title: "Đặt lại zoom mọi ô cho vừa box" }, "Fit"),
+        pbar
+      ),
+      h$2(
+        "div",
+        { class: "bar" },
+        check(
+          "syncSize",
+          "Đồng bộ L/W/H cho cả track",
+          "Khi đổi kích thước ở 1 frame, áp kích thước đó cho mọi keyframe (theo chế độ giữ đáy/giữ tâm/bám đất ở Case 1)"
+        ),
+        check(
+          "context",
+          "Hiện xung quanh (giống CVAT)",
+          "Bật: mỗi ô hiện cả mặt đất và vật xung quanh. Tắt: chỉ vùng sát box",
+          () => {
+            crops = /* @__PURE__ */ new Map();
+          }
+        ),
+        check("hideGround", "Top: ẩn mặt đất", "Top view chỉ hiện điểm cao hơn đáy box 12cm"),
+        check("allowTilt", "Cho xoay pitch/roll", "Cho phép xoay ở Side/Front (mặc định khoá, chỉ xoay yaw ở Top)"),
+        num("slab", "Lát cắt ±m", 0.1, 0, 5),
+        num("pointSize", "Cỡ điểm", 0.5, 1, 8),
+        h$2(
+          "span",
+          { class: "help" },
+          "Kéo box = di chuyển · kéo cạnh/góc = đổi size · chấm vàng = xoay (Shift: 5°) · kéo vùng trống = pan · Cuộn chuột = zoom ô (Shift: mọi ô) · ⛶ phóng to · O = outside · ↑/↓ chọn frame"
+        )
+      ),
+      head,
+      wrap
+    );
+    applyLayout();
+    gotoIn.addEventListener("change", () => {
+      const r = rows.get(Number(gotoIn.value));
+      if (r) {
+        r.el.scrollIntoView({ block: "center" });
+        select(Number(gotoIn.value));
+      }
+    });
+    function renderAll() {
+      grid == null ? void 0 : grid.requestRender();
+      for (const g of extraGrids) g.requestRender();
+    }
+    function refSizeOf(t) {
+      const s = [0, 0, 0];
+      for (const sh of t.shapes) {
+        for (let i = 0; i < 3; i++) s[i] = Math.max(s[i], sh.points[6 + i]);
+      }
+      return [Math.max(s[0], 0.3), Math.max(s[1], 0.3), Math.max(s[2], 0.3)];
+    }
+    function getCloud(frame) {
+      const full = frameData.clouds.get(frame);
+      if (!full) return null;
+      const pos = track2.at(frame);
+      if (!pos) return null;
+      const c = pos.box.c;
+      const old = crops.get(frame);
+      if (old && Math.hypot(old.center[0] - c[0], old.center[1] - c[1], old.center[2] - c[2]) < 1.5) {
+        return old.arr;
+      }
+      const ref = settings.refSize;
+      const rh = Math.max(ref[0], ref[1]) / 2 + (settings.context ? 15 : 4);
+      const rv = ref[2] / 2 + (settings.context ? 8 : 3);
+      const out = new Float32Array(full.length);
+      let n = 0;
+      for (let i = 0; i < full.length; i += 3) {
+        const dx = full[i] - c[0];
+        const dy = full[i + 1] - c[1];
+        const dz = full[i + 2] - c[2];
+        if (dx * dx + dy * dy > rh * rh || Math.abs(dz) > rv) continue;
+        out[n++] = full[i];
+        out[n++] = full[i + 1];
+        out[n++] = full[i + 2];
+      }
+      const arr = out.slice(0, n);
+      crops.set(frame, { arr, center: [c[0], c[1], c[2]] });
+      return arr;
+    }
+    let selected = null;
+    function select(frame) {
+      var _a2, _b;
+      if (selected !== null) (_a2 = rows.get(selected)) == null ? void 0 : _a2.el.classList.remove("sel");
+      selected = frame;
+      (_b = rows.get(frame)) == null ? void 0 : _b.el.classList.add("sel");
+    }
+    function editBox(frame, mutate, { sync = false } = {}) {
+      const pos = track2.at(frame);
+      if (!pos || pos.outside) return;
+      app.snapshot([Number(track2.id)]);
+      const box = cloneBox(pos.box);
+      mutate(box);
+      track2.setBox(frame, box);
+      const sizeChanged = box.s.some((v, i) => Math.abs(v - pos.box.s[i]) > 1e-6);
+      if (sync && sizeChanged) syncSize(frame, box.s).then(afterEdit);
+      else afterEdit();
+    }
+    function toggleOutside(frame) {
+      const pos = track2.at(frame);
+      if (!pos) return;
+      app.snapshot([Number(track2.id)]);
+      track2.setOutside(frame, !pos.outside);
+      app.setStatus(`f${frame}: outside ${pos.outside ? "TẮT" : "BẬT"}`, "ok");
+      afterEdit();
+    }
+    async function syncSize(frame, size) {
+      let failed = 0;
+      for (const shape of track2.shapes) {
+        if (shape.frame === frame) continue;
+        const res = await app.resizeBox(
+          { c: [shape.points[0], shape.points[1], shape.points[2]], r: [shape.points[3], shape.points[4], shape.points[5]], s: [shape.points[6], shape.points[7], shape.points[8]] },
+          size,
+          shape.frame
+        );
+        if (!res.ok) failed += 1;
+        shape.points[6] = res.box.s[0];
+        shape.points[7] = res.box.s[1];
+        shape.points[8] = res.box.s[2];
+        shape.points[0] = res.box.c[0];
+        shape.points[1] = res.box.c[1];
+        shape.points[2] = res.box.c[2];
+      }
+      track2.dirty = true;
+      app.setStatus(
+        `Đã đồng bộ L/W/H cho ${track2.shapes.length} keyframe` + (failed ? ` · ${failed} frame không đủ điểm mặt đất → giữ đáy` : ""),
+        failed ? "err" : "ok"
+      );
+    }
+    function afterEdit() {
+      for (const r of rows.values()) r.refresh();
+      renderAll();
+      app.changed();
+    }
+    const editCallbacks = {
+      getCloud,
+      getBox: (frame) => {
+        const pos = track2.at(frame);
+        return pos ? { box: pos.box, keyframe: pos.keyframe, outside: pos.outside } : null;
+      },
+      onEditStart: () => app.snapshot([Number(track2.id)]),
+      onEdit: (frame, box) => {
+        var _a2;
+        track2.setBox(frame, box);
+        (_a2 = rows.get(frame)) == null ? void 0 : _a2.refresh();
+        select(frame);
+        renderAll();
+      },
+      onEditEnd: async (frame, startBox, endBox) => {
+        const sizeChanged = endBox.s.some((v, i) => Math.abs(v - startBox.s[i]) > 1e-6);
+        if (S.syncSize && sizeChanged) await syncSize(frame, endBox.s);
+        afterEdit();
+      },
+      onEditCancel: () => app.dropLastSnapshot()
+    };
+    function outsideSwitch(getFrame) {
+      const el = h$2(
+        "button",
+        {
+          class: "osw",
+          title: "Bật/tắt outside tại frame này (phím O)",
+          onclick: (e) => {
+            e.stopPropagation();
+            toggleOutside(getFrame());
+          }
+        },
+        h$2("span", { class: "knob" }),
+        h$2("span", { class: "lbl" }, "Outside")
+      );
+      el.update = (outside) => {
+        el.classList.toggle("on", !!outside);
+        const lbl = el.querySelector(".lbl");
+        if (lbl) lbl.textContent = outside ? "Outside: BẬT" : "Outside: tắt";
+      };
+      return el;
+    }
+    function buildRow(frame) {
+      const kfBadge = h$2("span", { class: "kf" });
+      const osw = outsideSwitch(() => frame);
+      const field = (title, get, set, step = "0.01") => {
+        const input = h$2("input", {
+          type: "number",
+          step,
+          title,
+          onchange: () => {
+            const v = Number(input.value);
+            if (!Number.isFinite(v)) return;
+            editBox(frame, (box) => set(box, v), {
+              sync: S.syncSize && ["L", "W", "H"].includes(title)
+            });
+          }
+        });
+        return { input, get };
+      };
+      const fields = [
+        field("L", (b) => b.s[0], (b, v) => {
+          b.s[0] = Math.max(0.05, v);
+        }),
+        field("W", (b) => b.s[1], (b, v) => {
+          b.s[1] = Math.max(0.05, v);
+        }),
+        field("H", (b) => b.s[2], (b, v) => {
+          Object.assign(b, resizeKeepBottom(b, [b.s[0], b.s[1], Math.max(0.05, v)]));
+        }),
+        field(
+          "Yaw°",
+          (b) => deg(b.r[2]),
+          (b, v) => {
+            const delta = v * Math.PI / 180 - b.r[2];
+            if (!b.r[0] && !b.r[1]) b.r[2] += delta;
+            else b.r = rotateLocal(b.r, 2, delta);
+          },
+          "0.5"
+        ),
+        field("z", (b) => b.c[2], (b, v) => {
+          b.c[2] = v;
+        })
+      ];
+      const kfDel = h$2(
+        "button",
+        {
+          class: "small",
+          title: "Xoá keyframe này (frame sẽ nội suy lại)",
+          onclick: () => {
+            const idx = track2.keyframeIndex(frame);
+            if (idx <= 0) {
+              app.setStatus("Không xoá được keyframe đầu tiên của track", "err");
+              return;
+            }
+            app.snapshot([Number(track2.id)]);
+            track2.shapes.splice(idx, 1);
+            track2.dirty = true;
+            afterEdit();
+          }
+        },
+        "✕ KF"
+      );
+      const ground = h$2(
+        "button",
+        {
+          class: "small",
+          title: "Nâng/hạ box cho đáy chạm mặt đất (point cloud)",
+          onclick: () => {
+            const cloud = frameData.clouds.get(frame);
+            if (!cloud) {
+              app.setStatus("Point cloud frame này chưa tải xong", "err");
+              return;
+            }
+            const pos = track2.at(frame);
+            if (!pos || pos.outside) return;
+            const res = snapToGround(cloud, pos.box);
+            if (!res) {
+              app.setStatus(`f${frame}: không đủ điểm mặt đất quanh box`, "err");
+              return;
+            }
+            editBox(frame, (b) => {
+              b.c = res.box.c;
+            });
+            app.setStatus(`f${frame}: dịch ${fmt(res.shift * 100, 1)} cm theo trục z`, "ok");
+          }
+        },
+        "⇩ Đất"
+      );
+      const info = h$2(
+        "div",
+        { class: "c2-info", onclick: () => select(frame) },
+        h$2("div", { class: "head" }, h$2("b", {}, `f${frame}`), kfBadge, osw),
+        h$2(
+          "div",
+          { class: "grid" },
+          ...fields.flatMap((f, i) => [
+            h$2("span", { class: "muted" }, ["L", "W", "H", "Yaw°", "z"][i]),
+            f.input
+          ])
+        ),
+        h$2(
+          "div",
+          { class: "btns" },
+          ground,
+          h$2(
+            "button",
+            {
+              class: "small",
+              title: "Áp L/W/H của frame này cho mọi keyframe của track",
+              onclick: async () => {
+                const pos = track2.at(frame);
+                if (!pos) return;
+                app.snapshot([Number(track2.id)]);
+                await syncSize(frame, pos.box.s);
+                afterEdit();
+              }
+            },
+            "L/W/H → tất cả"
+          ),
+          kfDel
+        )
+      );
+      const img = h$2("div", { class: "c2-img", onclick: () => showAllImages(frame) }, "…");
+      const views = ["top", "side", "front"].map(() => h$2("div", { class: "c2-view" }));
+      const el = h$2("div", { class: "c2-row" }, info, img, ...views);
+      el.dataset.frame = String(frame);
+      const refresh = () => {
+        var _a2;
+        const pos = track2.at(frame);
+        if (!pos) {
+          kfBadge.className = "kf off";
+          kfBadge.textContent = "ngoài track";
+          return;
+        }
+        kfBadge.className = `kf ${pos.outside ? "out" : pos.keyframe ? "on" : "off"}`;
+        kfBadge.textContent = pos.outside ? "OUTSIDE" : pos.keyframe ? "KEYFRAME" : "nội suy";
+        osw.update(pos.outside);
+        for (const f of fields) {
+          if (f.input === ((_a2 = f.input.getRootNode()) == null ? void 0 : _a2.activeElement)) continue;
+          f.input.value = f.get(pos.box).toFixed(f.input.step === "0.5" ? 1 : 3);
+          f.input.disabled = pos.outside;
+        }
+        ground.disabled = pos.outside;
+        kfDel.disabled = !pos.keyframe || track2.keyframeIndex(frame) <= 0;
+      };
+      refresh();
+      return { el, info, img, views, refresh, imgLoaded: false };
+    }
+    function attachViewTools(el, cell) {
+      el.append(
+        h$2(
+          "div",
+          { class: "vtools" },
+          h$2(
+            "button",
+            {
+              title: "Phóng to toàn cảnh để sửa",
+              onclick: (e) => {
+                e.stopPropagation();
+                openBigView(cell.frame, cell.view);
+              }
+            },
+            "⛶"
+          )
+        )
+      );
+    }
+    function openBigView(frame, view) {
+      const frames = [...rows.keys()];
+      const cellEl = h$2("div", { class: "big-cell" });
+      const inner = h$2("div", { class: "big-inner" }, cellEl);
+      const bwrap = h$2("div", { class: "big-wrap" }, inner);
+      const bigSettings = Object.create(settings);
+      Object.assign(bigSettings, BIG);
+      bigSettings.zoom = { top: 1, side: 1, front: 1 };
+      const applyScene = () => {
+        bigSettings.sceneSpan = BIG.fullScene ? BIG.sceneSpan : 0;
+        bigSettings.topAll = BIG.fullScene;
+        bigSettings.hideGround = BIG.fullScene ? false : settings.hideGround;
+        bigSettings.slab = BIG.fullScene ? BIG.slab : settings.slab;
+      };
+      applyScene();
+      const big = new GridViewWebGL({
+        wrap: bwrap,
+        scroller: inner,
+        settings: bigSettings,
+        ...editCallbacks,
+        getCloud: (f) => BIG.fullScene ? frameData.clouds.get(f) || null : getCloud(f),
+        onZoom: () => updateBar()
+      });
+      extraGrids.add(big);
+      const cell = big.addCell(cellEl, frame, view);
+      const frameLbl = h$2("b", { style: { minWidth: "48px", textAlign: "center" } });
+      const kfBadge = h$2("span", { class: "kf" });
+      const zoomLbl = h$2("span", { class: "zoomlbl" });
+      const osw = outsideSwitch(() => cell.frame);
+      const viewBtns = Object.keys(VIEW_NAMES).map(
+        (v) => h$2("button", { class: "small", onclick: () => setView(v) }, VIEW_NAMES[v])
+      );
+      function updateBar() {
+        frameLbl.textContent = `f${cell.frame}`;
+        const pos = track2.at(cell.frame);
+        kfBadge.className = `kf ${!pos ? "off" : pos.outside ? "out" : pos.keyframe ? "on" : "off"}`;
+        kfBadge.textContent = !pos ? "–" : pos.outside ? "OUTSIDE" : pos.keyframe ? "KEYFRAME" : "nội suy";
+        osw.update(!!(pos && pos.outside));
+        zoomLbl.textContent = `${Math.round(cell.zoom * 100)}%`;
+        Object.keys(VIEW_NAMES).forEach(
+          (v, i) => viewBtns[i].classList.toggle("active", v === cell.view)
+        );
+        ui.setTitle(`ID #${track2.uiId} · ${VIEW_NAMES[cell.view]}`);
+      }
+      function setFrame(f) {
+        var _a2;
+        cell.frame = f;
+        select(f);
+        (_a2 = rows.get(f)) == null ? void 0 : _a2.el.scrollIntoView({ block: "nearest" });
+        updateBar();
+        big.requestRender();
+      }
+      function step(d) {
+        const i = frames.indexOf(cell.frame);
+        const j = Math.min(frames.length - 1, Math.max(0, i + d));
+        if (j !== i) setFrame(frames[j]);
+      }
+      function setView(v) {
+        cell.view = v;
+        big.resetCell(cell);
+        updateBar();
+      }
+      const ui = app.openModal("", bwrap, {
+        tools: [
+          h$2("button", { class: "small", onclick: () => step(-1), title: "←" }, "◀"),
+          frameLbl,
+          h$2("button", { class: "small", onclick: () => step(1), title: "→" }, "▶"),
+          kfBadge,
+          osw,
+          h$2("span", { class: "seg" }, ...viewBtns),
+          h$2("button", { class: "small", onclick: () => big.zoomCell(cell, 1 / 1.25) }, "−"),
+          zoomLbl,
+          h$2("button", { class: "small", onclick: () => big.zoomCell(cell, 1.25) }, "+"),
+          h$2("button", { class: "small", onclick: () => big.resetCell(cell) }, "Vừa khung"),
+          h$2(
+            "label",
+            { title: "Hiện toàn bộ point cloud như view phóng to của CVAT" },
+            h$2("input", {
+              type: "checkbox",
+              checked: BIG.fullScene,
+              onchange: (e) => {
+                BIG.fullScene = e.target.checked;
+                applyScene();
+                big.resetCell(cell);
+              }
+            }),
+            "Toàn cảnh"
+          ),
+          h$2(
+            "label",
+            { title: "Side/Front: chỉ hiện điểm cách box ± bao nhiêu mét theo chiều sâu" },
+            "Lát cắt ±m",
+            h$2("input", {
+              type: "number",
+              value: String(BIG.slab),
+              step: "0.5",
+              min: "0",
+              max: "100",
+              style: { width: "56px" },
+              onchange: (e) => {
+                const v = Number(e.target.value);
+                if (Number.isFinite(v)) {
+                  BIG.slab = v;
+                  applyScene();
+                  big.requestRender();
+                }
+              }
+            })
+          ),
+          h$2(
+            "span",
+            { class: "help" },
+            "Cuộn = zoom · kéo = pan · ←/→ frame · 1/2/3 = Top/Side/Front · O = outside"
+          )
+        ],
+        onKey: (e) => {
+          var _a2;
+          const k = e.key.toLowerCase();
+          if (((_a2 = e.composedPath()[0]) == null ? void 0 : _a2.tagName) === "INPUT") return;
+          if (k === "arrowleft") step(-1);
+          else if (k === "arrowright") step(1);
+          else if (k === "1") setView("top");
+          else if (k === "2") setView("side");
+          else if (k === "3") setView("front");
+          else if (k === "o") toggleOutside(cell.frame);
+          else if (k === "+" || k === "=") big.zoomCell(cell, 1.25);
+          else if (k === "-") big.zoomCell(cell, 1 / 1.25);
+          else if (k === "0") big.resetCell(cell);
+        },
+        onClose: () => {
+          extraGrids.delete(big);
+          bigViews.delete(ui);
+          big.destroy();
+        }
+      });
+      ui.updateBar = updateBar;
+      bigViews.add(ui);
+      updateBar();
+      big.resize();
+    }
+    const bigViews = /* @__PURE__ */ new Set();
+    async function loadImage(frame) {
+      const r = rows.get(frame);
+      if (!r || r.imgLoaded || !S.showImage) return;
+      r.imgLoaded = true;
+      try {
+        const list = await frameData.contextImages(frame);
+        if (!cameraNames.length && list.length) {
+          cameraNames = list.map((x) => x.name);
+          camSel.replaceChildren(
+            ...cameraNames.map(
+              (n, i) => h$2("option", { value: String(i), selected: i === S.camera }, n)
+            )
+          );
+        }
+        const pick = list[Math.min(S.camera, list.length - 1)];
+        r.img.replaceChildren(
+          pick ? h$2("img", { src: pick.url, alt: pick.name }) : "không có ảnh"
+        );
+      } catch {
+        r.img.textContent = "lỗi tải ảnh";
+        r.imgLoaded = false;
+      }
+    }
+    function reloadImages() {
+      for (const r of rows.values()) r.imgLoaded = false;
+      for (const [frame, r] of rows) {
+        const rect = r.el.getBoundingClientRect();
+        const sr = scroller.getBoundingClientRect();
+        if (rect.bottom > sr.top - 300 && rect.top < sr.bottom + 300) loadImage(frame);
+      }
+    }
+    async function showAllImages(frame) {
+      const list = (await frameData.contextImages(frame).catch(() => [])).map((x) => ({
+        ...x,
+        title: `f${frame} · ${x.name}`
+      }));
+      const view = (i) => {
+        app.openImageViewer(list, i);
+      };
+      app.openModal(
+        `f${frame} · ${list.length} ảnh camera`,
+        h$2(
+          "div",
+          { class: "imgs" },
+          ...list.map(
+            (x, i) => h$2(
+              "figure",
+              { class: "imgbox" },
+              h$2("img", { src: x.url, alt: x.name, onclick: () => view(i) }),
+              h$2(
+                "button",
+                { class: "small max", title: "Phóng to (zoom, kéo ảnh)", onclick: () => view(i) },
+                "⛶ Phóng to"
+              ),
+              h$2("figcaption", {}, x.name)
+            )
+          )
+        )
+      );
+    }
+    function fitZoom() {
+      settings.refSize = refSizeOf(track2);
+      S.zoom.top = S.zoom.side = S.zoom.front = 1;
+      for (const c of (grid == null ? void 0 : grid.cells) || []) {
+        c.zoom = 1;
+        c.pan = [0, 0];
+      }
+      renderAll();
+    }
+    function showProgress(p) {
+      const pct = Math.round(p.fraction * 100);
+      if (p.done >= p.total) {
+        pfill.style.width = "100%";
+        ptext.textContent = "Point cloud: đã tải xong";
+        setTimeout(() => {
+          if (p.done >= p.total) pbar.hidden = true;
+        }, 800);
+        return;
+      }
+      pbar.hidden = false;
+      pfill.style.width = `${pct}%`;
+      const mb = p.loadedBytes / 1048576;
+      ptext.textContent = `Point cloud ${pct}% · ${p.done}/${p.total} chunk${mb >= 0.1 ? ` · ${mb.toFixed(1)} MB` : ""}`;
+    }
+    function buildRows() {
+      const from = Number(fromIn.value);
+      const to = Number(toIn.value);
+      range = [Math.min(from, to), Math.max(from, to)];
+      grid == null ? void 0 : grid.clearCells();
+      observer == null ? void 0 : observer.disconnect();
+      rows = /* @__PURE__ */ new Map();
+      scroller.replaceChildren();
+      observer = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) loadImage(Number(e.target.dataset.frame));
+          }
+        },
+        { root: scroller, rootMargin: "300px" }
+      );
+      const list = store.frames.filter((f) => f >= range[0] && f <= range[1]);
+      for (const frame of list) {
+        const r = buildRow(frame);
+        rows.set(frame, r);
+        scroller.append(r.el);
+        ["top", "side", "front"].forEach(
+          (v, i) => attachViewTools(r.views[i], grid.addCell(r.views[i], frame, v))
+        );
+        observer.observe(r.el);
+      }
+      renderAll();
+      frameData.preload(list, (p) => {
+        showProgress(p);
+        if (p.chunk !== null) renderAll();
+      }).catch((err) => {
+        pbar.hidden = true;
+        app.setStatus(`Lỗi tải point cloud: ${err.message}`, "err");
+      });
+    }
+    function openTrack(t) {
+      track2 = t;
+      trackSel.value = String(t.id);
+      crops = /* @__PURE__ */ new Map();
+      settings.refSize = refSizeOf(t);
+      settings.color = store.labelColor(t.labelId);
+      const first = Math.max(t.firstFrame, store.frames[0]);
+      const last = store.frames[store.frames.length - 1];
+      fromIn.value = String(first);
+      toIn.value = String(last);
+      grid == null ? void 0 : grid.destroy();
+      grid = new GridViewWebGL({
+        wrap,
+        scroller,
+        settings,
+        ...editCallbacks
+      });
+      buildRows();
+    }
+    openTrack(track2);
+    return {
+      refresh() {
+        var _a2;
+        for (const r of rows.values()) r.refresh();
+        for (const b of bigViews) (_a2 = b.updateBar) == null ? void 0 : _a2.call(b);
+        renderAll();
+      },
+      onKey(e) {
+        var _a2, _b;
+        if (((_a2 = e.composedPath()[0]) == null ? void 0 : _a2.tagName) === "INPUT" || e.ctrlKey || e.metaKey) return;
+        const k = e.key.toLowerCase();
+        const frames = [...rows.keys()];
+        if (k === "o" && selected !== null) {
+          toggleOutside(selected);
+          return;
+        }
+        if ((k === "arrowdown" || k === "arrowup") && frames.length) {
+          e.preventDefault();
+          const i = selected === null ? -1 : frames.indexOf(selected);
+          const j = Math.min(frames.length - 1, Math.max(0, i + (k === "arrowdown" ? 1 : -1)));
+          select(frames[j]);
+          (_b = rows.get(frames[j])) == null ? void 0 : _b.el.scrollIntoView({ block: "nearest" });
+        }
+      },
+      unmount() {
+        observer == null ? void 0 : observer.disconnect();
+        grid == null ? void 0 : grid.destroy();
+        grid = null;
+      }
+    };
+  }
+  function h$1(tag, props = {}, ...children) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(props ?? {})) {
+      if (v === void 0 || v === null || v === false) continue;
+      if (k.startsWith("on") && typeof v === "function") {
+        el.addEventListener(k.slice(2).toLowerCase(), v);
+      } else if (k === "class") {
+        el.className = v;
+      } else if (k === "style" && typeof v === "object") {
+        Object.assign(el.style, v);
+      } else if (k in el && typeof v !== "string") {
+        el[k] = v;
+      } else {
+        el.setAttribute(k, v === true ? "" : String(v));
+      }
+    }
+    for (const c of children.flat()) {
+      if (c === null || c === void 0 || c === false) continue;
+      el.append(c instanceof Node ? c : document.createTextNode(String(c)));
+    }
+    return el;
+  }
+  function openImageViewer(list, startIndex, openModalFn) {
+    let index = startIndex;
+    let img = null;
+    let s = 1;
+    let tx = 0;
+    let ty = 0;
+    let fitted = true;
+    const canvas = h$1("canvas");
+    const area = h$1("div", { class: "viewer" }, canvas);
+    const zoomLbl = h$1("span", { class: "zoomlbl" });
+    const ctx = canvas.getContext("2d");
+    function draw() {
+      const dpr = window.devicePixelRatio || 1;
+      const W = area.clientWidth;
+      const H = area.clientHeight;
+      const rW = Math.round(W * dpr);
+      const rH = Math.round(H * dpr);
+      if (canvas.width !== rW || canvas.height !== rH) {
+        canvas.width = rW;
+        canvas.height = rH;
+        canvas.style.width = `${W}px`;
+        canvas.style.height = `${H}px`;
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, W, H);
+      if (!img) return;
+      ctx.imageSmoothingEnabled = s < 3;
+      ctx.drawImage(img, tx, ty, img.width * s, img.height * s);
+      zoomLbl.textContent = `${Math.round(s * 100)}%`;
+    }
+    function fit() {
+      if (!img) return;
+      const W = area.clientWidth;
+      const H = area.clientHeight;
+      s = Math.min(W / img.width, H / img.height);
+      tx = (W - img.width * s) / 2;
+      ty = (H - img.height * s) / 2;
+      fitted = true;
+      draw();
+    }
+    function zoomAt(k, mx, my) {
+      const ns = Math.min(40, Math.max(0.05, s * k));
+      const ratio = ns / s;
+      tx = mx - (mx - tx) * ratio;
+      ty = my - (my - ty) * ratio;
+      s = ns;
+      fitted = false;
+      draw();
+    }
+    function load(i) {
+      index = (i % list.length + list.length) % list.length;
+      ui.setTitle(
+        `${list[index].title || list[index].name} · ${index + 1}/${list.length}`
+      );
+      const im = new Image();
+      im.onload = () => {
+        img = im;
+        fit();
+      };
+      im.src = list[index].url;
+    }
+    area.addEventListener(
+      "wheel",
+      (e) => {
+        e.preventDefault();
+        const r = area.getBoundingClientRect();
+        zoomAt(
+          e.deltaY < 0 ? 1.2 : 1 / 1.2,
+          e.clientX - r.left,
+          e.clientY - r.top
+        );
+      },
+      { passive: false }
+    );
+    area.addEventListener("pointerdown", (e) => {
+      area.setPointerCapture(e.pointerId);
+      area.classList.add("dragging");
+      let lx = e.clientX;
+      let ly = e.clientY;
+      const move = (ev) => {
+        tx += ev.clientX - lx;
+        ty += ev.clientY - ly;
+        lx = ev.clientX;
+        ly = ev.clientY;
+        fitted = false;
+        draw();
+      };
+      const up = () => {
+        area.classList.remove("dragging");
+        area.removeEventListener("pointermove", move);
+        area.removeEventListener("pointerup", up);
+      };
+      area.addEventListener("pointermove", move);
+      area.addEventListener("pointerup", up);
+    });
+    area.addEventListener("dblclick", fit);
+    const center = (k) => zoomAt(k, area.clientWidth / 2, area.clientHeight / 2);
+    const tools = [
+      h$1("button", { class: "small", onclick: () => load(index - 1), title: "←" }, "◀"),
+      h$1("button", { class: "small", onclick: () => load(index + 1), title: "→" }, "▶"),
+      h$1("button", { class: "small", onclick: () => center(1 / 1.25), title: "-" }, "−"),
+      zoomLbl,
+      h$1("button", { class: "small", onclick: () => center(1.25), title: "+" }, "+"),
+      h$1(
+        "button",
+        { class: "small", onclick: fit, title: "Vừa khung (double-click)" },
+        "Vừa khung"
+      ),
+      h$1(
+        "button",
+        {
+          class: "small",
+          onclick: () => {
+            if (!img) return;
+            const W = area.clientWidth;
+            const H = area.clientHeight;
+            s = 1;
+            tx = (W - img.width) / 2;
+            ty = (H - img.height) / 2;
+            fitted = false;
+            draw();
+          }
+        },
+        "1:1"
+      ),
+      h$1(
+        "span",
+        { class: "help" },
+        "Cuộn = zoom · kéo = di chuyển · double-click = vừa khung · ←/→ đổi ảnh"
+      )
+    ];
+    const ro = new ResizeObserver(() => fitted ? fit() : draw());
+    const ui = openModalFn("", area, {
+      tools,
+      onKey: (e) => {
+        if (e.key === "ArrowLeft") load(index - 1);
+        else if (e.key === "ArrowRight") load(index + 1);
+        else if (e.key === "+" || e.key === "=") center(1.25);
+        else if (e.key === "-") center(1 / 1.25);
+        else if (e.key === "0") fit();
+      },
+      onClose: () => ro.disconnect()
+    });
+    ro.observe(area);
+    load(index);
+    return ui;
+  }
+  function h(tag, props = {}, ...children) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(props ?? {})) {
+      if (v === void 0 || v === null || v === false) continue;
+      if (k.startsWith("on") && typeof v === "function") {
+        el.addEventListener(k.slice(2).toLowerCase(), v);
+      } else if (k === "class") {
+        el.className = v;
+      } else if (k === "style" && typeof v === "object") {
+        Object.assign(el.style, v);
+      } else if (k in el && typeof v !== "string") {
+        el[k] = v;
+      } else {
+        el.setAttribute(k, v === true ? "" : String(v));
+      }
+    }
+    for (const c of children.flat()) {
+      if (c === null || c === void 0 || c === false) continue;
+      el.append(c instanceof Node ? c : document.createTextNode(String(c)));
+    }
+    return el;
+  }
+  const _HelperOverlay = class _HelperOverlay {
+    constructor() {
+      __publicField(this, "store", null);
+      __publicField(this, "frames", null);
+      __publicField(this, "settings", {
+        sizeMode: "bottom"
+      });
+      __publicField(this, "host", null);
+      __publicField(this, "shadow", null);
+      __publicField(this, "overlay", null);
+      __publicField(this, "statusEl", null);
+      __publicField(this, "modeEl", null);
+      __publicField(this, "saveBtn", null);
+      __publicField(this, "undoBtn", null);
+      __publicField(this, "redoBtn", null);
+      __publicField(this, "bannerEl", null);
+      __publicField(this, "bodyEl", null);
+      __publicField(this, "tabBtns", {});
+      __publicField(this, "currentTab", "case1");
+      __publicField(this, "mounted", null);
+      __publicField(this, "modalStack", []);
+      __publicField(this, "history", []);
+      __publicField(this, "redoHistory", []);
+      __publicField(this, "savedCount", 0);
+      this.ensureMainWorldBridge();
+    }
+    static getInstance() {
+      if (!_HelperOverlay.instance) {
+        _HelperOverlay.instance = new _HelperOverlay();
+      }
+      return _HelperOverlay.instance;
+    }
+    ensureMainWorldBridge() {
+      if (typeof window === "undefined") return;
+      if (window.__cvatHelperBridgeInjected) return;
+      window.__cvatHelperBridgeInjected = true;
+      try {
+        const script = document.createElement("script");
+        script.textContent = getHelperBridgeMainScript();
+        (document.head || document.documentElement).appendChild(script);
+        script.remove();
+      } catch (e) {
+        console.warn("[CVAT Helper] Không thể inject live bridge script:", e);
+      }
+    }
+    isOpen() {
+      return this.overlay !== null;
+    }
+    getFrames() {
+      if (this.frames && this.store && this.frames.store.jid !== this.store.jid) {
+        this.frames.dispose();
+        this.frames = null;
+      }
+      if (!this.frames && this.store) {
+        this.frames = new FrameData(this.store);
+      }
+      if (this.frames && this.store) {
+        this.frames.store = this.store;
+      }
+      return this.frames;
+    }
+    async resizeBox(box, size, frame, mode = this.settings.sizeMode) {
+      if (mode === "center") {
+        return { box: { ...cloneBox(box), s: [size[0], size[1], size[2]] }, ok: true };
+      }
+      const kept = resizeKeepBottom(box, size);
+      if (mode === "bottom") return { box: kept, ok: true };
+      const cloud = await this.getFrames().cloud(frame);
+      const snapped = snapToGround(cloud, kept);
+      return snapped ? { box: snapped.box, ok: true } : { box: kept, ok: false };
+    }
+    snapshot(ids) {
+      var _a;
+      if (!this.store) return;
+      for (const id of ids) {
+        (_a = this.store.track(id)) == null ? void 0 : _a.snapshot();
+      }
+      this.history.push(ids);
+      this.redoHistory = [];
+    }
+    dropLastSnapshot() {
+      var _a;
+      const ids = this.history.pop();
+      if (!ids || !this.store) return;
+      for (const id of ids) {
+        (_a = this.store.track(id)) == null ? void 0 : _a.undoStack.pop();
+      }
+    }
+    undo() {
+      var _a;
+      const ids = this.history.pop();
+      if (!ids || !this.store) return false;
+      for (const id of ids) {
+        (_a = this.store.track(id)) == null ? void 0 : _a.undo();
+      }
+      this.redoHistory.push(ids);
+      this.changed();
+      return true;
+    }
+    redo() {
+      var _a;
+      const ids = this.redoHistory.pop();
+      if (!ids || !this.store) return false;
+      for (const id of ids) {
+        (_a = this.store.track(id)) == null ? void 0 : _a.redo();
+      }
+      this.history.push(ids);
+      this.changed();
+      return true;
+    }
+    setStatus(text, kind = "") {
+      if (!this.statusEl) return;
+      this.statusEl.textContent = text;
+      this.statusEl.className = `status ${kind}`;
+    }
+    showBanner(text, actions = []) {
+      if (!this.bannerEl) return;
+      this.bannerEl.replaceChildren(
+        h(
+          "div",
+          { class: "banner" },
+          h("span", {}, text),
+          ...actions,
+          h("button", { class: "small", onclick: () => {
+            var _a;
+            return (_a = this.bannerEl) == null ? void 0 : _a.replaceChildren();
+          } }, "✕")
+        )
+      );
+    }
+    changed() {
+      var _a, _b;
+      if (!this.store) return;
+      const n = this.store.dirtyTracks().length;
+      const label = this.store.mode === "live" ? "Lưu vào CVAT" : "Lưu lên CVAT";
+      if (this.saveBtn) {
+        this.saveBtn.textContent = n ? `${label} (${n} track)` : label;
+        this.saveBtn.disabled = !n;
+      }
+      if (this.undoBtn) this.undoBtn.disabled = !this.history.length;
+      if (this.redoBtn) this.redoBtn.disabled = !this.redoHistory.length;
+      (_b = (_a = this.mounted) == null ? void 0 : _a.refresh) == null ? void 0 : _b.call(_a);
+    }
+    switchTab(id, arg) {
+      var _a, _b;
+      (_b = (_a = this.mounted) == null ? void 0 : _a.unmount) == null ? void 0 : _b.call(_a);
+      if (this.bodyEl) this.bodyEl.replaceChildren();
+      this.currentTab = id;
+      for (const [k, b] of Object.entries(this.tabBtns)) {
+        b.classList.toggle("active", k === id);
+      }
+      if (id === "case1") {
+        this.mounted = mountCase1(this, this.bodyEl);
+      } else if (id === "case2") {
+        this.mounted = mountCase2(this, this.bodyEl, arg);
+      }
+      this.changed();
+    }
+    openModal(title, content, opts = {}) {
+      var _a;
+      const titleEl = h("b", {}, title);
+      const entry = {
+        modal: null,
+        opts,
+        titleEl
+      };
+      const modal = h(
+        "div",
+        {
+          class: "modal",
+          tabindex: "-1",
+          onclick: (e) => {
+            if (e.target === modal) this.closeTopModal();
+          }
+        },
+        h(
+          "div",
+          { class: "bar" },
+          titleEl,
+          ...opts.tools || [],
+          h("span", { class: "grow" }),
+          h("button", { class: "close", onclick: () => this.closeModalEntry(entry) }, "✕ Đóng (Esc)")
+        ),
+        content
+      );
+      entry.modal = modal;
+      this.modalStack.push(entry);
+      (_a = this.shadow) == null ? void 0 : _a.append(modal);
+      modal.focus({ preventScroll: true });
+      return {
+        modal,
+        setTitle: (t) => {
+          titleEl.textContent = t;
+        },
+        close: () => this.closeModalEntry(entry)
+      };
+    }
+    openImageViewer(list, start = 0) {
+      return openImageViewer(list, start, (title, content, opts) => this.openModal(title, content, opts));
+    }
+    closeModalEntry(entry) {
+      var _a, _b, _c;
+      const i = this.modalStack.indexOf(entry);
+      if (i < 0) return;
+      this.modalStack.splice(i, 1);
+      entry.modal.remove();
+      (_b = (_a = entry.opts).onClose) == null ? void 0 : _b.call(_a);
+      (_c = this.modalStack.length ? this.modalStack[this.modalStack.length - 1].modal : this.overlay) == null ? void 0 : _c.focus({
+        preventScroll: true
+      });
+    }
+    closeTopModal() {
+      if (this.modalStack.length) {
+        this.closeModalEntry(this.modalStack[this.modalStack.length - 1]);
+      }
+    }
+    ensureHost() {
+      if (this.host) return;
+      this.host = h("div", { id: "cvat-helper-overlay-root" });
+      this.shadow = this.host.attachShadow({ mode: "open" });
+      this.shadow.append(h("style", {}, HELPER_CSS));
+      for (const type of ["keydown", "keyup", "keypress"]) {
+        this.host.addEventListener(type, (e) => {
+          if (this.overlay && type === "keydown") this.onKey(e);
+          e.stopPropagation();
+        });
+      }
+      document.documentElement.append(this.host);
+    }
+    onKey(e) {
+      var _a, _b, _c, _d, _e;
+      const k = e.key.toLowerCase();
+      const typing = ((_a = e.composedPath()[0]) == null ? void 0 : _a.tagName) === "INPUT";
+      if ((e.ctrlKey || e.metaKey) && k === "s") {
+        e.preventDefault();
+        this.save();
+        return;
+      }
+      if (!typing && (e.ctrlKey || e.metaKey) && k === "z" && !e.shiftKey) {
+        e.preventDefault();
+        this.undo();
+        return;
+      }
+      if (!typing && (e.ctrlKey || e.metaKey) && (k === "y" || k === "z" && e.shiftKey)) {
+        e.preventDefault();
+        this.redo();
+        return;
+      }
+      if (this.modalStack.length) {
+        if (k === "escape") {
+          e.preventDefault();
+          this.closeTopModal();
+          return;
+        }
+        (_c = (_b = this.modalStack[this.modalStack.length - 1].opts).onKey) == null ? void 0 : _c.call(_b, e);
+        return;
+      }
+      if (k === "escape") {
+        this.close();
+        return;
+      }
+      (_e = (_d = this.mounted) == null ? void 0 : _d.onKey) == null ? void 0 : _e.call(_d, e);
+    }
+    async open(jobId, initialTrackId) {
+      var _a;
+      if (this.overlay) return;
+      this.ensureHost();
+      this.overlay = h("div", { class: "overlay", tabindex: "-1" });
+      this.statusEl = h("span", { class: "status" });
+      this.modeEl = h("span");
+      this.saveBtn = h("button", { class: "primary", onclick: () => this.save(), disabled: true }, "Lưu lên CVAT");
+      this.undoBtn = h("button", { onclick: () => this.undo(), disabled: true, title: "Ctrl+Z" }, "↶ Hoàn tác");
+      this.redoBtn = h("button", { onclick: () => this.redo(), disabled: true, title: "Ctrl+Y" }, "↷ Làm lại");
+      this.bannerEl = h("div");
+      this.bodyEl = h("div", { class: "body" });
+      this.tabBtns = {};
+      const tabsDef = {
+        case1: "Case 1 · Sửa L/W/H",
+        case2: "Case 2 · Duyệt theo ID"
+      };
+      const tabsEl = h(
+        "span",
+        {},
+        ...Object.entries(tabsDef).map(([id, title]) => {
+          const btn = h("button", { class: "tab", onclick: () => this.switchTab(id) }, title);
+          this.tabBtns[id] = btn;
+          return btn;
+        })
+      );
+      this.overlay.append(
+        h(
+          "div",
+          { class: "bar" },
+          h("span", { class: "title" }, `🧰 Helper Studio · Job #${jobId}`),
+          tabsEl,
+          h("span", { class: "grow" }),
+          this.modeEl,
+          this.statusEl,
+          this.undoBtn,
+          this.redoBtn,
+          h("button", { onclick: () => this.reload(), title: "Bỏ thay đổi, tải lại annotation từ CVAT" }, "⟳ Tải lại"),
+          this.saveBtn,
+          h("button", { onclick: () => this.close() }, "✕ Đóng")
+        ),
+        this.bannerEl,
+        this.bodyEl
+      );
+      (_a = this.shadow) == null ? void 0 : _a.append(this.overlay);
+      this.overlay.focus();
+      this.store = new HelperJobStore(jobId);
+      this.history = [];
+      this.redoHistory = [];
+      this.setStatus("Đang tải annotation…");
+      try {
+        await this.store.load();
+        this.setStatus(`${this.store.tracks.size} track cuboid · ${this.store.frames.length} frame`, "ok");
+        this.modeEl.replaceChildren(
+          this.store.mode === "live" ? h("span", { class: "kf on", title: "Đọc/ghi thẳng vào CVAT đang mở – không cần reload" }, "● LIVE") : h("span", { class: "kf out", title: "Lưu qua REST API – cần reload CVAT sau khi lưu" }, "● API")
+        );
+        if (this.store.mode !== "live") {
+          this.showBanner("Chế độ API: lưu qua REST API. Lưu xong cần reload lại CVAT.");
+        }
+        this.switchTab(initialTrackId ? "case2" : "case1", initialTrackId);
+      } catch (err) {
+        console.error("[CVAT Helper]", err);
+        this.setStatus(`Lỗi tải dữ liệu: ${err.message}`, "err");
+      }
+    }
+    async save() {
+      var _a;
+      if (!this.store || !this.store.dirtyTracks().length) return;
+      if (this.saveBtn) this.saveBtn.disabled = true;
+      this.setStatus("Đang lưu…");
+      try {
+        let res = await this.store.save();
+        if (res.conflicts) {
+          const ok = confirm(
+            `Track ID ${res.conflicts.join(", ")} đã bị thay đổi trên CVAT kể từ lúc tool tải về.
+
+OK = ghi đè
+Cancel = hủy`
+          );
+          if (!ok) {
+            this.setStatus("Chưa lưu – có xung đột.", "err");
+            this.changed();
+            return;
+          }
+          res = await this.store.save({ force: true });
+        }
+        this.setStatus(`Đã lưu ${res.saved} track lúc ${(/* @__PURE__ */ new Date()).toLocaleTimeString()}`, "ok");
+        if (res.live) {
+          (_a = this.bannerEl) == null ? void 0 : _a.replaceChildren();
+          this.changed();
+          return;
+        }
+        this.savedCount += res.saved;
+        this.showBanner(
+          "Đã lưu lên server. Reload CVAT để cập nhật canvas Three.js.",
+          [h("button", { class: "small primary", onclick: () => location.reload() }, "Reload CVAT ngay")]
+        );
+      } catch (err) {
+        console.error("[CVAT Helper]", err);
+        this.setStatus(`Lỗi lưu: ${err.message}`, "err");
+      }
+      this.changed();
+    }
+    async reload() {
+      var _a, _b;
+      if (((_a = this.store) == null ? void 0 : _a.dirtyTracks().length) && !confirm("Bỏ mọi thay đổi chưa lưu và tải lại từ CVAT?")) return;
+      const tab = this.currentTab;
+      const jid = (_b = this.store) == null ? void 0 : _b.jid;
+      this.teardown();
+      this.currentTab = tab;
+      if (jid) this.open(jid);
+    }
+    teardown() {
+      var _a, _b, _c;
+      (_b = (_a = this.mounted) == null ? void 0 : _a.unmount) == null ? void 0 : _b.call(_a);
+      this.mounted = null;
+      this.store = null;
+      (_c = this.overlay) == null ? void 0 : _c.remove();
+      this.overlay = null;
+      while (this.modalStack.length) this.closeTopModal();
+    }
+    close() {
+      var _a;
+      if (((_a = this.store) == null ? void 0 : _a.dirtyTracks().length) && !confirm("Còn thay đổi CHƯA LƯU. Đóng và bỏ các thay đổi này?")) return;
+      const saved = this.savedCount;
+      this.teardown();
+      if (saved && confirm("Bạn đã lưu thay đổi. Reload trang CVAT bây giờ để thấy dữ liệu mới trên Canvas?")) {
+        location.reload();
+      }
+    }
+  };
+  __publicField(_HelperOverlay, "instance", null);
+  let HelperOverlay = _HelperOverlay;
   class FloatingPanel {
     constructor() {
       __publicField(this, "container", null);
@@ -13767,6 +18093,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       __publicField(this, "searchKeyword", "");
       __publicField(this, "autoSelectListenerAttached", false);
       __publicField(this, "autoCenterOnFrame", localStorage.getItem("CVAT_3D_SUITE_AUTO_CENTER_FRAME") !== "false");
+      // Cấu hình Chế độ màu mây điểm LiDAR & Nhuộm màu xe bọc
+      __publicField(this, "pointColorMode", localStorage.getItem("cvat_3d_point_color_mode") || "intensity");
+      __publicField(this, "colorizeBoxedPoints", localStorage.getItem("cvat_3d_colorize_boxed") !== "false");
       // Thống kê vòng đời của Track ID đang chọn
       __publicField(this, "trackStats", null);
       __publicField(this, "trackStatsLoading", false);
@@ -13827,6 +18156,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         };
         this.loadVinCalibration();
         CVATBridge.setAutoCenterOnFrameChange(this.autoCenterOnFrame);
+        CVATBridge.setPointCloudColorMode(this.pointColorMode, this.colorizeBoxedPoints);
       }
       this.scheduleUpdate();
       if (!HeaderSuiteButton.isSuiteEnabled()) {
@@ -14790,7 +19120,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     /**
      * Xử lý Cập nhật kích thước (L, W, H) linh hoạt: Áp dụng Chỉ Frame này hoặc Toàn bộ Track
      */
-    async handleUpdateDimensions(l, w, h, applyToTrack) {
+    async handleUpdateDimensions(l, w, h2, applyToTrack) {
       if (!this.currentCtx || !this.currentCtx.jobId) {
         this.showToast("Chưa kết nối Job CVAT!", "warning");
         return;
@@ -14799,7 +19129,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.showToast("Vui lòng chọn xe trước!", "warning");
         return;
       }
-      if (l <= 0 || w <= 0 || h <= 0) {
+      if (l <= 0 || w <= 0 || h2 <= 0) {
         this.showToast("Kích thước không hợp lệ!", "warning");
         return;
       }
@@ -14807,7 +19137,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       await this.pushUndoSnapshot("Cập nhật Kích Thước", applyToTrack);
       this.isProcessing = true;
       const scopeMsg = applyToTrack ? "toàn bộ track" : "frame này";
-      this.showToast(`Đang lưu ${l}x${w}x${h}m cho ${scopeMsg}...`, "info");
+      this.showToast(`Đang lưu ${l}x${w}x${h2}m cho ${scopeMsg}...`, "info");
       try {
         const serverId = this.selectedServerId || this.selectedUiId;
         const res = await CVATBridge.updateTrackDimensions(
@@ -14816,21 +19146,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           serverId,
           l,
           w,
-          h,
+          h2,
           applyToTrack
         );
         this.currentL = l;
         this.currentW = w;
-        this.currentH = h;
+        this.currentH = h2;
         this.editL = l;
         this.editW = w;
-        this.editH = h;
+        this.editH = h2;
         this.currentZ = res.newZ;
         const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
         if (targetItem) {
           targetItem.l = l;
           targetItem.w = w;
-          targetItem.h = h;
+          targetItem.h = h2;
           targetItem.z = res.newZ;
         }
         if (this.selectedUiId !== null) {
@@ -14860,7 +19190,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     /**
      * Xoay vi chỉnh góc Yaw tương đối một lượng deltaDeg (ví dụ: -1°, +1°, -5°, +5°)
      */
-    async rotateYawByDelta(deg) {
+    async rotateYawByDelta(deg2) {
       if (!this.currentCtx || !this.currentCtx.jobId) return;
       if (this.selectedUiId === null) {
         await this.ensureActiveTrackSelected();
@@ -14869,11 +19199,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.showToast("Vui lòng chọn xe trước!", "warning");
         return;
       }
-      let newDeg = Math.round(this.currentYawDeg + deg);
+      let newDeg = Math.round(this.currentYawDeg + deg2);
       while (newDeg > 180) newDeg -= 360;
       while (newDeg < -180) newDeg += 360;
       const rad = newDeg * Math.PI / 180;
-      await this.pushUndoSnapshot(`Xoay Yaw ${deg > 0 ? "+" : ""}${deg}°`, this.applyToTrack);
+      await this.pushUndoSnapshot(`Xoay Yaw ${deg2 > 0 ? "+" : ""}${deg2}°`, this.applyToTrack);
       this.currentYawDeg = newDeg;
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_REQ_FLIP_YAW", {
@@ -14887,11 +19217,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         })
       );
-      const sign = deg > 0 ? "+" : "";
+      const sign = deg2 > 0 ? "+" : "";
       if (this.selectedUiId !== null) {
         CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
       }
-      this.showToast(`Xoay Yaw ${sign}${deg}° ➔ ${newDeg}°`, "info");
+      this.showToast(`Xoay Yaw ${sign}${deg2}° ➔ ${newDeg}°`, "info");
       this.updateContent();
     }
     /**
@@ -15675,7 +20005,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.selectedCategory,
         this.isAdvancedOpen,
         this.applyToTrack,
-        this.currentActiveView
+        this.currentActiveView,
+        this.pointColorMode,
+        this.colorizeBoxedPoints
       ].join("|");
       if (stateHash === this.lastRenderedHash && this.container.children.length > 0) {
         return;
@@ -16087,6 +20419,62 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               </span>
               <span>${this.autoCenterOnFrame ? "Ghim" : "Tự do"}</span>
             </button>
+          </div>
+
+          <!-- CỤM ĐIỀU KHIỂN MÀU MÂY ĐIỂM LIDAR (INTENSITY VS PLAIN & ĐIỂM XE BỌC) -->
+          <div style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            background: #f8fafc;
+            padding: 4px 8px;
+            border-radius: 7px;
+            border: 1px solid #e2e8f0;
+            font-size: 11px;
+          ">
+            <div style="display: flex; align-items: center; gap: 4px; font-weight: 600; color: #475569;">
+              <span style="display: flex; align-items: center; color: #64748b;">${ICONS.eye}</span>
+              <span>Màu Point:</span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <!-- NÚT CHUYỂN ĐỔI CHẾ ĐỘ MÀU: INTENSITY VS PLAIN -->
+              <button id="btn-toggle-point-color-mode" title="Chuyển đổi giữa chế độ Độ phản xạ (Intensity - Soi vạch sơn, biển báo) và Màu phẳng không xét intensity (Plain - Rõ khối 3D)" style="
+                background: ${this.pointColorMode === "intensity" ? "#eff6ff" : "#ffffff"};
+                border: 1px solid ${this.pointColorMode === "intensity" ? "#93c5fd" : "#cbd5e1"};
+                color: ${this.pointColorMode === "intensity" ? "#1d4ed8" : "#475569"};
+                padding: 3px 7px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 10px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 3px;
+                transition: all 0.12s;
+              ">
+                <span>${this.pointColorMode === "intensity" ? "⚡ Intensity" : "⚪ Plain"}</span>
+              </button>
+
+              <!-- NÚT TOGGLE NHUỘM MÀU XE BỌC -->
+              <button id="btn-toggle-colorize-boxed" title="Bật/Tắt nhuộm màu riêng cho các điểm LiDAR nằm trong 3D Box của xe" style="
+                background: ${this.colorizeBoxedPoints ? "#ecfdf5" : "#ffffff"};
+                border: 1px solid ${this.colorizeBoxedPoints ? "#a7f3d0" : "#cbd5e1"};
+                color: ${this.colorizeBoxedPoints ? "#047857" : "#64748b"};
+                padding: 3px 7px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 10px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 3px;
+                transition: all 0.12s;
+              ">
+                <span>📦 Xe bọc: ${this.colorizeBoxedPoints ? "BẬT" : "TẮT"}</span>
+              </button>
+            </div>
           </div>
 
           <!-- DROPDOWN POPOVER MENU (NẾU ĐANG MỞ) -->
@@ -17310,6 +21698,32 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           this.updateContent();
         });
       }
+      const colorModeBtn = this.container.querySelector("#btn-toggle-point-color-mode");
+      if (colorModeBtn) {
+        colorModeBtn.addEventListener("click", async () => {
+          this.pointColorMode = this.pointColorMode === "intensity" ? "plain" : "intensity";
+          localStorage.setItem("cvat_3d_point_color_mode", this.pointColorMode);
+          await CVATBridge.setPointCloudColorMode(this.pointColorMode, this.colorizeBoxedPoints);
+          this.showToast(
+            this.pointColorMode === "intensity" ? "Màu Point: Độ phản xạ (Intensity - Soi vạch sơn)" : "Màu Point: Màu phẳng (Plain - Rõ hình khối 3D)",
+            "info"
+          );
+          this.updateContent();
+        });
+      }
+      const colorizeBoxedBtn = this.container.querySelector("#btn-toggle-colorize-boxed");
+      if (colorizeBoxedBtn) {
+        colorizeBoxedBtn.addEventListener("click", async () => {
+          this.colorizeBoxedPoints = !this.colorizeBoxedPoints;
+          localStorage.setItem("cvat_3d_colorize_boxed", String(this.colorizeBoxedPoints));
+          await CVATBridge.setPointCloudColorMode(this.pointColorMode, this.colorizeBoxedPoints);
+          this.showToast(
+            `Đã ${this.colorizeBoxedPoints ? "BẬT" : "TẮT"} nhuộm màu điểm trong xe bọc`,
+            this.colorizeBoxedPoints ? "success" : "info"
+          );
+          this.updateContent();
+        });
+      }
       const scopeToggle = this.container.querySelector("#btn-toggle-scope");
       if (scopeToggle) {
         scopeToggle.addEventListener("click", () => {
@@ -17339,8 +21753,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         applyDimBtn.addEventListener("click", () => {
           const l = inpL ? parseFloat(inpL.value) : this.editL;
           const w = inpW ? parseFloat(inpW.value) : this.editW;
-          const h = inpH ? parseFloat(inpH.value) : this.editH;
-          this.handleUpdateDimensions(l, w, h, this.applyToTrack);
+          const h2 = inpH ? parseFloat(inpH.value) : this.editH;
+          this.handleUpdateDimensions(l, w, h2, this.applyToTrack);
         });
       }
       const fitCurrentBoxBtn = this.container.querySelector("#btn-fit-current-box");
@@ -17380,9 +21794,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         btn.addEventListener("click", () => {
           const l = parseFloat(btn.dataset.l || "0");
           const w = parseFloat(btn.dataset.w || "0");
-          const h = parseFloat(btn.dataset.h || "0");
-          if (l > 0 && w > 0 && h > 0) {
-            this.handleUpdateDimensions(l, w, h, this.applyToTrack);
+          const h2 = parseFloat(btn.dataset.h || "0");
+          if (l > 0 && w > 0 && h2 > 0) {
+            this.handleUpdateDimensions(l, w, h2, this.applyToTrack);
           }
         });
       });
@@ -17394,9 +21808,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       rotBtns.forEach((btn) => {
         btn.addEventListener("click", () => {
           var _a;
-          const deg = parseInt(btn.dataset.deg || "0", 10);
-          if (deg !== 0) {
-            let newDeg = Math.round(this.currentYawDeg + deg);
+          const deg2 = parseInt(btn.dataset.deg || "0", 10);
+          if (deg2 !== 0) {
+            let newDeg = Math.round(this.currentYawDeg + deg2);
             while (newDeg > 180) newDeg -= 360;
             while (newDeg < -180) newDeg += 360;
             const rad = newDeg * Math.PI / 180;
@@ -17414,7 +21828,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 })
               );
               this.currentYawDeg = newDeg;
-              this.showToast(`Xoay ${deg > 0 ? "+" : ""}${deg}° ➔ Yaw: ${newDeg}°`, "success");
+              this.showToast(`Xoay ${deg2 > 0 ? "+" : ""}${deg2}° ➔ Yaw: ${newDeg}°`, "success");
               this.updateContent();
             }
           }
@@ -17473,7 +21887,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
     /**
-     * Mở giao diện toàn màn hình duyệt và chỉnh sửa toàn bộ track của xe (Label Helper Style)
+     * Mở giao diện toàn màn hình duyệt và chỉnh sửa toàn bộ track của xe (CVAT Helper Studio)
      */
     openFullscreenEditor() {
       if (!this.currentCtx || !this.currentCtx.jobId) {
@@ -17481,14 +21895,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return;
       }
       const firstTrack = this.frameTracks[0];
-      const targetUiId = this.selectedUiId !== null ? this.selectedUiId : firstTrack ? firstTrack.uiId : 1;
-      const targetServerId = this.selectedServerId || (firstTrack ? firstTrack.serverId : void 0);
-      this.trackStudioModal.open(
-        this.currentCtx,
-        targetUiId,
-        targetServerId,
-        this.frameTracks
-      );
+      const targetUiId = this.selectedUiId !== null ? this.selectedUiId : firstTrack ? firstTrack.uiId : void 0;
+      HelperOverlay.getInstance().open(this.currentCtx.jobId, targetUiId);
     }
     /**
      * Bật / Tắt bảng hướng dẫn phím tắt nổi (Speedrun Hotkeys Cheatsheet Modal)

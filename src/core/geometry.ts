@@ -4971,6 +4971,268 @@ export function fitYawToLaneIntensity(
   };
 }
 
+// =============================================================================
+// THUẬT TOÁN TÔ MÀU MÂY ĐIỂM LIDAR (POINT CLOUD COLORIZATION ENGINE)
+// =============================================================================
+
+export interface Box3DTarget {
+  id?: number | string;
+  cx: number;
+  cy: number;
+  cz: number;
+  rx?: number;
+  ry?: number;
+  rz: number; // yaw rad
+  l: number;
+  w: number;
+  h: number;
+  color?: { r: number; g: number; b: number };
+  category?: "car" | "pedestrian" | "cyclist" | string;
+  isActive?: boolean;
+}
+
+export interface PointCloudColorOptions {
+  mode: "intensity" | "plain";
+  colorizeBoxed: boolean;
+  intensityColormap?: "grayscale" | "contrast_boost";
+  plainColor?: { r: number; g: number; b: number };
+  activeBoxColor?: { r: number; g: number; b: number };
+}
+
+/**
+ * Kiểm tra siêu nhanh 1 điểm P(x, y, z) có nằm bên trong 3D Bounding Box hay không.
+ * Hỗ trợ xoay Yaw và góc dốc Roll/Pitch nếu có.
+ */
+export function isPointInsideBox3D(
+  px: number,
+  py: number,
+  pz: number,
+  box: Box3DTarget
+): boolean {
+  const dx = px - box.cx;
+  const dy = py - box.cy;
+  const dz = pz - box.cz;
+
+  // AABB pre-filter: Bán kính bao hình cầu sơ loại 95% điểm ngoài box siêu tốc
+  const maxR = Math.max(box.l, box.w, box.h) * 0.75;
+  if (Math.abs(dx) > maxR || Math.abs(dy) > maxR || Math.abs(dz) > maxR) {
+    return false;
+  }
+
+  // Chuyển sang hệ tọa độ cục bộ của Box theo Yaw
+  const cosY = Math.cos(-box.rz);
+  const sinY = Math.sin(-box.rz);
+
+  let lx = dx * cosY - dy * sinY;
+  let ly = dx * sinY + dy * cosY;
+  let lz = dz;
+
+  // Xử lý góc dốc Roll / Pitch nếu xe đang đỗ nghiêng hoặc dốc
+  if (box.rx || box.ry) {
+    const rx = box.rx || 0;
+    const ry = box.ry || 0;
+    const cosP = Math.cos(-ry);
+    const sinP = Math.sin(-ry);
+    const lx2 = lx * cosP + lz * sinP;
+    const lz2 = -lx * sinP + lz * cosP;
+
+    const cosR = Math.cos(-rx);
+    const sinR = Math.sin(-rx);
+    const ly2 = ly * cosR - lz2 * sinR;
+    const lz3 = ly * sinR + lz2 * cosR;
+
+    lx = lx2;
+    ly = ly2;
+    lz = lz3;
+  }
+
+  const halfL = box.l / 2;
+  const halfW = box.w / 2;
+  const halfH = box.h / 2;
+
+  return Math.abs(lx) <= halfL && Math.abs(ly) <= halfW && Math.abs(lz) <= halfH;
+}
+
+// Bảng màu mặc định theo nhãn xe
+export const DEFAULT_LABEL_COLORS: Record<string, { r: number; g: number; b: number }> = {
+  car: { r: 0.96, g: 0.62, b: 0.04 },        // Cam hổ phách ấm (#f59e0b)
+  pedestrian: { r: 0.51, g: 0.55, b: 0.97 }, // Xanh tím Indigo (#818cf8)
+  cyclist: { r: 0.06, g: 0.73, b: 0.51 },    // Xanh lục Emerald (#10b981)
+  truck: { r: 0.94, g: 0.38, b: 0.57 },      // Hồng Ruby (#f43f5e)
+  bus: { r: 0.65, g: 0.43, b: 0.95 },        // Tím tím Purple (#a855f7)
+  active: { r: 0.98, g: 0.80, b: 0.08 },     // Vàng chanh Neon (#facc15)
+};
+
+/**
+ * Tính toán mảng màu Float32Array (RGB) cho toàn bộ mây điểm LiDAR.
+ * - Mode 'intensity': Hiển thị theo độ phản xạ (Intensity) với vạch sơn sáng rực.
+ * - Mode 'plain': Hiển thị đồng màu xám bạc sáng rõ khối, không xét intensity.
+ * - colorizeBoxed: Điểm nằm trong bất kỳ 3D box nào sẽ được nhuộm màu của box đó.
+ */
+export function computePointCloudColors(
+  positions: Float32Array | number[],
+  intensities: Float32Array | number[] | null | undefined,
+  boxes: Box3DTarget[],
+  options: PointCloudColorOptions,
+  outColors?: Float32Array
+): Float32Array {
+  const count = Math.floor(positions.length / 3);
+  const colors = outColors && outColors.length === count * 3 ? outColors : new Float32Array(count * 3);
+
+  const isPlainMode = options.mode === "plain";
+  const colorizeBoxed = options.colorizeBoxed !== false && boxes.length > 0;
+  const plainR = options.plainColor?.r ?? 0.72;
+  const plainG = options.plainColor?.g ?? 0.76;
+  const plainB = options.plainColor?.b ?? 0.82;
+
+  // Tiền xử lý thông tin các Box để tăng tốc độ kiểm tra Point-in-Box
+  interface FastBox {
+    cx: number;
+    cy: number;
+    cz: number;
+    rx: number;
+    ry: number;
+    rz: number;
+    cosY: number;
+    sinY: number;
+    halfL: number;
+    halfW: number;
+    halfH: number;
+    maxR: number;
+    colorR: number;
+    colorG: number;
+    colorB: number;
+  }
+
+  const fastBoxes: FastBox[] = [];
+  if (colorizeBoxed) {
+    for (const b of boxes) {
+      if (!b || b.l <= 0 || b.w <= 0 || b.h <= 0) continue;
+      const cosY = Math.cos(-b.rz);
+      const sinY = Math.sin(-b.rz);
+      const maxR = Math.max(b.l, b.w, b.h) * 0.75;
+
+      let c = b.color;
+      if (!c) {
+        if (b.isActive) {
+          c = DEFAULT_LABEL_COLORS.active;
+        } else {
+          const cat = (b.category || "car").toLowerCase();
+          c = DEFAULT_LABEL_COLORS[cat] || DEFAULT_LABEL_COLORS.car;
+        }
+      }
+
+      fastBoxes.push({
+        cx: b.cx,
+        cy: b.cy,
+        cz: b.cz,
+        rx: b.rx || 0,
+        ry: b.ry || 0,
+        rz: b.rz,
+        cosY,
+        sinY,
+        halfL: b.l / 2,
+        halfW: b.w / 2,
+        halfH: b.h / 2,
+        maxR,
+        colorR: c.r,
+        colorG: c.g,
+        colorB: c.b,
+      });
+    }
+  }
+
+  const numBoxes = fastBoxes.length;
+
+  for (let i = 0; i < count; i++) {
+    const idx3 = i * 3;
+    const px = positions[idx3];
+    const py = positions[idx3 + 1];
+    const pz = positions[idx3 + 2];
+
+    // Lấy giá trị Intensity chuẩn hóa v in [0, 1]
+    let v = 0.5;
+    if (intensities && i < intensities.length) {
+      const rawInt = intensities[i];
+      v = rawInt <= 1.0 ? rawInt : Math.min(1.0, rawInt / 255);
+    }
+
+    // 1. Kiểm tra điểm có nằm trong 3D Box nào không
+    let matchedBox: FastBox | null = null;
+    if (numBoxes > 0) {
+      for (let k = 0; k < numBoxes; k++) {
+        const b = fastBoxes[k];
+        const dx = px - b.cx;
+        const dy = py - b.cy;
+        const dz = pz - b.cz;
+
+        // AABB pre-filter
+        if (Math.abs(dx) > b.maxR || Math.abs(dy) > b.maxR || Math.abs(dz) > b.maxR) {
+          continue;
+        }
+
+        let lx = dx * b.cosY - dy * b.sinY;
+        let ly = dx * b.sinY + dy * b.cosY;
+        let lz = dz;
+
+        if (b.rx || b.ry) {
+          const cosP = Math.cos(-b.ry);
+          const sinP = Math.sin(-b.ry);
+          const lx2 = lx * cosP + lz * sinP;
+          const lz2 = -lx * sinP + lz * cosP;
+
+          const cosR = Math.cos(-b.rx);
+          const sinR = Math.sin(-b.rx);
+          const ly2 = ly * cosR - lz2 * sinR;
+          const lz3 = ly * sinR + lz2 * cosR;
+
+          lx = lx2;
+          ly = ly2;
+          lz = lz3;
+        }
+
+        if (Math.abs(lx) <= b.halfL && Math.abs(ly) <= b.halfW && Math.abs(lz) <= b.halfH) {
+          matchedBox = b;
+          break; // Đã tìm thấy box chứa điểm
+        }
+      }
+    }
+
+    if (matchedBox) {
+      // ĐIỂM NẰM TRONG XE BỌC: Nhuộm màu theo nhãn xe, nhân nhẹ với độ phản xạ để giữ chi tiết 3D
+      const factor = isPlainMode ? 0.90 : 0.40 + 0.60 * v;
+      colors[idx3] = matchedBox.colorR * factor;
+      colors[idx3 + 1] = matchedBox.colorG * factor;
+      colors[idx3 + 2] = matchedBox.colorB * factor;
+    } else {
+      // ĐIỂM NGOÀI XE BỌC:
+      if (isPlainMode) {
+        // Chế độ Plain: màu xám bạc sáng rõ hình khối đồng nhất
+        colors[idx3] = plainR;
+        colors[idx3 + 1] = plainG;
+        colors[idx3 + 2] = plainB;
+      } else {
+        // Chế độ Intensity (Mặc định):
+        // Điểm phản xạ cao (>0.65, vạch sơn, biển báo) sáng rực rỡ
+        const boostV = Math.min(1.0, v * 1.25);
+        if (v >= 0.70) {
+          // Vạch sơn phản quang rực rỡ ánh vàng nhẹ
+          colors[idx3] = 1.0;
+          colors[idx3 + 1] = 0.96;
+          colors[idx3 + 2] = 0.50 + 0.50 * boostV;
+        } else {
+          // Grayscale contrast
+          colors[idx3] = boostV;
+          colors[idx3 + 1] = boostV;
+          colors[idx3 + 2] = boostV;
+        }
+      }
+    }
+  }
+
+  return colors;
+}
+
 // Xuất các hàm hình học quan trọng ra toàn cục phòng vệ 100% chống lỗi undefined
 if (typeof globalThis !== "undefined") {
   (globalThis as any).boxCorners = boxCorners;
@@ -4987,6 +5249,8 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).detectTrueHeadZ = detectTrueHeadZ;
   (globalThis as any).computeGroundSlopesAndZ = computeGroundSlopesAndZ;
   (globalThis as any).fitYawToLaneIntensity = fitYawToLaneIntensity;
+  (globalThis as any).isPointInsideBox3D = isPointInsideBox3D;
+  (globalThis as any).computePointCloudColors = computePointCloudColors;
 }
 if (typeof window !== "undefined") {
   (window as any).boxCorners = boxCorners;
@@ -5003,6 +5267,8 @@ if (typeof window !== "undefined") {
   (window as any).detectTrueHeadZ = detectTrueHeadZ;
   (window as any).computeGroundSlopesAndZ = computeGroundSlopesAndZ;
   (window as any).fitYawToLaneIntensity = fitYawToLaneIntensity;
+  (window as any).isPointInsideBox3D = isPointInsideBox3D;
+  (window as any).computePointCloudColors = computePointCloudColors;
 }
 
 

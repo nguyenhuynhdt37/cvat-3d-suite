@@ -114,6 +114,289 @@ export function mainWorldScript(): void {
     }
   }
 
+  // =============================================================================
+  // THUẬT TOÁN TÔ MÀU MÂY ĐIỂM LIDAR (POINT CLOUD COLORIZATION ENGINE IN MAIN WORLD)
+  // 1. Hiển thị mặc định theo độ phản xạ (LiDAR Intensity)
+  // 2. Nhuộm màu mây điểm nằm trong xe bọc (Boxed Points Colorization)
+  // 3. Chế độ xem không xét độ phản xạ (Plain / Uniform Color Mode)
+  // =============================================================================
+  let currentPointColorMode: "intensity" | "plain" = "intensity";
+  let currentColorizeBoxed: boolean = true;
+
+  // Lấy danh sách tất cả các đối tượng THREE.Points từ mọi view của Canvas3D
+  function getAllScenePointsObjects(): any[] {
+    try {
+      const store = getReduxStore();
+      const canvas = store?.getState()?.annotation?.canvas?.instance;
+      if (!canvas || !canvas.view || !canvas.view.views) return [];
+
+      const pointsObjects: any[] = [];
+      const views = canvas.view.views;
+      const viewKeys = ["perspective", "top", "side", "front"];
+
+      for (const key of viewKeys) {
+        const v = views[key];
+        const scene = v?.scene;
+        if (!scene) continue;
+        scene.traverse((obj: any) => {
+          if (
+            (obj.isPoints || obj.type === "Points") &&
+            obj.geometry?.attributes?.position?.count > 5000 &&
+            !pointsObjects.includes(obj)
+          ) {
+            pointsObjects.push(obj);
+          }
+        });
+      }
+
+      return pointsObjects;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // Thuật toán gán màu cho mây điểm Three.js: Intensity / Plain & Tô màu trong xe bọc
+  function applyPointCloudColorizationInMainWorld(
+    options?: { mode?: "intensity" | "plain"; colorizeBoxed?: boolean }
+  ): boolean {
+    try {
+      if (options?.mode) currentPointColorMode = options.mode;
+      if (options?.colorizeBoxed !== undefined) currentColorizeBoxed = !!options.colorizeBoxed;
+
+      const store = getReduxStore();
+      const canvas = store?.getState()?.annotation?.canvas?.instance;
+      if (!canvas) return false;
+
+      const ptsObjs = getAllScenePointsObjects();
+      if (ptsObjs.length === 0) return false;
+
+      // 1. Trích xuất danh sách tất cả các 3D Cuboids hiện hữu trên frame
+      interface FastBoxTarget {
+        cx: number;
+        cy: number;
+        cz: number;
+        rx: number;
+        ry: number;
+        rz: number;
+        cosY: number;
+        sinY: number;
+        halfL: number;
+        halfW: number;
+        halfH: number;
+        maxR: number;
+        colorR: number;
+        colorG: number;
+        colorB: number;
+      }
+
+      const defaultColors: Record<string, { r: number; g: number; b: number }> = {
+        car: { r: 0.96, g: 0.62, b: 0.04 },        // Cam hổ phách (#f59e0b)
+        pedestrian: { r: 0.51, g: 0.55, b: 0.97 }, // Xanh tím Indigo (#818cf8)
+        cyclist: { r: 0.06, g: 0.73, b: 0.51 },    // Xanh lục Emerald (#10b981)
+        truck: { r: 0.94, g: 0.38, b: 0.57 },      // Hồng Ruby (#f43f5e)
+        bus: { r: 0.65, g: 0.43, b: 0.95 },        // Tím tím Purple (#a855f7)
+        active: { r: 0.98, g: 0.80, b: 0.08 },     // Vàng chanh Neon (#facc15)
+      };
+
+      const fastBoxes: FastBoxTarget[] = [];
+      if (currentColorizeBoxed) {
+        const drawnObjects = canvas.view?.drawnObjects || {};
+        const activeClientId =
+          canvas.view?.activatedElementID ||
+          store?.getState()?.annotation?.annotations?.activatedStateClientID;
+
+        for (const idStr of Object.keys(drawnObjects)) {
+          const drawnItem = drawnObjects[idStr];
+          const data = drawnItem?.data;
+          if (data && Array.isArray(data.points) && data.points.length >= 9 && !data.outside) {
+            const pts = data.points;
+            const l = pts[6];
+            const w = pts[7];
+            const h = pts[8];
+            if (l <= 0 || w <= 0 || h <= 0) continue;
+
+            const clientId = Number(idStr);
+            const isActive = clientId === Number(activeClientId);
+            const labelName = (data.label?.name || "").toLowerCase();
+
+            let c = defaultColors.car;
+            if (isActive) {
+              c = defaultColors.active;
+            } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
+              c = defaultColors.pedestrian;
+            } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
+              c = defaultColors.cyclist;
+            } else if (labelName.includes("truck")) {
+              c = defaultColors.truck;
+            } else if (labelName.includes("bus")) {
+              c = defaultColors.bus;
+            }
+
+            const yaw = pts[5] || 0;
+            fastBoxes.push({
+              cx: pts[0],
+              cy: pts[1],
+              cz: pts[2],
+              rx: pts[3] || 0,
+              ry: pts[4] || 0,
+              rz: yaw,
+              cosY: Math.cos(-yaw),
+              sinY: Math.sin(-yaw),
+              halfL: l / 2,
+              halfW: w / 2,
+              halfH: h / 2,
+              maxR: Math.max(l, w, h) * 0.75,
+              colorR: c.r,
+              colorG: c.g,
+              colorB: c.b,
+            });
+          }
+        }
+      }
+
+      const numBoxes = fastBoxes.length;
+      const isPlain = currentPointColorMode === "plain";
+      const plainR = 0.72;
+      const plainG = 0.76;
+      const plainB = 0.82;
+
+      let anyUpdated = false;
+
+      for (const obj of ptsObjs) {
+        const geom = obj.geometry;
+        const posAttr = geom?.attributes?.position;
+        if (!posAttr || !posAttr.array) continue;
+
+        const count = posAttr.count;
+        const posArray = posAttr.array as Float32Array;
+        const intensityAttr = (geom.attributes.intensity || geom.attributes.intensities)?.array as Float32Array | undefined;
+
+        let colorAttr = geom.attributes.color;
+        let colorArray: Float32Array;
+
+        const winThree = (window as any).THREE;
+        if (!colorAttr || !colorAttr.array || colorAttr.array.length !== count * 3) {
+          colorArray = new Float32Array(count * 3);
+          if (winThree && typeof winThree.BufferAttribute === "function") {
+            geom.setAttribute("color", new winThree.BufferAttribute(colorArray, 3));
+            colorAttr = geom.attributes.color;
+          } else {
+            colorAttr = {
+              array: colorArray,
+              count,
+              itemSize: 3,
+              needsUpdate: true,
+            };
+            geom.attributes.color = colorAttr;
+          }
+        } else {
+          colorArray = colorAttr.array as Float32Array;
+        }
+
+        // Vòng lặp tô màu siêu tốc cho từng điểm
+        for (let i = 0; i < count; i++) {
+          const idx3 = i * 3;
+          const px = posArray[idx3];
+          const py = posArray[idx3 + 1];
+          const pz = posArray[idx3 + 2];
+
+          // Lấy Intensity chuẩn hóa v in [0, 1]
+          let v = 0.5;
+          if (intensityAttr && i < intensityAttr.length) {
+            const rawInt = intensityAttr[i];
+            v = rawInt <= 1.0 ? rawInt : Math.min(1.0, rawInt / 255);
+          }
+
+          // Kiểm tra Point-in-Box
+          let matched: FastBoxTarget | null = null;
+          if (numBoxes > 0) {
+            for (let k = 0; k < numBoxes; k++) {
+              const b = fastBoxes[k];
+              const dx = px - b.cx;
+              const dy = py - b.cy;
+              const dz = pz - b.cz;
+
+              if (Math.abs(dx) > b.maxR || Math.abs(dy) > b.maxR || Math.abs(dz) > b.maxR) {
+                continue;
+              }
+
+              let lx = dx * b.cosY - dy * b.sinY;
+              let ly = dx * b.sinY + dy * b.cosY;
+              let lz = dz;
+
+              if (b.rx || b.ry) {
+                const cosP = Math.cos(-b.ry);
+                const sinP = Math.sin(-b.ry);
+                const lx2 = lx * cosP + lz * sinP;
+                const lz2 = -lx * sinP + lz * cosP;
+
+                const cosR = Math.cos(-b.rx);
+                const sinR = Math.sin(-b.rx);
+                const ly2 = ly * cosR - lz2 * sinR;
+                const lz3 = ly * sinR + lz2 * cosR;
+
+                lx = lx2;
+                ly = ly2;
+                lz = lz3;
+              }
+
+              if (Math.abs(lx) <= b.halfL && Math.abs(ly) <= b.halfW && Math.abs(lz) <= b.halfH) {
+                matched = b;
+                break;
+              }
+            }
+          }
+
+          if (matched) {
+            // NẰM TRONG XE BỌC: Nhuộm màu nhãn xe
+            const factor = isPlain ? 0.90 : 0.40 + 0.60 * v;
+            colorArray[idx3] = matched.colorR * factor;
+            colorArray[idx3 + 1] = matched.colorG * factor;
+            colorArray[idx3 + 2] = matched.colorB * factor;
+          } else {
+            // NGOÀI XE BỌC:
+            if (isPlain) {
+              colorArray[idx3] = plainR;
+              colorArray[idx3 + 1] = plainG;
+              colorArray[idx3 + 2] = plainB;
+            } else {
+              // Intensity Mode (Mặc định)
+              const boostV = Math.min(1.0, v * 1.25);
+              if (v >= 0.70) {
+                // Vạch sơn phản quang rực rỡ ánh vàng
+                colorArray[idx3] = 1.0;
+                colorArray[idx3 + 1] = 0.96;
+                colorArray[idx3 + 2] = 0.50 + 0.50 * boostV;
+              } else {
+                colorArray[idx3] = boostV;
+                colorArray[idx3 + 1] = boostV;
+                colorArray[idx3 + 2] = boostV;
+              }
+            }
+          }
+        }
+
+        colorAttr.needsUpdate = true;
+
+        if (obj.material) {
+          obj.material.vertexColors = true;
+          obj.material.needsUpdate = true;
+        }
+
+        anyUpdated = true;
+      }
+
+      if (anyUpdated && typeof canvas.render === "function") {
+        canvas.render();
+      }
+
+      return anyUpdated;
+    } catch (err) {
+      console.warn("[CVAT 3D Suite] Lỗi applyPointCloudColorizationInMainWorld:", err);
+      return false;
+    }
+  }
+
   // Thuật toán Annular Ring Ground Detection & 3D Slope Fitting (Pitch Dọc & Roll Ngang Front)
   // Thuật toán ƯỚC LƯỢNG CAO ĐỘ MẶT ĐƯỜNG XE EGO (Ego Road Surface Z Reference):
   // Quét các điểm mặt đường trong bán kính mở rộng 0.8m - 15.0m quanh xe Ego làm mốc chuẩn (mặc định -1.75m)
@@ -3684,6 +3967,10 @@ export function mainWorldScript(): void {
         canvas.render();
       }
 
+      if (currentColorizeBoxed) {
+        applyPointCloudColorizationInMainWorld();
+      }
+
       return true;
     } catch (err) {
       console.warn("[CVAT 3D Suite] Lỗi cập nhật trực tiếp Three.js:", err);
@@ -4074,6 +4361,11 @@ export function mainWorldScript(): void {
                 if (activeIdToLock !== null && !isNaN(activeIdToLock)) {
                   lockOnActiveObjectAtFrame(activeIdToLock, curFrame);
                 }
+
+                // Tự động tô màu mây điểm LiDAR cho frame mới
+                setTimeout(() => {
+                  applyPointCloudColorizationInMainWorld();
+                }, 150);
               }
             }
 
@@ -4091,6 +4383,8 @@ export function mainWorldScript(): void {
                       detail: { clientId: Number(curActiveId), details },
                     })
                   );
+                  // Highlight lại mây điểm trong xe active mới
+                  applyPointCloudColorizationInMainWorld();
                 }, 80);
               }
             }
@@ -4102,6 +4396,7 @@ export function mainWorldScript(): void {
               dirtyDebounceTimer = setTimeout(() => {
                 dirtyDebounceTimer = null;
                 window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS_DIRTY"));
+                applyPointCloudColorizationInMainWorld();
               }, 400);
             }
           } catch (err) {}
@@ -6589,4 +6884,52 @@ export function mainWorldScript(): void {
       );
     }
   });
+
+  // 17. Lắng nghe yêu cầu cấu hình Chế độ màu mây điểm LiDAR (Intensity vs Plain & Điểm trong xe bọc)
+  window.addEventListener("CVAT_EXT_REQ_SET_POINT_COLOR_MODE", (e: any) => {
+    const { mode, colorizeBoxed } = e.detail || {};
+    if (mode === "intensity" || mode === "plain") {
+      currentPointColorMode = mode;
+    }
+    if (colorizeBoxed !== undefined) {
+      currentColorizeBoxed = !!colorizeBoxed;
+    }
+
+    const ok = applyPointCloudColorizationInMainWorld({
+      mode: currentPointColorMode,
+      colorizeBoxed: currentColorizeBoxed,
+    });
+
+    const modeText = currentPointColorMode === "intensity" ? "Độ phản xạ (Intensity)" : "Màu phẳng (Plain)";
+    const boxedText = currentColorizeBoxed ? "BẬT" : "TẮT";
+    const msg = `Chế độ màu Point: ${modeText} | Nhuộm màu xe bọc: ${boxedText}`;
+    console.log(`[CVAT 3D Suite] ${msg}`);
+
+    window.dispatchEvent(
+      new CustomEvent("CVAT_EXT_RES_SET_POINT_COLOR_MODE", {
+        detail: {
+          success: true,
+          mode: currentPointColorMode,
+          colorizeBoxed: currentColorizeBoxed,
+          message: msg,
+        },
+      })
+    );
+  });
+
+  window.addEventListener("CVAT_EXT_REQ_GET_POINT_COLOR_MODE", () => {
+    window.dispatchEvent(
+      new CustomEvent("CVAT_EXT_RES_GET_POINT_COLOR_MODE", {
+        detail: {
+          mode: currentPointColorMode,
+          colorizeBoxed: currentColorizeBoxed,
+        },
+      })
+    );
+  });
+
+  // Tự động kích hoạt colorization lần đầu sau khi canvas sẵn sàng
+  setTimeout(() => {
+    applyPointCloudColorizationInMainWorld();
+  }, 1500);
 }

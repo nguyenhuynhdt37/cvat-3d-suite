@@ -1800,4 +1800,31 @@ export class CVATBridge {
     }
     throw new Error("DecompressionStream not available");
   }
+
+  /**
+   * Cấu hình chế độ màu mây điểm LiDAR (Intensity vs Plain & Nhuộm màu điểm trong xe bọc).
+   */
+  public static async setPointCloudColorMode(
+    mode: "intensity" | "plain",
+    colorizeBoxed?: boolean
+  ): Promise<{ success: boolean; mode: string; colorizeBoxed: boolean; message: string }> {
+    this.ensureMainWorldBridge();
+    return new Promise((resolve) => {
+      const timeout = setTimeout(
+        () => resolve({ success: false, mode, colorizeBoxed: colorizeBoxed ?? true, message: "Hết thời gian chờ" }),
+        800
+      );
+      const onRes = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_SET_POINT_COLOR_MODE", onRes);
+        resolve(e.detail || { success: true, mode, colorizeBoxed: colorizeBoxed ?? true, message: "OK" });
+      };
+      window.addEventListener("CVAT_EXT_RES_SET_POINT_COLOR_MODE", onRes);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_SET_POINT_COLOR_MODE", {
+          detail: { mode, colorizeBoxed },
+        })
+      );
+    });
+  }
 }

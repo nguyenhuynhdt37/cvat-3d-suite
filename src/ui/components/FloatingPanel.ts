@@ -14,6 +14,7 @@ import { CameraOverlayManager, setVinCalibForOverlay } from "./CameraOverlay";
 import { CameraFocusModal } from "./CameraFocusModal";
 import { CalibrationModal } from "./CalibrationModal";
 import { HeaderSuiteButton } from "./HeaderSuiteButton";
+import { HelperOverlay } from "../../helper/overlay";
 import type { Box3D } from "../../core/geometry";
 
 export interface UndoSnapshot {
@@ -97,6 +98,12 @@ export class FloatingPanel {
   private autoSelectListenerAttached: boolean = false;
   private autoCenterOnFrame: boolean = localStorage.getItem("CVAT_3D_SUITE_AUTO_CENTER_FRAME") !== "false";
 
+  // Cấu hình Chế độ màu mây điểm LiDAR & Nhuộm màu xe bọc
+  private pointColorMode: "intensity" | "plain" =
+    (localStorage.getItem("cvat_3d_point_color_mode") as any) || "intensity";
+  private colorizeBoxedPoints: boolean =
+    localStorage.getItem("cvat_3d_colorize_boxed") !== "false";
+
   // Thống kê vòng đời của Track ID đang chọn
   private trackStats: TrackStatsInfo | null = null;
   private trackStatsLoading: boolean = false;
@@ -171,6 +178,9 @@ export class FloatingPanel {
 
       // Đồng bộ cấu hình Ghim Tâm khi tua frame sang Main World
       CVATBridge.setAutoCenterOnFrameChange(this.autoCenterOnFrame);
+
+      // Tự động cấu hình chế độ màu mây điểm LiDAR (Intensity mặc định & Tô màu xe bọc)
+      CVATBridge.setPointCloudColorMode(this.pointColorMode, this.colorizeBoxedPoints);
     }
 
     this.scheduleUpdate();
@@ -2338,6 +2348,8 @@ export class FloatingPanel {
       this.isAdvancedOpen,
       this.applyToTrack,
       this.currentActiveView,
+      this.pointColorMode,
+      this.colorizeBoxedPoints,
     ].join("|");
 
     if (stateHash === this.lastRenderedHash && this.container.children.length > 0) {
@@ -2802,6 +2814,62 @@ export class FloatingPanel {
               </span>
               <span>${this.autoCenterOnFrame ? "Ghim" : "Tự do"}</span>
             </button>
+          </div>
+
+          <!-- CỤM ĐIỀU KHIỂN MÀU MÂY ĐIỂM LIDAR (INTENSITY VS PLAIN & ĐIỂM XE BỌC) -->
+          <div style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            background: #f8fafc;
+            padding: 4px 8px;
+            border-radius: 7px;
+            border: 1px solid #e2e8f0;
+            font-size: 11px;
+          ">
+            <div style="display: flex; align-items: center; gap: 4px; font-weight: 600; color: #475569;">
+              <span style="display: flex; align-items: center; color: #64748b;">${ICONS.eye}</span>
+              <span>Màu Point:</span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <!-- NÚT CHUYỂN ĐỔI CHẾ ĐỘ MÀU: INTENSITY VS PLAIN -->
+              <button id="btn-toggle-point-color-mode" title="Chuyển đổi giữa chế độ Độ phản xạ (Intensity - Soi vạch sơn, biển báo) và Màu phẳng không xét intensity (Plain - Rõ khối 3D)" style="
+                background: ${this.pointColorMode === "intensity" ? "#eff6ff" : "#ffffff"};
+                border: 1px solid ${this.pointColorMode === "intensity" ? "#93c5fd" : "#cbd5e1"};
+                color: ${this.pointColorMode === "intensity" ? "#1d4ed8" : "#475569"};
+                padding: 3px 7px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 10px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 3px;
+                transition: all 0.12s;
+              ">
+                <span>${this.pointColorMode === "intensity" ? "⚡ Intensity" : "⚪ Plain"}</span>
+              </button>
+
+              <!-- NÚT TOGGLE NHUỘM MÀU XE BỌC -->
+              <button id="btn-toggle-colorize-boxed" title="Bật/Tắt nhuộm màu riêng cho các điểm LiDAR nằm trong 3D Box của xe" style="
+                background: ${this.colorizeBoxedPoints ? "#ecfdf5" : "#ffffff"};
+                border: 1px solid ${this.colorizeBoxedPoints ? "#a7f3d0" : "#cbd5e1"};
+                color: ${this.colorizeBoxedPoints ? "#047857" : "#64748b"};
+                padding: 3px 7px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 10px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 3px;
+                transition: all 0.12s;
+              ">
+                <span>📦 Xe bọc: ${this.colorizeBoxedPoints ? "BẬT" : "TẮT"}</span>
+              </button>
+            </div>
           </div>
 
           <!-- DROPDOWN POPOVER MENU (NẾU ĐANG MỞ) -->
@@ -4097,6 +4165,38 @@ export class FloatingPanel {
       });
     }
 
+    // 7c. Gắn sự kiện Chuyển đổi Chế độ màu mây điểm LiDAR (Intensity vs Plain)
+    const colorModeBtn = this.container.querySelector("#btn-toggle-point-color-mode");
+    if (colorModeBtn) {
+      colorModeBtn.addEventListener("click", async () => {
+        this.pointColorMode = this.pointColorMode === "intensity" ? "plain" : "intensity";
+        localStorage.setItem("cvat_3d_point_color_mode", this.pointColorMode);
+        await CVATBridge.setPointCloudColorMode(this.pointColorMode, this.colorizeBoxedPoints);
+        this.showToast(
+          this.pointColorMode === "intensity"
+            ? "Màu Point: Độ phản xạ (Intensity - Soi vạch sơn)"
+            : "Màu Point: Màu phẳng (Plain - Rõ hình khối 3D)",
+          "info"
+        );
+        this.updateContent();
+      });
+    }
+
+    // 7d. Gắn sự kiện Bật/Tắt Nhuộm màu các điểm trong xe bọc
+    const colorizeBoxedBtn = this.container.querySelector("#btn-toggle-colorize-boxed");
+    if (colorizeBoxedBtn) {
+      colorizeBoxedBtn.addEventListener("click", async () => {
+        this.colorizeBoxedPoints = !this.colorizeBoxedPoints;
+        localStorage.setItem("cvat_3d_colorize_boxed", String(this.colorizeBoxedPoints));
+        await CVATBridge.setPointCloudColorMode(this.pointColorMode, this.colorizeBoxedPoints);
+        this.showToast(
+          `Đã ${this.colorizeBoxedPoints ? "BẬT" : "TẮT"} nhuộm màu điểm trong xe bọc`,
+          this.colorizeBoxedPoints ? "success" : "info"
+        );
+        this.updateContent();
+      });
+    }
+
     // 8. Gắn sự kiện Toggle Scope: Frame Này vs Toàn Track
     const scopeToggle = this.container.querySelector("#btn-toggle-scope");
     if (scopeToggle) {
@@ -4297,7 +4397,7 @@ export class FloatingPanel {
   }
 
   /**
-   * Mở giao diện toàn màn hình duyệt và chỉnh sửa toàn bộ track của xe (Label Helper Style)
+   * Mở giao diện toàn màn hình duyệt và chỉnh sửa toàn bộ track của xe (CVAT Helper Studio)
    */
   public openFullscreenEditor(): void {
     if (!this.currentCtx || !this.currentCtx.jobId) {
@@ -4306,15 +4406,10 @@ export class FloatingPanel {
     }
 
     const firstTrack = this.frameTracks[0];
-    const targetUiId = this.selectedUiId !== null ? this.selectedUiId : (firstTrack ? firstTrack.uiId : 1);
-    const targetServerId = this.selectedServerId || (firstTrack ? firstTrack.serverId : undefined);
+    const targetUiId = this.selectedUiId !== null ? this.selectedUiId : (firstTrack ? firstTrack.uiId : undefined);
 
-    this.trackStudioModal.open(
-      this.currentCtx,
-      targetUiId,
-      targetServerId,
-      this.frameTracks
-    );
+    // Mở CVAT Helper Overlay toàn màn hình (Case 1: Sửa L/W/H hàng loạt + Case 2: Duyệt theo ID với WebGL Grid)
+    HelperOverlay.getInstance().open(this.currentCtx.jobId, targetUiId);
   }
 
   /**
