@@ -14,10 +14,15 @@ import urllib.request
 import urllib.parse
 from io import BytesIO
 
-BASE_URL = "https://cvat.itup.io.vn"
-JOB_ID = 105
-TASK_ID = 61
-TOKEN = "51acceec5ad57a4442f2a3c6aa348b8d755a8070"
+BASE_URL = os.getenv("CVAT_BASE_URL", "https://cvat.example.com").rstrip("/")
+JOB_ID = int(os.getenv("CVAT_JOB_ID", "1"))
+TASK_ID = int(os.getenv("CVAT_TASK_ID", "1"))
+TOKEN = os.getenv("CVAT_TOKEN", "")
+
+if not TOKEN:
+    print("[-] CẢNH BÁO: Chưa cấu hình biến môi trường CVAT_TOKEN!", file=sys.stderr)
+    print("    Vui lòng thiết lập biến môi trường CVAT_TOKEN trước khi chạy script.", file=sys.stderr)
+    sys.exit(1)
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(SCRIPT_DIR, "data")

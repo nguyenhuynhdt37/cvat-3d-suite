@@ -19,7 +19,7 @@ async function verify() {
   }
 
   const pages = await browser.pages();
-  let cvatPage = pages.find((p) => p.url().includes("cvat.itup.io.vn"));
+  let cvatPage = pages.find((p) => p.url().includes("/tasks/") || p.url().includes("/jobs/") || p.url().includes("cvat"));
 
   if (!cvatPage) {
     console.log("⚠️ Không tìm thấy tab CVAT đang mở, sử dụng trang đầu tiên để test kiểm thử mô phỏng.");

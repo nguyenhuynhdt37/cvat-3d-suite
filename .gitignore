@@ -48,3 +48,9 @@ screenshots/
 .vscode/
 *.swp
 *.swo
+
+# 8. Local Migration Scripts, Sensitive Backups & Pulled Datasets
+tools/calib_tuner/data/
+scripts/backup_*.mjs
+scripts/rollback_*.mjs
+scripts/execute_*.mjs

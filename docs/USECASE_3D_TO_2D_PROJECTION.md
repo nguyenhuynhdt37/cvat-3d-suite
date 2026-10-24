@@ -10,7 +10,7 @@
 ## 1. TỔNG QUAN & BỐI CẢNH KỸ THUẬT (ENGINEERING CONTEXT)
 
 ### 1.1. Vấn Đề Thực Tế Cần Giải Quyết
-Trong quá trình gán nhãn 3D Bounding Box (Cuboid) trên mây điểm LiDAR tại `cvat.itup.io.vn`:
+Trong quá trình gán nhãn 3D Bounding Box (Cuboid) trên mây điểm LiDAR tại hệ thống CVAT:
 1. **Điểm thưa & Che khuất ở xa**: Các phương tiện hoặc người đi bộ ở khoảng cách xa (>25m) hoặc bị khuất chỉ có rất ít điểm phản xạ LiDAR (dưới 10 điểm), khiến annotator khó xác định chính xác mép cản trước/sau, lốp xe, sườn xe hay gương chiếu hậu.
 2. **Khác biệt không gian 3D vs 2D**: Mặc dù CVAT đã có sẵn dữ liệu 8 ảnh camera context (`image_0.jpg` $\to$ `image_7.jpg`), annotator chỉ có thể nhìn mắt đối chiếu tách biệt, không thể biết chính xác hộp 3D mình vừa vẽ/fit có khớp khít với viền xe trên ảnh thật hay không.
 3. **Hiện tượng méo hình ống kính (Lens Distortion)**: Các camera góc rộng (Wide-Angle) và camera mắt cá (Fisheye như WoodScape, FishEye8K) có độ cong méo rất lớn ở vùng rìa ảnh. Phép chiếu Pinhole thẳng thông thường sẽ làm khung xe bị lệch hoàn toàn so với hình ảnh thực tế.
