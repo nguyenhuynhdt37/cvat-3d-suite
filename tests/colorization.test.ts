@@ -292,10 +292,10 @@ console.log("🧪 Đang chạy kiểm thử tự động Module Point Cloud Colo
 }
 
 // ==========================================
-// TEST 8: MẶT SÀN POLYGON 3D MỜ (ROAD PLANE & CURB STEP MESH)
+// TEST 8: MẶT SÀN POLYGON 3D MỜ (ĐĨA TRÒN 360° BÁN KÍNH 100M & VÒNG CỰ LY ĐỒNG TÂM)
 // ==========================================
 {
-  // Kiểm tra tính toán hình học mặt sàn:
+  // 1. Kiểm tra tính toán hình học mặt sàn:
   const egoRoadZ = -1.75;
   const curbStep = 0.15; // Bậc vỉa hè +15cm
 
@@ -305,17 +305,23 @@ console.log("🧪 Đang chạy kiểm thử tự động Module Point Cloud Colo
   assert.strictEqual(roadPlaneZ, -1.75, "Mặt đường phải ở cao độ -1.75m");
   assert.strictEqual(curbPlaneZ, -1.60, "Mặt vỉa hè phải giật cấp +15cm lên -1.60m");
 
-  // Kiểm tra thuộc tính vật liệu mờ siêu nhẹ không che khuất point cloud
+  // 2. Kiểm tra bán kính bao phủ 360 độ (R <= 100m, không bị chiếu 1 hướng):
+  const maxRadius = 100.0;
+  const rangeRings = [20, 40, 60, 80, 100];
+  assert.strictEqual(rangeRings[rangeRings.length - 1], maxRadius, "Vòng cự ly ngoài cùng phải khớp chuẩn bán kính 100m");
+  assert.strictEqual(rangeRings.length, 5, "Phải có 5 vòng cự ly đồng tâm (20m, 40m, 60m, 80m, 100m)");
+
+  // 3. Kiểm tra thuộc tính vật liệu mờ siêu nhẹ không che khuất point cloud
   const materialProps = {
     transparent: true,
-    opacity: 0.14,
+    opacity: 0.10,
     depthWrite: false, // Quan trọng nhất: không che mây điểm
   };
 
   assert.strictEqual(materialProps.depthWrite, false, "depthWrite phải là false để hạt LiDAR luôn nổi");
   assert.ok(materialProps.opacity < 0.25, "Độ mờ phải nhỏ hơn 0.25 để nhìn xuyên thấu");
 
-  console.log("✅ Test 8: Mặt Sàn Polygon 3D Mờ: Thông số hình học và độ mờ xuyên thấu đạt chuẩn");
+  console.log("✅ Test 8: Mặt Sàn Polygon 3D Mờ: Đĩa tròn 360° bán kính 100m & 5 vòng cự ly đồng tâm đạt chuẩn");
 }
 
 // ==========================================

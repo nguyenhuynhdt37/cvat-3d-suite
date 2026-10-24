@@ -603,18 +603,85 @@ export function mainWorldScript(): void {
       let zGround = customZ !== undefined ? customZ : getEgoRoadGroundZInMainWorld();
       if (isNaN(zGround) || zGround === 0) zGround = -1.75;
 
-      // Hàm hỗ trợ dựng Plane BufferGeometry (6 đỉnh)
-      const createPlaneGeom = (w: number, l: number, ox = 0, oy = 0, oz = 0) => {
-        const hw = w / 2;
-        const hl = l / 2;
-        const x0 = ox - hw, x1 = ox + hw;
-        const y0 = oy - hl, y1 = oy + hl;
+      // Hàm hỗ trợ dựng Đĩa Tròn 360° bán kính 100m (Radial Disc)
+      const createCircleGeom = (radius: number, segments = 72, oz = 0) => {
+        const verts: number[] = [];
+        const step = (Math.PI * 2) / segments;
+        for (let i = 0; i < segments; i++) {
+          const a0 = i * step;
+          const a1 = (i + 1) * step;
+          const x0 = Math.cos(a0) * radius;
+          const y0 = Math.sin(a0) * radius;
+          const x1 = Math.cos(a1) * radius;
+          const y1 = Math.sin(a1) * radius;
+          verts.push(0, 0, oz,  x0, y0, oz,  x1, y1, oz);
+        }
+        const g = new three.BufferGeometry();
+        g.setAttribute("position", new three.BufferAttribute(new Float32Array(verts), 3));
+        return g;
+      };
+
+      // Hàm hỗ trợ dựng Vành Tròn Đồng Tâm phân chia cự ly (Concentric Range Rings)
+      const createRingGeom = (radius: number, width = 0.25, segments = 72, oz = 0.005) => {
+        const verts: number[] = [];
+        const rIn = radius - width / 2;
+        const rOut = radius + width / 2;
+        const step = (Math.PI * 2) / segments;
+        for (let i = 0; i < segments; i++) {
+          const a0 = i * step;
+          const a1 = (i + 1) * step;
+          const c0 = Math.cos(a0), s0 = Math.sin(a0);
+          const c1 = Math.cos(a1), s1 = Math.sin(a1);
+
+          const xIn0 = c0 * rIn, yIn0 = s0 * rIn;
+          const xOut0 = c0 * rOut, yOut0 = s0 * rOut;
+          const xIn1 = c1 * rIn, yIn1 = s1 * rIn;
+          const xOut1 = c1 * rOut, yOut1 = s1 * rOut;
+
+          verts.push(
+            xIn0, yIn0, oz,  xOut0, yOut0, oz,  xOut1, yOut1, oz,
+            xIn0, yIn0, oz,  xOut1, yOut1, oz,  xIn1, yIn1, oz
+          );
+        }
+        const g = new three.BufferGeometry();
+        g.setAttribute("position", new three.BufferAttribute(new Float32Array(verts), 3));
+        return g;
+      };
+
+      // Hàm hỗ trợ dựng Trục Chữ Thập X - Y dài 100m mỗi hướng
+      const createCrosshairGeom = (maxRadius: number, width = 0.18, oz = 0.008) => {
+        const hw = width / 2;
         const verts = new Float32Array([
-          x0, y0, oz,   x1, y0, oz,   x1, y1, oz,
-          x0, y0, oz,   x1, y1, oz,   x0, y1, oz,
+          // Trục X (Tiến - Lùi): từ -maxRadius đến +maxRadius
+          -maxRadius, -hw, oz,   maxRadius, -hw, oz,   maxRadius, hw, oz,
+          -maxRadius, -hw, oz,   maxRadius, hw, oz,   -maxRadius, hw, oz,
+          // Trục Y (Trái - Phải): từ -maxRadius đến +maxRadius
+          -hw, -maxRadius, oz,   hw, -maxRadius, oz,   hw, maxRadius, oz,
+          -hw, -maxRadius, oz,   hw, maxRadius, oz,   -hw, maxRadius, oz,
         ]);
         const g = new three.BufferGeometry();
         g.setAttribute("position", new three.BufferAttribute(verts, 3));
+        return g;
+      };
+
+      // Hàm hỗ trợ dựng Dải Vỉa Hè ôm gọn trong bán kính 100m
+      const createCurbGeom = (yMin: number, yMax: number, maxRadius = 100, oz = 0.15) => {
+        const verts: number[] = [];
+        const steps = 32;
+        const dy = (yMax - yMin) / steps;
+        for (let i = 0; i < steps; i++) {
+          const y0 = yMin + i * dy;
+          const y1 = yMin + (i + 1) * dy;
+          const xSpan0 = Math.sqrt(Math.max(0, maxRadius * maxRadius - y0 * y0));
+          const xSpan1 = Math.sqrt(Math.max(0, maxRadius * maxRadius - y1 * y1));
+
+          verts.push(
+            -xSpan0, y0, oz,   xSpan0, y0, oz,   xSpan1, y1, oz,
+            -xSpan0, y0, oz,   xSpan1, y1, oz,  -xSpan1, y1, oz
+          );
+        }
+        const g = new three.BufferGeometry();
+        g.setAttribute("position", new three.BufferAttribute(new Float32Array(verts), 3));
         return g;
       };
 
@@ -657,37 +724,60 @@ export function mainWorldScript(): void {
         return null;
       };
 
-      // 3. Khởi tạo Three.js Group nếu chưa có
-      if (!groundPlaneMeshGroup) {
+      // 3. Khởi tạo Three.js Group Đĩa Tròn 360° Bán Kính 100m
+      if (!groundPlaneMeshGroup || !(groundPlaneMeshGroup as any)._isRadial100m) {
+        if (groundPlaneMeshGroup && groundPlaneMeshGroup.parent) {
+          groundPlaneMeshGroup.parent.remove(groundPlaneMeshGroup);
+        }
+
         const GroupCtor = three.Group || three.Mesh;
         groundPlaneMeshGroup = new GroupCtor();
         groundPlaneMeshGroup.name = "__cvat_suite_ground_plane_mesh";
+        (groundPlaneMeshGroup as any)._isRadial100m = true;
 
-        // A. TẤM MẶT ĐƯỜNG POLYGON MỜ (Lòng đường xe chạy: 60m x 120m)
-        const roadGeom = createPlaneGeom(60, 120);
-        const roadMat = createMat(0x0284c7, 0.14);
+        // A. ĐĨA TRÒN MẶT ĐƯỜNG 360 ĐỘ BÁN KÍNH 100M
+        const roadGeom = createCircleGeom(100, 72, 0);
+        const roadMat = createMat(0x0284c7, 0.10);
         if (roadMat && typeof three.Mesh === "function") {
           const roadMesh = new three.Mesh(roadGeom, roadMat);
-          roadMesh.name = "roadPlane";
+          roadMesh.name = "roadPlaneRadial100m";
           groundPlaneMeshGroup.add(roadMesh);
         }
 
-        // B. DẢI VỈA HÈ TRÁI & PHẢI POLYGON MỜ (Giật cấp +15cm)
-        const curbWidth = 15; // Rộng 15m
-        const curbLength = 120;
-        const curbMat = createMat(0xf59e0b, 0.18); // Màu cam hổ phách ấm
+        // B. CÁC VÒNG CỰ LY ĐỒNG TÂM 360 ĐỘ (20m, 40m, 60m, 80m, 100m)
+        const ringMat = createMat(0x38bdf8, 0.28);
+        if (ringMat && typeof three.Mesh === "function") {
+          const distances = [20, 40, 60, 80, 100];
+          for (const d of distances) {
+            const ringGeom = createRingGeom(d, d === 100 ? 0.35 : 0.20, 72, 0.005);
+            const ringMesh = new three.Mesh(ringGeom, ringMat);
+            ringMesh.name = `rangeRing_${d}m`;
+            groundPlaneMeshGroup.add(ringMesh);
+          }
+        }
 
+        // C. TRỤC CHỮ THẬP ĐỊNH HƯỚNG 4 CHIỀU X - Y (100M MỖI HƯỚNG)
+        const crossMat = createMat(0x94a3b8, 0.22);
+        if (crossMat && typeof three.Mesh === "function") {
+          const crossGeom = createCrosshairGeom(100, 0.18, 0.008);
+          const crossMesh = new three.Mesh(crossGeom, crossMat);
+          crossMesh.name = "crosshairAxes100m";
+          groundPlaneMeshGroup.add(crossMesh);
+        }
+
+        // D. DẢI VỈA HÈ TRÁI & PHẢI TRONG BÁN KÍNH 100M (Giật cấp +15cm)
+        const curbMat = createMat(0xf59e0b, 0.14);
         if (curbMat && typeof three.Mesh === "function") {
-          // Vỉa hè bên trái (Y > +3.5m)
-          const curbLeftGeom = createPlaneGeom(curbWidth, curbLength, 0, 3.5 + curbWidth / 2, 0.15);
+          // Vỉa hè bên trái (Y in [3.8m, 12.0m])
+          const curbLeftGeom = createCurbGeom(3.8, 12.0, 100, 0.15);
           const curbLeft = new three.Mesh(curbLeftGeom, curbMat);
-          curbLeft.name = "curbLeft";
+          curbLeft.name = "curbLeftRadial100m";
           groundPlaneMeshGroup.add(curbLeft);
 
-          // Vỉa hè bên phải (Y < -3.5m)
-          const curbRightGeom = createPlaneGeom(curbWidth, curbLength, 0, -(3.5 + curbWidth / 2), 0.15);
+          // Vỉa hè bên phải (Y in [-12.0m, -3.8m])
+          const curbRightGeom = createCurbGeom(-12.0, -3.8, 100, 0.15);
           const curbRight = new three.Mesh(curbRightGeom, curbMat.clone ? curbMat.clone() : curbMat);
-          curbRight.name = "curbRight";
+          curbRight.name = "curbRightRadial100m";
           groundPlaneMeshGroup.add(curbRight);
         }
 

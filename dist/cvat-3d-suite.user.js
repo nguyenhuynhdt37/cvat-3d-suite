@@ -3394,33 +3394,139 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (!three) return;
         let zGround = customZ !== void 0 ? customZ : getEgoRoadGroundZInMainWorld();
         if (isNaN(zGround) || zGround === 0) zGround = -1.75;
-        const createPlaneGeom = (w, l, ox = 0, oy = 0, oz = 0) => {
-          const hw = w / 2;
-          const hl = l / 2;
-          const x0 = ox - hw, x1 = ox + hw;
-          const y0 = oy - hl, y1 = oy + hl;
+        const createCircleGeom = (radius, segments = 72, oz = 0) => {
+          const verts = [];
+          const step = Math.PI * 2 / segments;
+          for (let i = 0; i < segments; i++) {
+            const a0 = i * step;
+            const a1 = (i + 1) * step;
+            const x0 = Math.cos(a0) * radius;
+            const y0 = Math.sin(a0) * radius;
+            const x1 = Math.cos(a1) * radius;
+            const y1 = Math.sin(a1) * radius;
+            verts.push(0, 0, oz, x0, y0, oz, x1, y1, oz);
+          }
+          const g = new three.BufferGeometry();
+          g.setAttribute("position", new three.BufferAttribute(new Float32Array(verts), 3));
+          return g;
+        };
+        const createRingGeom = (radius, width = 0.25, segments = 72, oz = 5e-3) => {
+          const verts = [];
+          const rIn = radius - width / 2;
+          const rOut = radius + width / 2;
+          const step = Math.PI * 2 / segments;
+          for (let i = 0; i < segments; i++) {
+            const a0 = i * step;
+            const a1 = (i + 1) * step;
+            const c0 = Math.cos(a0), s0 = Math.sin(a0);
+            const c1 = Math.cos(a1), s1 = Math.sin(a1);
+            const xIn0 = c0 * rIn, yIn0 = s0 * rIn;
+            const xOut0 = c0 * rOut, yOut0 = s0 * rOut;
+            const xIn1 = c1 * rIn, yIn1 = s1 * rIn;
+            const xOut1 = c1 * rOut, yOut1 = s1 * rOut;
+            verts.push(
+              xIn0,
+              yIn0,
+              oz,
+              xOut0,
+              yOut0,
+              oz,
+              xOut1,
+              yOut1,
+              oz,
+              xIn0,
+              yIn0,
+              oz,
+              xOut1,
+              yOut1,
+              oz,
+              xIn1,
+              yIn1,
+              oz
+            );
+          }
+          const g = new three.BufferGeometry();
+          g.setAttribute("position", new three.BufferAttribute(new Float32Array(verts), 3));
+          return g;
+        };
+        const createCrosshairGeom = (maxRadius, width = 0.18, oz = 8e-3) => {
+          const hw = width / 2;
           const verts = new Float32Array([
-            x0,
-            y0,
+            // Trục X (Tiến - Lùi): từ -maxRadius đến +maxRadius
+            -maxRadius,
+            -hw,
             oz,
-            x1,
-            y0,
+            maxRadius,
+            -hw,
             oz,
-            x1,
-            y1,
+            maxRadius,
+            hw,
             oz,
-            x0,
-            y0,
+            -maxRadius,
+            -hw,
             oz,
-            x1,
-            y1,
+            maxRadius,
+            hw,
             oz,
-            x0,
-            y1,
+            -maxRadius,
+            hw,
+            oz,
+            // Trục Y (Trái - Phải): từ -maxRadius đến +maxRadius
+            -hw,
+            -maxRadius,
+            oz,
+            hw,
+            -maxRadius,
+            oz,
+            hw,
+            maxRadius,
+            oz,
+            -hw,
+            -maxRadius,
+            oz,
+            hw,
+            maxRadius,
+            oz,
+            -hw,
+            maxRadius,
             oz
           ]);
           const g = new three.BufferGeometry();
           g.setAttribute("position", new three.BufferAttribute(verts, 3));
+          return g;
+        };
+        const createCurbGeom = (yMin, yMax, maxRadius = 100, oz = 0.15) => {
+          const verts = [];
+          const steps = 32;
+          const dy = (yMax - yMin) / steps;
+          for (let i = 0; i < steps; i++) {
+            const y0 = yMin + i * dy;
+            const y1 = yMin + (i + 1) * dy;
+            const xSpan0 = Math.sqrt(Math.max(0, maxRadius * maxRadius - y0 * y0));
+            const xSpan1 = Math.sqrt(Math.max(0, maxRadius * maxRadius - y1 * y1));
+            verts.push(
+              -xSpan0,
+              y0,
+              oz,
+              xSpan0,
+              y0,
+              oz,
+              xSpan1,
+              y1,
+              oz,
+              -xSpan0,
+              y0,
+              oz,
+              xSpan1,
+              y1,
+              oz,
+              -xSpan1,
+              y1,
+              oz
+            );
+          }
+          const g = new three.BufferGeometry();
+          g.setAttribute("position", new three.BufferAttribute(new Float32Array(verts), 3));
           return g;
         };
         const createMat = (hexColor, opacity) => {
@@ -3461,28 +3567,47 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
           return null;
         };
-        if (!groundPlaneMeshGroup) {
+        if (!groundPlaneMeshGroup || !groundPlaneMeshGroup._isRadial100m) {
+          if (groundPlaneMeshGroup && groundPlaneMeshGroup.parent) {
+            groundPlaneMeshGroup.parent.remove(groundPlaneMeshGroup);
+          }
           const GroupCtor = three.Group || three.Mesh;
           groundPlaneMeshGroup = new GroupCtor();
           groundPlaneMeshGroup.name = "__cvat_suite_ground_plane_mesh";
-          const roadGeom = createPlaneGeom(60, 120);
-          const roadMat = createMat(165063, 0.14);
+          groundPlaneMeshGroup._isRadial100m = true;
+          const roadGeom = createCircleGeom(100, 72, 0);
+          const roadMat = createMat(165063, 0.1);
           if (roadMat && typeof three.Mesh === "function") {
             const roadMesh = new three.Mesh(roadGeom, roadMat);
-            roadMesh.name = "roadPlane";
+            roadMesh.name = "roadPlaneRadial100m";
             groundPlaneMeshGroup.add(roadMesh);
           }
-          const curbWidth = 15;
-          const curbLength = 120;
-          const curbMat = createMat(16096779, 0.18);
+          const ringMat = createMat(3718648, 0.28);
+          if (ringMat && typeof three.Mesh === "function") {
+            const distances = [20, 40, 60, 80, 100];
+            for (const d of distances) {
+              const ringGeom = createRingGeom(d, d === 100 ? 0.35 : 0.2, 72, 5e-3);
+              const ringMesh = new three.Mesh(ringGeom, ringMat);
+              ringMesh.name = `rangeRing_${d}m`;
+              groundPlaneMeshGroup.add(ringMesh);
+            }
+          }
+          const crossMat = createMat(9741240, 0.22);
+          if (crossMat && typeof three.Mesh === "function") {
+            const crossGeom = createCrosshairGeom(100, 0.18, 8e-3);
+            const crossMesh = new three.Mesh(crossGeom, crossMat);
+            crossMesh.name = "crosshairAxes100m";
+            groundPlaneMeshGroup.add(crossMesh);
+          }
+          const curbMat = createMat(16096779, 0.14);
           if (curbMat && typeof three.Mesh === "function") {
-            const curbLeftGeom = createPlaneGeom(curbWidth, curbLength, 0, 3.5 + curbWidth / 2, 0.15);
+            const curbLeftGeom = createCurbGeom(3.8, 12, 100, 0.15);
             const curbLeft = new three.Mesh(curbLeftGeom, curbMat);
-            curbLeft.name = "curbLeft";
+            curbLeft.name = "curbLeftRadial100m";
             groundPlaneMeshGroup.add(curbLeft);
-            const curbRightGeom = createPlaneGeom(curbWidth, curbLength, 0, -(3.5 + curbWidth / 2), 0.15);
+            const curbRightGeom = createCurbGeom(-12, -3.8, 100, 0.15);
             const curbRight = new three.Mesh(curbRightGeom, curbMat.clone ? curbMat.clone() : curbMat);
-            curbRight.name = "curbRight";
+            curbRight.name = "curbRightRadial100m";
             groundPlaneMeshGroup.add(curbRight);
           }
           scene.add(groundPlaneMeshGroup);
