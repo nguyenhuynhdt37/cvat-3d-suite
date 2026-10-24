@@ -5020,33 +5020,43 @@ export function mainWorldScript(): void {
     });
 
     // =========================================================================
-    // XỬ LÝ SỰ KIỆN HOVER ĐỐI TƯỢNG (TỰ ĐỘNG CẬP NHẬT ID TỨC THÌ KHI RÊ CHUỘT)
+    // XỬ LÝ FOCUS TẬP TRUNG KHI CVAT CHUYỂN OBJECT (NATIVE HOVER 3D & SIDEBAR)
     // =========================================================================
-    let hoverActivateTimer: any = null;
-    function handleObjectHovered(id: number): void {
+    let focusTriggerDebounceTimer: any = null;
+    function triggerFocusOnObject(id: number, forceCenter: boolean = true): void {
       if (id === null || id === undefined || isNaN(id) || id <= 0) return;
       if (id === lastActiveTrackId && id === persistentActiveTrackId) return;
 
-      if (hoverActivateTimer) clearTimeout(hoverActivateTimer);
-      hoverActivateTimer = setTimeout(() => {
-        hoverActivateTimer = null;
+      if (focusTriggerDebounceTimer) clearTimeout(focusTriggerDebounceTimer);
+      focusTriggerDebounceTimer = setTimeout(() => {
+        focusTriggerDebounceTimer = null;
         if (id === lastActiveTrackId && id === persistentActiveTrackId) return;
 
-        console.log(`[CVAT 3D Suite] Hover sang đối tượng #${id} -> Tự động update ID và thông số`);
+        console.log(`[CVAT 3D Suite] Tự động FOCUS vào xe #${id} (3D, Top, Side, Front)`);
         lastActiveTrackId = id;
         updateLockedTrackId(id);
 
+        // 1. FOCUS CẢ 4 KHUNG NHÌN: Căn giữa camera 3D Perspective, Top View, Side View, Front View vào tâm xe!
+        if (forceCenter) {
+          center3DViewOnObject(id);
+        }
+
+        // 2. Trích xuất chi tiết xe (X, Y, Z, Yaw, L, W, H)
         const details = extractObjectDetails(id);
+
+        // 3. Gửi event cập nhật tức thì sang FloatingPanel
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
             detail: { clientId: id, details, isHover: true },
           })
         );
 
+        // 4. Highlight mây điểm xe active rực rỡ
         if (currentColorizeBoxed) {
           applyPointCloudColorizationInMainWorld();
         }
 
+        // 5. Đồng bộ Three.js Canvas & Redux Store
         try {
           const store = getReduxStore();
           const canvas = store?.getState()?.annotation?.canvas?.instance;
@@ -5070,6 +5080,7 @@ export function mainWorldScript(): void {
           }
         } catch (_) {}
 
+        // 6. Highlight trên Sidebar của CVAT
         try {
           const sidebarItem =
             document.querySelector<HTMLElement>(`#cvat-objects-sidebar-state-item-${id}`) ||
@@ -5082,10 +5093,10 @@ export function mainWorldScript(): void {
             sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
           }
         } catch (_) {}
-      }, 50);
+      }, 35);
     }
 
-    // 1. Theo dõi Hover trên Sidebar của CVAT
+    // 1. Theo dõi Hover trực tiếp trên thanh Sidebar của CVAT
     document.addEventListener(
       "mouseover",
       (e: MouseEvent) => {
@@ -5104,104 +5115,77 @@ export function mainWorldScript(): void {
             if (match) id = parseInt(match[1], 10);
           }
           if (id && id > 0 && id !== lastActiveTrackId) {
-            handleObjectHovered(id);
+            triggerFocusOnObject(id, true);
           }
         }
       },
       { passive: true }
     );
 
-    // 2. Theo dõi Hover trên Canvas 3D Three.js qua Raycasting siêu nhẹ
-    let sharedRaycaster: any = null;
-    let sharedMouse: any = null;
-    let canvasHoverThrottleTimer: any = null;
+    // 2. Theo dõi MutationObserver trên thanh bên cạnh (Sidebar) của CVAT
+    // Khi người dùng hover vào 3D trong CVAT, CVAT native tự động đổi active/highlight trên thanh bên cạnh
+    let lastObservedSidebarId: number | null = null;
+    let sidebarObserverDebounce: any = null;
 
-    function attachCanvas3DHoverWatcher(): void {
+    function attachSidebarActiveObserver(): void {
       try {
-        const store = getReduxStore();
-        const canvas = store?.getState()?.annotation?.canvas?.instance;
-        if (!canvas || !canvas.view || !canvas.view.views) return;
+        const sidebarEl =
+          document.querySelector("#cvat-objects-sidebar") ||
+          document.querySelector(".cvat-objects-sidebar") ||
+          document.querySelector("[class*='cvat-objects-sidebar']") ||
+          document.body;
 
-        const winThree = (window as any).THREE || canvas?.view?.THREE;
-        if (!winThree) return;
+        if (!sidebarEl || (sidebarEl as any).__cvat_sidebar_observer_attached__) return;
+        (sidebarEl as any).__cvat_sidebar_observer_attached__ = true;
 
-        if (!sharedRaycaster && typeof winThree.Raycaster === "function") {
-          sharedRaycaster = new winThree.Raycaster();
-        }
-        if (!sharedMouse && typeof winThree.Vector2 === "function") {
-          sharedMouse = new winThree.Vector2();
-        }
+        const observer = new MutationObserver(() => {
+          if (sidebarObserverDebounce) return;
+          sidebarObserverDebounce = setTimeout(() => {
+            sidebarObserverDebounce = null;
+            try {
+              const activeItem = document.querySelector<HTMLElement>(
+                ".cvat-objects-sidebar-state-item-active, " +
+                ".cvat-objects-sidebar-state-item.selected, " +
+                "[class*='sidebar-state-item-active'], " +
+                "[class*='sidebar-state-item--active'], " +
+                "[class*='state-item-activated'], " +
+                "[class*='state-item-highlighted'], " +
+                "[class*='state-item--highlighted'], " +
+                "[data-cvat-state-item-id][class*='active'], " +
+                "[data-cvat-state-item-id][class*='selected'], " +
+                "[data-cvat-state-item-id][class*='highlighted']"
+              );
 
-        const views = canvas.view.views;
-        const viewKeys = ["perspective", "top", "side", "front"];
+              if (activeItem) {
+                let id: number | null = null;
+                const dataId = activeItem.getAttribute("data-cvat-state-item-id") || activeItem.getAttribute("data-item-id");
+                if (dataId && /^\d+$/.test(dataId)) {
+                  id = parseInt(dataId, 10);
+                } else {
+                  const match = (activeItem.id || activeItem.innerText || activeItem.textContent || "").match(/#?(\d+)/);
+                  if (match) id = parseInt(match[1], 10);
+                }
 
-        for (const key of viewKeys) {
-          const v = views[key];
-          const domEl = v?.renderer?.domElement;
-          if (!domEl || (domEl as any).__cvat_hover_watcher_attached__) continue;
-          (domEl as any).__cvat_hover_watcher_attached__ = true;
+                if (id && id > 0 && id !== lastObservedSidebarId && id !== lastActiveTrackId) {
+                  lastObservedSidebarId = id;
+                  console.log(`[CVAT 3D Suite] Thanh bên cạnh vừa đổi sang xe #${id} -> FOCUS NGAY!`);
+                  triggerFocusOnObject(id, true);
+                }
+              }
+            } catch (_) {}
+          }, 30);
+        });
 
-          domEl.addEventListener(
-            "pointermove",
-            (e: PointerEvent) => {
-              if (isCanvasInteracting) return;
-              if (canvasHoverThrottleTimer) return;
-
-              canvasHoverThrottleTimer = setTimeout(() => {
-                canvasHoverThrottleTimer = null;
-                try {
-                  if (!sharedRaycaster || !sharedMouse || !v.camera) return;
-
-                  const rect = domEl.getBoundingClientRect();
-                  if (rect.width <= 0 || rect.height <= 0) return;
-
-                  sharedMouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-                  sharedMouse.y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
-
-                  sharedRaycaster.setFromCamera(sharedMouse, v.camera);
-
-                  const drawnObjects = canvas.view?.drawnObjects || {};
-                  const meshToId = new Map<any, number>();
-                  const targetMeshes: any[] = [];
-
-                  for (const idStr of Object.keys(drawnObjects)) {
-                    const item = drawnObjects[idStr];
-                    const cid = Number(idStr);
-                    const cuboid = item?.cuboid;
-                    if (!cuboid) continue;
-
-                    const viewObj = cuboid[key] || cuboid.perspective;
-                    if (viewObj) {
-                      viewObj.traverse((child: any) => {
-                        if (child && (child.isMesh || child.type === "Mesh" || child.isLine || child.isLineSegments)) {
-                          targetMeshes.push(child);
-                          meshToId.set(child, cid);
-                        }
-                      });
-                    }
-                  }
-
-                  if (targetMeshes.length === 0) return;
-
-                  const intersects = sharedRaycaster.intersectObjects(targetMeshes, false);
-                  if (intersects && intersects.length > 0) {
-                    const hitMesh = intersects[0].object;
-                    const hitId = meshToId.get(hitMesh);
-                    if (hitId !== undefined && hitId !== null && hitId > 0 && hitId !== lastActiveTrackId) {
-                      handleObjectHovered(hitId);
-                    }
-                  }
-                } catch (_) {}
-              }, 40);
-            },
-            { passive: true }
-          );
-        }
+        observer.observe(sidebarEl, {
+          attributes: true,
+          attributeFilter: ["class", "style", "data-cvat-state-item-id"],
+          subtree: true,
+        });
       } catch (_) {}
     }
 
-    attachCanvas3DHoverWatcher();
-    setInterval(attachCanvas3DHoverWatcher, 2000);
+    attachSidebarActiveObserver();
+    setInterval(attachSidebarActiveObserver, 2000);
 
     // LẮNG NGHE REDUX STORE SUBSCRIBE ĐỂ PHÁT HIỆN TỨC THÌ KHI VỪA VẼ XONG BOX MỚI VÀ KHI TUA FRAME
     try {
@@ -5218,7 +5202,10 @@ export function mainWorldScript(): void {
         store.subscribe(() => {
           try {
             const anno = store.getState()?.annotation;
-            const curActiveId = anno?.annotations?.activatedStateClientID;
+            const curActiveId =
+              anno?.annotations?.activatedStateClientID ??
+              canvas?.view?.activatedElementID ??
+              anno?.annotations?.highlightedClientID;
             const curStatesLen = anno?.annotations?.states?.length || 0;
             const curFrame = anno?.player?.frame?.number ?? anno?.job?.instance?.frame;
 
@@ -5260,26 +5247,20 @@ export function mainWorldScript(): void {
               }
             }
 
-            // 2. PHÁT HIỆN THAY ĐỔI ACTIVE OBJECT (2 CHIỀU & DEACTIVATE KHI BỎ CHỌN)
+            // 2. PHÁT HIỆN THAY ĐỔI ACTIVE OBJECT (TỰ ĐỘNG FOCUS CẢ 4 KHUNG 3D, TOP, SIDE, FRONT VÀO XE ĐÓ)
             if (curActiveId !== prevActiveId) {
               prevActiveId = curActiveId;
               if (curActiveId !== null && curActiveId !== undefined) {
-                lastActiveTrackId = Number(curActiveId);
+                const idNum = Number(curActiveId);
+                lastActiveTrackId = idNum;
                 if (!isFrameTransitioning) {
-                  updateLockedTrackId(Number(curActiveId));
+                  updateLockedTrackId(idNum);
                 }
                 if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
                 activeDebounceTimer = setTimeout(() => {
                   activeDebounceTimer = null;
-                  const details = extractObjectDetails(Number(curActiveId));
-                  window.dispatchEvent(
-                    new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-                      detail: { clientId: Number(curActiveId), details },
-                    })
-                  );
-                  // Highlight lại mây điểm trong xe active mới
-                  applyPointCloudColorizationInMainWorld();
-                }, 80);
+                  triggerFocusOnObject(idNum, true);
+                }, 35);
               } else {
                 // Người dùng bỏ chọn hoặc click ra ngoài canvas -> Báo cho Extension biết để ẩn chức năng
                 lastActiveTrackId = null;
