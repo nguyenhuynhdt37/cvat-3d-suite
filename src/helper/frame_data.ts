@@ -7,6 +7,7 @@
 import { parsePCD } from './pcd_parser';
 import { listZipEntries } from './zip_reader';
 import { helperApi } from './api_client';
+import { PointCloudDiskStorage } from './point_cloud_cache';
 import type { HelperJobStore } from './helper_store';
 
 // ──────────────────────────────────────────────────────────
@@ -31,6 +32,7 @@ export interface PreloadProgress {
   fraction: number;
   loadedBytes: number;
   chunk: number | null;
+  diskCount: number;
 }
 
 export interface ContextImage {
@@ -76,20 +78,45 @@ export class FrameData {
   }
 
   /**
-   * Tải chunk (nếu chưa tải), parse từng PCD entry trong zip.
+   * Tải chunk (nếu chưa tải):
+   * 1. Ưu tiên kiểm tra ổ cứng (IndexedDB Cache) -> Nếu có, nạp ngay trong vài ms!
+   * 2. Nếu chưa có -> Tải qua mạng -> Tự động lưu vĩnh viễn xuống ổ cứng cho lần sau.
    */
   private loadChunk(
     index: number,
     onBytes?: (loaded: number, total: number) => void,
+    onSource?: (fromDisk: boolean) => void,
   ): Promise<void> {
     if (!this.chunks.has(index)) {
       const p = (async () => {
-        const buf = await helperApi.getChunk(
+        // 1. Kiểm tra cache trên ổ cứng
+        let buf = await PointCloudDiskStorage.getDiskChunk(
           this.store.jid,
           index,
           this.quality,
-          onBytes,
         );
+
+        if (buf) {
+          onSource?.(true);
+          onBytes?.(buf.byteLength, buf.byteLength);
+        } else {
+          onSource?.(false);
+          // 2. Chưa có trên ổ cứng -> Tải từ server CVAT
+          buf = await helperApi.getChunk(
+            this.store.jid,
+            index,
+            this.quality,
+            onBytes,
+          );
+          // 3. Tự động lưu xuống ổ cứng vĩnh viễn
+          PointCloudDiskStorage.saveDiskChunk(
+            this.store.jid,
+            index,
+            this.quality,
+            buf,
+          );
+        }
+
         const entries = listZipEntries(buf);
         const base = index * this.chunkSize;
         await Promise.all(
@@ -132,6 +159,7 @@ export class FrameData {
       needed.map((c) => [c, this.chunks.has(c) ? null : 0]),
     );
     let done = 0;
+    let diskCount = 0;
     let loadedBytes = 0;
     const bytes = new Map<number, number>();
 
@@ -143,6 +171,7 @@ export class FrameData {
         total: needed.length,
         loadedBytes,
         chunk,
+        diskCount,
         fraction: needed.length
           ? Math.min(1, (done + partial) / needed.length)
           : 1,
@@ -155,12 +184,22 @@ export class FrameData {
     const worker = async (): Promise<void> => {
       while (queue.length) {
         const c = queue.shift()!;
-        await this.loadChunk(c, (loaded: number, total: number) => {
-          loadedBytes += loaded - (bytes.get(c) || 0);
-          bytes.set(c, loaded);
-          parts.set(c, total ? Math.min(0.99, loaded / total) : 0);
-          report();
-        });
+        let isFromDisk = false;
+        await this.loadChunk(
+          c,
+          (loaded: number, total: number) => {
+            loadedBytes += loaded - (bytes.get(c) || 0);
+            bytes.set(c, loaded);
+            parts.set(c, total ? Math.min(0.99, loaded / total) : 0);
+            report();
+          },
+          (fromDisk: boolean) => {
+            if (fromDisk) {
+              isFromDisk = true;
+              diskCount += 1;
+            }
+          },
+        );
         parts.set(c, null);
         done += 1;
         report(c);

@@ -15231,6 +15231,179 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return entries;
   }
+  const DB_NAME = "CVAT_3D_SUITE_CACHE";
+  const DB_VERSION = 1;
+  const CHUNK_STORE = "chunks";
+  class PointCloudDiskStorageManager {
+    constructor() {
+      __publicField(this, "dbPromise", null);
+    }
+    /**
+     * Khởi tạo hoặc mở kết nối IndexedDB.
+     */
+    getDb() {
+      if (this.dbPromise) return this.dbPromise;
+      this.dbPromise = new Promise((resolve, reject) => {
+        if (typeof indexedDB === "undefined") {
+          reject(new Error("Trình duyệt không hỗ trợ IndexedDB"));
+          return;
+        }
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(CHUNK_STORE)) {
+            const store = db.createObjectStore(CHUNK_STORE, { keyPath: "key" });
+            store.createIndex("by_jid", "jid", { unique: false });
+          }
+        };
+        req.onsuccess = () => {
+          resolve(req.result);
+        };
+        req.onerror = () => {
+          this.dbPromise = null;
+          reject(req.error || new Error("Lỗi mở IndexedDB"));
+        };
+      });
+      return this.dbPromise;
+    }
+    makeKey(jid, chunkIndex, quality) {
+      return `${jid}_chunk_${chunkIndex}_${quality}`;
+    }
+    /**
+     * Lấy dữ liệu chunk nhị phân (.zip) đã lưu trên ổ cứng.
+     * Trả về ArrayBuffer nếu có, null nếu chưa cache.
+     */
+    async getDiskChunk(jid, chunkIndex, quality) {
+      try {
+        const db = await this.getDb();
+        return await new Promise((resolve) => {
+          const tx = db.transaction(CHUNK_STORE, "readonly");
+          const store = tx.objectStore(CHUNK_STORE);
+          const req = store.get(this.makeKey(jid, chunkIndex, quality));
+          req.onsuccess = () => {
+            const record = req.result;
+            resolve(record && record.data ? record.data : null);
+          };
+          req.onerror = () => {
+            resolve(null);
+          };
+        });
+      } catch (err) {
+        console.warn("[Cache] Không thể đọc từ IndexedDB:", err);
+        return null;
+      }
+    }
+    /**
+     * Kiểm tra nhanh xem chunk đã được lưu trên ổ cứng chưa.
+     */
+    async hasDiskChunk(jid, chunkIndex, quality) {
+      try {
+        const db = await this.getDb();
+        return await new Promise((resolve) => {
+          const tx = db.transaction(CHUNK_STORE, "readonly");
+          const store = tx.objectStore(CHUNK_STORE);
+          const req = store.count(this.makeKey(jid, chunkIndex, quality));
+          req.onsuccess = () => {
+            resolve(req.result > 0);
+          };
+          req.onerror = () => {
+            resolve(false);
+          };
+        });
+      } catch {
+        return false;
+      }
+    }
+    /**
+     * Lưu dữ liệu chunk nhị phân (.zip) xuống ổ cứng.
+     */
+    async saveDiskChunk(jid, chunkIndex, quality, data) {
+      try {
+        const db = await this.getDb();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(CHUNK_STORE, "readwrite");
+          const store = tx.objectStore(CHUNK_STORE);
+          const record = {
+            key: this.makeKey(jid, chunkIndex, quality),
+            jid,
+            chunkIndex,
+            quality,
+            data,
+            byteSize: data.byteLength,
+            savedAt: Date.now()
+          };
+          const req = store.put(record);
+          req.onsuccess = () => resolve();
+          req.onerror = () => reject(req.error);
+        });
+      } catch (err) {
+        console.warn("[Cache] Không thể ghi xuống IndexedDB:", err);
+      }
+    }
+    /**
+     * Lấy thống kê dung lượng cache đã lưu cho Job này (hoặc toàn bộ nếu jid <= 0).
+     */
+    async getCacheStats(jid) {
+      try {
+        const db = await this.getDb();
+        return await new Promise((resolve) => {
+          const tx = db.transaction(CHUNK_STORE, "readonly");
+          const store = tx.objectStore(CHUNK_STORE);
+          let count = 0;
+          let totalBytes = 0;
+          const cursorReq = jid && jid > 0 ? store.index("by_jid").openCursor(IDBKeyRange.only(jid)) : store.openCursor();
+          cursorReq.onsuccess = (e) => {
+            const cursor = e.target.result;
+            if (cursor) {
+              count += 1;
+              totalBytes += cursor.value.byteSize || 0;
+              cursor.continue();
+            } else {
+              resolve({ count, totalBytes });
+            }
+          };
+          cursorReq.onerror = () => {
+            resolve({ count, totalBytes });
+          };
+        });
+      } catch {
+        return { count: 0, totalBytes: 0 };
+      }
+    }
+    /**
+     * Xóa cache của 1 Job cụ thể hoặc xóa toàn bộ database cache.
+     */
+    async clearCache(jid) {
+      try {
+        const db = await this.getDb();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(CHUNK_STORE, "readwrite");
+          const store = tx.objectStore(CHUNK_STORE);
+          if (jid && jid > 0) {
+            const index = store.index("by_jid");
+            const req = index.openCursor(IDBKeyRange.only(jid));
+            req.onsuccess = (e) => {
+              const cursor = e.target.result;
+              if (cursor) {
+                cursor.delete();
+                cursor.continue();
+              } else {
+                resolve();
+              }
+            };
+            req.onerror = () => reject(req.error);
+          } else {
+            const req = store.clear();
+            req.onsuccess = () => resolve();
+            req.onerror = () => reject(req.error);
+          }
+        });
+      } catch (err) {
+        console.warn("[Cache] Lỗi dọn cache:", err);
+      }
+    }
+  }
+  const PointCloudDiskStorage = new PointCloudDiskStorageManager();
   const MIME = {
     jpg: "image/jpeg",
     jpeg: "image/jpeg",
@@ -15264,17 +15437,36 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       };
     }
     /**
-     * Tải chunk (nếu chưa tải), parse từng PCD entry trong zip.
+     * Tải chunk (nếu chưa tải):
+     * 1. Ưu tiên kiểm tra ổ cứng (IndexedDB Cache) -> Nếu có, nạp ngay trong vài ms!
+     * 2. Nếu chưa có -> Tải qua mạng -> Tự động lưu vĩnh viễn xuống ổ cứng cho lần sau.
      */
-    loadChunk(index, onBytes) {
+    loadChunk(index, onBytes, onSource) {
       if (!this.chunks.has(index)) {
         const p = (async () => {
-          const buf = await helperApi.getChunk(
+          let buf = await PointCloudDiskStorage.getDiskChunk(
             this.store.jid,
             index,
-            this.quality,
-            onBytes
+            this.quality
           );
+          if (buf) {
+            onSource == null ? void 0 : onSource(true);
+            onBytes == null ? void 0 : onBytes(buf.byteLength, buf.byteLength);
+          } else {
+            onSource == null ? void 0 : onSource(false);
+            buf = await helperApi.getChunk(
+              this.store.jid,
+              index,
+              this.quality,
+              onBytes
+            );
+            PointCloudDiskStorage.saveDiskChunk(
+              this.store.jid,
+              index,
+              this.quality,
+              buf
+            );
+          }
           const entries = listZipEntries(buf);
           const base = index * this.chunkSize;
           await Promise.all(
@@ -15309,6 +15501,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         needed.map((c) => [c, this.chunks.has(c) ? null : 0])
       );
       let done = 0;
+      let diskCount = 0;
       let loadedBytes = 0;
       const bytes = /* @__PURE__ */ new Map();
       const report = (chunk = null) => {
@@ -15319,6 +15512,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           total: needed.length,
           loadedBytes,
           chunk,
+          diskCount,
           fraction: needed.length ? Math.min(1, (done + partial) / needed.length) : 1
         });
       };
@@ -15327,12 +15521,20 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const worker = async () => {
         while (queue.length) {
           const c = queue.shift();
-          await this.loadChunk(c, (loaded, total) => {
-            loadedBytes += loaded - (bytes.get(c) || 0);
-            bytes.set(c, loaded);
-            parts.set(c, total ? Math.min(0.99, loaded / total) : 0);
-            report();
-          });
+          await this.loadChunk(
+            c,
+            (loaded, total) => {
+              loadedBytes += loaded - (bytes.get(c) || 0);
+              bytes.set(c, loaded);
+              parts.set(c, total ? Math.min(0.99, loaded / total) : 0);
+              report();
+            },
+            (fromDisk) => {
+              if (fromDisk) {
+                diskCount += 1;
+              }
+            }
+          );
           parts.set(c, null);
           done += 1;
           report(c);
