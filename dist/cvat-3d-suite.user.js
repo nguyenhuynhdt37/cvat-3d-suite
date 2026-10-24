@@ -3058,7 +3058,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
     function applyPointCloudColorizationInMainWorld(options) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C;
       if (isColorizingRunning) return false;
       try {
         if (options == null ? void 0 : options.mode) currentPointColorMode = options.mode;
@@ -3083,102 +3083,120 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           active: { r: 0.98, g: 0.8, b: 0.08 }
           // Vàng chanh Neon (#facc15)
         };
-        const fastBoxes = [];
+        const fastBoxesMap = /* @__PURE__ */ new Map();
         const activeClientId = ((_l = canvas.view) == null ? void 0 : _l.activatedElementID) || ((_o = (_n = (_m = store == null ? void 0 : store.getState()) == null ? void 0 : _m.annotation) == null ? void 0 : _n.annotations) == null ? void 0 : _o.activatedStateClientID);
         if (currentColorizeBoxed) {
-          const drawnObjects = ((_p = canvas.view) == null ? void 0 : _p.drawnObjects) || {};
-          const drawnKeys = Object.keys(drawnObjects);
-          if (drawnKeys.length > 0) {
-            for (const idStr of drawnKeys) {
-              const drawnItem = drawnObjects[idStr];
-              const data = drawnItem == null ? void 0 : drawnItem.data;
-              if (data && Array.isArray(data.points) && data.points.length >= 9 && !data.outside) {
-                const pts = data.points;
-                const l = pts[6];
-                const w = pts[7];
-                const h2 = pts[8];
-                if (l <= 0 || w <= 0 || h2 <= 0) continue;
-                const clientId = Number(idStr);
-                const isActive = clientId === Number(activeClientId);
-                const labelName = (((_q = data.label) == null ? void 0 : _q.name) || "").toLowerCase();
-                let c = defaultColors.car;
-                if (isActive) {
-                  c = defaultColors.active;
-                } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
-                  c = defaultColors.pedestrian;
-                } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
-                  c = defaultColors.cyclist;
-                } else if (labelName.includes("truck")) {
-                  c = defaultColors.truck;
-                } else if (labelName.includes("bus")) {
-                  c = defaultColors.bus;
-                }
-                const yaw = pts[5] || 0;
-                fastBoxes.push({
-                  cx: pts[0],
-                  cy: pts[1],
-                  cz: pts[2],
-                  rx: pts[3] || 0,
-                  ry: pts[4] || 0,
-                  rz: yaw,
-                  cosY: Math.cos(-yaw),
-                  sinY: Math.sin(-yaw),
-                  halfL: l / 2,
-                  halfW: w / 2,
-                  halfH: h2 / 2,
-                  maxR: Math.max(l, w, h2) * 0.75,
-                  colorR: c.r,
-                  colorG: c.g,
-                  colorB: c.b
-                });
+          const states = ((_r = (_q = (_p = store == null ? void 0 : store.getState()) == null ? void 0 : _p.annotation) == null ? void 0 : _q.annotations) == null ? void 0 : _r.states) || [];
+          for (const s of states) {
+            if (s && Array.isArray(s.points) && s.points.length >= 9 && !s.outside) {
+              const pts = s.points;
+              const l = pts[6];
+              const w = pts[7];
+              const h2 = pts[8];
+              if (l <= 0 || w <= 0 || h2 <= 0) continue;
+              const clientId = Number(s.clientID ?? s.id);
+              const isActive = clientId === Number(activeClientId);
+              const labelName = (((_s = s.label) == null ? void 0 : _s.name) || "").toLowerCase();
+              let c = defaultColors.car;
+              if (isActive) {
+                c = defaultColors.active;
+              } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
+                c = defaultColors.pedestrian;
+              } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
+                c = defaultColors.cyclist;
+              } else if (labelName.includes("truck")) {
+                c = defaultColors.truck;
+              } else if (labelName.includes("bus")) {
+                c = defaultColors.bus;
               }
+              const yaw = pts[5] || 0;
+              fastBoxesMap.set(clientId, {
+                cx: pts[0],
+                cy: pts[1],
+                cz: pts[2],
+                rx: pts[3] || 0,
+                ry: pts[4] || 0,
+                rz: yaw,
+                cosY: Math.cos(-yaw),
+                sinY: Math.sin(-yaw),
+                halfL: l / 2,
+                halfW: w / 2,
+                halfH: h2 / 2,
+                maxR: Math.max(l, w, h2) * 0.75,
+                colorR: c.r,
+                colorG: c.g,
+                colorB: c.b
+              });
             }
-          } else {
-            const states = ((_t = (_s = (_r = store == null ? void 0 : store.getState()) == null ? void 0 : _r.annotation) == null ? void 0 : _s.annotations) == null ? void 0 : _t.states) || [];
-            for (const s of states) {
-              if (s && Array.isArray(s.points) && s.points.length >= 9 && !s.outside) {
-                const pts = s.points;
-                const l = pts[6];
-                const w = pts[7];
-                const h2 = pts[8];
-                if (l <= 0 || w <= 0 || h2 <= 0) continue;
-                const clientId = Number(s.clientID ?? s.id);
-                const isActive = clientId === Number(activeClientId);
-                const labelName = (((_u = s.label) == null ? void 0 : _u.name) || "").toLowerCase();
-                let c = defaultColors.car;
-                if (isActive) {
-                  c = defaultColors.active;
-                } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
-                  c = defaultColors.pedestrian;
-                } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
-                  c = defaultColors.cyclist;
-                } else if (labelName.includes("truck")) {
-                  c = defaultColors.truck;
-                } else if (labelName.includes("bus")) {
-                  c = defaultColors.bus;
+          }
+          const drawnObjects = ((_t = canvas.view) == null ? void 0 : _t.drawnObjects) || {};
+          for (const idStr of Object.keys(drawnObjects)) {
+            const drawnItem = drawnObjects[idStr];
+            const data = drawnItem == null ? void 0 : drawnItem.data;
+            if (data && Array.isArray(data.points) && data.points.length >= 9 && !data.outside) {
+              const pts = data.points;
+              let cx = pts[0];
+              let cy = pts[1];
+              let cz = pts[2];
+              let yaw = pts[5] || 0;
+              let l = pts[6];
+              let w = pts[7];
+              let h2 = pts[8];
+              if (drawnItem.cuboid) {
+                const cp = drawnItem.cuboid.position || ((_u = drawnItem.cuboid.perspective) == null ? void 0 : _u.position) || ((_v = drawnItem.cuboid.top) == null ? void 0 : _v.position);
+                const cr = drawnItem.cuboid.rotation || ((_w = drawnItem.cuboid.perspective) == null ? void 0 : _w.rotation) || ((_x = drawnItem.cuboid.top) == null ? void 0 : _x.rotation);
+                const cs = drawnItem.cuboid.scale || ((_y = drawnItem.cuboid.perspective) == null ? void 0 : _y.scale) || ((_z = drawnItem.cuboid.top) == null ? void 0 : _z.scale);
+                if (cp && typeof cp.x === "number") {
+                  cx = cp.x;
+                  cy = cp.y;
+                  cz = cp.z;
                 }
-                const yaw = pts[5] || 0;
-                fastBoxes.push({
-                  cx: pts[0],
-                  cy: pts[1],
-                  cz: pts[2],
-                  rx: pts[3] || 0,
-                  ry: pts[4] || 0,
-                  rz: yaw,
-                  cosY: Math.cos(-yaw),
-                  sinY: Math.sin(-yaw),
-                  halfL: l / 2,
-                  halfW: w / 2,
-                  halfH: h2 / 2,
-                  maxR: Math.max(l, w, h2) * 0.75,
-                  colorR: c.r,
-                  colorG: c.g,
-                  colorB: c.b
-                });
+                if (cr && typeof cr.z === "number") {
+                  yaw = cr.z;
+                }
+                if (cs && typeof cs.x === "number" && cs.x > 0) {
+                  l = cs.x;
+                  w = cs.y;
+                  h2 = cs.z;
+                }
               }
+              if (l <= 0 || w <= 0 || h2 <= 0) continue;
+              const clientId = Number(idStr);
+              const isActive = clientId === Number(activeClientId);
+              const labelName = (((_A = data.label) == null ? void 0 : _A.name) || "").toLowerCase();
+              let c = defaultColors.car;
+              if (isActive) {
+                c = defaultColors.active;
+              } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
+                c = defaultColors.pedestrian;
+              } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
+                c = defaultColors.cyclist;
+              } else if (labelName.includes("truck")) {
+                c = defaultColors.truck;
+              } else if (labelName.includes("bus")) {
+                c = defaultColors.bus;
+              }
+              fastBoxesMap.set(clientId, {
+                cx,
+                cy,
+                cz,
+                rx: pts[3] || 0,
+                ry: pts[4] || 0,
+                rz: yaw,
+                cosY: Math.cos(-yaw),
+                sinY: Math.sin(-yaw),
+                halfL: l / 2,
+                halfW: w / 2,
+                halfH: h2 / 2,
+                maxR: Math.max(l, w, h2) * 0.75,
+                colorR: c.r,
+                colorG: c.g,
+                colorB: c.b
+              });
             }
           }
         }
+        const fastBoxes = Array.from(fastBoxesMap.values());
         const numBoxes = fastBoxes.length;
         const isPlain = currentPointColorMode === "plain";
         const plainR = 0.72;
@@ -3197,11 +3215,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             continue;
           }
           processedGeometries.add(geom);
-          const posAttr = (_v = geom.attributes) == null ? void 0 : _v.position;
+          const posAttr = (_B = geom.attributes) == null ? void 0 : _B.position;
           if (!posAttr || !posAttr.array) continue;
           const count = posAttr.count;
           const posArray = posAttr.array;
-          const intensityAttr = (_w = geom.attributes.intensity || geom.attributes.intensities) == null ? void 0 : _w.array;
+          const intensityAttr = (_C = geom.attributes.intensity || geom.attributes.intensities) == null ? void 0 : _C.array;
           let colorAttr = geom.attributes.color;
           let colorArray;
           const BufferAttrClass = posAttr.constructor;
@@ -6033,7 +6051,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             const oView = views[viewName];
             if (oView) {
               if ((_j = oView.controls) == null ? void 0 : _j.target) {
-                oView.controls.target.set(pos.x, pos.y, pos.z);
+                const curTarget = oView.controls.target;
+                const deltaX = pos.x - curTarget.x;
+                const deltaY = pos.y - curTarget.y;
+                const deltaZ = pos.z - curTarget.z;
+                if (oView.camera) {
+                  oView.camera.position.x += deltaX;
+                  oView.camera.position.y += deltaY;
+                  oView.camera.position.z += deltaZ;
+                }
+                curTarget.set(pos.x, pos.y, pos.z);
                 if (typeof oView.controls.update === "function") {
                   oView.controls.update();
                 }
@@ -6055,50 +6082,109 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     let autoCenterOnFrameChange = true;
     let lastActiveTrackId = null;
+    let persistentActiveTrackId = null;
+    let isFrameTransitioning = false;
+    let frameTransitionTimer = null;
+    function updateLockedTrackId(clientId) {
+      var _a, _b, _c, _d;
+      if (clientId === null || clientId === void 0 || isNaN(clientId)) return;
+      try {
+        const store = getReduxStore();
+        const states = ((_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.states) || [];
+        const st = states.find((s) => Number(s.clientID) === Number(clientId));
+        if (st) {
+          const tid = st.parentID ?? st.trackID ?? ((_d = st.parent) == null ? void 0 : _d.clientID);
+          if (tid !== void 0 && tid !== null && !isNaN(Number(tid))) {
+            persistentActiveTrackId = Number(tid);
+            return;
+          }
+        }
+      } catch (_) {
+      }
+      persistentActiveTrackId = Number(clientId);
+    }
     function lockOnActiveObjectAtFrame(targetId, targetFrame, attempt = 0) {
-      var _a, _b, _c, _d, _e, _f;
+      var _a, _b, _c, _d, _e, _f, _g, _h;
       if (!autoCenterOnFrameChange) return;
-      if (targetId === null || targetId === void 0 || isNaN(targetId)) return;
       try {
         const store = getReduxStore();
         const anno = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation;
         const canvas = (_b = anno == null ? void 0 : anno.canvas) == null ? void 0 : _b.instance;
-        let foundPos = null;
-        const drawnItem = (_d = (_c = canvas == null ? void 0 : canvas.view) == null ? void 0 : _c.drawnObjects) == null ? void 0 : _d[String(targetId)];
-        if (((_e = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _e.points) && Array.isArray(drawnItem.data.points)) {
-          foundPos = {
-            x: drawnItem.data.points[0],
-            y: drawnItem.data.points[1],
-            z: drawnItem.data.points[2]
-          };
-        }
-        if (!foundPos) {
-          const states = ((_f = anno == null ? void 0 : anno.annotations) == null ? void 0 : _f.states) || [];
-          const matched = states.find(
-            (s) => s.clientID === targetId || s.parentID === targetId || s.trackID === targetId
+        const states = ((_c = anno == null ? void 0 : anno.annotations) == null ? void 0 : _c.states) || [];
+        let matchedState = null;
+        if (persistentActiveTrackId !== null) {
+          matchedState = states.find(
+            (s) => {
+              var _a2;
+              return Number(s.parentID ?? s.trackID ?? ((_a2 = s.parent) == null ? void 0 : _a2.clientID)) === Number(persistentActiveTrackId) || Number(s.clientID) === Number(persistentActiveTrackId);
+            }
           );
-          if (matched && Array.isArray(matched.points) && matched.points.length >= 3) {
+        }
+        if (!matchedState && targetId !== null && targetId !== void 0 && !isNaN(targetId)) {
+          matchedState = states.find(
+            (s) => {
+              var _a2;
+              return Number(s.clientID) === Number(targetId) || Number(s.parentID ?? s.trackID ?? ((_a2 = s.parent) == null ? void 0 : _a2.clientID)) === Number(targetId);
+            }
+          );
+        }
+        let activeIdToUse = targetId;
+        let foundPos = null;
+        if (matchedState) {
+          activeIdToUse = Number(matchedState.clientID);
+          if (Array.isArray(matchedState.points) && matchedState.points.length >= 3) {
             foundPos = {
-              x: matched.points[0],
-              y: matched.points[1],
-              z: matched.points[2]
+              x: matchedState.points[0],
+              y: matchedState.points[1],
+              z: matchedState.points[2]
+            };
+          }
+        } else {
+          const drawnItem = (_e = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.drawnObjects) == null ? void 0 : _e[String(targetId)];
+          if (((_f = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _f.points) && Array.isArray(drawnItem.data.points)) {
+            foundPos = {
+              x: drawnItem.data.points[0],
+              y: drawnItem.data.points[1],
+              z: drawnItem.data.points[2]
             };
           }
         }
+        const isMeshReady = !!((_h = (_g = canvas == null ? void 0 : canvas.view) == null ? void 0 : _g.drawnObjects) == null ? void 0 : _h[String(activeIdToUse)]);
         if (foundPos && typeof foundPos.x === "number" && !isNaN(foundPos.x)) {
-          center3DViewOnObject(targetId, foundPos);
           if (canvas && typeof canvas.activate === "function") {
             try {
-              canvas.activate(targetId);
-              if (typeof canvas.render === "function") {
-                canvas.render();
-              }
+              canvas.activate(activeIdToUse);
             } catch (_) {
             }
           }
-          return;
+          if (store && typeof store.dispatch === "function") {
+            try {
+              store.dispatch({
+                type: "ACTIVATE_OBJECT",
+                payload: { activatedStateClientID: activeIdToUse, activatedElementID: activeIdToUse }
+              });
+            } catch (_) {
+            }
+          }
+          center3DViewOnObject(activeIdToUse, foundPos);
+          try {
+            const sidebarItem = document.querySelector(`#cvat-objects-sidebar-state-item-${activeIdToUse}`) || document.querySelector(`[data-cvat-state-item-id="${activeIdToUse}"]`) || document.querySelector(`[class*="cvat-objects-sidebar-state-item"][id*="${activeIdToUse}"]`);
+            if (sidebarItem) {
+              sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+              const allItems = document.querySelectorAll("[class*='cvat-objects-sidebar-state-item']");
+              allItems.forEach((el) => el.classList.remove("cvat-objects-sidebar-state-item-active", "selected"));
+              sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
+            }
+          } catch (_) {
+          }
+          if (typeof canvas.render === "function") {
+            canvas.render();
+          }
+          if (isMeshReady && attempt >= 2) {
+            return;
+          }
         }
-        const delays = [30, 70, 140, 250];
+        const delays = [30, 80, 160, 300, 500];
         if (attempt < delays.length) {
           setTimeout(() => {
             var _a2, _b2, _c2, _d2, _e2, _f2;
@@ -6404,6 +6490,102 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }, 120);
     }
+    let isInteractiveWatcherAttached = false;
+    function setupCanvasInteractiveWatcher() {
+      if (isInteractiveWatcherAttached) return;
+      isInteractiveWatcherAttached = true;
+      let isCanvasInteracting = false;
+      let dragRafId = null;
+      const onPointerMove = () => {
+        if (!isCanvasInteracting || !currentColorizeBoxed) return;
+        if (dragRafId !== null) return;
+        dragRafId = requestAnimationFrame(() => {
+          dragRafId = null;
+          if (isCanvasInteracting && currentColorizeBoxed) {
+            applyPointCloudColorizationInMainWorld();
+          }
+        });
+      };
+      const onPointerUp = () => {
+        if (!isCanvasInteracting) return;
+        isCanvasInteracting = false;
+        if (dragRafId !== null) {
+          cancelAnimationFrame(dragRafId);
+          dragRafId = null;
+        }
+        if (currentColorizeBoxed) {
+          applyPointCloudColorizationInMainWorld();
+        }
+      };
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      window.addEventListener("pointerup", onPointerUp, { passive: true });
+      window.addEventListener("pointercancel", onPointerUp, { passive: true });
+      const attachPointerDown = () => {
+        const canvasElements = document.querySelectorAll(
+          ".cvat-canvas-container, .cvat-canvas3d-orthographic-view, [class*='cvat-canvas3d'], canvas"
+        );
+        canvasElements.forEach((el) => {
+          if (el._hasColorDragWatcher) return;
+          el._hasColorDragWatcher = true;
+          el.addEventListener(
+            "pointerdown",
+            () => {
+              var _a, _b, _c, _d, _e, _f, _g;
+              isCanvasInteracting = true;
+              try {
+                const store = getReduxStore();
+                const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+                const activeId = ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
+                if (activeId !== null && activeId !== void 0) {
+                  updateLockedTrackId(Number(activeId));
+                }
+              } catch (_) {
+              }
+            },
+            { passive: true }
+          );
+        });
+      };
+      attachPointerDown();
+      setInterval(attachPointerDown, 2e3);
+      let keyDebounceTimer = null;
+      window.addEventListener(
+        "keydown",
+        (e) => {
+          if (!currentColorizeBoxed) return;
+          const target = e.target;
+          if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+            return;
+          }
+          const relevantKeys = [
+            "KeyW",
+            "KeyA",
+            "KeyS",
+            "KeyD",
+            "ArrowUp",
+            "ArrowDown",
+            "ArrowLeft",
+            "ArrowRight",
+            "KeyQ",
+            "KeyE",
+            "KeyR",
+            "KeyT",
+            "KeyF",
+            "KeyZ",
+            "KeyX",
+            "KeyC"
+          ];
+          if (relevantKeys.includes(e.code) || e.ctrlKey || e.altKey || e.shiftKey) {
+            if (keyDebounceTimer) clearTimeout(keyDebounceTimer);
+            keyDebounceTimer = setTimeout(() => {
+              keyDebounceTimer = null;
+              applyPointCloudColorizationInMainWorld();
+            }, 60);
+          }
+        },
+        { passive: true }
+      );
+    }
     let isCanvasAutoSelectAttached = false;
     function setupCanvasAutoSelect(retryCount = 0) {
       if (isCanvasAutoSelectAttached) return;
@@ -6416,6 +6598,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return;
       }
       isCanvasAutoSelectAttached = true;
+      setupCanvasInteractiveWatcher();
       canvasContainers.forEach((container) => {
         container.addEventListener("pointerup", () => {
           setTimeout(() => {
@@ -6425,12 +6608,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               const canvas = (_c = (_b = (_a = currentStore == null ? void 0 : currentStore.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
               const activeId = ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = currentStore == null ? void 0 : currentStore.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
               if (activeId !== null && activeId !== void 0) {
+                updateLockedTrackId(Number(activeId));
                 const details = extractObjectDetails(Number(activeId));
                 window.dispatchEvent(
                   new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
                     detail: { clientId: Number(activeId), details }
                   })
                 );
+                if (currentColorizeBoxed) {
+                  applyPointCloudColorizationInMainWorld();
+                }
               }
             } catch (e) {
             }
@@ -6447,12 +6634,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             const match = (sidebarItem.id || sidebarItem.innerText || "").match(/#?(\d+)/);
             if (match) {
               const id = parseInt(match[1], 10);
+              updateLockedTrackId(id);
               const details = extractObjectDetails(id);
               window.dispatchEvent(
                 new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
                   detail: { clientId: id, details }
                 })
               );
+              if (currentColorizeBoxed) {
+                applyPointCloudColorizationInMainWorld();
+              }
             }
           }, 60);
         }
@@ -6475,6 +6666,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               if (curFrame !== void 0 && curFrame !== null && curFrame !== prevFrame) {
                 const oldFrame = prevFrame;
                 prevFrame = curFrame;
+                isFrameTransitioning = true;
+                if (frameTransitionTimer) clearTimeout(frameTransitionTimer);
+                frameTransitionTimer = setTimeout(() => {
+                  isFrameTransitioning = false;
+                  frameTransitionTimer = null;
+                }, 700);
                 scheduleSingleFrameColorizationAndGround(curFrame, 180);
                 if (oldFrame !== null) {
                   window.dispatchEvent(
@@ -6482,7 +6679,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                       detail: { frame: curFrame, prevFrame: oldFrame }
                     })
                   );
-                  const activeIdToLock = curActiveId !== null && curActiveId !== void 0 ? Number(curActiveId) : lastActiveTrackId;
+                  const activeIdToLock = persistentActiveTrackId !== null ? persistentActiveTrackId : curActiveId !== null && curActiveId !== void 0 ? Number(curActiveId) : lastActiveTrackId;
                   if (activeIdToLock !== null && !isNaN(activeIdToLock)) {
                     lockOnActiveObjectAtFrame(activeIdToLock, curFrame);
                   }
@@ -6492,6 +6689,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 prevActiveId = curActiveId;
                 if (curActiveId !== null && curActiveId !== void 0) {
                   lastActiveTrackId = Number(curActiveId);
+                  if (!isFrameTransitioning) {
+                    updateLockedTrackId(Number(curActiveId));
+                  }
                   if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
                   activeDebounceTimer = setTimeout(() => {
                     activeDebounceTimer = null;
@@ -6526,6 +6726,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (clientId === void 0 || clientId === null) return;
         const numId = Number(clientId);
         lastActiveTrackId = numId;
+        updateLockedTrackId(numId);
         try {
           const store2 = getReduxStore();
           const canvas = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
@@ -6564,7 +6765,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       window.addEventListener("CVAT_EXT_REQ_SET_ACTIVE_TRACK", (e) => {
         const { trackId } = e.detail || {};
         if (trackId !== void 0 && trackId !== null && !isNaN(Number(trackId))) {
-          lastActiveTrackId = Number(trackId);
+          const numTrack = Number(trackId);
+          lastActiveTrackId = numTrack;
+          persistentActiveTrackId = numTrack;
         }
       });
       window.addEventListener("CVAT_EXT_REQ_SET_AUTO_CENTER_FRAME", (e) => {
@@ -17566,15 +17769,19 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
       }
       if (op === "catalog") {
         const match = findBestFitCatalog(pos.box.s[0], pos.box.s[1], pos.box.s[2], store.labelName(track2.labelId));
-        if (match && match.item) {
+        if (match && match.matchedItem) {
           app.snapshot([Number(track2.id)]);
           const newBox = cloneBox(pos.box);
           const oldH = newBox.s[2];
-          newBox.s = [match.item.length, match.item.width, match.item.height];
-          newBox.c[2] += (match.item.height - oldH) / 2;
+          const newH = match.recommendedH;
+          newBox.s = [match.recommendedL, match.recommendedW, newH];
+          newBox.c[2] += (newH - oldH) / 2;
           track2.setBox(frame, newBox);
           if (S.syncSize) await syncSize(frame, newBox.s);
-          app.setStatus(`f${frame}: Khớp Catalog ${match.item.name} (${match.item.length}x${match.item.width}x${match.item.height})`, "ok");
+          app.setStatus(
+            `f${frame}: Khớp Catalog ${match.matchedItem.name} (${match.recommendedL}x${match.recommendedW}x${newH})`,
+            "ok"
+          );
           afterEdit();
         }
         return;

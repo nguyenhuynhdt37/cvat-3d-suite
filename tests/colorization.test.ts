@@ -318,4 +318,139 @@ console.log("🧪 Đang chạy kiểm thử tự động Module Point Cloud Colo
   console.log("✅ Test 8: Mặt Sàn Polygon 3D Mờ: Thông số hình học và độ mờ xuyên thấu đạt chuẩn");
 }
 
-console.log("\n🎉 TẤT CẢ 8/8 BÀI KIỂM THỬ MODULE POINT CLOUD COLORIZATION ĐÃ PASS 100%!");
+// ==========================================
+// TEST 9: REALTIME POINT CLOUD COLOR UPDATE KHI DI CHUYỂN BOX
+// ==========================================
+{
+  // Có 2 điểm: Point 0 tại (10, 0, 0) và Point 1 tại (20, 0, 0)
+  const positions = new Float32Array([
+    10.0, 0.0, 0.0, // Point 0
+    20.0, 0.0, 0.0, // Point 1
+  ]);
+  const intensities = new Float32Array([100, 100]);
+
+  // Bước 1: Ban đầu box ở vị trí (10, 0, 0) -> bao bọc Point 0, Point 1 ở ngoài
+  const initialBoxes: Box3DTarget[] = [
+    {
+      cx: 10.0,
+      cy: 0.0,
+      cz: 0.0,
+      rz: 0.0,
+      l: 4.0,
+      w: 2.0,
+      h: 1.5,
+      category: "car",
+    },
+  ];
+
+  const colorsBefore = computePointCloudColors(positions, intensities, initialBoxes, {
+    mode: "plain",
+    colorizeBoxed: true,
+  });
+
+  // Point 0 ở trong xe (màu cam R > G > B), Point 1 ở ngoài xe (màu plain 0.72, 0.76, 0.82)
+  assert.ok(colorsBefore[0] > colorsBefore[1] && colorsBefore[1] > colorsBefore[2], "Trước di chuyển: Point 0 phải mang màu cam của xe");
+  assert.ok(Math.abs(colorsBefore[3] - 0.72) < 1e-4, "Trước di chuyển: Point 1 ở ngoài phải là màu xám plain");
+
+  // Bước 2: Người dùng kéo chuột di chuyển box sang vị trí mới (20, 0, 0) -> Point 0 rơi ra ngoài, Point 1 lọt vào trong!
+  const movedBoxes: Box3DTarget[] = [
+    {
+      cx: 20.0, // Đã dời sang Point 1
+      cy: 0.0,
+      cz: 0.0,
+      rz: 0.0,
+      l: 4.0,
+      w: 2.0,
+      h: 1.5,
+      category: "car",
+    },
+  ];
+
+  const colorsAfter = computePointCloudColors(positions, intensities, movedBoxes, {
+    mode: "plain",
+    colorizeBoxed: true,
+  });
+
+  // Lúc này: Point 0 đã lọt ra ngoài -> lập tức trả về màu xám plain (0.72, 0.76, 0.82)
+  assert.ok(Math.abs(colorsAfter[0] - 0.72) < 1e-4, "Sau di chuyển: Point 0 lọt ra ngoài phải lập tức đổi về màu xám plain");
+  assert.ok(Math.abs(colorsAfter[1] - 0.76) < 1e-4, "G phải là 0.76");
+  assert.ok(Math.abs(colorsAfter[2] - 0.82) < 1e-4, "B phải là 0.82");
+
+  // Point 1 mới lọt vào trong xe -> lập tức sáng màu xe (cam R > G > B)
+  assert.ok(colorsAfter[3] > colorsAfter[4] && colorsAfter[4] > colorsAfter[5], "Sau di chuyển: Point 1 mới lọt vào box phải lập tức sáng màu xe");
+
+  console.log("✅ Test 9: Realtime Point Cloud Color Update khi di chuyển box: Điểm ra ngoài trả về màu nền, điểm vào box đổi sang màu xe");
+}
+
+// ==========================================
+// TEST 10: STICKY TRACK LOCK-ON & BẢO TOÀN TRACK ID KHI CLIENTID THAY ĐỔI
+// ==========================================
+{
+  // Giả lập trạng thái Redux annotations của 2 frame:
+  // Track đang theo dõi là Track ID = 2 (Chiếc xe tải)
+
+  // Frame 1: Xe tải có clientID = 101, parentID = 2
+  const frame1States = [
+    { clientID: 101, parentID: 2, label: { name: "Truck" }, points: [10, 0, 0, 0, 0, 0, 5, 2.2, 2.0] },
+    { clientID: 102, parentID: 3, label: { name: "Pedestrian" }, points: [2, 1, 0, 0, 0, 0, 0.5, 0.5, 1.7] },
+  ];
+
+  // Khi người dùng chọn xe tải ở Frame 1:
+  let persistentActiveTrackId: number | null = null;
+  function updateLockedTrackId(clientId: number, states: any[]) {
+    const st = states.find((s: any) => Number(s.clientID) === Number(clientId));
+    if (st) {
+      const tid = st.parentID ?? st.trackID ?? st.parent?.clientID;
+      if (tid !== undefined && tid !== null && !isNaN(Number(tid))) {
+        persistentActiveTrackId = Number(tid);
+        return;
+      }
+    }
+    persistentActiveTrackId = Number(clientId);
+  }
+
+  updateLockedTrackId(101, frame1States);
+  assert.strictEqual(persistentActiveTrackId, 2, "Hệ thống phải trích xuất đúng Track ID = 2 từ clientID = 101");
+
+  // Frame 2: CVAT cấp clientID mới hoàn toàn cho mọi shape!
+  // Xe tải (Track 2) bây giờ có clientID = 205!
+  // Shape clientID = 206 là của một người đi bộ (Track 4)!
+  const frame2States = [
+    { clientID: 206, parentID: 4, label: { name: "Pedestrian" }, points: [5, 2, 0, 0, 0, 0, 0.5, 0.5, 1.7] },
+    { clientID: 205, parentID: 2, label: { name: "Truck" }, points: [12, 0, 0, 0, 0, 0, 5, 2.2, 2.0] },
+  ];
+
+  // Thuật toán Sticky Track Lock-On tìm shape tương ứng trong frame mới:
+  function resolveStickyTarget(targetId: number, targetTrackId: number | null, states: any[]) {
+    let matched: any = null;
+    if (targetTrackId !== null) {
+      matched = states.find(
+        (s: any) =>
+          Number(s.parentID ?? s.trackID ?? s.parent?.clientID) === Number(targetTrackId) ||
+          Number(s.clientID) === Number(targetTrackId)
+      );
+    }
+    if (!matched && targetId !== null) {
+      matched = states.find(
+        (s: any) =>
+          Number(s.clientID) === Number(targetId) ||
+          Number(s.parentID ?? s.trackID ?? s.parent?.clientID) === Number(targetId)
+      );
+    }
+    return matched;
+  }
+
+  // Giả sử CVAT tự tiện chọn shape đầu tiên ở frame 2 (clientID 206 của người đi bộ)
+  const cvatUnwantedActiveId = 206;
+
+  // Nhưng hệ thống của chúng ta dùng persistentActiveTrackId = 2 để giải quyết:
+  const matchedAtFrame2 = resolveStickyTarget(cvatUnwantedActiveId, persistentActiveTrackId, frame2States);
+
+  assert.ok(matchedAtFrame2, "Phải tìm thấy shape tương ứng ở Frame 2");
+  assert.strictEqual(matchedAtFrame2.clientID, 205, "Shape tìm thấy phải là clientID = 205 (Xe tải), KHÔNG PHẢI người đi bộ 206!");
+  assert.strictEqual(matchedAtFrame2.parentID, 2, "ParentID phải khớp chuẩn xác 2");
+
+  console.log("✅ Test 10: Sticky Track Lock-On & Khóa Chặt Focus: Khóa chặt Track ID = 2 qua các frame, chống nhảy ID");
+}
+
+console.log("\n🎉 TẤT CẢ 10/10 BÀI KIỂM THỬ MODULE POINT CLOUD COLORIZATION ĐÃ PASS 100%!");

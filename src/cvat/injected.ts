@@ -221,114 +221,146 @@ export function mainWorldScript(): void {
         active: { r: 0.98, g: 0.80, b: 0.08 },     // Vàng chanh Neon (#facc15)
       };
 
-      const fastBoxes: FastBoxTarget[] = [];
+      const fastBoxesMap = new Map<number, FastBoxTarget>();
       const activeClientId =
         canvas.view?.activatedElementID ||
         store?.getState()?.annotation?.annotations?.activatedStateClientID;
 
       if (currentColorizeBoxed) {
-        const drawnObjects = canvas.view?.drawnObjects || {};
-        const drawnKeys = Object.keys(drawnObjects);
+        // TẦNG 1: QUÉT TOÀN BỘ REDUX ANNOTATIONS STATES CỦA FRAME
+        // Chứa 100% tất cả các xe/người đã bọc trong frame, KỂ CẢ KHI CANVAS ĐANG BỊ FILTER ID!
+        const states = store?.getState()?.annotation?.annotations?.states || [];
+        for (const s of states) {
+          if (s && Array.isArray(s.points) && s.points.length >= 9 && !s.outside) {
+            const pts = s.points;
+            const l = pts[6];
+            const w = pts[7];
+            const h = pts[8];
+            if (l <= 0 || w <= 0 || h <= 0) continue;
 
-        if (drawnKeys.length > 0) {
-          // A. Trích xuất từ Three.js drawnObjects
-          for (const idStr of drawnKeys) {
-            const drawnItem = drawnObjects[idStr];
-            const data = drawnItem?.data;
-            if (data && Array.isArray(data.points) && data.points.length >= 9 && !data.outside) {
-              const pts = data.points;
-              const l = pts[6];
-              const w = pts[7];
-              const h = pts[8];
-              if (l <= 0 || w <= 0 || h <= 0) continue;
+            const clientId = Number(s.clientID ?? s.id);
+            const isActive = clientId === Number(activeClientId);
+            const labelName = (s.label?.name || "").toLowerCase();
 
-              const clientId = Number(idStr);
-              const isActive = clientId === Number(activeClientId);
-              const labelName = (data.label?.name || "").toLowerCase();
-
-              let c = defaultColors.car;
-              if (isActive) {
-                c = defaultColors.active;
-              } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
-                c = defaultColors.pedestrian;
-              } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
-                c = defaultColors.cyclist;
-              } else if (labelName.includes("truck")) {
-                c = defaultColors.truck;
-              } else if (labelName.includes("bus")) {
-                c = defaultColors.bus;
-              }
-
-              const yaw = pts[5] || 0;
-              fastBoxes.push({
-                cx: pts[0],
-                cy: pts[1],
-                cz: pts[2],
-                rx: pts[3] || 0,
-                ry: pts[4] || 0,
-                rz: yaw,
-                cosY: Math.cos(-yaw),
-                sinY: Math.sin(-yaw),
-                halfL: l / 2,
-                halfW: w / 2,
-                halfH: h / 2,
-                maxR: Math.max(l, w, h) * 0.75,
-                colorR: c.r,
-                colorG: c.g,
-                colorB: c.b,
-              });
+            let c = defaultColors.car;
+            if (isActive) {
+              c = defaultColors.active;
+            } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
+              c = defaultColors.pedestrian;
+            } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
+              c = defaultColors.cyclist;
+            } else if (labelName.includes("truck")) {
+              c = defaultColors.truck;
+            } else if (labelName.includes("bus")) {
+              c = defaultColors.bus;
             }
+
+            const yaw = pts[5] || 0;
+            fastBoxesMap.set(clientId, {
+              cx: pts[0],
+              cy: pts[1],
+              cz: pts[2],
+              rx: pts[3] || 0,
+              ry: pts[4] || 0,
+              rz: yaw,
+              cosY: Math.cos(-yaw),
+              sinY: Math.sin(-yaw),
+              halfL: l / 2,
+              halfW: w / 2,
+              halfH: h / 2,
+              maxR: Math.max(l, w, h) * 0.75,
+              colorR: c.r,
+              colorG: c.g,
+              colorB: c.b,
+            });
           }
-        } else {
-          // B. FALLBACK TỨC THÌ: Trích xuất từ Redux annotations states khi Three.js chưa dựng mesh
-          const states = store?.getState()?.annotation?.annotations?.states || [];
-          for (const s of states) {
-            if (s && Array.isArray(s.points) && s.points.length >= 9 && !s.outside) {
-              const pts = s.points;
-              const l = pts[6];
-              const w = pts[7];
-              const h = pts[8];
-              if (l <= 0 || w <= 0 || h <= 0) continue;
+        }
 
-              const clientId = Number(s.clientID ?? s.id);
-              const isActive = clientId === Number(activeClientId);
-              const labelName = (s.label?.name || "").toLowerCase();
+        // TẦNG 2: CẬP NHẬT TỌA ĐỘ VÀ ROTATION REALTIME TỪ THREE.JS DRAWN OBJECTS
+        // Đọc trực tiếp Three.js cuboid.position / scale / rotation khi người dùng kéo/co giãn box
+        const drawnObjects = canvas.view?.drawnObjects || {};
+        for (const idStr of Object.keys(drawnObjects)) {
+          const drawnItem = drawnObjects[idStr];
+          const data = drawnItem?.data;
+          if (data && Array.isArray(data.points) && data.points.length >= 9 && !data.outside) {
+            const pts = data.points;
+            let cx = pts[0];
+            let cy = pts[1];
+            let cz = pts[2];
+            let yaw = pts[5] || 0;
+            let l = pts[6];
+            let w = pts[7];
+            let h = pts[8];
 
-              let c = defaultColors.car;
-              if (isActive) {
-                c = defaultColors.active;
-              } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
-                c = defaultColors.pedestrian;
-              } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
-                c = defaultColors.cyclist;
-              } else if (labelName.includes("truck")) {
-                c = defaultColors.truck;
-              } else if (labelName.includes("bus")) {
-                c = defaultColors.bus;
+            if (drawnItem.cuboid) {
+              const cp =
+                drawnItem.cuboid.position ||
+                drawnItem.cuboid.perspective?.position ||
+                drawnItem.cuboid.top?.position;
+              const cr =
+                drawnItem.cuboid.rotation ||
+                drawnItem.cuboid.perspective?.rotation ||
+                drawnItem.cuboid.top?.rotation;
+              const cs =
+                drawnItem.cuboid.scale ||
+                drawnItem.cuboid.perspective?.scale ||
+                drawnItem.cuboid.top?.scale;
+              if (cp && typeof cp.x === "number") {
+                cx = cp.x;
+                cy = cp.y;
+                cz = cp.z;
               }
-
-              const yaw = pts[5] || 0;
-              fastBoxes.push({
-                cx: pts[0],
-                cy: pts[1],
-                cz: pts[2],
-                rx: pts[3] || 0,
-                ry: pts[4] || 0,
-                rz: yaw,
-                cosY: Math.cos(-yaw),
-                sinY: Math.sin(-yaw),
-                halfL: l / 2,
-                halfW: w / 2,
-                halfH: h / 2,
-                maxR: Math.max(l, w, h) * 0.75,
-                colorR: c.r,
-                colorG: c.g,
-                colorB: c.b,
-              });
+              if (cr && typeof cr.z === "number") {
+                yaw = cr.z;
+              }
+              if (cs && typeof cs.x === "number" && cs.x > 0) {
+                l = cs.x;
+                w = cs.y;
+                h = cs.z;
+              }
             }
+
+            if (l <= 0 || w <= 0 || h <= 0) continue;
+
+            const clientId = Number(idStr);
+            const isActive = clientId === Number(activeClientId);
+            const labelName = (data.label?.name || "").toLowerCase();
+
+            let c = defaultColors.car;
+            if (isActive) {
+              c = defaultColors.active;
+            } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
+              c = defaultColors.pedestrian;
+            } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
+              c = defaultColors.cyclist;
+            } else if (labelName.includes("truck")) {
+              c = defaultColors.truck;
+            } else if (labelName.includes("bus")) {
+              c = defaultColors.bus;
+            }
+
+            fastBoxesMap.set(clientId, {
+              cx,
+              cy,
+              cz,
+              rx: pts[3] || 0,
+              ry: pts[4] || 0,
+              rz: yaw,
+              cosY: Math.cos(-yaw),
+              sinY: Math.sin(-yaw),
+              halfL: l / 2,
+              halfW: w / 2,
+              halfH: h / 2,
+              maxR: Math.max(l, w, h) * 0.75,
+              colorR: c.r,
+              colorG: c.g,
+              colorB: c.b,
+            });
           }
         }
       }
+
+      const fastBoxes: FastBoxTarget[] = Array.from(fastBoxesMap.values());
 
       const numBoxes = fastBoxes.length;
       const isPlain = currentPointColorMode === "plain";
@@ -4106,7 +4138,19 @@ export function mainWorldScript(): void {
           const oView = views[viewName];
           if (oView) {
             if (oView.controls?.target) {
-              oView.controls.target.set(pos.x, pos.y, pos.z);
+              const curTarget = oView.controls.target;
+              const deltaX = pos.x - curTarget.x;
+              const deltaY = pos.y - curTarget.y;
+              const deltaZ = pos.z - curTarget.z;
+
+              // Tịnh tiến camera position của Top, Side, Front views để không bị lệch hoặc văng khỏi khung nhìn
+              if (oView.camera) {
+                oView.camera.position.x += deltaX;
+                oView.camera.position.y += deltaY;
+                oView.camera.position.z += deltaZ;
+              }
+
+              curTarget.set(pos.x, pos.y, pos.z);
               if (typeof oView.controls.update === "function") {
                 oView.controls.update();
               }
@@ -4130,64 +4174,133 @@ export function mainWorldScript(): void {
     }
   }
 
-  // Cấu hình & Biến theo dõi tính năng Ghim Tâm khi tua frame (Lock-On Camera Tracking)
+  // Cấu hình & Biến theo dõi tính năng Ghim Tâm khi tua frame (Sticky Track Lock-On)
   let autoCenterOnFrameChange = true;
   let lastActiveTrackId: number | null = null;
+  let persistentActiveTrackId: number | null = null; // Khóa chặt Track ID bền vững xuyên suốt mọi frame
+  let isFrameTransitioning = false;
+  let frameTransitionTimer: any = null;
 
-  // Dò tìm tọa độ và ghim tâm đối tượng đang active khi chuyển frame (Progressive Lock-On)
+  // Cập nhật Track ID bền vững khi người dùng chọn đối tượng
+  function updateLockedTrackId(clientId: number): void {
+    if (clientId === null || clientId === undefined || isNaN(clientId)) return;
+    try {
+      const store = getReduxStore();
+      const states = store?.getState()?.annotation?.annotations?.states || [];
+      const st = states.find((s: any) => Number(s.clientID) === Number(clientId));
+      if (st) {
+        const tid = st.parentID ?? st.trackID ?? st.parent?.clientID;
+        if (tid !== undefined && tid !== null && !isNaN(Number(tid))) {
+          persistentActiveTrackId = Number(tid);
+          return;
+        }
+      }
+    } catch (_) {}
+    persistentActiveTrackId = Number(clientId);
+  }
+
+  // Dò tìm tọa độ và ghim tâm đối tượng đang active khi chuyển frame (Sticky Track Lock-On)
   function lockOnActiveObjectAtFrame(targetId: number, targetFrame: number, attempt: number = 0): void {
     if (!autoCenterOnFrameChange) return;
-    if (targetId === null || targetId === undefined || isNaN(targetId)) return;
 
     try {
       const store = getReduxStore();
       const anno = store?.getState()?.annotation;
       const canvas = anno?.canvas?.instance;
+      const states = anno?.annotations?.states || [];
 
-      // 1. Kiểm tra tọa độ trong Three.js drawnObjects
-      let foundPos: { x: number; y: number; z: number } | null = null;
-      const drawnItem = canvas?.view?.drawnObjects?.[String(targetId)];
-      if (drawnItem?.data?.points && Array.isArray(drawnItem.data.points)) {
-        foundPos = {
-          x: drawnItem.data.points[0],
-          y: drawnItem.data.points[1],
-          z: drawnItem.data.points[2],
-        };
+      // 1. Dò tìm đối tượng theo Track ID bền vững (persistentActiveTrackId) để CHỐNG NHẢY SANG ID KHÁC
+      let matchedState: any = null;
+      if (persistentActiveTrackId !== null) {
+        matchedState = states.find(
+          (s: any) =>
+            Number(s.parentID ?? s.trackID ?? s.parent?.clientID) === Number(persistentActiveTrackId) ||
+            Number(s.clientID) === Number(persistentActiveTrackId)
+        );
       }
 
-      // 2. Nếu chưa có trong drawnObjects, thử tìm trong Redux states của frame hiện tại
-      if (!foundPos) {
-        const states = anno?.annotations?.states || [];
-        const matched = states.find(
-          (s: any) => s.clientID === targetId || s.parentID === targetId || s.trackID === targetId
+      if (!matchedState && targetId !== null && targetId !== undefined && !isNaN(targetId)) {
+        matchedState = states.find(
+          (s: any) =>
+            Number(s.clientID) === Number(targetId) ||
+            Number(s.parentID ?? s.trackID ?? s.parent?.clientID) === Number(targetId)
         );
-        if (matched && Array.isArray(matched.points) && matched.points.length >= 3) {
+      }
+
+      let activeIdToUse = targetId;
+      let foundPos: { x: number; y: number; z: number } | null = null;
+
+      if (matchedState) {
+        activeIdToUse = Number(matchedState.clientID);
+        if (Array.isArray(matchedState.points) && matchedState.points.length >= 3) {
           foundPos = {
-            x: matched.points[0],
-            y: matched.points[1],
-            z: matched.points[2],
+            x: matchedState.points[0],
+            y: matchedState.points[1],
+            z: matchedState.points[2],
+          };
+        }
+      } else {
+        const drawnItem = canvas?.view?.drawnObjects?.[String(targetId)];
+        if (drawnItem?.data?.points && Array.isArray(drawnItem.data.points)) {
+          foundPos = {
+            x: drawnItem.data.points[0],
+            y: drawnItem.data.points[1],
+            z: drawnItem.data.points[2],
           };
         }
       }
 
-      // 3. Nếu tìm thấy tọa độ hợp lệ, thực hiện ghim tâm 3D và re-activate
-      if (foundPos && typeof foundPos.x === "number" && !isNaN(foundPos.x)) {
-        center3DViewOnObject(targetId, foundPos);
+      // Kiểm tra xem Three.js đã tạo mesh cho đối tượng này chưa
+      const isMeshReady = !!canvas?.view?.drawnObjects?.[String(activeIdToUse)];
 
-        // Đảm bảo box luôn active trên canvas 3D
+      // 2. Kích hoạt và ghim tâm
+      if (foundPos && typeof foundPos.x === "number" && !isNaN(foundPos.x)) {
+        // A. Kích hoạt lại đúng box trên canvas 3D để bật hiển thị Top, Side, Front views
         if (canvas && typeof canvas.activate === "function") {
           try {
-            canvas.activate(targetId);
-            if (typeof canvas.render === "function") {
-              canvas.render();
-            }
+            canvas.activate(activeIdToUse);
           } catch (_) {}
         }
-        return;
+
+        // B. Đồng bộ Redux Store
+        if (store && typeof store.dispatch === "function") {
+          try {
+            store.dispatch({
+              type: "ACTIVATE_OBJECT",
+              payload: { activatedStateClientID: activeIdToUse, activatedElementID: activeIdToUse },
+            });
+          } catch (_) {}
+        }
+
+        // C. Căn giữa Top, Side, Front và Perspective theo tâm xe
+        center3DViewOnObject(activeIdToUse, foundPos);
+
+        // D. Đồng bộ highlight Sidebar
+        try {
+          const sidebarItem =
+            document.querySelector<HTMLElement>(`#cvat-objects-sidebar-state-item-${activeIdToUse}`) ||
+            document.querySelector<HTMLElement>(`[data-cvat-state-item-id="${activeIdToUse}"]`) ||
+            document.querySelector<HTMLElement>(`[class*="cvat-objects-sidebar-state-item"][id*="${activeIdToUse}"]`);
+          if (sidebarItem) {
+            sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            const allItems = document.querySelectorAll<HTMLElement>("[class*='cvat-objects-sidebar-state-item']");
+            allItems.forEach((el) => el.classList.remove("cvat-objects-sidebar-state-item-active", "selected"));
+            sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
+          }
+        } catch (_) {}
+
+        if (typeof canvas.render === "function") {
+          canvas.render();
+        }
+
+        // Nếu Three.js mesh đã sẵn sàng VÀ đã thử ít nhất 2 lần (attempt >= 2), hoàn tất an toàn
+        if (isMeshReady && attempt >= 2) {
+          return;
+        }
       }
 
-      // 4. Nếu chưa tìm thấy và chưa hết số lần thử lũy tiến (CVAT đang nạp batch frame)
-      const delays = [30, 70, 140, 250];
+      // 3. Thử lại lũy tiến để đảm bảo Three.js load xong và không bị CVAT ghi đè mất focus
+      const delays = [30, 80, 160, 300, 500];
       if (attempt < delays.length) {
         setTimeout(() => {
           const curF = anno?.player?.frame?.number ?? store?.getState()?.annotation?.job?.instance?.frame;
@@ -4568,6 +4681,102 @@ export function mainWorldScript(): void {
     }, 120);
   }
 
+  // Thiết lập bộ theo dõi tương tác chuột & bàn phím trên Canvas 3D (Realtime Point Cloud Color Update)
+  let isInteractiveWatcherAttached = false;
+  function setupCanvasInteractiveWatcher(): void {
+    if (isInteractiveWatcherAttached) return;
+    isInteractiveWatcherAttached = true;
+
+    let isCanvasInteracting = false;
+    let dragRafId: number | null = null;
+
+    const onPointerMove = () => {
+      if (!isCanvasInteracting || !currentColorizeBoxed) return;
+      if (dragRafId !== null) return;
+      dragRafId = requestAnimationFrame(() => {
+        dragRafId = null;
+        if (isCanvasInteracting && currentColorizeBoxed) {
+          applyPointCloudColorizationInMainWorld();
+        }
+      });
+    };
+
+    const onPointerUp = () => {
+      if (!isCanvasInteracting) return;
+      isCanvasInteracting = false;
+      if (dragRafId !== null) {
+        cancelAnimationFrame(dragRafId);
+        dragRafId = null;
+      }
+      if (currentColorizeBoxed) {
+        applyPointCloudColorizationInMainWorld();
+      }
+    };
+
+    // Gắn listener trên toàn bộ window để không bị mất sự kiện khi kéo chuột nhanh ra ngoài canvas
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerup", onPointerUp, { passive: true });
+    window.addEventListener("pointercancel", onPointerUp, { passive: true });
+
+    // Gắn pointerdown trên các canvas container
+    const attachPointerDown = () => {
+      const canvasElements = document.querySelectorAll<HTMLElement>(
+        ".cvat-canvas-container, .cvat-canvas3d-orthographic-view, [class*='cvat-canvas3d'], canvas"
+      );
+      canvasElements.forEach((el) => {
+        if ((el as any)._hasColorDragWatcher) return;
+        (el as any)._hasColorDragWatcher = true;
+        el.addEventListener(
+          "pointerdown",
+          () => {
+            isCanvasInteracting = true;
+            try {
+              const store = getReduxStore();
+              const canvas = store?.getState()?.annotation?.canvas?.instance;
+              const activeId =
+                canvas?.view?.activatedElementID ||
+                store?.getState()?.annotation?.annotations?.activatedStateClientID;
+              if (activeId !== null && activeId !== undefined) {
+                updateLockedTrackId(Number(activeId));
+              }
+            } catch (_) {}
+          },
+          { passive: true }
+        );
+      });
+    };
+
+    attachPointerDown();
+    setInterval(attachPointerDown, 2000);
+
+    // Lắng nghe phím tắt di chuyển/co giãn box (WASD, phím mũi tên, v.v.)
+    let keyDebounceTimer: any = null;
+    window.addEventListener(
+      "keydown",
+      (e: KeyboardEvent) => {
+        if (!currentColorizeBoxed) return;
+        const target = e.target as HTMLElement;
+        if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || (target as any).isContentEditable)) {
+          return;
+        }
+
+        const relevantKeys = [
+          "KeyW", "KeyA", "KeyS", "KeyD",
+          "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
+          "KeyQ", "KeyE", "KeyR", "KeyT", "KeyF", "KeyZ", "KeyX", "KeyC",
+        ];
+        if (relevantKeys.includes(e.code) || e.ctrlKey || e.altKey || e.shiftKey) {
+          if (keyDebounceTimer) clearTimeout(keyDebounceTimer);
+          keyDebounceTimer = setTimeout(() => {
+            keyDebounceTimer = null;
+            applyPointCloudColorizationInMainWorld();
+          }, 60);
+        }
+      },
+      { passive: true }
+    );
+  }
+
   // Thiết lập cơ chế tự động chọn xe khi click vào box trên Canvas 3D & Redux Subscriber Realtime
   let isCanvasAutoSelectAttached = false;
   function setupCanvasAutoSelect(retryCount = 0): void {
@@ -4585,6 +4794,7 @@ export function mainWorldScript(): void {
     }
 
     isCanvasAutoSelectAttached = true;
+    setupCanvasInteractiveWatcher();
 
     canvasContainers.forEach((container) => {
       container.addEventListener("pointerup", () => {
@@ -4597,12 +4807,16 @@ export function mainWorldScript(): void {
               currentStore?.getState()?.annotation?.annotations?.activatedStateClientID;
 
             if (activeId !== null && activeId !== undefined) {
+              updateLockedTrackId(Number(activeId));
               const details = extractObjectDetails(Number(activeId));
               window.dispatchEvent(
                 new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
                   detail: { clientId: Number(activeId), details },
                 })
               );
+              if (currentColorizeBoxed) {
+                applyPointCloudColorizationInMainWorld();
+              }
             }
           } catch (e) {}
         }, 80);
@@ -4620,12 +4834,16 @@ export function mainWorldScript(): void {
           const match = (sidebarItem.id || sidebarItem.innerText || "").match(/#?(\d+)/);
           if (match) {
             const id = parseInt(match[1], 10);
+            updateLockedTrackId(id);
             const details = extractObjectDetails(id);
             window.dispatchEvent(
               new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
                 detail: { clientId: id, details },
               })
             );
+            if (currentColorizeBoxed) {
+              applyPointCloudColorizationInMainWorld();
+            }
           }
         }, 60);
       }
@@ -4653,6 +4871,13 @@ export function mainWorldScript(): void {
               const oldFrame = prevFrame;
               prevFrame = curFrame;
 
+              isFrameTransitioning = true;
+              if (frameTransitionTimer) clearTimeout(frameTransitionTimer);
+              frameTransitionTimer = setTimeout(() => {
+                isFrameTransitioning = false;
+                frameTransitionTimer = null;
+              }, 700);
+
               // Hủy ngay tiến trình của frame cũ và lên lịch render frame mới
               scheduleSingleFrameColorizationAndGround(curFrame, 180);
 
@@ -4664,11 +4889,13 @@ export function mainWorldScript(): void {
                   })
                 );
 
-                // GHIM TÂM XE ĐANG ACTIVE VÀO CHÍNH GIỮA MÀN EDIT THỜI GIAN THỰC
+                // GHIM TÂM XE ĐANG ACTIVE VÀO CHÍNH GIỮA MÀN EDIT THỜI GIAN THỰC (STICKY TRACK LOCK-ON)
                 const activeIdToLock =
-                  curActiveId !== null && curActiveId !== undefined
-                    ? Number(curActiveId)
-                    : lastActiveTrackId;
+                  persistentActiveTrackId !== null
+                    ? persistentActiveTrackId
+                    : (curActiveId !== null && curActiveId !== undefined
+                        ? Number(curActiveId)
+                        : lastActiveTrackId);
 
                 if (activeIdToLock !== null && !isNaN(activeIdToLock)) {
                   lockOnActiveObjectAtFrame(activeIdToLock, curFrame);
@@ -4681,6 +4908,9 @@ export function mainWorldScript(): void {
               prevActiveId = curActiveId;
               if (curActiveId !== null && curActiveId !== undefined) {
                 lastActiveTrackId = Number(curActiveId);
+                if (!isFrameTransitioning) {
+                  updateLockedTrackId(Number(curActiveId));
+                }
                 if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
                 activeDebounceTimer = setTimeout(() => {
                   activeDebounceTimer = null;
@@ -4717,6 +4947,7 @@ export function mainWorldScript(): void {
       if (clientId === undefined || clientId === null) return;
       const numId = Number(clientId);
       lastActiveTrackId = numId;
+      updateLockedTrackId(numId);
       try {
         const store = getReduxStore();
         const canvas = store?.getState()?.annotation?.canvas?.instance;
@@ -4767,7 +4998,9 @@ export function mainWorldScript(): void {
     window.addEventListener("CVAT_EXT_REQ_SET_ACTIVE_TRACK", (e: any) => {
       const { trackId } = e.detail || {};
       if (trackId !== undefined && trackId !== null && !isNaN(Number(trackId))) {
-        lastActiveTrackId = Number(trackId);
+        const numTrack = Number(trackId);
+        lastActiveTrackId = numTrack;
+        persistentActiveTrackId = numTrack;
       }
     });
 
