@@ -3025,7 +3025,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     let currentPointColorMode = typeof localStorage !== "undefined" && localStorage.getItem("cvat_3d_point_color_mode") === "plain" ? "plain" : "intensity";
     let currentColorizeBoxed = typeof localStorage !== "undefined" ? localStorage.getItem("cvat_3d_colorize_boxed") !== "false" : true;
+    let currentGroundPlaneVisible = typeof localStorage !== "undefined" ? localStorage.getItem("cvat_3d_ground_plane_visible") !== "false" : true;
     let isColorizingRunning = false;
+    let groundPlaneMeshGroup = null;
+    let singleFrameColorizeTimer = null;
     function getAllScenePointsObjects() {
       var _a, _b, _c;
       try {
@@ -3049,31 +3052,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return pointsObjects;
       } catch (e) {
         return [];
-      }
-    }
-    function isPointCloudColorizedForCurrentFrame() {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
-      try {
-        const store = getReduxStore();
-        const curFrame = ((_d = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.player) == null ? void 0 : _c.frame) == null ? void 0 : _d.number) ?? ((_h = (_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.job) == null ? void 0 : _g.instance) == null ? void 0 : _h.frame);
-        if (curFrame === void 0 || curFrame === null) return true;
-        const canvas = (_k = (_j = (_i = store == null ? void 0 : store.getState()) == null ? void 0 : _i.annotation) == null ? void 0 : _j.canvas) == null ? void 0 : _k.instance;
-        if (!(canvas == null ? void 0 : canvas.view)) return true;
-        const ptsObjs = getAllScenePointsObjects();
-        if (ptsObjs.length === 0) return false;
-        const drawnObjects = ((_l = canvas.view) == null ? void 0 : _l.drawnObjects) || {};
-        const drawnCount = Object.keys(drawnObjects).length;
-        const activeClientId = ((_m = canvas.view) == null ? void 0 : _m.activatedElementID) || ((_p = (_o = (_n = store == null ? void 0 : store.getState()) == null ? void 0 : _n.annotation) == null ? void 0 : _o.annotations) == null ? void 0 : _p.activatedStateClientID);
-        for (const obj of ptsObjs) {
-          const g = obj.geometry;
-          if (!g) continue;
-          if (g.__cvat_suite_colored_frame !== curFrame || g.__cvat_suite_colored_mode !== currentPointColorMode || g.__cvat_suite_colored_boxed !== currentColorizeBoxed || currentColorizeBoxed && drawnCount > 0 && g.__cvat_suite_box_count !== drawnCount || currentColorizeBoxed && g.__cvat_suite_active_id !== activeClientId) {
-            return false;
-          }
-        }
-        return true;
-      } catch (_) {
-        return true;
       }
     }
     function applyPointCloudColorizationInMainWorld(options) {
@@ -3204,9 +3182,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const plainG = 0.76;
         const plainB = 0.82;
         let anyUpdated = false;
+        const processedGeometries = /* @__PURE__ */ new Set();
         for (const obj of ptsObjs) {
           const geom = obj.geometry;
-          const posAttr = (_v = geom == null ? void 0 : geom.attributes) == null ? void 0 : _v.position;
+          if (!geom) continue;
+          if (processedGeometries.has(geom)) {
+            if (obj.material) {
+              obj.material.vertexColors = true;
+              obj.material.needsUpdate = true;
+            }
+            continue;
+          }
+          processedGeometries.add(geom);
+          const posAttr = (_v = geom.attributes) == null ? void 0 : _v.position;
           if (!posAttr || !posAttr.array) continue;
           const count = posAttr.count;
           const posArray = posAttr.array;
@@ -3287,7 +3275,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 const boostV = Math.min(1, v * 1.25);
                 if (v >= 0.7) {
                   colorArray[idx3] = 1;
-                  colorArray[idx3 + 1] = 0.96;
+                  colorArray[idx3 + 1] = 0.95;
                   colorArray[idx3 + 2] = 0.5 + 0.5 * boostV;
                 } else {
                   colorArray[idx3] = boostV;
@@ -3302,11 +3290,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             obj.material.vertexColors = true;
             obj.material.needsUpdate = true;
           }
-          geom.__cvat_suite_colored_frame = curFrame;
-          geom.__cvat_suite_colored_mode = currentPointColorMode;
-          geom.__cvat_suite_colored_boxed = currentColorizeBoxed;
-          geom.__cvat_suite_box_count = numBoxes;
-          geom.__cvat_suite_active_id = activeClientId;
           anyUpdated = true;
         }
         if (anyUpdated && typeof canvas.render === "function") {
@@ -3323,73 +3306,101 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return false;
       }
     }
-    function triggerFullFrameColorizationSequence(targetFrame) {
-      const delays = [20, 80, 180, 350, 600, 1e3, 1800];
-      delays.forEach((delay) => {
-        setTimeout(() => {
-          var _a, _b, _c, _d, _e, _f, _g, _h;
-          try {
-            const store = getReduxStore();
-            const curF = ((_d = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.player) == null ? void 0 : _c.frame) == null ? void 0 : _d.number) ?? ((_h = (_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.job) == null ? void 0 : _g.instance) == null ? void 0 : _h.frame);
-            if (curF === targetFrame) {
-              if (!isPointCloudColorizedForCurrentFrame()) {
-                applyPointCloudColorizationInMainWorld();
-              }
-            }
-          } catch (_) {
-          }
-        }, delay);
-      });
-    }
-    function setupFullFrameColorizationHooks() {
-      var _a, _b, _c, _d, _e;
+    function updateGroundPlaneMeshInMainWorld(customZ) {
+      var _a, _b, _c, _d;
       try {
         const store = getReduxStore();
         const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        if (!canvas) return;
-        if (typeof canvas.render === "function" && !canvas.__cvat_suite_color_hooked) {
-          canvas.__cvat_suite_color_hooked = true;
-          const origRender = canvas.render.bind(canvas);
-          canvas.render = function(...args) {
-            const res = origRender(...args);
-            if (!isColorizingRunning) {
-              if (!isPointCloudColorizedForCurrentFrame()) {
-                applyPointCloudColorizationInMainWorld();
-              }
-            }
-            return res;
-          };
-        }
-        const views = (_d = canvas.view) == null ? void 0 : _d.views;
-        if (views) {
-          const viewKeys = ["perspective", "top", "side", "front"];
-          for (const k of viewKeys) {
-            const s = (_e = views[k]) == null ? void 0 : _e.scene;
-            if (s && !s.__cvat_suite_color_hooked) {
-              s.__cvat_suite_color_hooked = true;
-              const origAdd = s.add.bind(s);
-              s.add = function(...objects) {
-                const res = origAdd(...objects);
-                let hasPoints = false;
-                for (const o of objects) {
-                  if (o && (o.isPoints || o.type === "Points")) {
-                    hasPoints = true;
-                    break;
-                  }
-                }
-                if (hasPoints && !isColorizingRunning) {
-                  setTimeout(() => {
-                    applyPointCloudColorizationInMainWorld();
-                  }, 10);
-                }
-                return res;
-              };
-            }
+        if (!canvas || !((_d = canvas.view) == null ? void 0 : _d.views)) return;
+        const pView = canvas.view.views.perspective;
+        const scene = pView == null ? void 0 : pView.scene;
+        if (!scene) return;
+        const winThree = window.THREE;
+        if (!winThree) return;
+        if (!currentGroundPlaneVisible) {
+          if (groundPlaneMeshGroup && groundPlaneMeshGroup.parent) {
+            groundPlaneMeshGroup.visible = false;
+            if (typeof canvas.render === "function") canvas.render();
           }
+          return;
+        }
+        let zGround = customZ !== void 0 ? customZ : getEgoRoadGroundZInMainWorld();
+        if (isNaN(zGround) || zGround === 0) zGround = -1.75;
+        if (!groundPlaneMeshGroup) {
+          groundPlaneMeshGroup = new winThree.Group();
+          groundPlaneMeshGroup.name = "__cvat_suite_ground_plane_mesh";
+          const roadGeom = new winThree.PlaneGeometry(60, 120, 6, 12);
+          const roadMat = new winThree.MeshBasicMaterial({
+            color: 165063,
+            // Xanh dương Cyan mờ dịu mắt
+            transparent: true,
+            opacity: 0.14,
+            // Mờ ảo, nhìn xuyên thấu rõ từng hạt point
+            depthWrite: false,
+            // TUYỆT ĐỐI KHÔNG che khuất mây điểm LiDAR
+            side: winThree.DoubleSide
+          });
+          const roadMesh = new winThree.Mesh(roadGeom, roadMat);
+          roadMesh.name = "roadPlane";
+          const grid = new winThree.GridHelper(60, 30, 3718648, 223649);
+          grid.material.transparent = true;
+          grid.material.opacity = 0.1;
+          grid.material.depthWrite = false;
+          grid.rotation.x = Math.PI / 2;
+          roadMesh.add(grid);
+          groundPlaneMeshGroup.add(roadMesh);
+          const curbWidth = 15;
+          const curbLength = 120;
+          const curbGeom = new winThree.PlaneGeometry(curbWidth, curbLength, 2, 8);
+          const curbMat = new winThree.MeshBasicMaterial({
+            color: 16096779,
+            // Màu cam hổ phách ấm
+            transparent: true,
+            opacity: 0.18,
+            // Độ mờ vừa vặn
+            depthWrite: false,
+            side: winThree.DoubleSide
+          });
+          const curbLeft = new winThree.Mesh(curbGeom, curbMat);
+          curbLeft.name = "curbLeft";
+          curbLeft.position.set(0, 3.5 + curbWidth / 2, 0.15);
+          groundPlaneMeshGroup.add(curbLeft);
+          const curbRight = new winThree.Mesh(curbGeom.clone(), curbMat);
+          curbRight.name = "curbRight";
+          curbRight.position.set(0, -(3.5 + curbWidth / 2), 0.15);
+          groundPlaneMeshGroup.add(curbRight);
+          scene.add(groundPlaneMeshGroup);
+        }
+        if (!groundPlaneMeshGroup.parent || groundPlaneMeshGroup.parent !== scene) {
+          scene.add(groundPlaneMeshGroup);
+        }
+        groundPlaneMeshGroup.position.set(0, 0, zGround);
+        groundPlaneMeshGroup.visible = true;
+        if (typeof canvas.render === "function") {
+          canvas.render();
         }
       } catch (err) {
-        console.warn("[CVAT 3D Suite] Lỗi setupFullFrameColorizationHooks:", err);
+        console.warn("[CVAT 3D Suite] Lỗi updateGroundPlaneMeshInMainWorld:", err);
       }
+    }
+    function scheduleSingleFrameColorizationAndGround(targetFrame, delayMs = 180) {
+      if (singleFrameColorizeTimer) {
+        clearTimeout(singleFrameColorizeTimer);
+        singleFrameColorizeTimer = null;
+      }
+      singleFrameColorizeTimer = setTimeout(() => {
+        var _a, _b, _c, _d, _e, _f, _g, _h;
+        singleFrameColorizeTimer = null;
+        try {
+          const store = getReduxStore();
+          const curF = ((_d = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.player) == null ? void 0 : _c.frame) == null ? void 0 : _d.number) ?? ((_h = (_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.job) == null ? void 0 : _g.instance) == null ? void 0 : _h.frame);
+          if (curF === targetFrame) {
+            applyPointCloudColorizationInMainWorld();
+            updateGroundPlaneMeshInMainWorld();
+          }
+        } catch (_) {
+        }
+      }, delayMs);
     }
     function getEgoRoadGroundZInMainWorld(egoPos = { x: 0, y: 0, z: 0 }) {
       const lidar = getSceneLidarPoints();
@@ -6363,8 +6374,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               if (curFrame !== void 0 && curFrame !== null && curFrame !== prevFrame) {
                 const oldFrame = prevFrame;
                 prevFrame = curFrame;
-                setupFullFrameColorizationHooks();
-                triggerFullFrameColorizationSequence(curFrame);
+                scheduleSingleFrameColorizationAndGround(curFrame, 180);
                 if (oldFrame !== null) {
                   window.dispatchEvent(
                     new CustomEvent("CVAT_EXT_RES_FRAME_CHANGED", {
@@ -8581,24 +8591,38 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         })
       );
     });
-    setupFullFrameColorizationHooks();
-    [300, 800, 1500, 2500].forEach((ms) => {
-      setTimeout(() => {
-        setupFullFrameColorizationHooks();
-        if (!isPointCloudColorizedForCurrentFrame()) {
-          applyPointCloudColorizationInMainWorld();
+    window.addEventListener("CVAT_EXT_REQ_SET_GROUND_PLANE_VISIBLE", (e) => {
+      const { visible } = e.detail || {};
+      currentGroundPlaneVisible = !!visible;
+      if (typeof localStorage !== "undefined") {
+        try {
+          localStorage.setItem("cvat_3d_ground_plane_visible", String(currentGroundPlaneVisible));
+        } catch (_) {
         }
-      }, ms);
+      }
+      updateGroundPlaneMeshInMainWorld();
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_SET_GROUND_PLANE_VISIBLE", {
+          detail: { success: true, visible: currentGroundPlaneVisible }
+        })
+      );
     });
-    setInterval(() => {
+    window.addEventListener("CVAT_EXT_REQ_GET_GROUND_PLANE_VISIBLE", () => {
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_GET_GROUND_PLANE_VISIBLE", {
+          detail: { visible: currentGroundPlaneVisible }
+        })
+      );
+    });
+    setTimeout(() => {
+      var _a, _b, _c, _d;
       try {
-        setupFullFrameColorizationHooks();
-        if (!isPointCloudColorizedForCurrentFrame()) {
-          applyPointCloudColorizationInMainWorld();
-        }
+        const store = getReduxStore();
+        const f = ((_d = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.player) == null ? void 0 : _c.frame) == null ? void 0 : _d.number) ?? 0;
+        scheduleSingleFrameColorizationAndGround(f, 300);
       } catch (_) {
       }
-    }, 500);
+    }, 1200);
   }
   class CVATBridge {
     /**
@@ -9954,6 +9978,27 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_REQ_SET_POINT_COLOR_MODE", {
             detail: { mode, colorizeBoxed }
+          })
+        );
+      });
+    }
+    /**
+     * Bật/Tắt hiển thị Mặt Sàn Polygon 3D Mờ (Mặt đường & Vỉa hè).
+     */
+    static async setGroundPlaneVisible(visible) {
+      this.ensureMainWorldBridge();
+      return new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(visible), 500);
+        const onRes = (e) => {
+          var _a;
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_SET_GROUND_PLANE_VISIBLE", onRes);
+          resolve(((_a = e.detail) == null ? void 0 : _a.visible) ?? visible);
+        };
+        window.addEventListener("CVAT_EXT_RES_SET_GROUND_PLANE_VISIBLE", onRes);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_SET_GROUND_PLANE_VISIBLE", {
+            detail: { visible }
           })
         );
       });
@@ -18495,9 +18540,10 @@ Cancel = hủy`
       __publicField(this, "searchKeyword", "");
       __publicField(this, "autoSelectListenerAttached", false);
       __publicField(this, "autoCenterOnFrame", localStorage.getItem("CVAT_3D_SUITE_AUTO_CENTER_FRAME") !== "false");
-      // Cấu hình Chế độ màu mây điểm LiDAR & Nhuộm màu xe bọc
+      // Cấu hình Chế độ màu mây điểm LiDAR & Nhuộm màu xe bọc & Mặt sàn Polygon
       __publicField(this, "pointColorMode", localStorage.getItem("cvat_3d_point_color_mode") || "intensity");
       __publicField(this, "colorizeBoxedPoints", localStorage.getItem("cvat_3d_colorize_boxed") !== "false");
+      __publicField(this, "groundPlaneVisible", localStorage.getItem("cvat_3d_ground_plane_visible") !== "false");
       // Thống kê vòng đời của Track ID đang chọn
       __publicField(this, "trackStats", null);
       __publicField(this, "trackStatsLoading", false);
@@ -20876,6 +20922,24 @@ Cancel = hủy`
               ">
                 <span>📦 Xe bọc: ${this.colorizeBoxedPoints ? "BẬT" : "TẮT"}</span>
               </button>
+
+              <!-- NÚT TOGGLE MẶT SÀN POLYGON 3D MỜ (MẶT ĐƯỜNG & VỈA HÈ) -->
+              <button id="btn-toggle-ground-plane" title="Bật/Tắt hiển thị Mặt Sàn Polygon 3D Mờ (Mặt đường & Vỉa hè) giúp annotator dễ thấy đáy xe có chạm sàn" style="
+                background: ${this.groundPlaneVisible ? "#f0fdf4" : "#ffffff"};
+                border: 1px solid ${this.groundPlaneVisible ? "#86efac" : "#cbd5e1"};
+                color: ${this.groundPlaneVisible ? "#15803d" : "#64748b"};
+                padding: 3px 7px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 10px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 3px;
+                transition: all 0.12s;
+              ">
+                <span>🛣️ Sàn: ${this.groundPlaneVisible ? "BẬT" : "TẮT"}</span>
+              </button>
             </div>
           </div>
 
@@ -22122,6 +22186,19 @@ Cancel = hủy`
           this.showToast(
             `Đã ${this.colorizeBoxedPoints ? "BẬT" : "TẮT"} nhuộm màu điểm xe bọc (Toàn Bộ Frame)`,
             this.colorizeBoxedPoints ? "success" : "info"
+          );
+          this.updateContent();
+        });
+      }
+      const groundPlaneBtn = this.container.querySelector("#btn-toggle-ground-plane");
+      if (groundPlaneBtn) {
+        groundPlaneBtn.addEventListener("click", async () => {
+          this.groundPlaneVisible = !this.groundPlaneVisible;
+          localStorage.setItem("cvat_3d_ground_plane_visible", String(this.groundPlaneVisible));
+          await CVATBridge.setGroundPlaneVisible(this.groundPlaneVisible);
+          this.showToast(
+            `Đã ${this.groundPlaneVisible ? "BẬT" : "TẮT"} mặt sàn polygon mờ (Đường & Vỉa hè)`,
+            this.groundPlaneVisible ? "success" : "info"
           );
           this.updateContent();
         });

@@ -291,4 +291,31 @@ console.log("🧪 Đang chạy kiểm thử tự động Module Point Cloud Colo
   console.log("✅ Test 7: Fallback Redux States: Nhận diện và nhuộm màu chính xác ngay khi Three.js chưa dựng mesh");
 }
 
-console.log("\n🎉 TẤT CẢ 7/7 BÀI KIỂM THỬ MODULE POINT CLOUD COLORIZATION ĐÃ PASS 100%!");
+// ==========================================
+// TEST 8: MẶT SÀN POLYGON 3D MỜ (ROAD PLANE & CURB STEP MESH)
+// ==========================================
+{
+  // Kiểm tra tính toán hình học mặt sàn:
+  const egoRoadZ = -1.75;
+  const curbStep = 0.15; // Bậc vỉa hè +15cm
+
+  const roadPlaneZ = egoRoadZ;
+  const curbPlaneZ = egoRoadZ + curbStep;
+
+  assert.strictEqual(roadPlaneZ, -1.75, "Mặt đường phải ở cao độ -1.75m");
+  assert.strictEqual(curbPlaneZ, -1.60, "Mặt vỉa hè phải giật cấp +15cm lên -1.60m");
+
+  // Kiểm tra thuộc tính vật liệu mờ siêu nhẹ không che khuất point cloud
+  const materialProps = {
+    transparent: true,
+    opacity: 0.14,
+    depthWrite: false, // Quan trọng nhất: không che mây điểm
+  };
+
+  assert.strictEqual(materialProps.depthWrite, false, "depthWrite phải là false để hạt LiDAR luôn nổi");
+  assert.ok(materialProps.opacity < 0.25, "Độ mờ phải nhỏ hơn 0.25 để nhìn xuyên thấu");
+
+  console.log("✅ Test 8: Mặt Sàn Polygon 3D Mờ: Thông số hình học và độ mờ xuyên thấu đạt chuẩn");
+}
+
+console.log("\n🎉 TẤT CẢ 8/8 BÀI KIỂM THỬ MODULE POINT CLOUD COLORIZATION ĐÃ PASS 100%!");

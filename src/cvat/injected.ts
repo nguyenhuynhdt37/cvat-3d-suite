@@ -119,7 +119,8 @@ export function mainWorldScript(): void {
   // 1. Hiển thị mặc định theo độ phản xạ (LiDAR Intensity)
   // 2. Nhuộm màu mây điểm nằm trong xe bọc (Boxed Points Colorization)
   // 3. Chế độ xem không xét độ phản xạ (Plain / Uniform Color Mode)
-  // 4. Cơ chế Toàn Frame (Full-Frame Engine): Tự động duy trì 100% trên mọi frame
+  // 4. Cơ chế Single-Flight Frame Controller (Zero-Lag 60 FPS, hủy frame cũ)
+  // 5. Mặt Sàn Polygon 3D Mờ (Mặt đường & Vỉa hè) siêu nhẹ cho annotator
   // =============================================================================
   let currentPointColorMode: "intensity" | "plain" =
     typeof localStorage !== "undefined" && localStorage.getItem("cvat_3d_point_color_mode") === "plain"
@@ -129,7 +130,14 @@ export function mainWorldScript(): void {
     typeof localStorage !== "undefined"
       ? localStorage.getItem("cvat_3d_colorize_boxed") !== "false"
       : true;
+  let currentGroundPlaneVisible: boolean =
+    typeof localStorage !== "undefined"
+      ? localStorage.getItem("cvat_3d_ground_plane_visible") !== "false"
+      : true;
+
   let isColorizingRunning: boolean = false;
+  let groundPlaneMeshGroup: any = null;
+  let singleFrameColorizeTimer: any = null;
 
   // Lấy danh sách tất cả các đối tượng THREE.Points từ mọi view của Canvas3D
   function getAllScenePointsObjects(): any[] {
@@ -163,47 +171,7 @@ export function mainWorldScript(): void {
     }
   }
 
-  // Kiểm tra xem mây điểm Three.js hiện tại đã được tô màu chuẩn xác cho frame này chưa
-  function isPointCloudColorizedForCurrentFrame(): boolean {
-    try {
-      const store = getReduxStore();
-      const curFrame =
-        store?.getState()?.annotation?.player?.frame?.number ??
-        store?.getState()?.annotation?.job?.instance?.frame;
-      if (curFrame === undefined || curFrame === null) return true;
-
-      const canvas = store?.getState()?.annotation?.canvas?.instance;
-      if (!canvas?.view) return true;
-
-      const ptsObjs = getAllScenePointsObjects();
-      if (ptsObjs.length === 0) return false;
-
-      const drawnObjects = canvas.view?.drawnObjects || {};
-      const drawnCount = Object.keys(drawnObjects).length;
-      const activeClientId =
-        canvas.view?.activatedElementID ||
-        store?.getState()?.annotation?.annotations?.activatedStateClientID;
-
-      for (const obj of ptsObjs) {
-        const g = obj.geometry;
-        if (!g) continue;
-        if (
-          (g as any).__cvat_suite_colored_frame !== curFrame ||
-          (g as any).__cvat_suite_colored_mode !== currentPointColorMode ||
-          (g as any).__cvat_suite_colored_boxed !== currentColorizeBoxed ||
-          (currentColorizeBoxed && drawnCount > 0 && (g as any).__cvat_suite_box_count !== drawnCount) ||
-          (currentColorizeBoxed && (g as any).__cvat_suite_active_id !== activeClientId)
-        ) {
-          return false;
-        }
-      }
-      return true;
-    } catch (_) {
-      return true;
-    }
-  }
-
-  // Thuật toán gán màu cho mây điểm Three.js: Intensity / Plain & Tô màu trong xe bọc
+  // Thuật toán gán màu cho mây điểm Three.js: Intensity / Plain & Tô màu trong xe bọc (Tối ưu Zero-Lag)
   function applyPointCloudColorizationInMainWorld(
     options?: { mode?: "intensity" | "plain"; colorizeBoxed?: boolean }
   ): boolean {
@@ -369,10 +337,23 @@ export function mainWorldScript(): void {
       const plainB = 0.82;
 
       let anyUpdated = false;
+      const processedGeometries = new Set<any>();
 
       for (const obj of ptsObjs) {
         const geom = obj.geometry;
-        const posAttr = geom?.attributes?.position;
+        if (!geom) continue;
+
+        // TỐI ƯU CỰC ĐỘ: Nếu nhiều views dùng chung 1 geometry buffer, chỉ tính toán 1 lần duy nhất!
+        if (processedGeometries.has(geom)) {
+          if (obj.material) {
+            obj.material.vertexColors = true;
+            obj.material.needsUpdate = true;
+          }
+          continue;
+        }
+        processedGeometries.add(geom);
+
+        const posAttr = geom.attributes?.position;
         if (!posAttr || !posAttr.array) continue;
 
         const count = posAttr.count;
@@ -401,7 +382,7 @@ export function mainWorldScript(): void {
           colorArray = colorAttr.array as Float32Array;
         }
 
-        // Vòng lặp tô màu siêu tốc cho từng điểm
+        // Vòng lặp tô màu siêu tốc cho từng điểm (Vectorized & Fast-Path)
         for (let i = 0; i < count; i++) {
           const idx3 = i * 3;
           const px = posArray[idx3];
@@ -468,12 +449,12 @@ export function mainWorldScript(): void {
               colorArray[idx3 + 1] = plainG;
               colorArray[idx3 + 2] = plainB;
             } else {
-              // Intensity Mode (Mặc định)
+              // Intensity Mode (Mượt mà, không lag)
               const boostV = Math.min(1.0, v * 1.25);
               if (v >= 0.70) {
-                // Vạch sơn phản quang rực rỡ ánh vàng
+                // Vạch sơn phản quang rực rỡ ánh vàng nhẹ
                 colorArray[idx3] = 1.0;
-                colorArray[idx3 + 1] = 0.96;
+                colorArray[idx3 + 1] = 0.95;
                 colorArray[idx3 + 2] = 0.50 + 0.50 * boostV;
               } else {
                 colorArray[idx3] = boostV;
@@ -490,13 +471,6 @@ export function mainWorldScript(): void {
           obj.material.vertexColors = true;
           obj.material.needsUpdate = true;
         }
-
-        // Đánh dấu metadata frame và trạng thái màu lên geometry
-        (geom as any).__cvat_suite_colored_frame = curFrame;
-        (geom as any).__cvat_suite_colored_mode = currentPointColorMode;
-        (geom as any).__cvat_suite_colored_boxed = currentColorizeBoxed;
-        (geom as any).__cvat_suite_box_count = numBoxes;
-        (geom as any).__cvat_suite_active_id = activeClientId;
 
         anyUpdated = true;
       }
@@ -517,79 +491,128 @@ export function mainWorldScript(): void {
     }
   }
 
-  // Kích hoạt chuỗi Adaptive Progressive Colorization khi chuyển frame
-  function triggerFullFrameColorizationSequence(targetFrame: number): void {
-    const delays = [20, 80, 180, 350, 600, 1000, 1800];
-    delays.forEach((delay) => {
-      setTimeout(() => {
-        try {
-          const store = getReduxStore();
-          const curF =
-            store?.getState()?.annotation?.player?.frame?.number ??
-            store?.getState()?.annotation?.job?.instance?.frame;
-          if (curF === targetFrame) {
-            if (!isPointCloudColorizedForCurrentFrame()) {
-              applyPointCloudColorizationInMainWorld();
-            }
-          }
-        } catch (_) {}
-      }, delay);
-    });
-  }
-
-  // Hook Three.js Canvas Render và Scene.add để tự động tô màu toàn frame tức thì
-  function setupFullFrameColorizationHooks(): void {
+  // =============================================================================
+  // DỰNG MẶT SÀN POLYGON 3D MỜ (MẶT ĐƯỜNG & VỈA HÈ - GROUND SURFACE MESH)
+  // Tạo một mặt phẳng bán trong suốt tại Z_ground giúp annotator thấy rõ mặt đất và vỉa hè
+  // =============================================================================
+  function updateGroundPlaneMeshInMainWorld(customZ?: number): void {
     try {
       const store = getReduxStore();
       const canvas = store?.getState()?.annotation?.canvas?.instance;
-      if (!canvas) return;
+      if (!canvas || !canvas.view?.views) return;
 
-      // 1. Hook vào canvas.render()
-      if (typeof canvas.render === "function" && !(canvas as any).__cvat_suite_color_hooked) {
-        (canvas as any).__cvat_suite_color_hooked = true;
-        const origRender = canvas.render.bind(canvas);
-        canvas.render = function (...args: any[]) {
-          const res = origRender(...args);
-          if (!isColorizingRunning) {
-            if (!isPointCloudColorizedForCurrentFrame()) {
-              applyPointCloudColorizationInMainWorld();
-            }
-          }
-          return res;
-        };
+      const pView = canvas.view.views.perspective;
+      const scene = pView?.scene;
+      if (!scene) return;
+
+      const winThree = (window as any).THREE;
+      if (!winThree) return;
+
+      // 1. Nếu người dùng TẮT mặt sàn: ẩn ngay lập tức
+      if (!currentGroundPlaneVisible) {
+        if (groundPlaneMeshGroup && groundPlaneMeshGroup.parent) {
+          groundPlaneMeshGroup.visible = false;
+          if (typeof canvas.render === "function") canvas.render();
+        }
+        return;
       }
 
-      // 2. Hook vào scene.add() của tất cả các views (Perspective, Top, Side, Front)
-      const views = canvas.view?.views;
-      if (views) {
-        const viewKeys = ["perspective", "top", "side", "front"];
-        for (const k of viewKeys) {
-          const s = views[k]?.scene;
-          if (s && !(s as any).__cvat_suite_color_hooked) {
-            (s as any).__cvat_suite_color_hooked = true;
-            const origAdd = s.add.bind(s);
-            s.add = function (...objects: any[]) {
-              const res = origAdd(...objects);
-              let hasPoints = false;
-              for (const o of objects) {
-                if (o && (o.isPoints || o.type === "Points")) {
-                  hasPoints = true;
-                  break;
-                }
-              }
-              if (hasPoints && !isColorizingRunning) {
-                setTimeout(() => {
-                  applyPointCloudColorizationInMainWorld();
-                }, 10);
-              }
-              return res;
-            };
-          }
-        }
+      // 2. Tính cao độ mặt đất chuẩn (Ego Road Ground Z)
+      let zGround = customZ !== undefined ? customZ : getEgoRoadGroundZInMainWorld();
+      if (isNaN(zGround) || zGround === 0) zGround = -1.75;
+
+      // 3. Khởi tạo Three.js Group nếu chưa có
+      if (!groundPlaneMeshGroup) {
+        groundPlaneMeshGroup = new winThree.Group();
+        groundPlaneMeshGroup.name = "__cvat_suite_ground_plane_mesh";
+
+        // A. TẤM MẶT ĐƯỜNG POLYGON MỜ (Lòng đường xe chạy)
+        // Kích thước 60m x 120m bao trọn toàn bộ tầm quét LiDAR thông thường
+        const roadGeom = new winThree.PlaneGeometry(60, 120, 6, 12);
+        const roadMat = new winThree.MeshBasicMaterial({
+          color: 0x0284c7, // Xanh dương Cyan mờ dịu mắt
+          transparent: true,
+          opacity: 0.14, // Mờ ảo, nhìn xuyên thấu rõ từng hạt point
+          depthWrite: false, // TUYỆT ĐỐI KHÔNG che khuất mây điểm LiDAR
+          side: winThree.DoubleSide,
+        });
+        const roadMesh = new winThree.Mesh(roadGeom, roadMat);
+        roadMesh.name = "roadPlane";
+
+        // Lưới Grid mỏng nhẹ (mỗi ô 1m x 1m) giúp annotator căn cự ly
+        const grid = new winThree.GridHelper(60, 30, 0x38bdf8, 0x0369a1);
+        grid.material.transparent = true;
+        grid.material.opacity = 0.10;
+        grid.material.depthWrite = false;
+        grid.rotation.x = Math.PI / 2; // Khớp với mặt phẳng Plane
+        roadMesh.add(grid);
+        groundPlaneMeshGroup.add(roadMesh);
+
+        // B. DẢI VỈA HÈ TRÁI & PHẢI POLYGON MỜ (Giật cấp +15cm)
+        // Vỉa hè cao hơn lòng đường +15cm với màu Cam Hổ Phách mờ phân biệt rõ rệt
+        const curbWidth = 15; // Rộng 15m
+        const curbLength = 120;
+        const curbGeom = new winThree.PlaneGeometry(curbWidth, curbLength, 2, 8);
+        const curbMat = new winThree.MeshBasicMaterial({
+          color: 0xf59e0b, // Màu cam hổ phách ấm
+          transparent: true,
+          opacity: 0.18, // Độ mờ vừa vặn
+          depthWrite: false,
+          side: winThree.DoubleSide,
+        });
+
+        // Vỉa hè bên trái (Y > +3.5m)
+        const curbLeft = new winThree.Mesh(curbGeom, curbMat);
+        curbLeft.name = "curbLeft";
+        curbLeft.position.set(0, 3.5 + curbWidth / 2, 0.15); // Nâng cao +15cm
+        groundPlaneMeshGroup.add(curbLeft);
+
+        // Vỉa hè bên phải (Y < -3.5m)
+        const curbRight = new winThree.Mesh(curbGeom.clone(), curbMat);
+        curbRight.name = "curbRight";
+        curbRight.position.set(0, -(3.5 + curbWidth / 2), 0.15); // Nâng cao +15cm
+        groundPlaneMeshGroup.add(curbRight);
+
+        scene.add(groundPlaneMeshGroup);
+      }
+
+      // Đảm bảo group đã được add vào scene hiện tại
+      if (!groundPlaneMeshGroup.parent || groundPlaneMeshGroup.parent !== scene) {
+        scene.add(groundPlaneMeshGroup);
+      }
+
+      // 4. CẬP NHẬT CAO ĐỘ VÀ VỊ TRÍ MẶT SÀN CHO FRAME HIỆN TẠI
+      groundPlaneMeshGroup.position.set(0, 0, zGround);
+      groundPlaneMeshGroup.visible = true;
+
+      if (typeof canvas.render === "function") {
+        canvas.render();
       }
     } catch (err) {
-      console.warn("[CVAT 3D Suite] Lỗi setupFullFrameColorizationHooks:", err);
+      console.warn("[CVAT 3D Suite] Lỗi updateGroundPlaneMeshInMainWorld:", err);
     }
+  }
+
+  // Single-Flight Frame Controller: Hủy tác vụ cũ khi đổi frame, chỉ render đúng 1 lần cho frame active
+  function scheduleSingleFrameColorizationAndGround(targetFrame: number, delayMs: number = 180): void {
+    if (singleFrameColorizeTimer) {
+      clearTimeout(singleFrameColorizeTimer);
+      singleFrameColorizeTimer = null;
+    }
+
+    singleFrameColorizeTimer = setTimeout(() => {
+      singleFrameColorizeTimer = null;
+      try {
+        const store = getReduxStore();
+        const curF =
+          store?.getState()?.annotation?.player?.frame?.number ??
+          store?.getState()?.annotation?.job?.instance?.frame;
+        if (curF === targetFrame) {
+          applyPointCloudColorizationInMainWorld();
+          updateGroundPlaneMeshInMainWorld();
+        }
+      } catch (_) {}
+    }, delayMs);
   }
 
   // Thuật toán Annular Ring Ground Detection & 3D Slope Fitting (Pitch Dọc & Roll Ngang Front)
@@ -4534,14 +4557,13 @@ export function mainWorldScript(): void {
             const curStatesLen = anno?.annotations?.states?.length || 0;
             const curFrame = anno?.player?.frame?.number ?? anno?.job?.instance?.frame;
 
-            // 1. PHÁT HIỆN CHUYỂN FRAME HOẶC NẠP FRAME ĐẦU TIÊN (Tua Frame F/D/Timeline/Play)
+            // 1. PHÁT HIỆN CHUYỂN FRAME HOẶC NẠP FRAME ĐẦU TIÊN (Single-Flight: Hủy frame cũ, kích hoạt duy nhất 1 lần cho frame active)
             if (curFrame !== undefined && curFrame !== null && curFrame !== prevFrame) {
               const oldFrame = prevFrame;
               prevFrame = curFrame;
 
-              // Luôn kích hoạt Full-Frame Colorization cho frame này (kể cả frame đầu tiên)
-              setupFullFrameColorizationHooks();
-              triggerFullFrameColorizationSequence(curFrame);
+              // Hủy ngay tiến trình của frame cũ và lên lịch render frame mới
+              scheduleSingleFrameColorizationAndGround(curFrame, 180);
 
               if (oldFrame !== null) {
                 // Bắn event tức thì thông báo cho Extension
@@ -7130,24 +7152,37 @@ export function mainWorldScript(): void {
     );
   });
 
-  // Tự động khởi tạo Full-Frame Colorization Hooks & Khởi động ban đầu
-  setupFullFrameColorizationHooks();
-  [300, 800, 1500, 2500].forEach((ms) => {
-    setTimeout(() => {
-      setupFullFrameColorizationHooks();
-      if (!isPointCloudColorizedForCurrentFrame()) {
-        applyPointCloudColorizationInMainWorld();
-      }
-    }, ms);
+  // 18. Lắng nghe yêu cầu Bật/Tắt Mặt Sàn Polygon 3D Mờ (Mặt đường & Vỉa hè)
+  window.addEventListener("CVAT_EXT_REQ_SET_GROUND_PLANE_VISIBLE", (e: any) => {
+    const { visible } = e.detail || {};
+    currentGroundPlaneVisible = !!visible;
+    if (typeof localStorage !== "undefined") {
+      try {
+        localStorage.setItem("cvat_3d_ground_plane_visible", String(currentGroundPlaneVisible));
+      } catch (_) {}
+    }
+    updateGroundPlaneMeshInMainWorld();
+    window.dispatchEvent(
+      new CustomEvent("CVAT_EXT_RES_SET_GROUND_PLANE_VISIBLE", {
+        detail: { success: true, visible: currentGroundPlaneVisible },
+      })
+    );
   });
 
-  // Safety Heartbeat Watcher (500ms): Duy trì tự động 100% trên TOÀN BỘ CÁC FRAME
-  setInterval(() => {
+  window.addEventListener("CVAT_EXT_REQ_GET_GROUND_PLANE_VISIBLE", () => {
+    window.dispatchEvent(
+      new CustomEvent("CVAT_EXT_RES_GET_GROUND_PLANE_VISIBLE", {
+        detail: { visible: currentGroundPlaneVisible },
+      })
+    );
+  });
+
+  // Khởi động nạp ban đầu cho Frame đầu tiên (Single-Flight sau khi canvas sẵn sàng)
+  setTimeout(() => {
     try {
-      setupFullFrameColorizationHooks();
-      if (!isPointCloudColorizedForCurrentFrame()) {
-        applyPointCloudColorizationInMainWorld();
-      }
+      const store = getReduxStore();
+      const f = store?.getState()?.annotation?.player?.frame?.number ?? 0;
+      scheduleSingleFrameColorizationAndGround(f, 300);
     } catch (_) {}
-  }, 500);
+  }, 1200);
 }

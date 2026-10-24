@@ -1827,4 +1827,25 @@ export class CVATBridge {
       );
     });
   }
+
+  /**
+   * Bật/Tắt hiển thị Mặt Sàn Polygon 3D Mờ (Mặt đường & Vỉa hè).
+   */
+  public static async setGroundPlaneVisible(visible: boolean): Promise<boolean> {
+    this.ensureMainWorldBridge();
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => resolve(visible), 500);
+      const onRes = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_SET_GROUND_PLANE_VISIBLE", onRes);
+        resolve(e.detail?.visible ?? visible);
+      };
+      window.addEventListener("CVAT_EXT_RES_SET_GROUND_PLANE_VISIBLE", onRes);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_SET_GROUND_PLANE_VISIBLE", {
+          detail: { visible },
+        })
+      );
+    });
+  }
 }

@@ -98,11 +98,13 @@ export class FloatingPanel {
   private autoSelectListenerAttached: boolean = false;
   private autoCenterOnFrame: boolean = localStorage.getItem("CVAT_3D_SUITE_AUTO_CENTER_FRAME") !== "false";
 
-  // Cấu hình Chế độ màu mây điểm LiDAR & Nhuộm màu xe bọc
+  // Cấu hình Chế độ màu mây điểm LiDAR & Nhuộm màu xe bọc & Mặt sàn Polygon
   private pointColorMode: "intensity" | "plain" =
     (localStorage.getItem("cvat_3d_point_color_mode") as any) || "intensity";
   private colorizeBoxedPoints: boolean =
     localStorage.getItem("cvat_3d_colorize_boxed") !== "false";
+  private groundPlaneVisible: boolean =
+    localStorage.getItem("cvat_3d_ground_plane_visible") !== "false";
 
   // Thống kê vòng đời của Track ID đang chọn
   private trackStats: TrackStatsInfo | null = null;
@@ -2869,6 +2871,24 @@ export class FloatingPanel {
               ">
                 <span>📦 Xe bọc: ${this.colorizeBoxedPoints ? "BẬT" : "TẮT"}</span>
               </button>
+
+              <!-- NÚT TOGGLE MẶT SÀN POLYGON 3D MỜ (MẶT ĐƯỜNG & VỈA HÈ) -->
+              <button id="btn-toggle-ground-plane" title="Bật/Tắt hiển thị Mặt Sàn Polygon 3D Mờ (Mặt đường & Vỉa hè) giúp annotator dễ thấy đáy xe có chạm sàn" style="
+                background: ${this.groundPlaneVisible ? "#f0fdf4" : "#ffffff"};
+                border: 1px solid ${this.groundPlaneVisible ? "#86efac" : "#cbd5e1"};
+                color: ${this.groundPlaneVisible ? "#15803d" : "#64748b"};
+                padding: 3px 7px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 10px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 3px;
+                transition: all 0.12s;
+              ">
+                <span>🛣️ Sàn: ${this.groundPlaneVisible ? "BẬT" : "TẮT"}</span>
+              </button>
             </div>
           </div>
 
@@ -4192,6 +4212,21 @@ export class FloatingPanel {
         this.showToast(
           `Đã ${this.colorizeBoxedPoints ? "BẬT" : "TẮT"} nhuộm màu điểm xe bọc (Toàn Bộ Frame)`,
           this.colorizeBoxedPoints ? "success" : "info"
+        );
+        this.updateContent();
+      });
+    }
+
+    // 7e. Gắn sự kiện Bật/Tắt Mặt Sàn Polygon 3D Mờ (Mặt đường & Vỉa hè)
+    const groundPlaneBtn = this.container.querySelector("#btn-toggle-ground-plane");
+    if (groundPlaneBtn) {
+      groundPlaneBtn.addEventListener("click", async () => {
+        this.groundPlaneVisible = !this.groundPlaneVisible;
+        localStorage.setItem("cvat_3d_ground_plane_visible", String(this.groundPlaneVisible));
+        await CVATBridge.setGroundPlaneVisible(this.groundPlaneVisible);
+        this.showToast(
+          `Đã ${this.groundPlaneVisible ? "BẬT" : "TẮT"} mặt sàn polygon mờ (Đường & Vỉa hè)`,
+          this.groundPlaneVisible ? "success" : "info"
         );
         this.updateContent();
       });
