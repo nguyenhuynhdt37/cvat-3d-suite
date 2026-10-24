@@ -183,6 +183,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   function radToDeg(rad) {
     return Number((rad * 180 / Math.PI).toFixed(2));
   }
+  function degToRad(deg2) {
+    return Number((deg2 * Math.PI / 180).toFixed(6));
+  }
   function filterDenseConnectedCluster1D(pts, axis, maxGap = 0.22, centerBias = 0) {
     if (pts.length < 8) return pts;
     const sorted = [...pts].sort((a, b) => a[axis] - b[axis]);
@@ -3189,20 +3192,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           const intensityAttr = (_w = geom.attributes.intensity || geom.attributes.intensities) == null ? void 0 : _w.array;
           let colorAttr = geom.attributes.color;
           let colorArray;
+          const BufferAttrClass = posAttr.constructor;
           const winThree = window.THREE;
           if (!colorAttr || !colorAttr.array || colorAttr.array.length !== count * 3) {
             colorArray = new Float32Array(count * 3);
-            if (winThree && typeof winThree.BufferAttribute === "function") {
+            if (typeof BufferAttrClass === "function") {
+              geom.setAttribute("color", new BufferAttrClass(colorArray, 3));
+              colorAttr = geom.attributes.color;
+            } else if (winThree && typeof winThree.BufferAttribute === "function") {
               geom.setAttribute("color", new winThree.BufferAttribute(colorArray, 3));
               colorAttr = geom.attributes.color;
-            } else {
-              colorAttr = {
-                array: colorArray,
-                count,
-                itemSize: 3,
-                needsUpdate: true
-              };
-              geom.attributes.color = colorAttr;
             }
           } else {
             colorArray = colorAttr.array;
@@ -3294,6 +3293,57 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return false;
       }
     }
+    function getThreeEngineFromScene(scene, canvas) {
+      var _a;
+      const win = window;
+      if (win.THREE && typeof win.THREE.Mesh === "function") {
+        return win.THREE;
+      }
+      if ((canvas == null ? void 0 : canvas.THREE) && typeof canvas.THREE.Mesh === "function") {
+        return canvas.THREE;
+      }
+      if (((_a = canvas == null ? void 0 : canvas.view) == null ? void 0 : _a.THREE) && typeof canvas.view.THREE.Mesh === "function") {
+        return canvas.view.THREE;
+      }
+      let MeshClass = null;
+      let BufferGeometryClass = null;
+      let BufferAttributeClass = null;
+      let MaterialClass = null;
+      let GroupClass = null;
+      if (scene) {
+        if (typeof scene.constructor === "function") {
+          GroupClass = scene.constructor;
+        }
+        scene.traverse((obj) => {
+          var _a2, _b;
+          if (!MeshClass && (obj.isMesh || obj.type === "Mesh")) {
+            MeshClass = obj.constructor;
+            if (obj.material && !MaterialClass) {
+              MaterialClass = obj.material.constructor;
+            }
+          }
+          if (!BufferGeometryClass && ((_a2 = obj.geometry) == null ? void 0 : _a2.isBufferGeometry)) {
+            BufferGeometryClass = obj.geometry.constructor;
+            if (((_b = obj.geometry.attributes) == null ? void 0 : _b.position) && !BufferAttributeClass) {
+              BufferAttributeClass = obj.geometry.attributes.position.constructor;
+            }
+          }
+          if (!GroupClass && (obj.isGroup || obj.type === "Group")) {
+            GroupClass = obj.constructor;
+          }
+        });
+      }
+      if (BufferGeometryClass && BufferAttributeClass) {
+        return {
+          Mesh: MeshClass || GroupClass,
+          BufferGeometry: BufferGeometryClass,
+          BufferAttribute: BufferAttributeClass,
+          Material: MaterialClass,
+          Group: GroupClass || MeshClass
+        };
+      }
+      return null;
+    }
     function updateGroundPlaneMeshInMainWorld(customZ) {
       var _a, _b, _c, _d;
       try {
@@ -3303,8 +3353,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const pView = canvas.view.views.perspective;
         const scene = pView == null ? void 0 : pView.scene;
         if (!scene) return;
-        const winThree = window.THREE;
-        if (!winThree) return;
         if (!currentGroundPlaneVisible) {
           if (groundPlaneMeshGroup && groundPlaneMeshGroup.parent) {
             groundPlaneMeshGroup.visible = false;
@@ -3312,51 +3360,101 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
           return;
         }
+        const three = getThreeEngineFromScene(scene, canvas);
+        if (!three) return;
         let zGround = customZ !== void 0 ? customZ : getEgoRoadGroundZInMainWorld();
         if (isNaN(zGround) || zGround === 0) zGround = -1.75;
-        if (!groundPlaneMeshGroup) {
-          groundPlaneMeshGroup = new winThree.Group();
-          groundPlaneMeshGroup.name = "__cvat_suite_ground_plane_mesh";
-          const roadGeom = new winThree.PlaneGeometry(60, 120, 6, 12);
-          const roadMat = new winThree.MeshBasicMaterial({
-            color: 165063,
-            // Xanh dương Cyan mờ dịu mắt
-            transparent: true,
-            opacity: 0.14,
-            // Mờ ảo, nhìn xuyên thấu rõ từng hạt point
-            depthWrite: false,
-            // TUYỆT ĐỐI KHÔNG che khuất mây điểm LiDAR
-            side: winThree.DoubleSide
+        const createPlaneGeom = (w, l, ox = 0, oy = 0, oz = 0) => {
+          const hw = w / 2;
+          const hl = l / 2;
+          const x0 = ox - hw, x1 = ox + hw;
+          const y0 = oy - hl, y1 = oy + hl;
+          const verts = new Float32Array([
+            x0,
+            y0,
+            oz,
+            x1,
+            y0,
+            oz,
+            x1,
+            y1,
+            oz,
+            x0,
+            y0,
+            oz,
+            x1,
+            y1,
+            oz,
+            x0,
+            y1,
+            oz
+          ]);
+          const g = new three.BufferGeometry();
+          g.setAttribute("position", new three.BufferAttribute(verts, 3));
+          return g;
+        };
+        const createMat = (hexColor, opacity) => {
+          if (typeof three.MeshBasicMaterial === "function") {
+            return new three.MeshBasicMaterial({
+              color: hexColor,
+              transparent: true,
+              opacity,
+              depthWrite: false,
+              side: 2
+              // DoubleSide
+            });
+          }
+          if (typeof three.Material === "function") {
+            try {
+              return new three.Material({
+                color: hexColor,
+                transparent: true,
+                opacity,
+                depthWrite: false,
+                side: 2
+              });
+            } catch (_) {
+            }
+          }
+          let baseMat = null;
+          scene.traverse((o) => {
+            if (!baseMat && o.material) baseMat = o.material;
           });
-          const roadMesh = new winThree.Mesh(roadGeom, roadMat);
-          roadMesh.name = "roadPlane";
-          const grid = new winThree.GridHelper(60, 30, 3718648, 223649);
-          grid.material.transparent = true;
-          grid.material.opacity = 0.1;
-          grid.material.depthWrite = false;
-          grid.rotation.x = Math.PI / 2;
-          roadMesh.add(grid);
-          groundPlaneMeshGroup.add(roadMesh);
+          if (baseMat) {
+            const m = baseMat.clone();
+            if (m.color && typeof m.color.setHex === "function") m.color.setHex(hexColor);
+            m.transparent = true;
+            m.opacity = opacity;
+            m.depthWrite = false;
+            m.side = 2;
+            return m;
+          }
+          return null;
+        };
+        if (!groundPlaneMeshGroup) {
+          const GroupCtor = three.Group || three.Mesh;
+          groundPlaneMeshGroup = new GroupCtor();
+          groundPlaneMeshGroup.name = "__cvat_suite_ground_plane_mesh";
+          const roadGeom = createPlaneGeom(60, 120);
+          const roadMat = createMat(165063, 0.14);
+          if (roadMat && typeof three.Mesh === "function") {
+            const roadMesh = new three.Mesh(roadGeom, roadMat);
+            roadMesh.name = "roadPlane";
+            groundPlaneMeshGroup.add(roadMesh);
+          }
           const curbWidth = 15;
           const curbLength = 120;
-          const curbGeom = new winThree.PlaneGeometry(curbWidth, curbLength, 2, 8);
-          const curbMat = new winThree.MeshBasicMaterial({
-            color: 16096779,
-            // Màu cam hổ phách ấm
-            transparent: true,
-            opacity: 0.18,
-            // Độ mờ vừa vặn
-            depthWrite: false,
-            side: winThree.DoubleSide
-          });
-          const curbLeft = new winThree.Mesh(curbGeom, curbMat);
-          curbLeft.name = "curbLeft";
-          curbLeft.position.set(0, 3.5 + curbWidth / 2, 0.15);
-          groundPlaneMeshGroup.add(curbLeft);
-          const curbRight = new winThree.Mesh(curbGeom.clone(), curbMat);
-          curbRight.name = "curbRight";
-          curbRight.position.set(0, -(3.5 + curbWidth / 2), 0.15);
-          groundPlaneMeshGroup.add(curbRight);
+          const curbMat = createMat(16096779, 0.18);
+          if (curbMat && typeof three.Mesh === "function") {
+            const curbLeftGeom = createPlaneGeom(curbWidth, curbLength, 0, 3.5 + curbWidth / 2, 0.15);
+            const curbLeft = new three.Mesh(curbLeftGeom, curbMat);
+            curbLeft.name = "curbLeft";
+            groundPlaneMeshGroup.add(curbLeft);
+            const curbRightGeom = createPlaneGeom(curbWidth, curbLength, 0, -(3.5 + curbWidth / 2), 0.15);
+            const curbRight = new three.Mesh(curbRightGeom, curbMat.clone ? curbMat.clone() : curbMat);
+            curbRight.name = "curbRight";
+            groundPlaneMeshGroup.add(curbRight);
+          }
           scene.add(groundPlaneMeshGroup);
         }
         if (!groundPlaneMeshGroup.parent || groundPlaneMeshGroup.parent !== scene) {
@@ -3376,19 +3474,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         clearTimeout(singleFrameColorizeTimer);
         singleFrameColorizeTimer = null;
       }
-      singleFrameColorizeTimer = setTimeout(() => {
+      const runAttempt = (attempt) => {
         var _a, _b, _c, _d, _e, _f, _g, _h;
-        singleFrameColorizeTimer = null;
         try {
           const store = getReduxStore();
           const curF = ((_d = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.player) == null ? void 0 : _c.frame) == null ? void 0 : _d.number) ?? ((_h = (_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.job) == null ? void 0 : _g.instance) == null ? void 0 : _h.frame);
           if (curF === targetFrame) {
-            applyPointCloudColorizationInMainWorld();
+            const ok = applyPointCloudColorizationInMainWorld();
             updateGroundPlaneMeshInMainWorld();
+            if (!ok && attempt < 3) {
+              singleFrameColorizeTimer = setTimeout(() => runAttempt(attempt + 1), 350);
+            }
           }
         } catch (_) {
         }
-      }, delayMs);
+      };
+      singleFrameColorizeTimer = setTimeout(() => runAttempt(1), delayMs);
     }
     function getEgoRoadGroundZInMainWorld(egoPos = { x: 0, y: 0, z: 0 }) {
       const lidar = getSceneLidarPoints();
@@ -8549,7 +8650,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         } catch (_) {
         }
       }
-      setupFullFrameColorizationHooks();
       applyPointCloudColorizationInMainWorld({
         mode: currentPointColorMode,
         colorizeBoxed: currentColorizeBoxed
@@ -17090,6 +17190,14 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
   }
   const fmt = (v, n = 2) => Number.isFinite(v) ? v.toFixed(n) : "–";
   const deg = (rad) => rad * 180 / Math.PI;
+  function float32ToPointObjects(arr) {
+    const n = Math.floor(arr.length / 3);
+    const out = new Array(n);
+    for (let i = 0; i < n; i++) {
+      out[i] = { x: arr[i * 3], y: arr[i * 3 + 1], z: arr[i * 3 + 2] };
+    }
+    return out;
+  }
   const VIEW_NAMES = { top: "Top", side: "Side", front: "Front" };
   const BIG = { fullScene: true, sceneSpan: 40, slab: 3 };
   function mountCase2(app, root, initialTrackId) {
@@ -17211,6 +17319,34 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
       root.style.setProperty("--img-col", S.showImage ? "1.15fr" : "0px");
       grid == null ? void 0 : grid.resize();
     }
+    const fitBtn = (label, title, op) => h$2(
+      "button",
+      {
+        class: "small",
+        title,
+        onclick: () => {
+          const target = selected !== null ? selected : Number(fromIn.value);
+          applyFitOperation(target, op);
+        }
+      },
+      label
+    );
+    const fitBar = h$2(
+      "div",
+      { class: "bar", style: { background: "#f8fafc", borderBottom: "1px solid #e2e8f0", gap: "6px", alignItems: "center" } },
+      h$2("span", { style: { fontWeight: "700", fontSize: "11px", color: "#1e293b", marginRight: "4px" } }, "⚡ Căn Nhanh:"),
+      fitBtn("TOP (1)", "Căn hướng Yaw và nóc xe theo góc nhìn Top (Phím 1/T)", "top"),
+      fitBtn("SIDE (2)", "Căn mép cản trước/sau theo trục dọc X (Phím 2)", "side"),
+      fitBtn("FRONT (3)", "Căn mép sườn đón tia theo phương ngang Y (Phím 3)", "front"),
+      fitBtn("Fit W (4)", "Fit riêng bề rộng W (Phím 4)", "w"),
+      fitBtn("Fit H (5)", "Fit riêng chiều cao H chuẩn Ground-Lock (Phím 5)", "h"),
+      fitBtn("Đất (G)", "Ghim đáy box bám sát mặt đất (Phím G)", "ground"),
+      fitBtn("Flip (F)", "Lật ngược góc xoay Yaw 180 độ (Phím F)", "flip"),
+      fitBtn("Catalog (B)", "Khớp kích thước xe chuẩn Catalog quốc tế (Phím B)", "catalog"),
+      fitBtn("Pedestrian (P)", "Fit toàn diện Người đi bộ (Phím P)", "ped_all"),
+      fitBtn("Cyclist (C)", "Fit toàn diện Xe 2 bánh (Phím C)", "cyclist_all"),
+      h$2("span", { class: "help", style: { marginLeft: "auto", fontSize: "11px" } }, "Phím: 1/2/3 · 4/5 · G · F · B · P · C · Q/E · Shift+WASD")
+    );
     root.append(
       h$2(
         "div",
@@ -17246,6 +17382,7 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
         ),
         pbar
       ),
+      fitBar,
       h$2(
         "div",
         { class: "bar" },
@@ -17375,6 +17512,160 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
       for (const r of rows.values()) r.refresh();
       renderAll();
       app.changed();
+    }
+    function nudgeBox(frame, dir) {
+      const pos = track2.at(frame);
+      if (!pos || pos.outside) return;
+      app.snapshot([Number(track2.id)]);
+      const box = cloneBox(pos.box);
+      const ax = axes(box.r);
+      const step = 0.02;
+      if (dir === "w") {
+        box.c[0] += ax.ex[0] * step;
+        box.c[1] += ax.ex[1] * step;
+        box.c[2] += ax.ex[2] * step;
+      } else if (dir === "s") {
+        box.c[0] -= ax.ex[0] * step;
+        box.c[1] -= ax.ex[1] * step;
+        box.c[2] -= ax.ex[2] * step;
+      } else if (dir === "a") {
+        box.c[0] += ax.ey[0] * step;
+        box.c[1] += ax.ey[1] * step;
+        box.c[2] += ax.ey[2] * step;
+      } else if (dir === "d") {
+        box.c[0] -= ax.ey[0] * step;
+        box.c[1] -= ax.ey[1] * step;
+        box.c[2] -= ax.ey[2] * step;
+      }
+      track2.setBox(frame, box);
+      afterEdit();
+    }
+    async function applyFitOperation(frame, op) {
+      const pos = track2.at(frame);
+      if (!pos || pos.outside) return;
+      if (op === "flip") {
+        app.snapshot([Number(track2.id)]);
+        const newBox = cloneBox(pos.box);
+        newBox.r[2] = flipYaw(newBox.r[2]);
+        track2.setBox(frame, newBox);
+        app.setStatus(`f${frame}: Đã lật Yaw 180°`, "ok");
+        afterEdit();
+        return;
+      }
+      if (op === "catalog") {
+        const match = findBestFitCatalog(pos.box.s[0], pos.box.s[1], pos.box.s[2], store.labelName(track2.labelId));
+        if (match && match.item) {
+          app.snapshot([Number(track2.id)]);
+          const newBox = cloneBox(pos.box);
+          const oldH = newBox.s[2];
+          newBox.s = [match.item.length, match.item.width, match.item.height];
+          newBox.c[2] += (match.item.height - oldH) / 2;
+          track2.setBox(frame, newBox);
+          if (S.syncSize) await syncSize(frame, newBox.s);
+          app.setStatus(`f${frame}: Khớp Catalog ${match.item.name} (${match.item.length}x${match.item.width}x${match.item.height})`, "ok");
+          afterEdit();
+        }
+        return;
+      }
+      let cloud = frameData.clouds.get(frame);
+      if (!cloud || cloud.length === 0) {
+        app.setStatus(`f${frame}: Đang nạp point cloud...`, "info");
+        cloud = await frameData.cloud(frame);
+      }
+      if (!cloud || cloud.length === 0) {
+        app.setStatus(`f${frame}: Không có dữ liệu point cloud`, "err");
+        return;
+      }
+      if (op === "ground") {
+        const res2 = snapToGround(cloud, pos.box);
+        if (!res2) {
+          app.setStatus(`f${frame}: Không đủ điểm mặt đất quanh box`, "err");
+          return;
+        }
+        app.snapshot([Number(track2.id)]);
+        const newBox = cloneBox(pos.box);
+        newBox.c = res2.box.c;
+        track2.setBox(frame, newBox);
+        app.setStatus(`f${frame}: Đã ghim mặt đất (ΔZ: ${fmt(res2.shift * 100, 1)} cm)`, "ok");
+        afterEdit();
+        return;
+      }
+      const labelLower = store.labelName(track2.labelId).toLowerCase();
+      const isPed = labelLower.includes("pedestrian") || labelLower.includes("person") || labelLower.includes("người");
+      const isCyclist = labelLower.includes("cyclist") || labelLower.includes("bicycle") || labelLower.includes("bike") || labelLower.includes("moto");
+      const pts = float32ToPointObjects(cloud);
+      const curBox = cloneBox(pos.box);
+      app.snapshot([Number(track2.id)]);
+      if (isPed || op === "ped_all") {
+        const stepParam = op === "ped_all" ? "all" : op;
+        const res2 = fitPedestrianBox(
+          pts,
+          curBox.c[0],
+          curBox.c[1],
+          curBox.c[2],
+          curBox.r[2],
+          curBox.s[0],
+          curBox.s[1],
+          curBox.s[2],
+          { step: stepParam }
+        );
+        curBox.c = [res2.newCenterX, res2.newCenterY, res2.newCenterZ];
+        curBox.s = [res2.newL, res2.newW, res2.newH];
+        if (res2.newYawRad !== void 0) curBox.r[2] = res2.newYawRad;
+        curBox.r[0] = 0;
+        curBox.r[1] = 0;
+        track2.setBox(frame, curBox);
+        if (S.syncSize && (op === "w" || op === "h" || op === "ped_all")) await syncSize(frame, curBox.s);
+        app.setStatus(`f${frame}: Fit Pedestrian [${stepParam.toUpperCase()}] hoàn tất`, "ok");
+        afterEdit();
+        return;
+      }
+      if (isCyclist || op === "cyclist_all") {
+        const stepParam = op === "cyclist_all" ? "all" : op;
+        const res2 = fitTwoWheelerBox(
+          pts,
+          curBox.c[0],
+          curBox.c[1],
+          curBox.c[2],
+          curBox.r[2],
+          curBox.s[0],
+          curBox.s[1],
+          curBox.s[2],
+          { step: stepParam }
+        );
+        curBox.c = [res2.newCenterX, res2.newCenterY, res2.newCenterZ];
+        curBox.s = [res2.newL, res2.newW, res2.newH];
+        if (res2.newYawRad !== void 0) curBox.r[2] = res2.newYawRad;
+        track2.setBox(frame, curBox);
+        if (S.syncSize && (op === "w" || op === "h" || op === "cyclist_all")) await syncSize(frame, curBox.s);
+        app.setStatus(`f${frame}: Fit Cyclist [${stepParam.toUpperCase()}] hoàn tất`, "ok");
+        afterEdit();
+        return;
+      }
+      const fitStepParam = op === "top" || op === "side" || op === "front" ? op : "all";
+      const res = fitBoxToEgoRayAndGround(
+        pts,
+        curBox.c[0],
+        curBox.c[1],
+        curBox.c[2],
+        curBox.r[2],
+        curBox.s[0],
+        curBox.s[1],
+        curBox.s[2],
+        { x: 0, y: 0 },
+        {
+          preserveDimensions: true,
+          fitStep: fitStepParam
+        }
+      );
+      curBox.c = [res.newCenterX, res.newCenterY, res.newCenterZ];
+      curBox.s = [res.newL, res.newW, res.newH];
+      if (res.newYawRad !== void 0) curBox.r[2] = res.newYawRad;
+      curBox.r[0] = res.rollRad || 0;
+      curBox.r[1] = res.pitchRad || 0;
+      track2.setBox(frame, curBox);
+      app.setStatus(`f${frame}: Căn ${op.toUpperCase()} hoàn tất`, "ok");
+      afterEdit();
     }
     const editCallbacks = {
       getCloud,
@@ -17520,6 +17811,10 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
         h$2(
           "div",
           { class: "btns" },
+          h$2("button", { class: "small", title: "Căn TOP (Phím 1/T)", onclick: () => applyFitOperation(frame, "top") }, "Top"),
+          h$2("button", { class: "small", title: "Căn SIDE (Phím 2)", onclick: () => applyFitOperation(frame, "side") }, "Side"),
+          h$2("button", { class: "small", title: "Căn FRONT (Phím 3)", onclick: () => applyFitOperation(frame, "front") }, "Front"),
+          h$2("button", { class: "small", title: "Lật Yaw 180° (Phím F)", onclick: () => applyFitOperation(frame, "flip") }, "Flip"),
           ground,
           h$2(
             "button",
@@ -17874,11 +18169,109 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
       },
       onKey(e) {
         var _a2, _b;
-        if (((_a2 = e.composedPath()[0]) == null ? void 0 : _a2.tagName) === "INPUT" || e.ctrlKey || e.metaKey) return;
+        if (((_a2 = e.composedPath()[0]) == null ? void 0 : _a2.tagName) === "INPUT") return;
         const k = e.key.toLowerCase();
+        const code = e.code;
         const frames = [...rows.keys()];
-        if (k === "o" && selected !== null) {
-          toggleOutside(selected);
+        const curFrame = selected !== null ? selected : frames[0];
+        if (curFrame === void 0) return;
+        if (k === "o" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+          e.preventDefault();
+          toggleOutside(curFrame);
+          return;
+        }
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (k === "1" || k === "t" || code === "Digit1" || code === "KeyT")) {
+          e.preventDefault();
+          applyFitOperation(curFrame, "top");
+          return;
+        }
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (k === "2" || code === "Digit2")) {
+          e.preventDefault();
+          applyFitOperation(curFrame, "side");
+          return;
+        }
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (k === "3" || code === "Digit3")) {
+          e.preventDefault();
+          applyFitOperation(curFrame, "front");
+          return;
+        }
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (k === "4" || code === "Digit4")) {
+          e.preventDefault();
+          applyFitOperation(curFrame, "w");
+          return;
+        }
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (k === "5" || code === "Digit5")) {
+          e.preventDefault();
+          applyFitOperation(curFrame, "h");
+          return;
+        }
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (k === "g" || code === "KeyG")) {
+          e.preventDefault();
+          applyFitOperation(curFrame, "ground");
+          return;
+        }
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (k === "f" || code === "KeyF")) {
+          e.preventDefault();
+          applyFitOperation(curFrame, "flip");
+          return;
+        }
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && (k === "b" || code === "KeyB")) {
+          e.preventDefault();
+          applyFitOperation(curFrame, "catalog");
+          return;
+        }
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && (k === "p" || code === "KeyP")) {
+          e.preventDefault();
+          applyFitOperation(curFrame, e.shiftKey ? "h" : "ped_all");
+          return;
+        }
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && (k === "c" || code === "KeyC")) {
+          e.preventDefault();
+          applyFitOperation(curFrame, e.shiftKey ? "w" : "cyclist_all");
+          return;
+        }
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && (k === "q" || code === "KeyQ")) {
+          e.preventDefault();
+          const deltaDeg = e.shiftKey ? -5 : -1;
+          editBox(curFrame, (b) => {
+            b.r = rotateLocal(b.r, 2, degToRad(deltaDeg));
+          });
+          app.setStatus(`f${curFrame}: Xoay ${deltaDeg}°`, "ok");
+          return;
+        }
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && (k === "e" || code === "KeyE")) {
+          e.preventDefault();
+          const deltaDeg = e.shiftKey ? 5 : 1;
+          editBox(curFrame, (b) => {
+            b.r = rotateLocal(b.r, 2, degToRad(deltaDeg));
+          });
+          app.setStatus(`f${curFrame}: Xoay +${deltaDeg}°`, "ok");
+          return;
+        }
+        const isKeyW = k === "w" || code === "KeyW" || k === "ư";
+        const isKeyA = k === "a" || code === "KeyA" || ["á", "à", "ả", "ã", "ạ", "â", "ă"].includes(k);
+        const isKeyS = k === "s" || code === "KeyS";
+        const isKeyD = k === "d" || code === "KeyD" || k === "đ";
+        if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (isKeyW || isKeyA || isKeyS || isKeyD)) {
+          e.preventDefault();
+          const dir = isKeyW ? "w" : isKeyA ? "a" : isKeyS ? "s" : "d";
+          nudgeBox(curFrame, dir);
+          return;
+        }
+        if (k === "pageup" || code === "PageUp") {
+          e.preventDefault();
+          editBox(curFrame, (b) => {
+            b.c[2] += 0.01;
+          });
+          app.setStatus(`f${curFrame}: Nâng Z +1cm`, "ok");
+          return;
+        }
+        if (k === "pagedown" || code === "PageDown") {
+          e.preventDefault();
+          editBox(curFrame, (b) => {
+            b.c[2] -= 0.01;
+          });
+          app.setStatus(`f${curFrame}: Hạ Z -1cm`, "ok");
           return;
         }
         if ((k === "arrowdown" || k === "arrowup") && frames.length) {

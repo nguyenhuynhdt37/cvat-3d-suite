@@ -363,20 +363,16 @@ export function mainWorldScript(): void {
         let colorAttr = geom.attributes.color;
         let colorArray: Float32Array;
 
+        const BufferAttrClass = posAttr.constructor;
         const winThree = (window as any).THREE;
         if (!colorAttr || !colorAttr.array || colorAttr.array.length !== count * 3) {
           colorArray = new Float32Array(count * 3);
-          if (winThree && typeof winThree.BufferAttribute === "function") {
+          if (typeof BufferAttrClass === "function") {
+            geom.setAttribute("color", new BufferAttrClass(colorArray, 3));
+            colorAttr = geom.attributes.color;
+          } else if (winThree && typeof winThree.BufferAttribute === "function") {
             geom.setAttribute("color", new winThree.BufferAttribute(colorArray, 3));
             colorAttr = geom.attributes.color;
-          } else {
-            colorAttr = {
-              array: colorArray,
-              count,
-              itemSize: 3,
-              needsUpdate: true,
-            };
-            geom.attributes.color = colorAttr;
           }
         } else {
           colorArray = colorAttr.array as Float32Array;
@@ -494,7 +490,61 @@ export function mainWorldScript(): void {
   // =============================================================================
   // DỰNG MẶT SÀN POLYGON 3D MỜ (MẶT ĐƯỜNG & VỈA HÈ - GROUND SURFACE MESH)
   // Tạo một mặt phẳng bán trong suốt tại Z_ground giúp annotator thấy rõ mặt đất và vỉa hè
+  // Hoàn toàn độc lập với window.THREE bằng cách tự trích xuất constructors từ Three.js Scene của CVAT
   // =============================================================================
+  function getThreeEngineFromScene(scene: any, canvas: any): any {
+    const win = window as any;
+    if (win.THREE && typeof win.THREE.Mesh === "function") {
+      return win.THREE;
+    }
+    if (canvas?.THREE && typeof canvas.THREE.Mesh === "function") {
+      return canvas.THREE;
+    }
+    if (canvas?.view?.THREE && typeof canvas.view.THREE.Mesh === "function") {
+      return canvas.view.THREE;
+    }
+
+    let MeshClass: any = null;
+    let BufferGeometryClass: any = null;
+    let BufferAttributeClass: any = null;
+    let MaterialClass: any = null;
+    let GroupClass: any = null;
+
+    if (scene) {
+      if (typeof scene.constructor === "function") {
+        GroupClass = scene.constructor;
+      }
+      scene.traverse((obj: any) => {
+        if (!MeshClass && (obj.isMesh || obj.type === "Mesh")) {
+          MeshClass = obj.constructor;
+          if (obj.material && !MaterialClass) {
+            MaterialClass = obj.material.constructor;
+          }
+        }
+        if (!BufferGeometryClass && obj.geometry?.isBufferGeometry) {
+          BufferGeometryClass = obj.geometry.constructor;
+          if (obj.geometry.attributes?.position && !BufferAttributeClass) {
+            BufferAttributeClass = obj.geometry.attributes.position.constructor;
+          }
+        }
+        if (!GroupClass && (obj.isGroup || obj.type === "Group")) {
+          GroupClass = obj.constructor;
+        }
+      });
+    }
+
+    if (BufferGeometryClass && BufferAttributeClass) {
+      return {
+        Mesh: MeshClass || GroupClass,
+        BufferGeometry: BufferGeometryClass,
+        BufferAttribute: BufferAttributeClass,
+        Material: MaterialClass,
+        Group: GroupClass || MeshClass,
+      };
+    }
+    return null;
+  }
+
   function updateGroundPlaneMeshInMainWorld(customZ?: number): void {
     try {
       const store = getReduxStore();
@@ -505,9 +555,6 @@ export function mainWorldScript(): void {
       const scene = pView?.scene;
       if (!scene) return;
 
-      const winThree = (window as any).THREE;
-      if (!winThree) return;
-
       // 1. Nếu người dùng TẮT mặt sàn: ẩn ngay lập tức
       if (!currentGroundPlaneVisible) {
         if (groundPlaneMeshGroup && groundPlaneMeshGroup.parent) {
@@ -517,61 +564,100 @@ export function mainWorldScript(): void {
         return;
       }
 
+      const three = getThreeEngineFromScene(scene, canvas);
+      if (!three) return;
+
       // 2. Tính cao độ mặt đất chuẩn (Ego Road Ground Z)
       let zGround = customZ !== undefined ? customZ : getEgoRoadGroundZInMainWorld();
       if (isNaN(zGround) || zGround === 0) zGround = -1.75;
 
+      // Hàm hỗ trợ dựng Plane BufferGeometry (6 đỉnh)
+      const createPlaneGeom = (w: number, l: number, ox = 0, oy = 0, oz = 0) => {
+        const hw = w / 2;
+        const hl = l / 2;
+        const x0 = ox - hw, x1 = ox + hw;
+        const y0 = oy - hl, y1 = oy + hl;
+        const verts = new Float32Array([
+          x0, y0, oz,   x1, y0, oz,   x1, y1, oz,
+          x0, y0, oz,   x1, y1, oz,   x0, y1, oz,
+        ]);
+        const g = new three.BufferGeometry();
+        g.setAttribute("position", new three.BufferAttribute(verts, 3));
+        return g;
+      };
+
+      // Hàm hỗ trợ tạo Material bán trong suốt depthWrite=false
+      const createMat = (hexColor: number, opacity: number) => {
+        if (typeof three.MeshBasicMaterial === "function") {
+          return new three.MeshBasicMaterial({
+            color: hexColor,
+            transparent: true,
+            opacity,
+            depthWrite: false,
+            side: 2, // DoubleSide
+          });
+        }
+        if (typeof three.Material === "function") {
+          try {
+            return new three.Material({
+              color: hexColor,
+              transparent: true,
+              opacity,
+              depthWrite: false,
+              side: 2,
+            });
+          } catch (_) {}
+        }
+        // Fallback: Clone từ material trong scene
+        let baseMat: any = null;
+        scene.traverse((o: any) => {
+          if (!baseMat && o.material) baseMat = o.material;
+        });
+        if (baseMat) {
+          const m = baseMat.clone();
+          if (m.color && typeof m.color.setHex === "function") m.color.setHex(hexColor);
+          m.transparent = true;
+          m.opacity = opacity;
+          m.depthWrite = false;
+          m.side = 2;
+          return m;
+        }
+        return null;
+      };
+
       // 3. Khởi tạo Three.js Group nếu chưa có
       if (!groundPlaneMeshGroup) {
-        groundPlaneMeshGroup = new winThree.Group();
+        const GroupCtor = three.Group || three.Mesh;
+        groundPlaneMeshGroup = new GroupCtor();
         groundPlaneMeshGroup.name = "__cvat_suite_ground_plane_mesh";
 
-        // A. TẤM MẶT ĐƯỜNG POLYGON MỜ (Lòng đường xe chạy)
-        // Kích thước 60m x 120m bao trọn toàn bộ tầm quét LiDAR thông thường
-        const roadGeom = new winThree.PlaneGeometry(60, 120, 6, 12);
-        const roadMat = new winThree.MeshBasicMaterial({
-          color: 0x0284c7, // Xanh dương Cyan mờ dịu mắt
-          transparent: true,
-          opacity: 0.14, // Mờ ảo, nhìn xuyên thấu rõ từng hạt point
-          depthWrite: false, // TUYỆT ĐỐI KHÔNG che khuất mây điểm LiDAR
-          side: winThree.DoubleSide,
-        });
-        const roadMesh = new winThree.Mesh(roadGeom, roadMat);
-        roadMesh.name = "roadPlane";
-
-        // Lưới Grid mỏng nhẹ (mỗi ô 1m x 1m) giúp annotator căn cự ly
-        const grid = new winThree.GridHelper(60, 30, 0x38bdf8, 0x0369a1);
-        grid.material.transparent = true;
-        grid.material.opacity = 0.10;
-        grid.material.depthWrite = false;
-        grid.rotation.x = Math.PI / 2; // Khớp với mặt phẳng Plane
-        roadMesh.add(grid);
-        groundPlaneMeshGroup.add(roadMesh);
+        // A. TẤM MẶT ĐƯỜNG POLYGON MỜ (Lòng đường xe chạy: 60m x 120m)
+        const roadGeom = createPlaneGeom(60, 120);
+        const roadMat = createMat(0x0284c7, 0.14);
+        if (roadMat && typeof three.Mesh === "function") {
+          const roadMesh = new three.Mesh(roadGeom, roadMat);
+          roadMesh.name = "roadPlane";
+          groundPlaneMeshGroup.add(roadMesh);
+        }
 
         // B. DẢI VỈA HÈ TRÁI & PHẢI POLYGON MỜ (Giật cấp +15cm)
-        // Vỉa hè cao hơn lòng đường +15cm với màu Cam Hổ Phách mờ phân biệt rõ rệt
         const curbWidth = 15; // Rộng 15m
         const curbLength = 120;
-        const curbGeom = new winThree.PlaneGeometry(curbWidth, curbLength, 2, 8);
-        const curbMat = new winThree.MeshBasicMaterial({
-          color: 0xf59e0b, // Màu cam hổ phách ấm
-          transparent: true,
-          opacity: 0.18, // Độ mờ vừa vặn
-          depthWrite: false,
-          side: winThree.DoubleSide,
-        });
+        const curbMat = createMat(0xf59e0b, 0.18); // Màu cam hổ phách ấm
 
-        // Vỉa hè bên trái (Y > +3.5m)
-        const curbLeft = new winThree.Mesh(curbGeom, curbMat);
-        curbLeft.name = "curbLeft";
-        curbLeft.position.set(0, 3.5 + curbWidth / 2, 0.15); // Nâng cao +15cm
-        groundPlaneMeshGroup.add(curbLeft);
+        if (curbMat && typeof three.Mesh === "function") {
+          // Vỉa hè bên trái (Y > +3.5m)
+          const curbLeftGeom = createPlaneGeom(curbWidth, curbLength, 0, 3.5 + curbWidth / 2, 0.15);
+          const curbLeft = new three.Mesh(curbLeftGeom, curbMat);
+          curbLeft.name = "curbLeft";
+          groundPlaneMeshGroup.add(curbLeft);
 
-        // Vỉa hè bên phải (Y < -3.5m)
-        const curbRight = new winThree.Mesh(curbGeom.clone(), curbMat);
-        curbRight.name = "curbRight";
-        curbRight.position.set(0, -(3.5 + curbWidth / 2), 0.15); // Nâng cao +15cm
-        groundPlaneMeshGroup.add(curbRight);
+          // Vỉa hè bên phải (Y < -3.5m)
+          const curbRightGeom = createPlaneGeom(curbWidth, curbLength, 0, -(3.5 + curbWidth / 2), 0.15);
+          const curbRight = new three.Mesh(curbRightGeom, curbMat.clone ? curbMat.clone() : curbMat);
+          curbRight.name = "curbRight";
+          groundPlaneMeshGroup.add(curbRight);
+        }
 
         scene.add(groundPlaneMeshGroup);
       }
@@ -593,26 +679,31 @@ export function mainWorldScript(): void {
     }
   }
 
-  // Single-Flight Frame Controller: Hủy tác vụ cũ khi đổi frame, chỉ render đúng 1 lần cho frame active
+  // Single-Flight Frame Controller: Hủy tác vụ cũ khi đổi frame, chỉ render đúng 1 lần cho frame active (kèm auto-retry nhẹ nếu mạng tải PCD chậm)
   function scheduleSingleFrameColorizationAndGround(targetFrame: number, delayMs: number = 180): void {
     if (singleFrameColorizeTimer) {
       clearTimeout(singleFrameColorizeTimer);
       singleFrameColorizeTimer = null;
     }
 
-    singleFrameColorizeTimer = setTimeout(() => {
-      singleFrameColorizeTimer = null;
+    const runAttempt = (attempt: number) => {
       try {
         const store = getReduxStore();
         const curF =
           store?.getState()?.annotation?.player?.frame?.number ??
           store?.getState()?.annotation?.job?.instance?.frame;
         if (curF === targetFrame) {
-          applyPointCloudColorizationInMainWorld();
+          const ok = applyPointCloudColorizationInMainWorld();
           updateGroundPlaneMeshInMainWorld();
+          // Nếu chưa có points (PCD đang tải qua mạng) và chưa thử quá 3 lần:
+          if (!ok && attempt < 3) {
+            singleFrameColorizeTimer = setTimeout(() => runAttempt(attempt + 1), 350);
+          }
         }
       } catch (_) {}
-    }, delayMs);
+    };
+
+    singleFrameColorizeTimer = setTimeout(() => runAttempt(1), delayMs);
   }
 
   // Thuật toán Annular Ring Ground Detection & 3D Slope Fitting (Pitch Dọc & Roll Ngang Front)
@@ -7118,7 +7209,6 @@ export function mainWorldScript(): void {
       } catch (_) {}
     }
 
-    setupFullFrameColorizationHooks();
     const ok = applyPointCloudColorizationInMainWorld({
       mode: currentPointColorMode,
       colorizeBoxed: currentColorizeBoxed,

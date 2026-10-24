@@ -16,8 +16,15 @@ import {
   resizeKeepBottom,
   snapToGround,
   rotateLocal,
+  flipYaw,
+  degToRad,
+  axes,
+  fitBoxToEgoRayAndGround,
+  fitPedestrianBox,
+  fitTwoWheelerBox,
   type Box3D,
 } from '../core/geometry';
+import { findBestFitCatalog } from '../core/catalog';
 import { CASE2_CSS } from './styles';
 import { PointCloudDiskStorage } from './point_cloud_cache';
 
@@ -54,6 +61,15 @@ function h(tag: string, props: Props = {}, ...children: unknown[]): HTMLElement 
 
 const fmt = (v: number, n: number = 2): string => (Number.isFinite(v) ? v.toFixed(n) : '–');
 const deg = (rad: number): number => (rad * 180) / Math.PI;
+
+function float32ToPointObjects(arr: Float32Array): Array<{ x: number; y: number; z: number }> {
+  const n = Math.floor(arr.length / 3);
+  const out = new Array(n);
+  for (let i = 0; i < n; i++) {
+    out[i] = { x: arr[i * 3], y: arr[i * 3 + 1], z: arr[i * 3 + 2] };
+  }
+  return out;
+}
 
 const VIEW_NAMES: Record<ViewType, string> = { top: 'Top', side: 'Side', front: 'Front' };
 const BIG = { fullScene: true, sceneSpan: 40, slab: 3 };
@@ -203,6 +219,37 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
     grid?.resize();
   }
 
+  const fitBtn = (label: string, title: string, op: any) =>
+    h(
+      'button',
+      {
+        class: 'small',
+        title,
+        onclick: () => {
+          const target = selected !== null ? selected : Number(fromIn.value);
+          applyFitOperation(target, op);
+        },
+      },
+      label
+    );
+
+  const fitBar = h(
+    'div',
+    { class: 'bar', style: { background: '#f8fafc', borderBottom: '1px solid #e2e8f0', gap: '6px', alignItems: 'center' } },
+    h('span', { style: { fontWeight: '700', fontSize: '11px', color: '#1e293b', marginRight: '4px' } }, '⚡ Căn Nhanh:'),
+    fitBtn('TOP (1)', 'Căn hướng Yaw và nóc xe theo góc nhìn Top (Phím 1/T)', 'top'),
+    fitBtn('SIDE (2)', 'Căn mép cản trước/sau theo trục dọc X (Phím 2)', 'side'),
+    fitBtn('FRONT (3)', 'Căn mép sườn đón tia theo phương ngang Y (Phím 3)', 'front'),
+    fitBtn('Fit W (4)', 'Fit riêng bề rộng W (Phím 4)', 'w'),
+    fitBtn('Fit H (5)', 'Fit riêng chiều cao H chuẩn Ground-Lock (Phím 5)', 'h'),
+    fitBtn('Đất (G)', 'Ghim đáy box bám sát mặt đất (Phím G)', 'ground'),
+    fitBtn('Flip (F)', 'Lật ngược góc xoay Yaw 180 độ (Phím F)', 'flip'),
+    fitBtn('Catalog (B)', 'Khớp kích thước xe chuẩn Catalog quốc tế (Phím B)', 'catalog'),
+    fitBtn('Pedestrian (P)', 'Fit toàn diện Người đi bộ (Phím P)', 'ped_all'),
+    fitBtn('Cyclist (C)', 'Fit toàn diện Xe 2 bánh (Phím C)', 'cyclist_all'),
+    h('span', { class: 'help', style: { marginLeft: 'auto', fontSize: '11px' } }, 'Phím: 1/2/3 · 4/5 · G · F · B · P · C · Q/E · Shift+WASD')
+  );
+
   root.append(
     h(
       'div',
@@ -238,6 +285,7 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
       ),
       pbar
     ),
+    fitBar,
     h(
       'div',
       { class: 'bar' },
@@ -379,6 +427,188 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
     for (const r of rows.values()) r.refresh();
     renderAll();
     app.changed();
+  }
+
+  function nudgeBox(frame: number, dir: 'w' | 's' | 'a' | 'd'): void {
+    const pos = track.at(frame);
+    if (!pos || pos.outside) return;
+    app.snapshot([Number(track.id)]);
+    const box = cloneBox(pos.box);
+    const ax = axes(box.r);
+    const step = 0.02; // 2cm
+    if (dir === 'w') {
+      box.c[0] += ax.ex[0] * step;
+      box.c[1] += ax.ex[1] * step;
+      box.c[2] += ax.ex[2] * step;
+    } else if (dir === 's') {
+      box.c[0] -= ax.ex[0] * step;
+      box.c[1] -= ax.ex[1] * step;
+      box.c[2] -= ax.ex[2] * step;
+    } else if (dir === 'a') {
+      box.c[0] += ax.ey[0] * step;
+      box.c[1] += ax.ey[1] * step;
+      box.c[2] += ax.ey[2] * step;
+    } else if (dir === 'd') {
+      box.c[0] -= ax.ey[0] * step;
+      box.c[1] -= ax.ey[1] * step;
+      box.c[2] -= ax.ey[2] * step;
+    }
+    track.setBox(frame, box);
+    afterEdit();
+  }
+
+  async function applyFitOperation(
+    frame: number,
+    op: 'top' | 'side' | 'front' | 'w' | 'h' | 'ground' | 'flip' | 'catalog' | 'ped_all' | 'cyclist_all'
+  ): Promise<void> {
+    const pos = track.at(frame);
+    if (!pos || pos.outside) return;
+
+    // 1. Phép lật Yaw (Flip 180°): Dùng chung hàm flipYaw từ geometry.ts
+    if (op === 'flip') {
+      app.snapshot([Number(track.id)]);
+      const newBox = cloneBox(pos.box);
+      newBox.r[2] = flipYaw(newBox.r[2]);
+      track.setBox(frame, newBox);
+      app.setStatus(`f${frame}: Đã lật Yaw 180°`, 'ok');
+      afterEdit();
+      return;
+    }
+
+    // 2. Phép Catalog Best-Fit: Dùng chung hàm findBestFitCatalog từ catalog.ts
+    if (op === 'catalog') {
+      const match = findBestFitCatalog(pos.box.s[0], pos.box.s[1], pos.box.s[2], store.labelName(track.labelId));
+      if (match && match.matchedItem) {
+        app.snapshot([Number(track.id)]);
+        const newBox = cloneBox(pos.box);
+        const oldH = newBox.s[2];
+        const newH = match.recommendedH;
+        newBox.s = [match.recommendedL, match.recommendedW, newH];
+        // Giữ nguyên đáy tiếp đất (Ground-Lock)
+        newBox.c[2] += (newH - oldH) / 2;
+        track.setBox(frame, newBox);
+        if (S.syncSize) await syncSize(frame, newBox.s);
+        app.setStatus(
+          `f${frame}: Khớp Catalog ${match.matchedItem.name} (${match.recommendedL}x${match.recommendedW}x${newH})`,
+          'ok'
+        );
+        afterEdit();
+      }
+      return;
+    }
+
+    // Lấy point cloud của frame
+    let cloud = frameData.clouds.get(frame);
+    if (!cloud || cloud.length === 0) {
+      app.setStatus(`f${frame}: Đang nạp point cloud...`, 'info');
+      cloud = await frameData.cloud(frame);
+    }
+    if (!cloud || cloud.length === 0) {
+      app.setStatus(`f${frame}: Không có dữ liệu point cloud`, 'err');
+      return;
+    }
+
+    // 3. Phép Ghim Đất: Dùng chung hàm snapToGround từ geometry.ts
+    if (op === 'ground') {
+      const res = snapToGround(cloud, pos.box);
+      if (!res) {
+        app.setStatus(`f${frame}: Không đủ điểm mặt đất quanh box`, 'err');
+        return;
+      }
+      app.snapshot([Number(track.id)]);
+      const newBox = cloneBox(pos.box);
+      newBox.c = res.box.c;
+      track.setBox(frame, newBox);
+      app.setStatus(`f${frame}: Đã ghim mặt đất (ΔZ: ${fmt(res.shift * 100, 1)} cm)`, 'ok');
+      afterEdit();
+      return;
+    }
+
+    const labelLower = store.labelName(track.labelId).toLowerCase();
+    const isPed = labelLower.includes('pedestrian') || labelLower.includes('person') || labelLower.includes('người');
+    const isCyclist = labelLower.includes('cyclist') || labelLower.includes('bicycle') || labelLower.includes('bike') || labelLower.includes('moto');
+    const pts = float32ToPointObjects(cloud);
+    const curBox = cloneBox(pos.box);
+
+    app.snapshot([Number(track.id)]);
+
+    // 4. Phép Fit Pedestrian: Dùng chung hàm fitPedestrianBox từ geometry.ts
+    if (isPed || op === 'ped_all') {
+      const stepParam = op === 'ped_all' ? 'all' : (op as 'top' | 'side' | 'front' | 'w' | 'h');
+      const res = fitPedestrianBox(
+        pts,
+        curBox.c[0],
+        curBox.c[1],
+        curBox.c[2],
+        curBox.r[2],
+        curBox.s[0],
+        curBox.s[1],
+        curBox.s[2],
+        { step: stepParam }
+      );
+      curBox.c = [res.newCenterX, res.newCenterY, res.newCenterZ];
+      curBox.s = [res.newL, res.newW, res.newH];
+      if (res.newYawRad !== undefined) curBox.r[2] = res.newYawRad;
+      curBox.r[0] = 0;
+      curBox.r[1] = 0;
+      track.setBox(frame, curBox);
+      if (S.syncSize && (op === 'w' || op === 'h' || op === 'ped_all')) await syncSize(frame, curBox.s);
+      app.setStatus(`f${frame}: Fit Pedestrian [${stepParam.toUpperCase()}] hoàn tất`, 'ok');
+      afterEdit();
+      return;
+    }
+
+    // 5. Phép Fit Cyclist / Xe 2 bánh: Dùng chung hàm fitTwoWheelerBox từ geometry.ts
+    if (isCyclist || op === 'cyclist_all') {
+      const stepParam = op === 'cyclist_all' ? 'all' : (op as 'top' | 'side' | 'front' | 'w' | 'h');
+      const res = fitTwoWheelerBox(
+        pts,
+        curBox.c[0],
+        curBox.c[1],
+        curBox.c[2],
+        curBox.r[2],
+        curBox.s[0],
+        curBox.s[1],
+        curBox.s[2],
+        { step: stepParam }
+      );
+      curBox.c = [res.newCenterX, res.newCenterY, res.newCenterZ];
+      curBox.s = [res.newL, res.newW, res.newH];
+      if (res.newYawRad !== undefined) curBox.r[2] = res.newYawRad;
+      track.setBox(frame, curBox);
+      if (S.syncSize && (op === 'w' || op === 'h' || op === 'cyclist_all')) await syncSize(frame, curBox.s);
+      app.setStatus(`f${frame}: Fit Cyclist [${stepParam.toUpperCase()}] hoàn tất`, 'ok');
+      afterEdit();
+      return;
+    }
+
+    // 6. Phép Fit Car / Ô tô: Dùng chung hàm fitBoxToEgoRayAndGround từ geometry.ts
+    const fitStepParam = (op === 'top' || op === 'side' || op === 'front') ? op : 'all';
+    const res = fitBoxToEgoRayAndGround(
+      pts,
+      curBox.c[0],
+      curBox.c[1],
+      curBox.c[2],
+      curBox.r[2],
+      curBox.s[0],
+      curBox.s[1],
+      curBox.s[2],
+      { x: 0, y: 0, z: 0 },
+      {
+        preserveDimensions: true,
+        fitStep: fitStepParam,
+      }
+    );
+
+    curBox.c = [res.newCenterX, res.newCenterY, res.newCenterZ];
+    curBox.s = [res.newL, res.newW, res.newH];
+    if (res.newYawRad !== undefined) curBox.r[2] = res.newYawRad;
+    curBox.r[0] = res.rollRad || 0;
+    curBox.r[1] = res.pitchRad || 0;
+
+    track.setBox(frame, curBox);
+    app.setStatus(`f${frame}: Căn ${op.toUpperCase()} hoàn tất`, 'ok');
+    afterEdit();
   }
 
   const editCallbacks = {
@@ -537,6 +767,10 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
       h(
         'div',
         { class: 'btns' },
+        h('button', { class: 'small', title: 'Căn TOP (Phím 1/T)', onclick: () => applyFitOperation(frame, 'top') }, 'Top'),
+        h('button', { class: 'small', title: 'Căn SIDE (Phím 2)', onclick: () => applyFitOperation(frame, 'side') }, 'Side'),
+        h('button', { class: 'small', title: 'Căn FRONT (Phím 3)', onclick: () => applyFitOperation(frame, 'front') }, 'Front'),
+        h('button', { class: 'small', title: 'Lật Yaw 180° (Phím F)', onclick: () => applyFitOperation(frame, 'flip') }, 'Flip'),
         ground,
         h(
           'button',
@@ -926,13 +1160,139 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
       renderAll();
     },
     onKey(e: KeyboardEvent) {
-      if ((e.composedPath()[0] as HTMLElement)?.tagName === 'INPUT' || e.ctrlKey || e.metaKey) return;
+      if ((e.composedPath()[0] as HTMLElement)?.tagName === 'INPUT') return;
       const k = e.key.toLowerCase();
+      const code = e.code;
       const frames = [...rows.keys()];
-      if (k === 'o' && selected !== null) {
-        toggleOutside(selected);
+      const curFrame = selected !== null ? selected : frames[0];
+      if (curFrame === undefined) return;
+
+      // Phím O: Toggle outside
+      if (k === 'o' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+        e.preventDefault();
+        toggleOutside(curFrame);
         return;
       }
+
+      // Phím 1 hoặc T: Fit TOP
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (k === '1' || k === 't' || code === 'Digit1' || code === 'KeyT')) {
+        e.preventDefault();
+        applyFitOperation(curFrame, 'top');
+        return;
+      }
+
+      // Phím 2: Fit SIDE
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (k === '2' || code === 'Digit2')) {
+        e.preventDefault();
+        applyFitOperation(curFrame, 'side');
+        return;
+      }
+
+      // Phím 3: Fit FRONT
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (k === '3' || code === 'Digit3')) {
+        e.preventDefault();
+        applyFitOperation(curFrame, 'front');
+        return;
+      }
+
+      // Phím 4: Fit Width
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (k === '4' || code === 'Digit4')) {
+        e.preventDefault();
+        applyFitOperation(curFrame, 'w');
+        return;
+      }
+
+      // Phím 5: Fit Height
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (k === '5' || code === 'Digit5')) {
+        e.preventDefault();
+        applyFitOperation(curFrame, 'h');
+        return;
+      }
+
+      // Phím G: Ghim đất
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (k === 'g' || code === 'KeyG')) {
+        e.preventDefault();
+        applyFitOperation(curFrame, 'ground');
+        return;
+      }
+
+      // Phím F: Flip Yaw
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (k === 'f' || code === 'KeyF')) {
+        e.preventDefault();
+        applyFitOperation(curFrame, 'flip');
+        return;
+      }
+
+      // Phím B: Catalog Best-Fit
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && (k === 'b' || code === 'KeyB')) {
+        e.preventDefault();
+        applyFitOperation(curFrame, 'catalog');
+        return;
+      }
+
+      // Phím P: Fit Pedestrian
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && (k === 'p' || code === 'KeyP')) {
+        e.preventDefault();
+        applyFitOperation(curFrame, e.shiftKey ? 'h' : 'ped_all');
+        return;
+      }
+
+      // Phím C: Fit Cyclist
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && (k === 'c' || code === 'KeyC')) {
+        e.preventDefault();
+        applyFitOperation(curFrame, e.shiftKey ? 'w' : 'cyclist_all');
+        return;
+      }
+
+      // Phím Q: Xoay trái -1° (Shift: -5°)
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && (k === 'q' || code === 'KeyQ')) {
+        e.preventDefault();
+        const deltaDeg = e.shiftKey ? -5 : -1;
+        editBox(curFrame, (b) => {
+          b.r = rotateLocal(b.r, 2, degToRad(deltaDeg));
+        });
+        app.setStatus(`f${curFrame}: Xoay ${deltaDeg}°`, 'ok');
+        return;
+      }
+
+      // Phím E: Xoay phải +1° (Shift: +5°)
+      if (!e.ctrlKey && !e.metaKey && !e.altKey && (k === 'e' || code === 'KeyE')) {
+        e.preventDefault();
+        const deltaDeg = e.shiftKey ? 5 : 1;
+        editBox(curFrame, (b) => {
+          b.r = rotateLocal(b.r, 2, degToRad(deltaDeg));
+        });
+        app.setStatus(`f${curFrame}: Xoay +${deltaDeg}°`, 'ok');
+        return;
+      }
+
+      // Shift + W/A/S/D: Nudge box 2cm theo trục xe
+      const isKeyW = k === 'w' || code === 'KeyW' || k === 'ư';
+      const isKeyA = k === 'a' || code === 'KeyA' || ['á', 'à', 'ả', 'ã', 'ạ', 'â', 'ă'].includes(k);
+      const isKeyS = k === 's' || code === 'KeyS';
+      const isKeyD = k === 'd' || code === 'KeyD' || k === 'đ';
+      if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (isKeyW || isKeyA || isKeyS || isKeyD)) {
+        e.preventDefault();
+        const dir = isKeyW ? 'w' : isKeyA ? 'a' : isKeyS ? 's' : 'd';
+        nudgeBox(curFrame, dir);
+        return;
+      }
+
+      // PageUp / PageDown: Vi chỉnh Z ±1cm
+      if (k === 'pageup' || code === 'PageUp') {
+        e.preventDefault();
+        editBox(curFrame, (b) => { b.c[2] += 0.01; });
+        app.setStatus(`f${curFrame}: Nâng Z +1cm`, 'ok');
+        return;
+      }
+      if (k === 'pagedown' || code === 'PageDown') {
+        e.preventDefault();
+        editBox(curFrame, (b) => { b.c[2] -= 0.01; });
+        app.setStatus(`f${curFrame}: Hạ Z -1cm`, 'ok');
+        return;
+      }
+
+      // ArrowUp / ArrowDown: Di chuyển qua lại giữa các dòng frame
       if ((k === 'arrowdown' || k === 'arrowup') && frames.length) {
         e.preventDefault();
         const i = selected === null ? -1 : frames.indexOf(selected);
