@@ -4289,7 +4289,55 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
   console.log(`✅ Test 107: Point mặt đất quá ít (7 điểm < 10): Auto 100% neo theo Ego Z=-1.75m, Roll=0°, Pitch=0° phẳng`);
 }
 
-console.log("\n🎉 TẤT CẢ 107/107 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z, CĂN GÓC FRONT ROLL 2 ĐẦU, BẢO TOÀN CURPOINT BIÊN, RIDER 42%, CĂN YAW THEO VẠCH KẺ LÀN LIDAR INTENSITY, CHỐNG LƠ LỬNG 0 ĐIỂM, SIDE/FRONT CHUẨN HÓA CẢ 3 VẬT THỂ (CAR, CYCLIST, PEDESTRIAN), TRỌNG SỐ INTENSITY BẢO VỆ MÉP SÁNG VÀ MẬT ĐỘ 20% ĐẦU/ĐUÔI XE ĐÃ ĐẠT 100%!");
+// ==========================================
+// TEST 108: XE Ở DỐC TRŨNG ÍT POINT MẶT ĐẤT (<10 ĐIỂM) - CHỐNG BAY LÊN TRỜI THEO EGO
+// ==========================================
+// Khi xe ở dốc thấp (Z=-0.5m, đáy -1.25m, H=1.5m), dưới gầm không có điểm mặt đất,
+// nhưng xe có mây điểm thân vỏ: Thuật toán phải neo theo chính mây điểm thân xe hoặc đáy hiện tại,
+// khóa Roll=0°, Pitch=0° phẳng, TUYỆT ĐỐI KHÔNG ÁP ĐẶT CAO ĐỘ EGO (Z=0 hoặc -1.75) LÀM XE BAY LÊN TRỜI!
+{
+  const ptsInLowSlope: Array<{ x: number; y: number; z: number }> = [
+    // Điểm Ego quanh (0,0) ở cao độ 0.0m
+    { x: 0.5, y: 0.8, z: 0.0 },
+    { x: -0.5, y: 1.2, z: 0.02 },
+    { x: 1.0, y: -0.9, z: -0.01 },
+    { x: -1.2, y: -0.5, z: 0.01 },
+    // Mây điểm thân xe tại X=35, Y=-10, Z_center=-0.5, H=1.5 (Nóc Z=+0.25m, Đáy vỏ Z=-1.05m)
+    { x: 34.0, y: -10.0, z: 0.23 }, // Điểm nóc xe
+    { x: 35.5, y: -9.8, z: 0.22 },  // Điểm nóc xe
+    { x: 36.2, y: -10.2, z: -0.20 }, // Kính chắn gió
+    { x: 34.8, y: -10.3, z: -0.50 }, // Thân xe
+    { x: 35.0, y: -9.5, z: -0.75 },  // Thân xe
+    { x: 36.5, y: -9.9, z: -1.05 },  // Điểm mép cản dưới xe
+  ];
+
+  const res108 = computeGroundSlopesAndZ(
+    ptsInLowSlope,
+    35.0, -10.0, -0.5, 0,
+    2.3, 0.9, undefined,
+    { halfH: 0.75 }
+  );
+
+  assert.strictEqual(res108.isFallbackZeroGround, true, "Test 108: Phải kích hoạt fallback khi 0 điểm sàn dưới gầm");
+  assert.strictEqual(res108.rollDeg, 0, "Test 108: Roll phải khóa cứng 0° phẳng");
+  assert.strictEqual(res108.pitchDeg, 0, "Test 108: Pitch phải khóa cứng 0° phẳng");
+
+  // Đáy xe phải neo quanh -1.25m đến -1.28m theo mây điểm thân xe (Z_roof - H = 0.23 - 1.5 = -1.27m)
+  assert.ok(
+    Math.abs(res108.groundZ! - (-1.25)) < 0.10,
+    `Test 108: Đáy xe phải neo sát đáy thân xe ~ -1.25m, TUYỆT ĐỐI KHÔNG BAY LÊN TRỜI (thực tế: ${res108.groundZ}m)`
+  );
+
+  const newCenterZ = res108.groundZ! + 0.75;
+  assert.ok(
+    Math.abs(newCenterZ - (-0.5)) < 0.10,
+    `Test 108: Tâm xe mới phải ở quanh -0.5m, không bay lên trời (thực tế: ${newCenterZ}m)`
+  );
+
+  console.log(`✅ Test 108: Xe Ở Dốc Trũng Ít Point Mặt Đất: Đáy neo chuẩn ${res108.groundZ}m (Tâm Z: ${newCenterZ.toFixed(3)}m, Roll=0°, Pitch=0°), KHÔNG BỊ BAY LÊN TRỜI THEO EGO!`);
+}
+
+console.log("\n🎉 TẤT CẢ 108/108 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z, CĂN GÓC FRONT ROLL 2 ĐẦU, BẢO TOÀN CURPOINT BIÊN, RIDER 42%, CĂN YAW THEO VẠCH KẺ LÀN LIDAR INTENSITY, CHỐNG LƠ LỬNG 0 ĐIỂM, CHỐNG BAY LÊN TRỜI KHI THIẾU POINT, SIDE/FRONT CHUẨN HÓA CẢ 3 VẬT THỂ (CAR, CYCLIST, PEDESTRIAN), TRỌNG SỐ INTENSITY BẢO VỆ MÉP SÁNG VÀ MẬT ĐỘ 20% ĐẦU/ĐUƠI XE ĐÃ ĐẠT 100%!");
 
 
 

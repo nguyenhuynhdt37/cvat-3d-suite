@@ -844,9 +844,50 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
     const resolvedEgoRoadZ = options.egoRoadZ !== void 0 ? options.egoRoadZ : pts && pts.length >= 8 ? estimateEgoRoadGroundZ(pts, options.egoPos, { defaultZ: -1.75 }) : -1.75;
+    const hH = options.halfH ?? 0.8;
+    const curObjH = hH * 2;
+    const currentBaseZ = cz - hH;
+    const computeSmartFallbackGroundZ = () => {
+      const searchL = halfL + 0.35;
+      const searchW = halfW + 0.25;
+      const bodyPtsZ = [];
+      if (Array.isArray(pts) && pts.length > 0 && typeof pts[0].x === "number") {
+        const arr = pts;
+        for (let i = 0; i < arr.length; i++) {
+          const p = arr[i];
+          if (p.z < cz - hH - 0.4 || p.z > cz + hH + 0.4) continue;
+          const dx = p.x - cx;
+          const dy = p.y - cy;
+          const lx = dx * cosY - dy * sinY;
+          const ly = dx * sinY + dy * cosY;
+          if (Math.abs(lx) <= searchL && Math.abs(ly) <= searchW) {
+            bodyPtsZ.push(p.z);
+          }
+        }
+      }
+      if (bodyPtsZ.length >= 4) {
+        bodyPtsZ.sort((a, b) => a - b);
+        const zRoof = bodyPtsZ[Math.floor(bodyPtsZ.length * 0.95)];
+        const zLowest = bodyPtsZ[Math.floor(bodyPtsZ.length * 0.05)];
+        const zFromRoof = zRoof - curObjH;
+        const zFromLowest = zLowest - 0.18;
+        const estimatedZ = Math.min(zFromRoof, zFromLowest);
+        if (Math.abs(estimatedZ - currentBaseZ) <= 0.45) {
+          return Number(estimatedZ.toFixed(3));
+        }
+      }
+      if (options.egoRoadZ !== void 0 || !pts || pts.length === 0) {
+        return Number(resolvedEgoRoadZ.toFixed(3));
+      }
+      if (pts && pts.length >= 8 && Math.abs(resolvedEgoRoadZ - currentBaseZ) <= 0.5) {
+        return Number(resolvedEgoRoadZ.toFixed(3));
+      }
+      return Number(currentBaseZ.toFixed(3));
+    };
     if (groundPts.length < 10) {
+      const fallbackGroundZ = computeSmartFallbackGroundZ();
       return {
-        groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
+        groundZ: fallbackGroundZ,
         pitchRad: 0,
         rollRad: 0,
         pitchDeg: 0,
@@ -923,8 +964,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     addLowestFromQuadrant(qRR);
     const finalPts = fitPts.length >= 4 ? fitPts : validPts.slice(0, Math.max(4, Math.floor(validPts.length * 0.45)));
     if (finalPts.length < 6) {
+      const fallbackGroundZ = computeSmartFallbackGroundZ();
       return {
-        groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
+        groundZ: fallbackGroundZ,
         pitchRad: 0,
         rollRad: 0,
         pitchDeg: 0,
@@ -2820,9 +2862,60 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
       const resolvedEgoRoadZ = getEgoRoadGroundZInMainWorld();
+      const computeSmartFallbackGroundZ = () => {
+        const curObjH = halfH * 2;
+        const searchL = halfL + 0.35;
+        const searchW = halfW + 0.25;
+        const bodyPtsZ = [];
+        for (let i = 0; i < count; i++) {
+          const z = array[i * 3 + 2];
+          if (z < cz - halfH - 0.4 || z > cz + halfH + 0.4) continue;
+          const dx = array[i * 3] - cx;
+          const dy = array[i * 3 + 1] - cy;
+          const lx = dx * cosY - dy * sinY;
+          const ly = dx * sinY + dy * cosY;
+          if (Math.abs(lx) <= searchL && Math.abs(ly) <= searchW) {
+            bodyPtsZ.push(z);
+          }
+        }
+        const currentBaseZ = cz - halfH;
+        if (bodyPtsZ.length >= 4) {
+          bodyPtsZ.sort((a2, b2) => a2 - b2);
+          const zRoof = bodyPtsZ[Math.floor(bodyPtsZ.length * 0.95)];
+          const zLowest = bodyPtsZ[Math.floor(bodyPtsZ.length * 0.05)];
+          const zFromRoof = zRoof - curObjH;
+          const zFromLowest = zLowest - 0.18;
+          const estimatedZ = Math.min(zFromRoof, zFromLowest);
+          if (Math.abs(estimatedZ - currentBaseZ) <= 0.45) {
+            return Number(estimatedZ.toFixed(3));
+          }
+        }
+        const localGround = [];
+        const minRSq = (halfL + 0.4) * (halfL + 0.4);
+        const maxRSq = 5 * 5;
+        for (let i = 0; i < count; i++) {
+          const z = array[i * 3 + 2];
+          if (z < currentBaseZ - 0.5 || z > currentBaseZ + 0.25) continue;
+          const dx = array[i * 3] - cx;
+          const dy = array[i * 3 + 1] - cy;
+          const dSq = dx * dx + dy * dy;
+          if (dSq >= minRSq && dSq <= maxRSq) {
+            localGround.push(z);
+          }
+        }
+        if (localGround.length >= 4) {
+          localGround.sort((a2, b2) => a2 - b2);
+          const p20 = localGround[Math.floor(localGround.length * 0.2)];
+          if (Math.abs(p20 - currentBaseZ) <= 0.4) {
+            return Number(p20.toFixed(3));
+          }
+        }
+        return Number(currentBaseZ.toFixed(3));
+      };
       if (groundPts.length < 10) {
+        const fallbackGroundZ = computeSmartFallbackGroundZ();
         return {
-          groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
+          groundZ: fallbackGroundZ,
           pitchRad: 0,
           rollRad: 0,
           pitchDeg: 0,
@@ -2899,8 +2992,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       addLowestFromQuadrant(qRR);
       const finalPts = fitPts.length >= 4 ? fitPts : validPts.slice(0, Math.max(4, Math.floor(validPts.length * 0.45)));
       if (finalPts.length < 6) {
+        const fallbackGroundZ = computeSmartFallbackGroundZ();
         return {
-          groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
+          groundZ: fallbackGroundZ,
           pitchRad: 0,
           rollRad: 0,
           pitchDeg: 0,
@@ -6448,11 +6542,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           const curW2 = newPoints[7] || 1.85;
           const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW2 / 2, curH / 2, false, false);
           if (groundInfo.isFallbackZeroGround || groundInfo.groundPointsCount < 10) {
-            const baseZ = groundInfo.groundZ !== null ? groundInfo.groundZ : -1.75;
+            const baseZ = groundInfo.groundZ !== null ? groundInfo.groundZ : curZ - curH / 2;
             newRotX = 0;
             newRotY = 0;
             newZ = Number((baseZ + curH / 2).toFixed(3));
-            msg = `Point mặt đất quá ít (${groundInfo.groundPointsCount} điểm) ➔ Auto 100% lấy Z Ego làm chuẩn 0° (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
+            if (Math.abs(newZ - curZ) > 0.5) {
+              newZ = curZ;
+            }
+            msg = `Point mặt đất ít (${groundInfo.groundPointsCount} điểm) ➔ Khóa chuẩn 0° phẳng (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
           } else if (groundInfo.groundZ !== null) {
             const cosPitch = Math.cos(groundInfo.pitchRad);
             const cosRoll = Math.cos(groundInfo.rollRad);
@@ -6472,11 +6569,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               msg = `Đã ghim đáy xe #${uiId} bám sát mặt đường (Z: ${newZ}m, Roll: ${groundInfo.rollDeg}°, Pitch: ${groundInfo.pitchDeg}°)`;
             }
           } else {
-            const egoZ = getEgoRoadGroundZInMainWorld();
             newRotX = 0;
             newRotY = 0;
-            newZ = Number((egoZ + curH / 2).toFixed(3));
-            msg = `Không có điểm mặt đất ➔ Fit độ cao & góc thẳng theo Ego (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
+            newZ = curZ;
+            msg = `Không có điểm mặt đất ➔ Khóa chuẩn 0° phẳng (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
           }
         } else if (mode === "curb") {
           const curL = newPoints[6] || 4.6;

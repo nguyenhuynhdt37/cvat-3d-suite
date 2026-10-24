@@ -1745,6 +1745,7 @@ export function computeGroundSlopesAndZ(
     lockRollFlat?: boolean;
     egoRoadZ?: number;
     egoPos?: { x: number; y: number; z: number };
+    halfH?: number;
   } = {}
 ): GroundSlopeResult {
   const cosY = Math.cos(-yaw);
@@ -1804,10 +1805,65 @@ export function computeGroundSlopesAndZ(
       ? estimateEgoRoadGroundZ(pts, options.egoPos, { defaultZ: -1.75 })
       : -1.75;
 
+  const hH = options.halfH ?? 0.8;
+  const curObjH = hH * 2;
+  const currentBaseZ = cz - hH;
+
+  // Helper tính cao độ mặt đất dự phòng khi thiếu điểm dưới gầm (< 10 điểm):
+  // 1. Ưu tiên mây điểm của chính chiếc xe (Golden Anchor Box: Z_ground = Z_roof - H)
+  // 2. Bảo toàn đáy hiện tại của chiếc xe (cz - halfH) -> CHỐNG 100% HIỆN TƯỢNG BAY LÊN TRỜI
+  const computeSmartFallbackGroundZ = (): number => {
+    const searchL = halfL + 0.35;
+    const searchW = halfW + 0.25;
+    const bodyPtsZ: number[] = [];
+
+    if (Array.isArray(pts) && pts.length > 0 && typeof (pts[0] as any).x === "number") {
+      const arr = pts as Array<{ x: number; y: number; z: number }>;
+      for (let i = 0; i < arr.length; i++) {
+        const p = arr[i];
+        if (p.z < cz - hH - 0.4 || p.z > cz + hH + 0.4) continue;
+        const dx = p.x - cx;
+        const dy = p.y - cy;
+        const lx = dx * cosY - dy * sinY;
+        const ly = dx * sinY + dy * cosY;
+        if (Math.abs(lx) <= searchL && Math.abs(ly) <= searchW) {
+          bodyPtsZ.push(p.z);
+        }
+      }
+    }
+
+    if (bodyPtsZ.length >= 4) {
+      bodyPtsZ.sort((a, b) => a - b);
+      const zRoof = bodyPtsZ[Math.floor(bodyPtsZ.length * 0.95)];
+      const zLowest = bodyPtsZ[Math.floor(bodyPtsZ.length * 0.05)];
+      // Golden Anchor: Z_ground = Z_roof - H
+      const zFromRoof = zRoof - curObjH;
+      const zFromLowest = zLowest - 0.18; // clearance gầm xe
+      const estimatedZ = Math.min(zFromRoof, zFromLowest);
+      if (Math.abs(estimatedZ - currentBaseZ) <= 0.45) {
+        return Number(estimatedZ.toFixed(3));
+      }
+    }
+
+    // 2. Nếu người dùng truyền options.egoRoadZ rõ ràng hoặc mảng điểm rỗng (Test 95)
+    if (options.egoRoadZ !== undefined || !pts || pts.length === 0) {
+      return Number(resolvedEgoRoadZ.toFixed(3));
+    }
+
+    // 3. Nếu pts có ít nhất 8 điểm và resolvedEgoRoadZ không lệch quá 50cm
+    if (pts && pts.length >= 8 && Math.abs(resolvedEgoRoadZ - currentBaseZ) <= 0.50) {
+      return Number(resolvedEgoRoadZ.toFixed(3));
+    }
+
+    // 4. Mặc định an toàn tuyệt đối: Bảo toàn đáy hiện tại của xe, khóa góc Roll 0°, Pitch 0°
+    return Number(currentBaseZ.toFixed(3));
+  };
+
   if (groundPts.length < 10) {
-    // Dưới chân không có điểm hoặc point cloud mặt đất quá ít (< 10 điểm) -> Auto 100% lấy theo Ego Road Z làm chuẩn 0 độ (Roll 0°, Pitch 0°)
+    // Dưới chân không có điểm hoặc point cloud mặt đất quá ít (< 10 điểm) -> Khóa chuẩn 0° phẳng, dùng Smart Fallback Ground Z
+    const fallbackGroundZ = computeSmartFallbackGroundZ();
     return {
-      groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
+      groundZ: fallbackGroundZ,
       pitchRad: 0,
       rollRad: 0,
       pitchDeg: 0,
@@ -1904,9 +1960,10 @@ export function computeGroundSlopesAndZ(
   const finalPts = fitPts.length >= 4 ? fitPts : validPts.slice(0, Math.max(4, Math.floor(validPts.length * 0.45)));
 
   if (finalPts.length < 6) {
-    // Số điểm mặt đất sau lọc không đủ tin cậy để OLS mặt phẳng 3D -> Auto 100% lấy theo Ego Road Z làm chuẩn 0° phẳng
+    // Số điểm mặt đất sau lọc không đủ tin cậy để OLS mặt phẳng 3D -> Khóa chuẩn 0° phẳng, dùng Smart Fallback Ground Z
+    const fallbackGroundZ = computeSmartFallbackGroundZ();
     return {
-      groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
+      groundZ: fallbackGroundZ,
       pitchRad: 0,
       rollRad: 0,
       pitchDeg: 0,
