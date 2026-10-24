@@ -171,6 +171,77 @@ export function mainWorldScript(): void {
     }
   }
 
+  // Bảng 32 màu phân kỳ tương phản cao (High-Contrast Vivid Palette) cho từng Track ID
+  const DISTINCT_TRACK_PALETTE: Array<{ r: number; g: number; b: number }> = [
+    { r: 0.00, g: 0.95, b: 1.00 }, // 0: Cyan Neon (#00f2fe)
+    { r: 0.96, g: 0.62, b: 0.04 }, // 1: Vàng Cam Amber (#f59e0b)
+    { r: 0.66, g: 0.33, b: 0.97 }, // 2: Tím Violet (#a855f7)
+    { r: 0.06, g: 0.73, b: 0.51 }, // 3: Xanh Lục Emerald (#10b981)
+    { r: 0.93, g: 0.28, b: 0.60 }, // 4: Hồng Sen Neon (#ec4899)
+    { r: 0.23, g: 0.51, b: 0.96 }, // 5: Xanh Biển Electric Blue (#3b82f6)
+    { r: 0.52, g: 0.80, b: 0.09 }, // 6: Xanh Chuối Chartreuse (#84cc16)
+    { r: 0.98, g: 0.57, b: 0.24 }, // 7: Cam San Hô Coral (#fb923c)
+    { r: 0.08, g: 0.72, b: 0.65 }, // 8: Xanh Ngọc Lục Bảo Teal (#14b8a6)
+    { r: 0.92, g: 0.70, b: 0.03 }, // 9: Vàng Gold (#eab308)
+    { r: 0.39, g: 0.40, b: 0.95 }, // 10: Tím Indigo (#6366f1)
+    { r: 0.20, g: 0.83, b: 0.60 }, // 11: Xanh Lục Mint (#34d399)
+    { r: 0.85, g: 0.27, b: 0.94 }, // 12: Hồng Tím Fuchsia (#d946ef)
+    { r: 0.22, g: 0.74, b: 0.97 }, // 13: Xanh Trời Sky (#38bdf8)
+    { r: 0.98, g: 0.45, b: 0.09 }, // 14: Cam Đỏ Nhẹ Warm Orange (#f97316)
+    { r: 0.13, g: 0.77, b: 0.37 }, // 15: Xanh Lá Spring Green (#22c55e)
+    { r: 0.75, g: 0.52, b: 0.99 }, // 16: Tím Lavender (#c084fc)
+    { r: 0.02, g: 0.71, b: 0.83 }, // 17: Xanh Biển Aqua (#06b6d4)
+    { r: 0.98, g: 0.44, b: 0.52 }, // 18: Hồng Phấn Rose (#fb7185)
+    { r: 0.64, g: 0.90, b: 0.21 }, // 19: Vàng Chanh Lemon Lime (#a3e635)
+    { r: 0.40, g: 0.91, b: 0.98 }, // 20: Xanh Băng Glacier (#67e8f9)
+    { r: 0.99, g: 0.73, b: 0.45 }, // 21: Cam Nắng Peach (#fdba74)
+    { r: 0.58, g: 0.20, b: 0.92 }, // 22: Tím Orchid (#9333ea)
+    { r: 0.09, g: 0.64, b: 0.29 }, // 23: Xanh Clover (#16a34a)
+    { r: 0.96, g: 0.25, b: 0.37 }, // 24: Hồng Magenta (#f43f5e)
+    { r: 0.15, g: 0.39, b: 0.92 }, // 25: Xanh Sapphire (#2563eb)
+    { r: 0.05, g: 0.58, b: 0.53 }, // 26: Xanh Ngọc Jade (#0d9488)
+    { r: 0.85, g: 0.47, b: 0.02 }, // 27: Vàng Hổ Phách Đậm (#d97706)
+    { r: 0.31, g: 0.27, b: 0.90 }, // 28: Xanh Cobalt (#4f46e5)
+    { r: 0.13, g: 0.83, b: 0.93 }, // 29: Xanh Cyan Sáng (#22d3ee)
+    { r: 0.96, g: 0.45, b: 0.71 }, // 30: Hồng Pink Light (#f472b6)
+    { r: 0.29, g: 0.87, b: 0.50 }, // 31: Xanh Táo Apple Green (#4ade80)
+  ];
+
+  const OVERLAP_WARNING_COLOR = { r: 1.0, g: 0.05, b: 0.20 }; // Đỏ Neon Cảnh Báo (#ff0d33)
+
+  function getDistinctTrackColor(
+    trackId: number | string | undefined | null,
+    isActive?: boolean
+  ): { r: number; g: number; b: number } {
+    let numId = 0;
+    if (typeof trackId === "number") {
+      numId = Math.abs(trackId);
+    } else if (typeof trackId === "string") {
+      const parsed = parseInt(trackId, 10);
+      if (!isNaN(parsed)) {
+        numId = Math.abs(parsed);
+      } else {
+        for (let i = 0; i < trackId.length; i++) {
+          numId = (numId * 31 + trackId.charCodeAt(i)) & 0x7fffffff;
+        }
+      }
+    }
+
+    const colorIndex = (numId * 13 + 7) % DISTINCT_TRACK_PALETTE.length;
+    const baseColor = DISTINCT_TRACK_PALETTE[colorIndex];
+
+    if (isActive) {
+      // Khi Active: Tăng sáng rực rỡ pha nhẹ 20% ánh vàng chanh neon (#facc15)
+      return {
+        r: Math.min(1.0, baseColor.r * 0.8 + 0.98 * 0.2),
+        g: Math.min(1.0, baseColor.g * 0.8 + 0.80 * 0.2),
+        b: Math.min(1.0, baseColor.b * 0.8 + 0.08 * 0.2),
+      };
+    }
+
+    return baseColor;
+  }
+
   // Thuật toán gán màu cho mây điểm Three.js: Intensity / Plain & Tô màu trong xe bọc (Tối ưu Zero-Lag)
   function applyPointCloudColorizationInMainWorld(
     options?: { mode?: "intensity" | "plain"; colorizeBoxed?: boolean }
@@ -240,20 +311,8 @@ export function mainWorldScript(): void {
 
             const clientId = Number(s.clientID ?? s.id);
             const isActive = clientId === Number(activeClientId);
-            const labelName = (s.label?.name || "").toLowerCase();
-
-            let c = defaultColors.car;
-            if (isActive) {
-              c = defaultColors.active;
-            } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
-              c = defaultColors.pedestrian;
-            } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
-              c = defaultColors.cyclist;
-            } else if (labelName.includes("truck")) {
-              c = defaultColors.truck;
-            } else if (labelName.includes("bus")) {
-              c = defaultColors.bus;
-            }
+            const trackId = s.parentID ?? s.trackID ?? clientId;
+            const c = getDistinctTrackColor(trackId, isActive);
 
             const yaw = pts[5] || 0;
             fastBoxesMap.set(clientId, {
@@ -324,20 +383,8 @@ export function mainWorldScript(): void {
 
             const clientId = Number(idStr);
             const isActive = clientId === Number(activeClientId);
-            const labelName = (data.label?.name || "").toLowerCase();
-
-            let c = defaultColors.car;
-            if (isActive) {
-              c = defaultColors.active;
-            } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
-              c = defaultColors.pedestrian;
-            } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
-              c = defaultColors.cyclist;
-            } else if (labelName.includes("truck")) {
-              c = defaultColors.truck;
-            } else if (labelName.includes("bus")) {
-              c = defaultColors.bus;
-            }
+            const trackId = data.parentID ?? data.trackID ?? clientId;
+            const c = getDistinctTrackColor(trackId, isActive);
 
             fastBoxesMap.set(clientId, {
               cx,
@@ -424,8 +471,9 @@ export function mainWorldScript(): void {
             v = rawInt <= 1.0 ? rawInt : Math.min(1.0, rawInt / 255);
           }
 
-          // Kiểm tra Point-in-Box
+          // Kiểm tra Point-in-Box (Hỗ trợ phát hiện Overlap 2..N box)
           let matched: FastBoxTarget | null = null;
+          let matchCount = 0;
           if (numBoxes > 0) {
             for (let k = 0; k < numBoxes; k++) {
               const b = fastBoxes[k];
@@ -458,14 +506,25 @@ export function mainWorldScript(): void {
               }
 
               if (Math.abs(lx) <= b.halfL && Math.abs(ly) <= b.halfW && Math.abs(lz) <= b.halfH) {
-                matched = b;
-                break;
+                matchCount++;
+                if (matchCount === 1) {
+                  matched = b;
+                } else {
+                  // Đã phát hiện Overlap từ 2 box trở lên! Early Exit siêu tốc
+                  matched = null;
+                  break;
+                }
               }
             }
           }
 
-          if (matched) {
-            // NẰM TRONG XE BỌC: Nhuộm màu nhãn xe
+          if (matchCount >= 2) {
+            // VÙNG CHỒNG LẤN TỪ 2 ĐẾN N BOX: ĐỎ NEON CẢNH BÁO (#ff0d33) FULL BRIGHTNESS
+            colorArray[idx3] = OVERLAP_WARNING_COLOR.r;
+            colorArray[idx3 + 1] = OVERLAP_WARNING_COLOR.g;
+            colorArray[idx3 + 2] = OVERLAP_WARNING_COLOR.b;
+          } else if (matched) {
+            // NẰM TRONG 1 XE BỌC: Nhuộm màu riêng biệt theo Track ID
             const factor = isPlain ? 0.90 : 0.40 + 0.60 * v;
             colorArray[idx3] = matched.colorR * factor;
             colorArray[idx3 + 1] = matched.colorG * factor;
@@ -4291,8 +4350,6 @@ export function mainWorldScript(): void {
 
   // Dò tìm tọa độ và ghim tâm đối tượng đang active khi chuyển frame (Sticky Track Lock-On)
   function lockOnActiveObjectAtFrame(targetId: number, targetFrame: number, attempt: number = 0): void {
-    if (!autoCenterOnFrameChange) return;
-
     try {
       const store = getReduxStore();
       const anno = store?.getState()?.annotation;
@@ -4304,16 +4361,18 @@ export function mainWorldScript(): void {
       if (persistentActiveTrackId !== null) {
         matchedState = states.find(
           (s: any) =>
-            Number(s.parentID ?? s.trackID ?? s.parent?.clientID) === Number(persistentActiveTrackId) ||
-            Number(s.clientID) === Number(persistentActiveTrackId)
+            (Number(s.parentID ?? s.trackID ?? s.parent?.clientID) === Number(persistentActiveTrackId) ||
+              Number(s.clientID) === Number(persistentActiveTrackId)) &&
+            !s.outside
         );
       }
 
       if (!matchedState && targetId !== null && targetId !== undefined && !isNaN(targetId)) {
         matchedState = states.find(
           (s: any) =>
-            Number(s.clientID) === Number(targetId) ||
-            Number(s.parentID ?? s.trackID ?? s.parent?.clientID) === Number(targetId)
+            (Number(s.clientID) === Number(targetId) ||
+              Number(s.parentID ?? s.trackID ?? s.parent?.clientID) === Number(targetId)) &&
+            !s.outside
         );
       }
 
@@ -4331,7 +4390,7 @@ export function mainWorldScript(): void {
         }
       } else {
         const drawnItem = canvas?.view?.drawnObjects?.[String(targetId)];
-        if (drawnItem?.data?.points && Array.isArray(drawnItem.data.points)) {
+        if (drawnItem?.data?.points && Array.isArray(drawnItem.data.points) && !drawnItem.data.outside) {
           foundPos = {
             x: drawnItem.data.points[0],
             y: drawnItem.data.points[1],
@@ -4362,8 +4421,10 @@ export function mainWorldScript(): void {
           } catch (_) {}
         }
 
-        // C. Căn giữa Top, Side, Front và Perspective theo tâm xe
-        center3DViewOnObject(activeIdToUse, foundPos);
+        // C. Căn giữa Top, Side, Front và Perspective theo tâm xe (nếu bật ghim tâm)
+        if (autoCenterOnFrameChange) {
+          center3DViewOnObject(activeIdToUse, foundPos);
+        }
 
         // D. Đồng bộ highlight Sidebar
         try {
@@ -4383,14 +4444,17 @@ export function mainWorldScript(): void {
           canvas.render();
         }
 
-        // Nếu Three.js mesh đã sẵn sàng VÀ đã thử ít nhất 2 lần (attempt >= 2), hoàn tất an toàn
-        if (isMeshReady && attempt >= 2) {
-          return;
-        }
+        // Thông báo cho Extension biết xe đã được kích hoạt lại thành công
+        const details = extractObjectDetails(activeIdToUse);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+            detail: { clientId: activeIdToUse, details },
+          })
+        );
       }
 
       // 3. Thử lại lũy tiến để đảm bảo Three.js load xong và không bị CVAT ghi đè mất focus
-      const delays = [30, 80, 160, 300, 500];
+      const delays = [40, 100, 220, 450, 750];
       if (attempt < delays.length) {
         setTimeout(() => {
           const curF = anno?.player?.frame?.number ?? store?.getState()?.annotation?.job?.instance?.frame;
@@ -4398,6 +4462,9 @@ export function mainWorldScript(): void {
             lockOnActiveObjectAtFrame(targetId, targetFrame, attempt + 1);
           }
         }, delays[attempt]);
+      } else if (!matchedState && attempt >= delays.length) {
+        // Hết lượt thử mà không tìm thấy track này ở frame mới -> đối tượng kết thúc hoặc outside
+        window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_OBJECT_DEACTIVATED"));
       }
     } catch (err) {
       console.warn("[CVAT 3D Suite] Lỗi lockOnActiveObjectAtFrame:", err);
@@ -4800,10 +4867,23 @@ export function mainWorldScript(): void {
       }
       if (currentColorizeBoxed) {
         applyPointCloudColorizationInMainWorld();
+        // Quét bổ sung tức thì sau 80ms và 220ms để bắt trọn tọa độ commit sau khi nhả chuột
+        setTimeout(() => applyPointCloudColorizationInMainWorld(), 80);
+        setTimeout(() => applyPointCloudColorizationInMainWorld(), 220);
       }
     };
 
-    // Gắn listener trên toàn bộ window để không bị mất sự kiện khi kéo chuột nhanh ra ngoài canvas
+    // Gắn listener trên toàn bộ window với capture để bắt đầu tương tác ngay cả khi component con stop propagation
+    window.addEventListener(
+      "pointerdown",
+      (e: PointerEvent) => {
+        const target = e.target as HTMLElement;
+        if (target && target.closest && target.closest(".cvat-canvas-container, .cvat-canvas3d-orthographic-view, [class*='cvat-canvas3d'], canvas")) {
+          isCanvasInteracting = true;
+        }
+      },
+      { capture: true, passive: true }
+    );
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("pointerup", onPointerUp, { passive: true });
     window.addEventListener("pointercancel", onPointerUp, { passive: true });
@@ -4946,8 +5026,10 @@ export function mainWorldScript(): void {
         let prevActiveId: any = null;
         let prevStatesLen = 0;
         let prevFrame: any = null;
+        let prevPointsFingerprint = "";
         let activeDebounceTimer: any = null;
         let dirtyDebounceTimer: any = null;
+        let pointsDebounceTimer: any = null;
 
         store.subscribe(() => {
           try {
@@ -4960,6 +5042,7 @@ export function mainWorldScript(): void {
             if (curFrame !== undefined && curFrame !== null && curFrame !== prevFrame) {
               const oldFrame = prevFrame;
               prevFrame = curFrame;
+              prevPointsFingerprint = ""; // Reset fingerprint khi sang frame mới
 
               isFrameTransitioning = true;
               if (frameTransitionTimer) clearTimeout(frameTransitionTimer);
@@ -4993,7 +5076,7 @@ export function mainWorldScript(): void {
               }
             }
 
-            // 2. PHÁT HIỆN THAY ĐỔI ACTIVE OBJECT
+            // 2. PHÁT HIỆN THAY ĐỔI ACTIVE OBJECT (2 CHIỀU & DEACTIVATE KHI BỎ CHỌN)
             if (curActiveId !== prevActiveId) {
               prevActiveId = curActiveId;
               if (curActiveId !== null && curActiveId !== undefined) {
@@ -5013,6 +5096,40 @@ export function mainWorldScript(): void {
                   // Highlight lại mây điểm trong xe active mới
                   applyPointCloudColorizationInMainWorld();
                 }, 80);
+              } else {
+                // Người dùng bỏ chọn hoặc click ra ngoài canvas -> Báo cho Extension biết để ẩn chức năng
+                lastActiveTrackId = null;
+                persistentActiveTrackId = null;
+                if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
+                activeDebounceTimer = setTimeout(() => {
+                  activeDebounceTimer = null;
+                  window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_OBJECT_DEACTIVATED"));
+                  applyPointCloudColorizationInMainWorld();
+                }, 80);
+              }
+            }
+
+            // 3. THEO DÕI THAY ĐỔI TỌA ĐỘ / DIMENSIONS / ROTATION CỦA CÁC BOX TRÊN FRAME (POINTS FINGERPRINT)
+            const states = anno?.annotations?.states || [];
+            let currentPointsFingerprint = "";
+            for (let i = 0; i < states.length; i++) {
+              const st = states[i];
+              if (st && Array.isArray(st.points) && st.points.length >= 9 && !st.outside) {
+                const p = st.points;
+                // Băm nhanh: clientID, x, y, z, yaw, l, w, h (độ phân giải 2cm)
+                currentPointsFingerprint += `${st.clientID}:${Math.round(p[0] * 50)},${Math.round(p[1] * 50)},${Math.round(p[2] * 50)},${Math.round(p[5] * 50)},${Math.round(p[6] * 50)},${Math.round(p[7] * 50)},${Math.round(p[8] * 50)}|`;
+              }
+            }
+
+            if (currentPointsFingerprint !== prevPointsFingerprint) {
+              const isInit = prevPointsFingerprint === "";
+              prevPointsFingerprint = currentPointsFingerprint;
+              if (!isInit) {
+                if (pointsDebounceTimer) clearTimeout(pointsDebounceTimer);
+                pointsDebounceTimer = setTimeout(() => {
+                  pointsDebounceTimer = null;
+                  applyPointCloudColorizationInMainWorld();
+                }, 50);
               }
             }
 

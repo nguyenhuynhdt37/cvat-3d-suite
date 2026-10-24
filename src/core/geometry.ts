@@ -4977,6 +4977,7 @@ export function fitYawToLaneIntensity(
 
 export interface Box3DTarget {
   id?: number | string;
+  trackId?: number;
   cx: number;
   cy: number;
   cz: number;
@@ -5063,11 +5064,89 @@ export const DEFAULT_LABEL_COLORS: Record<string, { r: number; g: number; b: num
   active: { r: 0.98, g: 0.80, b: 0.08 },     // Vàng chanh Neon (#facc15)
 };
 
+// Bảng 32 màu phân kỳ tương phản cao (High-Contrast Vivid Palette) cho từng Track ID
+export const DISTINCT_TRACK_PALETTE: Array<{ r: number; g: number; b: number }> = [
+  { r: 0.00, g: 0.95, b: 1.00 }, // 0: Cyan Neon (#00f2fe)
+  { r: 0.96, g: 0.62, b: 0.04 }, // 1: Vàng Cam Amber (#f59e0b)
+  { r: 0.66, g: 0.33, b: 0.97 }, // 2: Tím Violet (#a855f7)
+  { r: 0.06, g: 0.73, b: 0.51 }, // 3: Xanh Lục Emerald (#10b981)
+  { r: 0.93, g: 0.28, b: 0.60 }, // 4: Hồng Sen Neon (#ec4899)
+  { r: 0.23, g: 0.51, b: 0.96 }, // 5: Xanh Biển Electric Blue (#3b82f6)
+  { r: 0.52, g: 0.80, b: 0.09 }, // 6: Xanh Chuối Chartreuse (#84cc16)
+  { r: 0.98, g: 0.57, b: 0.24 }, // 7: Cam San Hô Coral (#fb923c)
+  { r: 0.08, g: 0.72, b: 0.65 }, // 8: Xanh Ngọc Lục Bảo Teal (#14b8a6)
+  { r: 0.92, g: 0.70, b: 0.03 }, // 9: Vàng Gold (#eab308)
+  { r: 0.39, g: 0.40, b: 0.95 }, // 10: Tím Indigo (#6366f1)
+  { r: 0.20, g: 0.83, b: 0.60 }, // 11: Xanh Lục Mint (#34d399)
+  { r: 0.85, g: 0.27, b: 0.94 }, // 12: Hồng Tím Fuchsia (#d946ef)
+  { r: 0.22, g: 0.74, b: 0.97 }, // 13: Xanh Trời Sky (#38bdf8)
+  { r: 0.98, g: 0.45, b: 0.09 }, // 14: Cam Đỏ Nhẹ Warm Orange (#f97316)
+  { r: 0.13, g: 0.77, b: 0.37 }, // 15: Xanh Lá Spring Green (#22c55e)
+  { r: 0.75, g: 0.52, b: 0.99 }, // 16: Tím Lavender (#c084fc)
+  { r: 0.02, g: 0.71, b: 0.83 }, // 17: Xanh Biển Aqua (#06b6d4)
+  { r: 0.98, g: 0.44, b: 0.52 }, // 18: Hồng Phấn Rose (#fb7185)
+  { r: 0.64, g: 0.90, b: 0.21 }, // 19: Vàng Chanh Lemon Lime (#a3e635)
+  { r: 0.40, g: 0.91, b: 0.98 }, // 20: Xanh Băng Glacier (#67e8f9)
+  { r: 0.99, g: 0.73, b: 0.45 }, // 21: Cam Nắng Peach (#fdba74)
+  { r: 0.58, g: 0.20, b: 0.92 }, // 22: Tím Orchid (#9333ea)
+  { r: 0.09, g: 0.64, b: 0.29 }, // 23: Xanh Clover (#16a34a)
+  { r: 0.96, g: 0.25, b: 0.37 }, // 24: Hồng Magenta (#f43f5e)
+  { r: 0.15, g: 0.39, b: 0.92 }, // 25: Xanh Sapphire (#2563eb)
+  { r: 0.05, g: 0.58, b: 0.53 }, // 26: Xanh Ngọc Jade (#0d9488)
+  { r: 0.85, g: 0.47, b: 0.02 }, // 27: Vàng Hổ Phách Đậm (#d97706)
+  { r: 0.31, g: 0.27, b: 0.90 }, // 28: Xanh Cobalt (#4f46e5)
+  { r: 0.13, g: 0.83, b: 0.93 }, // 29: Xanh Cyan Sáng (#22d3ee)
+  { r: 0.96, g: 0.45, b: 0.71 }, // 30: Hồng Pink Light (#f472b6)
+  { r: 0.29, g: 0.87, b: 0.50 }, // 31: Xanh Táo Apple Green (#4ade80)
+];
+
+// Màu đỏ neon cảnh báo phát sáng khi có từ 2 box trở lên chồng lấn (Overlap Warning)
+export const OVERLAP_WARNING_COLOR = { r: 1.0, g: 0.05, b: 0.20 }; // Đỏ Neon Rực Lửa (#ff0d33)
+
+/**
+ * Trích xuất màu sắc riêng biệt (Distinct Color) tương ứng với từng Track ID.
+ * - Sử dụng hàm băm số nguyên tố 13 để hai ID cạnh nhau (VD 16 và 17) luôn nhảy xa nhau trên bảng màu.
+ * - Khi Active: Đẩy sáng rực rỡ (Full Brightness) kết hợp pha nhẹ ánh vàng neon để nổi bật mà không mất nhận diện track.
+ */
+export function getDistinctTrackColor(
+  trackId: number | string | undefined | null,
+  isActive?: boolean
+): { r: number; g: number; b: number } {
+  let numId = 0;
+  if (typeof trackId === "number") {
+    numId = Math.abs(trackId);
+  } else if (typeof trackId === "string") {
+    const parsed = parseInt(trackId, 10);
+    if (!isNaN(parsed)) {
+      numId = Math.abs(parsed);
+    } else {
+      for (let i = 0; i < trackId.length; i++) {
+        numId = (numId * 31 + trackId.charCodeAt(i)) & 0x7fffffff;
+      }
+    }
+  }
+
+  const colorIndex = (numId * 13 + 7) % DISTINCT_TRACK_PALETTE.length;
+  const baseColor = DISTINCT_TRACK_PALETTE[colorIndex];
+
+  if (isActive) {
+    // Khi Active: Tăng sáng rực rỡ pha nhẹ 20% ánh vàng chanh neon (#facc15)
+    return {
+      r: Math.min(1.0, baseColor.r * 0.8 + 0.98 * 0.2),
+      g: Math.min(1.0, baseColor.g * 0.8 + 0.80 * 0.2),
+      b: Math.min(1.0, baseColor.b * 0.8 + 0.08 * 0.2),
+    };
+  }
+
+  return baseColor;
+}
+
 /**
  * Tính toán mảng màu Float32Array (RGB) cho toàn bộ mây điểm LiDAR.
  * - Mode 'intensity': Hiển thị theo độ phản xạ (Intensity) với vạch sơn sáng rực.
  * - Mode 'plain': Hiển thị đồng màu xám bạc sáng rõ khối, không xét intensity.
- * - colorizeBoxed: Điểm nằm trong bất kỳ 3D box nào sẽ được nhuộm màu của box đó.
+ * - colorizeBoxed: Điểm nằm trong bất kỳ 3D box nào sẽ được nhuộm màu riêng theo Track ID.
+ * - OVERLAP WARNING: Điểm nằm trong vùng giao nhau từ 2..N box sẽ phát sáng ĐỎ NEON RỰC LỬA (#ff0d33).
  */
 export function computePointCloudColors(
   positions: Float32Array | number[],
@@ -5114,7 +5193,10 @@ export function computePointCloudColors(
 
       let c = b.color;
       if (!c) {
-        if (b.isActive) {
+        const boxId = b.trackId ?? b.id;
+        if (boxId !== undefined && boxId !== null) {
+          c = getDistinctTrackColor(boxId, b.isActive);
+        } else if (b.isActive) {
           c = DEFAULT_LABEL_COLORS.active;
         } else {
           const cat = (b.category || "car").toLowerCase();
@@ -5157,8 +5239,10 @@ export function computePointCloudColors(
       v = rawInt <= 1.0 ? rawInt : Math.min(1.0, rawInt / 255);
     }
 
-    // 1. Kiểm tra điểm có nằm trong 3D Box nào không
+    // 1. Kiểm tra điểm có nằm trong 3D Box nào không (Hỗ trợ phát hiện Overlap 2..N box)
     let matchedBox: FastBox | null = null;
+    let matchCount = 0;
+
     if (numBoxes > 0) {
       for (let k = 0; k < numBoxes; k++) {
         const b = fastBoxes[k];
@@ -5192,14 +5276,25 @@ export function computePointCloudColors(
         }
 
         if (Math.abs(lx) <= b.halfL && Math.abs(ly) <= b.halfW && Math.abs(lz) <= b.halfH) {
-          matchedBox = b;
-          break; // Đã tìm thấy box chứa điểm
+          matchCount++;
+          if (matchCount === 1) {
+            matchedBox = b;
+          } else {
+            // Đã phát hiện Overlap từ 2 box trở lên! Early Exit siêu tốc
+            matchedBox = null;
+            break;
+          }
         }
       }
     }
 
-    if (matchedBox) {
-      // ĐIỂM NẰM TRONG XE BỌC: Nhuộm màu theo nhãn xe, nhân nhẹ với độ phản xạ để giữ chi tiết 3D
+    if (matchCount >= 2) {
+      // VÙNG CHỒNG LẤN TỪ 2 ĐẾN N BOX: ĐỎ NEON CẢNH BÁO (#ff0d33) SÁNG RỰC RỠ FULL BRIGHTNESS
+      colors[idx3] = OVERLAP_WARNING_COLOR.r;
+      colors[idx3 + 1] = OVERLAP_WARNING_COLOR.g;
+      colors[idx3 + 2] = OVERLAP_WARNING_COLOR.b;
+    } else if (matchedBox) {
+      // ĐIỂM NẰM TRONG 1 XE BỌC DUY NHẤT: Nhuộm màu riêng biệt theo Track ID
       const factor = isPlainMode ? 0.90 : 0.40 + 0.60 * v;
       colors[idx3] = matchedBox.colorR * factor;
       colors[idx3 + 1] = matchedBox.colorG * factor;
@@ -5251,6 +5346,9 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).fitYawToLaneIntensity = fitYawToLaneIntensity;
   (globalThis as any).isPointInsideBox3D = isPointInsideBox3D;
   (globalThis as any).computePointCloudColors = computePointCloudColors;
+  (globalThis as any).DISTINCT_TRACK_PALETTE = DISTINCT_TRACK_PALETTE;
+  (globalThis as any).OVERLAP_WARNING_COLOR = OVERLAP_WARNING_COLOR;
+  (globalThis as any).getDistinctTrackColor = getDistinctTrackColor;
 }
 if (typeof window !== "undefined") {
   (window as any).boxCorners = boxCorners;
@@ -5269,6 +5367,9 @@ if (typeof window !== "undefined") {
   (window as any).fitYawToLaneIntensity = fitYawToLaneIntensity;
   (window as any).isPointInsideBox3D = isPointInsideBox3D;
   (window as any).computePointCloudColors = computePointCloudColors;
+  (window as any).DISTINCT_TRACK_PALETTE = DISTINCT_TRACK_PALETTE;
+  (window as any).OVERLAP_WARNING_COLOR = OVERLAP_WARNING_COLOR;
+  (window as any).getDistinctTrackColor = getDistinctTrackColor;
 }
 
 

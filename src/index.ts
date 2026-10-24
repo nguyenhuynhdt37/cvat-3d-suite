@@ -148,6 +148,59 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
+        // Phím Shift + M: Mở rộng Fullscreen Track Editor (Duyệt toàn bộ ID)
+        if (e.shiftKey && (key === "m" || code === "KeyM")) {
+          consume();
+          console.log("[CVAT 3D Suite] Phím tắt Shift+M: Mở Fullscreen Track Editor");
+          panel.openFullscreenEditor();
+          return;
+        }
+
+        // Phím [ : Xe liền trước
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "[" || code === "BracketLeft")) {
+          consume();
+          panel.selectPrevTrack();
+          return;
+        }
+
+        // Phím ] : Xe kế tiếp
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "]" || code === "BracketRight")) {
+          consume();
+          panel.selectNextTrack();
+          return;
+        }
+
+        // 🚨 CHẶN PHÍM TẮT THAO TÁC KHI CHƯA ACTIVE ĐỐI TƯỢNG NÀO TRÊN CVAT
+        const isActionRequiringActive =
+          (key === "z" || code === "KeyZ") ||
+          (key === "o" || code === "KeyO") ||
+          (key === "i" || code === "KeyI") ||
+          (key === "f" || code === "KeyF") ||
+          (key === "w" || code === "KeyW" || key === "ư") ||
+          (key === "a" || code === "KeyA" || ["á", "à", "ả", "ã", "ạ", "â", "ă"].includes(key)) ||
+          (key === "s" || code === "KeyS") ||
+          (key === "d" || code === "KeyD" || key === "đ") ||
+          (key === "q" || code === "KeyQ") ||
+          (key === "e" || code === "KeyE") ||
+          (key === "g" || code === "KeyG") ||
+          (key === "r" || code === "KeyR") ||
+          (key === "1" || code === "Digit1" || code === "Numpad1" || key === "t" || code === "KeyT") ||
+          (key === "2" || code === "Digit2" || code === "Numpad2") ||
+          (key === "3" || code === "Digit3" || code === "Numpad3") ||
+          (key === "4" || code === "Digit4" || code === "Numpad4") ||
+          (key === "5" || code === "Digit5" || code === "Numpad5") ||
+          (key === "p" || code === "KeyP") ||
+          (key === "c" || code === "KeyC") ||
+          (key === "b" || code === "KeyB") ||
+          (key === "l" || code === "KeyL") ||
+          (e.shiftKey && (code === "ArrowUp" || code === "ArrowDown" || code === "ArrowLeft" || code === "ArrowRight"));
+
+        if (isActionRequiringActive && panel.selectedUiId === null) {
+          consume();
+          panel.showToast("Cần active đối tượng để thao tác!", "warning");
+          return;
+        }
+
         // Phím Z đơn: Căn giữa (Center / Focus) View 3D vào xe đang chọn
         if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (key === "z" || code === "KeyZ")) {
           consume();
@@ -179,14 +232,6 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
-        // Phím Shift + M: Mở rộng Fullscreen Track Editor (Duyệt toàn bộ ID)
-        if (e.shiftKey && (key === "m" || code === "KeyM")) {
-          consume();
-          console.log("[CVAT 3D Suite] Phím tắt Shift+M: Mở Fullscreen Track Editor");
-          panel.openFullscreenEditor();
-          return;
-        }
-
         // Phím Shift + F: Lật toàn bộ Track
         if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "f" || code === "KeyF")) {
           consume();
@@ -215,20 +260,6 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           consume();
           const nudgeKey = isKeyW ? "w" : isKeyA ? "a" : isKeyS ? "s" : "d";
           panel.handleNudgeByView(nudgeKey);
-          return;
-        }
-
-        // Phím [ : Xe liền trước
-        if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "[" || code === "BracketLeft")) {
-          consume();
-          panel.selectPrevTrack();
-          return;
-        }
-
-        // Phím ] : Xe kế tiếp
-        if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "]" || code === "BracketRight")) {
-          consume();
-          panel.selectNextTrack();
           return;
         }
 

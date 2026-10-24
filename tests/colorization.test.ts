@@ -3,6 +3,9 @@ import {
   isPointInsideBox3D,
   computePointCloudColors,
   DEFAULT_LABEL_COLORS,
+  DISTINCT_TRACK_PALETTE,
+  OVERLAP_WARNING_COLOR,
+  getDistinctTrackColor,
 } from "../src/core/geometry.ts";
 import type { Box3DTarget } from "../src/core/geometry.ts";
 
@@ -459,4 +462,100 @@ console.log("🧪 Đang chạy kiểm thử tự động Module Point Cloud Colo
   console.log("✅ Test 10: Sticky Track Lock-On & Khóa Chặt Focus: Khóa chặt Track ID = 2 qua các frame, chống nhảy ID");
 }
 
-console.log("\n🎉 TẤT CẢ 10/10 BÀI KIỂM THỬ MODULE POINT CLOUD COLORIZATION ĐÃ PASS 100%!");
+// ==========================================
+// TEST 11: MÀU RIÊNG BIỆT THEO TRACK ID (DISTINCT TRACK COLOR PALETTE)
+// ==========================================
+{
+  // Kiểm tra 2 xe liền kề (Track 16 và Track 17) có màu khác nhau hoàn toàn
+  const color16 = getDistinctTrackColor(16);
+  const color17 = getDistinctTrackColor(17);
+  const color18 = getDistinctTrackColor(18);
+
+  const diff16_17 = Math.abs(color16.r - color17.r) + Math.abs(color16.g - color17.g) + Math.abs(color16.b - color17.b);
+  const diff17_18 = Math.abs(color17.r - color18.r) + Math.abs(color17.g - color18.g) + Math.abs(color17.b - color18.b);
+
+  assert.ok(diff16_17 > 0.5, "Track 16 và Track 17 phải có màu sắc tương phản cao (diff > 0.5)");
+  assert.ok(diff17_18 > 0.5, "Track 17 và Track 18 phải có màu sắc tương phản cao (diff > 0.5)");
+
+  // Khi Active: Màu của xe được đẩy sáng rực rỡ và pha nhẹ ánh vàng neon
+  const color16Active = getDistinctTrackColor(16, true);
+  assert.ok(color16Active.r >= color16.r * 0.79, "Kênh Red khi active phải sáng rõ");
+  assert.ok(color16Active.g >= color16.g * 0.79, "Kênh Green khi active phải sáng rõ");
+
+  console.log("✅ Test 11: Distinct Track Palette: Mỗi Track ID mang một màu riêng biệt, 2 xe liền kề tương phản cực mạnh");
+}
+
+// ==========================================
+// TEST 12: CẢNH BÁO OVERLAP 2..N BOX BẰNG ĐỎ NEON RỰC LỬA (#ff0d33)
+// ==========================================
+{
+  // 3 hạt điểm:
+  // - Point 0: Chỉ nằm trong Box A (x = 8.0, y = 0.0, z = 0.0)
+  // - Point 1: Nằm trong VÙNG GIAO NHAU giữa Box A và Box B (x = 10.0, y = 0.0, z = 0.0) -> OVERLAP!
+  // - Point 2: Chỉ nằm trong Box B (x = 12.0, y = 0.0, z = 0.0)
+  const positions = new Float32Array([
+    8.0, 0.0, 0.0,   // Point 0: Thuộc riêng Box A
+    10.0, 0.0, 0.0,  // Point 1: Giao nhau giữa Box A và Box B (Overlap)
+    12.0, 0.0, 0.0,  // Point 2: Thuộc riêng Box B
+  ]);
+  const dummyIntensities = new Float32Array([150, 150, 150]);
+
+  // Box A tâm (9, 0, 0), dài 4m -> x từ [7, 11]
+  // Box B tâm (11, 0, 0), dài 4m -> x từ [9, 13]
+  // Vùng giao thoa: x từ [9, 11] -> Point 1 (x=10) nằm trong cả hai box!
+  const overlappingBoxes: Box3DTarget[] = [
+    { trackId: 16, cx: 9.0, cy: 0.0, cz: 0.0, rz: 0.0, l: 4.0, w: 2.0, h: 1.5, category: "car" },
+    { trackId: 17, cx: 11.0, cy: 0.0, cz: 0.0, rz: 0.0, l: 4.0, w: 2.0, h: 1.5, category: "car" },
+  ];
+
+  const colors = computePointCloudColors(positions, dummyIntensities, overlappingBoxes, {
+    mode: "plain",
+    colorizeBoxed: true,
+  });
+
+  // Point 0: Phải mang màu riêng của Box A (Track 16)
+  const expectedColor16 = getDistinctTrackColor(16);
+  assert.ok(Math.abs(colors[0] - expectedColor16.r * 0.90) < 1e-3, "Point 0: Phải mang màu Track 16");
+
+  // Point 1: Nằm trong vùng Overlap 2 box -> Phải mang màu ĐỎ NEON CẢNH BÁO (#ff0d33)
+  assert.ok(Math.abs(colors[3] - OVERLAP_WARNING_COLOR.r) < 1e-4, "Point 1 (Overlap): R phải bằng 1.0 (Đỏ Neon)");
+  assert.ok(Math.abs(colors[4] - OVERLAP_WARNING_COLOR.g) < 1e-4, "Point 1 (Overlap): G phải bằng 0.05");
+  assert.ok(Math.abs(colors[5] - OVERLAP_WARNING_COLOR.b) < 1e-4, "Point 1 (Overlap): B phải bằng 0.20");
+
+  // Point 2: Phải mang màu riêng của Box B (Track 17)
+  const expectedColor17 = getDistinctTrackColor(17);
+  assert.ok(Math.abs(colors[6] - expectedColor17.r * 0.90) < 1e-3, "Point 2: Phải mang màu Track 17");
+
+  console.log("✅ Test 12: Cảnh báo Overlap: Điểm trong vùng giao nhau của 2..N box lập tức phát sáng ĐỎ NEON (#ff0d33)!");
+}
+
+// ==========================================
+// TEST 13: TỰ ĐỘNG TẮT ĐỎ NEON KHI KÉO TÁCH RỜI 2 BOX
+// ==========================================
+{
+  // Tách rời 2 box: Dời Box B từ cx=11.0 sang cx=15.0 -> x in [13, 17]
+  // Khi đó Point 1 (x=10.0) chỉ còn nằm trong Box A, không còn Overlap nữa!
+  const positions = new Float32Array([
+    10.0, 0.0, 0.0,  // Point 1 lúc trước bị Overlap
+  ]);
+  const dummyIntensities = new Float32Array([150]);
+
+  const separatedBoxes: Box3DTarget[] = [
+    { trackId: 16, cx: 9.0, cy: 0.0, cz: 0.0, rz: 0.0, l: 4.0, w: 2.0, h: 1.5, category: "car" },
+    { trackId: 17, cx: 15.0, cy: 0.0, cz: 0.0, rz: 0.0, l: 4.0, w: 2.0, h: 1.5, category: "car" }, // Đã tách rời
+  ];
+
+  const colors = computePointCloudColors(positions, dummyIntensities, separatedBoxes, {
+    mode: "plain",
+    colorizeBoxed: true,
+  });
+
+  // Point 1 không còn đỏ neon nữa, mà trở lại màu xanh/riêng của Box A (Track 16)
+  const expectedColor16 = getDistinctTrackColor(16);
+  assert.ok(Math.abs(colors[0] - expectedColor16.r * 0.90) < 1e-3, "Sau khi tách rời: Point 1 phải hết đỏ và trở về màu Track 16");
+  assert.notStrictEqual(colors[0], OVERLAP_WARNING_COLOR.r, "Không còn cảnh báo đỏ neon");
+
+  console.log("✅ Test 13: Khi tách rời 2 box: Màu Đỏ Neon tự động tắt, trả lại màu chuẩn của từng xe");
+}
+
+console.log("\n🎉 TẤT CẢ 13/13 BÀI KIỂM THỬ MODULE POINT CLOUD COLORIZATION ĐÃ PASS 100%!");

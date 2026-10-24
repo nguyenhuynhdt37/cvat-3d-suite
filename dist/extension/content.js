@@ -2783,6 +2783,98 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     active: { r: 0.98, g: 0.8, b: 0.08 }
     // Vàng chanh Neon (#facc15)
   };
+  const DISTINCT_TRACK_PALETTE = [
+    { r: 0, g: 0.95, b: 1 },
+    // 0: Cyan Neon (#00f2fe)
+    { r: 0.96, g: 0.62, b: 0.04 },
+    // 1: Vàng Cam Amber (#f59e0b)
+    { r: 0.66, g: 0.33, b: 0.97 },
+    // 2: Tím Violet (#a855f7)
+    { r: 0.06, g: 0.73, b: 0.51 },
+    // 3: Xanh Lục Emerald (#10b981)
+    { r: 0.93, g: 0.28, b: 0.6 },
+    // 4: Hồng Sen Neon (#ec4899)
+    { r: 0.23, g: 0.51, b: 0.96 },
+    // 5: Xanh Biển Electric Blue (#3b82f6)
+    { r: 0.52, g: 0.8, b: 0.09 },
+    // 6: Xanh Chuối Chartreuse (#84cc16)
+    { r: 0.98, g: 0.57, b: 0.24 },
+    // 7: Cam San Hô Coral (#fb923c)
+    { r: 0.08, g: 0.72, b: 0.65 },
+    // 8: Xanh Ngọc Lục Bảo Teal (#14b8a6)
+    { r: 0.92, g: 0.7, b: 0.03 },
+    // 9: Vàng Gold (#eab308)
+    { r: 0.39, g: 0.4, b: 0.95 },
+    // 10: Tím Indigo (#6366f1)
+    { r: 0.2, g: 0.83, b: 0.6 },
+    // 11: Xanh Lục Mint (#34d399)
+    { r: 0.85, g: 0.27, b: 0.94 },
+    // 12: Hồng Tím Fuchsia (#d946ef)
+    { r: 0.22, g: 0.74, b: 0.97 },
+    // 13: Xanh Trời Sky (#38bdf8)
+    { r: 0.98, g: 0.45, b: 0.09 },
+    // 14: Cam Đỏ Nhẹ Warm Orange (#f97316)
+    { r: 0.13, g: 0.77, b: 0.37 },
+    // 15: Xanh Lá Spring Green (#22c55e)
+    { r: 0.75, g: 0.52, b: 0.99 },
+    // 16: Tím Lavender (#c084fc)
+    { r: 0.02, g: 0.71, b: 0.83 },
+    // 17: Xanh Biển Aqua (#06b6d4)
+    { r: 0.98, g: 0.44, b: 0.52 },
+    // 18: Hồng Phấn Rose (#fb7185)
+    { r: 0.64, g: 0.9, b: 0.21 },
+    // 19: Vàng Chanh Lemon Lime (#a3e635)
+    { r: 0.4, g: 0.91, b: 0.98 },
+    // 20: Xanh Băng Glacier (#67e8f9)
+    { r: 0.99, g: 0.73, b: 0.45 },
+    // 21: Cam Nắng Peach (#fdba74)
+    { r: 0.58, g: 0.2, b: 0.92 },
+    // 22: Tím Orchid (#9333ea)
+    { r: 0.09, g: 0.64, b: 0.29 },
+    // 23: Xanh Clover (#16a34a)
+    { r: 0.96, g: 0.25, b: 0.37 },
+    // 24: Hồng Magenta (#f43f5e)
+    { r: 0.15, g: 0.39, b: 0.92 },
+    // 25: Xanh Sapphire (#2563eb)
+    { r: 0.05, g: 0.58, b: 0.53 },
+    // 26: Xanh Ngọc Jade (#0d9488)
+    { r: 0.85, g: 0.47, b: 0.02 },
+    // 27: Vàng Hổ Phách Đậm (#d97706)
+    { r: 0.31, g: 0.27, b: 0.9 },
+    // 28: Xanh Cobalt (#4f46e5)
+    { r: 0.13, g: 0.83, b: 0.93 },
+    // 29: Xanh Cyan Sáng (#22d3ee)
+    { r: 0.96, g: 0.45, b: 0.71 },
+    // 30: Hồng Pink Light (#f472b6)
+    { r: 0.29, g: 0.87, b: 0.5 }
+    // 31: Xanh Táo Apple Green (#4ade80)
+  ];
+  const OVERLAP_WARNING_COLOR = { r: 1, g: 0.05, b: 0.2 };
+  function getDistinctTrackColor(trackId, isActive) {
+    let numId = 0;
+    if (typeof trackId === "number") {
+      numId = Math.abs(trackId);
+    } else if (typeof trackId === "string") {
+      const parsed = parseInt(trackId, 10);
+      if (!isNaN(parsed)) {
+        numId = Math.abs(parsed);
+      } else {
+        for (let i = 0; i < trackId.length; i++) {
+          numId = numId * 31 + trackId.charCodeAt(i) & 2147483647;
+        }
+      }
+    }
+    const colorIndex = (numId * 13 + 7) % DISTINCT_TRACK_PALETTE.length;
+    const baseColor = DISTINCT_TRACK_PALETTE[colorIndex];
+    if (isActive) {
+      return {
+        r: Math.min(1, baseColor.r * 0.8 + 0.98 * 0.2),
+        g: Math.min(1, baseColor.g * 0.8 + 0.8 * 0.2),
+        b: Math.min(1, baseColor.b * 0.8 + 0.08 * 0.2)
+      };
+    }
+    return baseColor;
+  }
   function computePointCloudColors(positions, intensities, boxes, options, outColors) {
     var _a, _b, _c;
     const count = Math.floor(positions.length / 3);
@@ -2801,7 +2893,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const maxR = Math.max(b.l, b.w, b.h) * 0.75;
         let c = b.color;
         if (!c) {
-          if (b.isActive) {
+          const boxId = b.trackId ?? b.id;
+          if (boxId !== void 0 && boxId !== null) {
+            c = getDistinctTrackColor(boxId, b.isActive);
+          } else if (b.isActive) {
             c = DEFAULT_LABEL_COLORS.active;
           } else {
             const cat = (b.category || "car").toLowerCase();
@@ -2839,6 +2934,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         v = rawInt <= 1 ? rawInt : Math.min(1, rawInt / 255);
       }
       let matchedBox = null;
+      let matchCount = 0;
       if (numBoxes > 0) {
         for (let k = 0; k < numBoxes; k++) {
           const b = fastBoxes[k];
@@ -2865,12 +2961,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             lz = lz3;
           }
           if (Math.abs(lx) <= b.halfL && Math.abs(ly) <= b.halfW && Math.abs(lz) <= b.halfH) {
-            matchedBox = b;
-            break;
+            matchCount++;
+            if (matchCount === 1) {
+              matchedBox = b;
+            } else {
+              matchedBox = null;
+              break;
+            }
           }
         }
       }
-      if (matchedBox) {
+      if (matchCount >= 2) {
+        colors[idx3] = OVERLAP_WARNING_COLOR.r;
+        colors[idx3 + 1] = OVERLAP_WARNING_COLOR.g;
+        colors[idx3 + 2] = OVERLAP_WARNING_COLOR.b;
+      } else if (matchedBox) {
         const factor = isPlainMode ? 0.9 : 0.4 + 0.6 * v;
         colors[idx3] = matchedBox.colorR * factor;
         colors[idx3 + 1] = matchedBox.colorG * factor;
@@ -2913,6 +3018,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     globalThis.fitYawToLaneIntensity = fitYawToLaneIntensity$1;
     globalThis.isPointInsideBox3D = isPointInsideBox3D;
     globalThis.computePointCloudColors = computePointCloudColors;
+    globalThis.DISTINCT_TRACK_PALETTE = DISTINCT_TRACK_PALETTE;
+    globalThis.OVERLAP_WARNING_COLOR = OVERLAP_WARNING_COLOR;
+    globalThis.getDistinctTrackColor = getDistinctTrackColor;
   }
   if (typeof window !== "undefined") {
     window.boxCorners = boxCorners;
@@ -2931,6 +3039,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     window.fitYawToLaneIntensity = fitYawToLaneIntensity$1;
     window.isPointInsideBox3D = isPointInsideBox3D;
     window.computePointCloudColors = computePointCloudColors;
+    window.DISTINCT_TRACK_PALETTE = DISTINCT_TRACK_PALETTE;
+    window.OVERLAP_WARNING_COLOR = OVERLAP_WARNING_COLOR;
+    window.getDistinctTrackColor = getDistinctTrackColor;
   }
   function mainWorldScript() {
     if (window.__CVAT_3D_SUITE_INJECTED__) return;
@@ -3045,8 +3156,100 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return [];
       }
     }
+    const DISTINCT_TRACK_PALETTE2 = [
+      { r: 0, g: 0.95, b: 1 },
+      // 0: Cyan Neon (#00f2fe)
+      { r: 0.96, g: 0.62, b: 0.04 },
+      // 1: Vàng Cam Amber (#f59e0b)
+      { r: 0.66, g: 0.33, b: 0.97 },
+      // 2: Tím Violet (#a855f7)
+      { r: 0.06, g: 0.73, b: 0.51 },
+      // 3: Xanh Lục Emerald (#10b981)
+      { r: 0.93, g: 0.28, b: 0.6 },
+      // 4: Hồng Sen Neon (#ec4899)
+      { r: 0.23, g: 0.51, b: 0.96 },
+      // 5: Xanh Biển Electric Blue (#3b82f6)
+      { r: 0.52, g: 0.8, b: 0.09 },
+      // 6: Xanh Chuối Chartreuse (#84cc16)
+      { r: 0.98, g: 0.57, b: 0.24 },
+      // 7: Cam San Hô Coral (#fb923c)
+      { r: 0.08, g: 0.72, b: 0.65 },
+      // 8: Xanh Ngọc Lục Bảo Teal (#14b8a6)
+      { r: 0.92, g: 0.7, b: 0.03 },
+      // 9: Vàng Gold (#eab308)
+      { r: 0.39, g: 0.4, b: 0.95 },
+      // 10: Tím Indigo (#6366f1)
+      { r: 0.2, g: 0.83, b: 0.6 },
+      // 11: Xanh Lục Mint (#34d399)
+      { r: 0.85, g: 0.27, b: 0.94 },
+      // 12: Hồng Tím Fuchsia (#d946ef)
+      { r: 0.22, g: 0.74, b: 0.97 },
+      // 13: Xanh Trời Sky (#38bdf8)
+      { r: 0.98, g: 0.45, b: 0.09 },
+      // 14: Cam Đỏ Nhẹ Warm Orange (#f97316)
+      { r: 0.13, g: 0.77, b: 0.37 },
+      // 15: Xanh Lá Spring Green (#22c55e)
+      { r: 0.75, g: 0.52, b: 0.99 },
+      // 16: Tím Lavender (#c084fc)
+      { r: 0.02, g: 0.71, b: 0.83 },
+      // 17: Xanh Biển Aqua (#06b6d4)
+      { r: 0.98, g: 0.44, b: 0.52 },
+      // 18: Hồng Phấn Rose (#fb7185)
+      { r: 0.64, g: 0.9, b: 0.21 },
+      // 19: Vàng Chanh Lemon Lime (#a3e635)
+      { r: 0.4, g: 0.91, b: 0.98 },
+      // 20: Xanh Băng Glacier (#67e8f9)
+      { r: 0.99, g: 0.73, b: 0.45 },
+      // 21: Cam Nắng Peach (#fdba74)
+      { r: 0.58, g: 0.2, b: 0.92 },
+      // 22: Tím Orchid (#9333ea)
+      { r: 0.09, g: 0.64, b: 0.29 },
+      // 23: Xanh Clover (#16a34a)
+      { r: 0.96, g: 0.25, b: 0.37 },
+      // 24: Hồng Magenta (#f43f5e)
+      { r: 0.15, g: 0.39, b: 0.92 },
+      // 25: Xanh Sapphire (#2563eb)
+      { r: 0.05, g: 0.58, b: 0.53 },
+      // 26: Xanh Ngọc Jade (#0d9488)
+      { r: 0.85, g: 0.47, b: 0.02 },
+      // 27: Vàng Hổ Phách Đậm (#d97706)
+      { r: 0.31, g: 0.27, b: 0.9 },
+      // 28: Xanh Cobalt (#4f46e5)
+      { r: 0.13, g: 0.83, b: 0.93 },
+      // 29: Xanh Cyan Sáng (#22d3ee)
+      { r: 0.96, g: 0.45, b: 0.71 },
+      // 30: Hồng Pink Light (#f472b6)
+      { r: 0.29, g: 0.87, b: 0.5 }
+      // 31: Xanh Táo Apple Green (#4ade80)
+    ];
+    const OVERLAP_WARNING_COLOR2 = { r: 1, g: 0.05, b: 0.2 };
+    function getDistinctTrackColor2(trackId, isActive) {
+      let numId = 0;
+      if (typeof trackId === "number") {
+        numId = Math.abs(trackId);
+      } else if (typeof trackId === "string") {
+        const parsed = parseInt(trackId, 10);
+        if (!isNaN(parsed)) {
+          numId = Math.abs(parsed);
+        } else {
+          for (let i = 0; i < trackId.length; i++) {
+            numId = numId * 31 + trackId.charCodeAt(i) & 2147483647;
+          }
+        }
+      }
+      const colorIndex = (numId * 13 + 7) % DISTINCT_TRACK_PALETTE2.length;
+      const baseColor = DISTINCT_TRACK_PALETTE2[colorIndex];
+      if (isActive) {
+        return {
+          r: Math.min(1, baseColor.r * 0.8 + 0.98 * 0.2),
+          g: Math.min(1, baseColor.g * 0.8 + 0.8 * 0.2),
+          b: Math.min(1, baseColor.b * 0.8 + 0.08 * 0.2)
+        };
+      }
+      return baseColor;
+    }
     function applyPointCloudColorizationInMainWorld(options) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C;
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A;
       if (isColorizingRunning) return false;
       try {
         if (options == null ? void 0 : options.mode) currentPointColorMode = options.mode;
@@ -3084,19 +3287,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               if (l <= 0 || w <= 0 || h2 <= 0) continue;
               const clientId = Number(s.clientID ?? s.id);
               const isActive = clientId === Number(activeClientId);
-              const labelName = (((_s = s.label) == null ? void 0 : _s.name) || "").toLowerCase();
-              let c = defaultColors.car;
-              if (isActive) {
-                c = defaultColors.active;
-              } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
-                c = defaultColors.pedestrian;
-              } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
-                c = defaultColors.cyclist;
-              } else if (labelName.includes("truck")) {
-                c = defaultColors.truck;
-              } else if (labelName.includes("bus")) {
-                c = defaultColors.bus;
-              }
+              const trackId = s.parentID ?? s.trackID ?? clientId;
+              const c = getDistinctTrackColor2(trackId, isActive);
               const yaw = pts[5] || 0;
               fastBoxesMap.set(clientId, {
                 cx: pts[0],
@@ -3117,7 +3309,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               });
             }
           }
-          const drawnObjects = ((_t = canvas.view) == null ? void 0 : _t.drawnObjects) || {};
+          const drawnObjects = ((_s = canvas.view) == null ? void 0 : _s.drawnObjects) || {};
           for (const idStr of Object.keys(drawnObjects)) {
             const drawnItem = drawnObjects[idStr];
             const data = drawnItem == null ? void 0 : drawnItem.data;
@@ -3131,9 +3323,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               let w = pts[7];
               let h2 = pts[8];
               if (drawnItem.cuboid) {
-                const cp = drawnItem.cuboid.position || ((_u = drawnItem.cuboid.perspective) == null ? void 0 : _u.position) || ((_v = drawnItem.cuboid.top) == null ? void 0 : _v.position);
-                const cr = drawnItem.cuboid.rotation || ((_w = drawnItem.cuboid.perspective) == null ? void 0 : _w.rotation) || ((_x = drawnItem.cuboid.top) == null ? void 0 : _x.rotation);
-                const cs = drawnItem.cuboid.scale || ((_y = drawnItem.cuboid.perspective) == null ? void 0 : _y.scale) || ((_z = drawnItem.cuboid.top) == null ? void 0 : _z.scale);
+                const cp = drawnItem.cuboid.position || ((_t = drawnItem.cuboid.perspective) == null ? void 0 : _t.position) || ((_u = drawnItem.cuboid.top) == null ? void 0 : _u.position);
+                const cr = drawnItem.cuboid.rotation || ((_v = drawnItem.cuboid.perspective) == null ? void 0 : _v.rotation) || ((_w = drawnItem.cuboid.top) == null ? void 0 : _w.rotation);
+                const cs = drawnItem.cuboid.scale || ((_x = drawnItem.cuboid.perspective) == null ? void 0 : _x.scale) || ((_y = drawnItem.cuboid.top) == null ? void 0 : _y.scale);
                 if (cp && typeof cp.x === "number") {
                   cx = cp.x;
                   cy = cp.y;
@@ -3151,19 +3343,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               if (l <= 0 || w <= 0 || h2 <= 0) continue;
               const clientId = Number(idStr);
               const isActive = clientId === Number(activeClientId);
-              const labelName = (((_A = data.label) == null ? void 0 : _A.name) || "").toLowerCase();
-              let c = defaultColors.car;
-              if (isActive) {
-                c = defaultColors.active;
-              } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
-                c = defaultColors.pedestrian;
-              } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
-                c = defaultColors.cyclist;
-              } else if (labelName.includes("truck")) {
-                c = defaultColors.truck;
-              } else if (labelName.includes("bus")) {
-                c = defaultColors.bus;
-              }
+              const trackId = data.parentID ?? data.trackID ?? clientId;
+              const c = getDistinctTrackColor2(trackId, isActive);
               fastBoxesMap.set(clientId, {
                 cx,
                 cy,
@@ -3203,11 +3384,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             continue;
           }
           processedGeometries.add(geom);
-          const posAttr = (_B = geom.attributes) == null ? void 0 : _B.position;
+          const posAttr = (_z = geom.attributes) == null ? void 0 : _z.position;
           if (!posAttr || !posAttr.array) continue;
           const count = posAttr.count;
           const posArray = posAttr.array;
-          const intensityAttr = (_C = geom.attributes.intensity || geom.attributes.intensities) == null ? void 0 : _C.array;
+          const intensityAttr = (_A = geom.attributes.intensity || geom.attributes.intensities) == null ? void 0 : _A.array;
           let colorAttr = geom.attributes.color;
           let colorArray;
           const BufferAttrClass = posAttr.constructor;
@@ -3235,6 +3416,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               v = rawInt <= 1 ? rawInt : Math.min(1, rawInt / 255);
             }
             let matched = null;
+            let matchCount = 0;
             if (numBoxes > 0) {
               for (let k = 0; k < numBoxes; k++) {
                 const b = fastBoxes[k];
@@ -3261,12 +3443,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                   lz = lz3;
                 }
                 if (Math.abs(lx) <= b.halfL && Math.abs(ly) <= b.halfW && Math.abs(lz) <= b.halfH) {
-                  matched = b;
-                  break;
+                  matchCount++;
+                  if (matchCount === 1) {
+                    matched = b;
+                  } else {
+                    matched = null;
+                    break;
+                  }
                 }
               }
             }
-            if (matched) {
+            if (matchCount >= 2) {
+              colorArray[idx3] = OVERLAP_WARNING_COLOR2.r;
+              colorArray[idx3 + 1] = OVERLAP_WARNING_COLOR2.g;
+              colorArray[idx3 + 2] = OVERLAP_WARNING_COLOR2.b;
+            } else if (matched) {
               const factor = isPlain ? 0.9 : 0.4 + 0.6 * v;
               colorArray[idx3] = matched.colorR * factor;
               colorArray[idx3 + 1] = matched.colorG * factor;
@@ -6218,7 +6409,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     function lockOnActiveObjectAtFrame(targetId, targetFrame, attempt = 0) {
       var _a, _b, _c, _d, _e, _f, _g, _h;
-      if (!autoCenterOnFrameChange) return;
       try {
         const store = getReduxStore();
         const anno = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation;
@@ -6229,7 +6419,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           matchedState = states.find(
             (s) => {
               var _a2;
-              return Number(s.parentID ?? s.trackID ?? ((_a2 = s.parent) == null ? void 0 : _a2.clientID)) === Number(persistentActiveTrackId) || Number(s.clientID) === Number(persistentActiveTrackId);
+              return (Number(s.parentID ?? s.trackID ?? ((_a2 = s.parent) == null ? void 0 : _a2.clientID)) === Number(persistentActiveTrackId) || Number(s.clientID) === Number(persistentActiveTrackId)) && !s.outside;
             }
           );
         }
@@ -6237,7 +6427,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           matchedState = states.find(
             (s) => {
               var _a2;
-              return Number(s.clientID) === Number(targetId) || Number(s.parentID ?? s.trackID ?? ((_a2 = s.parent) == null ? void 0 : _a2.clientID)) === Number(targetId);
+              return (Number(s.clientID) === Number(targetId) || Number(s.parentID ?? s.trackID ?? ((_a2 = s.parent) == null ? void 0 : _a2.clientID)) === Number(targetId)) && !s.outside;
             }
           );
         }
@@ -6254,7 +6444,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         } else {
           const drawnItem = (_e = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.drawnObjects) == null ? void 0 : _e[String(targetId)];
-          if (((_f = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _f.points) && Array.isArray(drawnItem.data.points)) {
+          if (((_f = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _f.points) && Array.isArray(drawnItem.data.points) && !drawnItem.data.outside) {
             foundPos = {
               x: drawnItem.data.points[0],
               y: drawnItem.data.points[1],
@@ -6279,7 +6469,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             } catch (_) {
             }
           }
-          center3DViewOnObject(activeIdToUse, foundPos);
+          if (autoCenterOnFrameChange) {
+            center3DViewOnObject(activeIdToUse, foundPos);
+          }
           try {
             const sidebarItem = document.querySelector(`#cvat-objects-sidebar-state-item-${activeIdToUse}`) || document.querySelector(`[data-cvat-state-item-id="${activeIdToUse}"]`) || document.querySelector(`[class*="cvat-objects-sidebar-state-item"][id*="${activeIdToUse}"]`);
             if (sidebarItem) {
@@ -6293,11 +6485,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           if (typeof canvas.render === "function") {
             canvas.render();
           }
-          if (isMeshReady && attempt >= 2) {
-            return;
-          }
+          const details = extractObjectDetails(activeIdToUse);
+          window.dispatchEvent(
+            new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+              detail: { clientId: activeIdToUse, details }
+            })
+          );
         }
-        const delays = [30, 80, 160, 300, 500];
+        const delays = [40, 100, 220, 450, 750];
         if (attempt < delays.length) {
           setTimeout(() => {
             var _a2, _b2, _c2, _d2, _e2, _f2;
@@ -6306,6 +6501,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               lockOnActiveObjectAtFrame(targetId, targetFrame, attempt + 1);
             }
           }, delays[attempt]);
+        } else if (!matchedState && attempt >= delays.length) {
+          window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_OBJECT_DEACTIVATED"));
         }
       } catch (err) {
         console.warn("[CVAT 3D Suite] Lỗi lockOnActiveObjectAtFrame:", err);
@@ -6628,8 +6825,20 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         if (currentColorizeBoxed) {
           applyPointCloudColorizationInMainWorld();
+          setTimeout(() => applyPointCloudColorizationInMainWorld(), 80);
+          setTimeout(() => applyPointCloudColorizationInMainWorld(), 220);
         }
       };
+      window.addEventListener(
+        "pointerdown",
+        (e) => {
+          const target = e.target;
+          if (target && target.closest && target.closest(".cvat-canvas-container, .cvat-canvas3d-orthographic-view, [class*='cvat-canvas3d'], canvas")) {
+            isCanvasInteracting = true;
+          }
+        },
+        { capture: true, passive: true }
+      );
       window.addEventListener("pointermove", onPointerMove, { passive: true });
       window.addEventListener("pointerup", onPointerUp, { passive: true });
       window.addEventListener("pointercancel", onPointerUp, { passive: true });
@@ -6767,10 +6976,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           let prevActiveId = null;
           let prevStatesLen = 0;
           let prevFrame = null;
+          let prevPointsFingerprint = "";
           let activeDebounceTimer = null;
           let dirtyDebounceTimer = null;
+          let pointsDebounceTimer = null;
           store2.subscribe(() => {
-            var _a, _b, _c, _d, _e, _f, _g, _h;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _i;
             try {
               const anno = (_a = store2.getState()) == null ? void 0 : _a.annotation;
               const curActiveId = (_b = anno == null ? void 0 : anno.annotations) == null ? void 0 : _b.activatedStateClientID;
@@ -6779,6 +6990,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               if (curFrame !== void 0 && curFrame !== null && curFrame !== prevFrame) {
                 const oldFrame = prevFrame;
                 prevFrame = curFrame;
+                prevPointsFingerprint = "";
                 isFrameTransitioning = true;
                 if (frameTransitionTimer) clearTimeout(frameTransitionTimer);
                 frameTransitionTimer = setTimeout(() => {
@@ -6816,6 +7028,35 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                     );
                     applyPointCloudColorizationInMainWorld();
                   }, 80);
+                } else {
+                  lastActiveTrackId = null;
+                  persistentActiveTrackId = null;
+                  if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
+                  activeDebounceTimer = setTimeout(() => {
+                    activeDebounceTimer = null;
+                    window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_OBJECT_DEACTIVATED"));
+                    applyPointCloudColorizationInMainWorld();
+                  }, 80);
+                }
+              }
+              const states = ((_i = anno == null ? void 0 : anno.annotations) == null ? void 0 : _i.states) || [];
+              let currentPointsFingerprint = "";
+              for (let i = 0; i < states.length; i++) {
+                const st = states[i];
+                if (st && Array.isArray(st.points) && st.points.length >= 9 && !st.outside) {
+                  const p = st.points;
+                  currentPointsFingerprint += `${st.clientID}:${Math.round(p[0] * 50)},${Math.round(p[1] * 50)},${Math.round(p[2] * 50)},${Math.round(p[5] * 50)},${Math.round(p[6] * 50)},${Math.round(p[7] * 50)},${Math.round(p[8] * 50)}|`;
+                }
+              }
+              if (currentPointsFingerprint !== prevPointsFingerprint) {
+                const isInit = prevPointsFingerprint === "";
+                prevPointsFingerprint = currentPointsFingerprint;
+                if (!isInit) {
+                  if (pointsDebounceTimer) clearTimeout(pointsDebounceTimer);
+                  pointsDebounceTimer = setTimeout(() => {
+                    pointsDebounceTimer = null;
+                    applyPointCloudColorizationInMainWorld();
+                  }, 50);
                 }
               }
               if (curStatesLen !== prevStatesLen) {
@@ -19633,6 +19874,15 @@ Cancel = hủy`
           this.selectTrackByUiId(clientId, void 0, false);
         }
       });
+      window.addEventListener("CVAT_EXT_RES_OBJECT_DEACTIVATED", () => {
+        if (this.selectedUiId !== null) {
+          console.log("[CVAT 3D Suite] Đối tượng bị hủy kích hoạt trên CVAT -> chuyển sang Inactive State");
+          this.selectedUiId = null;
+          this.selectedServerId = null;
+          this.currentLabel = "Chưa chọn đối tượng";
+          this.scheduleUpdate();
+        }
+      });
       window.addEventListener("CVAT_EXT_RES_FRAME_TRACKS_DIRTY", () => {
         this.syncFrameTracks();
       });
@@ -19736,34 +19986,26 @@ Cancel = hủy`
     }
     /**
      * Đảm bảo luôn có đối tượng được chọn trước khi thực hiện thao tác phím tắt hoặc nút bấm.
-     * Nếu selectedUiId đang null, tự động quét từ Sidebar hoặc lấy xe đầu tiên trong Frame.
+     * Nếu selectedUiId đang null, chỉ lấy khi trên Sidebar CVAT có đối tượng active thực sự.
+     * TUYỆT ĐỐI KHÔNG TỰ Ý CHỌN XE ĐẦU TIÊN KHI NGƯỜI DÙNG CHƯA ACTIVE.
      */
     async ensureActiveTrackSelected() {
-      var _a;
       if (this.selectedUiId !== null) return this.selectedUiId;
       const active = CVATBridge.getActiveTrackId();
       if (active.id !== null) {
-        console.log(`[CVAT 3D Suite] Tự động chọn xe active #${active.id} từ Sidebar`);
-        await this.selectTrackByUiId(active.id, void 0, false);
-        return this.selectedUiId;
-      }
-      if (this.frameTracks.length > 0) {
-        console.log(`[CVAT 3D Suite] Tự động chọn xe đầu tiên #${this.frameTracks[0].uiId} trong frame`);
-        await this.selectTrackByUiId(this.frameTracks[0].uiId, void 0, false);
-        return this.selectedUiId;
-      }
-      if ((_a = this.currentCtx) == null ? void 0 : _a.jobId) {
-        await this.syncFrameTracks();
-        if (this.frameTracks.length > 0) {
-          console.log(`[CVAT 3D Suite] Tự động đồng bộ và chọn xe #${this.frameTracks[0].uiId}`);
-          await this.selectTrackByUiId(this.frameTracks[0].uiId, void 0, false);
+        const isTrackInCurrentFrame = this.frameTracks.some((t) => t.uiId === active.id);
+        if (isTrackInCurrentFrame) {
+          console.log(`[CVAT 3D Suite] Chọn đối tượng active #${active.id} từ Sidebar`);
+          await this.selectTrackByUiId(active.id, void 0, false);
           return this.selectedUiId;
         }
       }
       return null;
     }
     /**
-     * Đồng bộ danh sách xe có mặt tại Frame hiện tại
+     * Đồng bộ danh sách xe có mặt tại Frame hiện tại.
+     * Duy trì Track ID đang active nếu track đó còn tồn tại ở frame mới;
+     * Nếu track kết thúc hoặc outside, chuyển về Inactive State (TUYỆT ĐỐI KHÔNG NHẢY SANG XE KHÁC).
      */
     async syncFrameTracks() {
       if (!this.currentCtx || !this.currentCtx.jobId) return;
@@ -19781,34 +20023,41 @@ Cancel = hủy`
         }).catch(() => {
         });
       }
-      const isCurrentTrackInFrame = tracks.some((t) => t.uiId === this.selectedUiId);
-      if (!isCurrentTrackInFrame && tracks.length > 0) {
-        await this.selectTrackByUiId(tracks[0].uiId, void 0, false);
-      } else if (isCurrentTrackInFrame && this.selectedUiId) {
-        const cur = tracks.find((t) => t.uiId === this.selectedUiId);
-        if (cur) {
-          this.selectedServerId = cur.serverId;
-          this.currentLabel = cur.label;
-          this.currentX = cur.x;
-          this.currentY = cur.y;
-          this.currentZ = cur.z;
-          this.currentYawDeg = cur.yawDeg;
-          this.currentL = cur.l;
-          this.currentW = cur.w;
-          this.currentH = cur.h;
-          this.editL = cur.l;
-          this.editW = cur.w;
-          this.editH = cur.h;
-        }
+      let matchingTrack;
+      if (this.selectedServerId) {
+        matchingTrack = tracks.find((t) => t.serverId === this.selectedServerId);
+      }
+      if (!matchingTrack && this.selectedUiId !== null) {
+        matchingTrack = tracks.find((t) => t.uiId === this.selectedUiId);
+      }
+      if (matchingTrack) {
+        this.selectedUiId = matchingTrack.uiId;
+        this.selectedServerId = matchingTrack.serverId;
+        this.currentLabel = matchingTrack.label;
+        this.syncCategoryFromLabel(this.currentLabel);
+        this.currentX = matchingTrack.x;
+        this.currentY = matchingTrack.y;
+        this.currentZ = matchingTrack.z;
+        this.currentYawDeg = matchingTrack.yawDeg;
+        this.currentL = matchingTrack.l;
+        this.currentW = matchingTrack.w;
+        this.currentH = matchingTrack.h;
+        this.editL = matchingTrack.l;
+        this.editW = matchingTrack.w;
+        this.editH = matchingTrack.h;
+        CVATBridge.activateCanvasTrack(matchingTrack.uiId, { x: matchingTrack.x, y: matchingTrack.y, z: matchingTrack.z });
+        CVATBridge.setActiveTrackIdInMainWorld(matchingTrack.uiId);
         if (this.selectedUiId && (!this.trackStats || this.trackStats.uiId !== this.selectedUiId)) {
           this.loadTrackStats(this.selectedUiId);
         }
         this.scheduleUpdate();
-      } else if (tracks.length === 0 && this.selectedUiId !== null) {
-        this.selectedUiId = null;
-        this.selectedServerId = null;
-        this.currentLabel = "Chưa chọn đối tượng";
-        this.scheduleUpdate();
+      } else {
+        if (this.selectedUiId !== null) {
+          this.selectedUiId = null;
+          this.selectedServerId = null;
+          this.currentLabel = "Chưa chọn đối tượng";
+          this.scheduleUpdate();
+        }
       }
     }
     syncCategoryFromLabel(label) {
@@ -20252,7 +20501,11 @@ Cancel = hủy`
         await this.ensureActiveTrackSelected();
       }
       if (this.selectedUiId === null) {
-        this.showToast("Vui lòng chọn xe từ danh sách!", "warning");
+        this.showToast("Cần active đối tượng để thao tác!", "warning");
+        return;
+      }
+      if (this.selectedCategory === "pedestrian") {
+        this.showToast("Không áp dụng lật 180° cho Người đi bộ!", "warning");
         return;
       }
       if (this.isProcessing) return;
@@ -20591,7 +20844,11 @@ Cancel = hủy`
         await this.ensureActiveTrackSelected();
       }
       if (this.selectedUiId === null) {
-        this.showToast("Vui lòng chọn xe trước!", "warning");
+        this.showToast("Cần active đối tượng để thao tác!", "warning");
+        return;
+      }
+      if (this.selectedCategory !== "car") {
+        this.showToast("Căn làn đường chỉ áp dụng cho Ô tô/Xe cơ giới!", "warning");
         return;
       }
       if (this.isProcessing) return;
@@ -20821,7 +21078,11 @@ Cancel = hủy`
         await this.ensureActiveTrackSelected();
       }
       if (this.selectedUiId === null) {
-        this.showToast("Vui lòng chọn người trước!", "warning");
+        this.showToast("Cần active đối tượng để thao tác!", "warning");
+        return;
+      }
+      if (this.selectedCategory !== "pedestrian") {
+        this.showToast("Fit Người chỉ áp dụng cho nhãn Người đi bộ!", "warning");
         return;
       }
       if (this.isProcessing) return;
@@ -20903,7 +21164,11 @@ Cancel = hủy`
         await this.ensureActiveTrackSelected();
       }
       if (this.selectedUiId === null) {
-        this.showToast("Vui lòng chọn xe trước!", "warning");
+        this.showToast("Cần active đối tượng để thao tác!", "warning");
+        return;
+      }
+      if (this.selectedCategory !== "cyclist") {
+        this.showToast("Fit Xe 2 bánh chỉ áp dụng cho nhãn Xe 2 bánh (Cyclist)!", "warning");
         return;
       }
       if (this.isProcessing) return;
@@ -21030,7 +21295,11 @@ Cancel = hủy`
         return;
       }
       if (this.selectedUiId === null) {
-        this.showToast("Vui lòng chọn xe trước!", "warning");
+        this.showToast("Cần active đối tượng để thao tác!", "warning");
+        return;
+      }
+      if (this.selectedCategory !== "car") {
+        this.showToast("Catalog kích thước chỉ áp dụng cho Ô tô/Xe cơ giới!", "warning");
         return;
       }
       if (this.isProcessing) return;
@@ -21527,7 +21796,7 @@ Cancel = hủy`
             ">
               <span style="display: flex; align-items: center; gap: 6px;">
                 <span style="color: #059669; font-weight: 700;">${this.selectedUiId ? `#${this.selectedUiId}` : "#0"}</span>
-                <span style="font-weight: 600; font-size: 11px; color: #09090b;">${this.selectedUiId ? this.currentLabel : "Chưa chọn đối tượng"}</span>
+                <span style="font-weight: 600; font-size: 11px; color: #09090b;">${this.selectedUiId ? this.currentLabel : "Chưa active đối tượng"}</span>
               </span>
               <span style="color: #64748b; font-size: 9px;">${this.isDropdownOpen ? "▲" : "▼"}</span>
             </button>
@@ -21691,99 +21960,122 @@ Cancel = hủy`
             </div>
           ` : ""}
 
-          <!-- PHÂN LOẠI ĐỐI TƯỢNG (CATEGORY CHIPS) -->
-          <div style="
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 4px;
-            background: #f1f5f9;
-            padding: 3px;
-            border-radius: 7px;
-            border: 1px solid #e2e8f0;
-          ">
-            <button class="btn-category-chip" data-cat="car" style="
-              background: ${this.selectedCategory === "car" ? "#ffffff" : "transparent"};
-              border: 1px solid ${this.selectedCategory === "car" ? "#10b981" : "transparent"};
-              color: ${this.selectedCategory === "car" ? "#059669" : "#64748b"};
-              box-shadow: ${this.selectedCategory === "car" ? "0 1px 3px rgba(0,0,0,0.06)" : "none"};
-              padding: 5px 6px;
-              border-radius: 5px;
-              font-size: 11px;
-              font-weight: 600;
-              cursor: pointer;
+          ${this.selectedUiId === null ? `
+            <!-- KHỐI THÔNG BÁO INACTIVE STATE: ẨN TOÀN BỘ CHỨC NĂNG KHI CHƯA ACTIVE -->
+            <div style="
+              background: #f8fafc;
+              border: 1.5px dashed #cbd5e1;
+              border-radius: 10px;
+              padding: 24px 14px;
+              text-align: center;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 10px;
+              margin-top: 4px;
+            ">
+              <div style="
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: #eff6ff;
+                border: 1px solid #bfdbfe;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #2563eb;
+              ">
+                ${ICONS.target}
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-weight: 700; font-size: 13px; color: #0f172a;">Cần active đối tượng để thao tác</span>
+                <span style="font-size: 11px; color: #64748b; line-height: 1.5; max-width: 280px;">
+                  Vui lòng click vào 1 Box 3D trên màn hình hoặc chọn từ danh sách Sidebar để mở khóa các công cụ căn chỉnh.
+                </span>
+              </div>
+
+              ${this.frameTracks.length > 0 ? `
+                <div style="margin-top: 6px; width: 100%; max-width: 270px;">
+                  <span style="font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;">Hoặc chọn trong Frame (${this.frameTracks.length} đối tượng):</span>
+                  <div style="display: flex; flex-direction: column; gap: 4px; max-height: 130px; overflow-y: auto;">
+                    ${this.frameTracks.map(
+        (t) => `
+                      <button class="btn-quick-select-track" data-uiid="${t.uiId}" style="
+                        background: #ffffff;
+                        border: 1px solid #e2e8f0;
+                        padding: 5px 8px;
+                        border-radius: 6px;
+                        font-size: 11px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        color: #1e293b;
+                        transition: all 0.12s;
+                      ">
+                        <span style="font-weight: 700; color: #059669;">#${t.uiId}</span>
+                        <span style="font-weight: 500;">${t.label}</span>
+                        <span style="font-size: 9.5px; color: #64748b; font-family: monospace;">Z: ${t.z}m</span>
+                      </button>
+                    `
+      ).join("")}
+                  </div>
+                </div>
+              ` : ""}
+            </div>
+          ` : `
+            <!-- PHÂN LOẠI ĐỐI TƯỢNG (HIỂN THỊ RÕ NHÃN & CATEGORY) -->
+            <div style="
               display: flex;
               align-items: center;
-              justify-content: center;
-              gap: 5px;
-              transition: all 0.12s;
+              justify-content: space-between;
+              background: #f1f5f9;
+              padding: 5px 8px;
+              border-radius: 7px;
+              border: 1px solid #e2e8f0;
             ">
-              <span style="display: flex; align-items: center;">${ICONS.car}</span>
-              <span>Ô tô</span>
-            </button>
+              <span style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase;">Loại đối tượng:</span>
+              <div style="
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                padding: 2px 8px;
+                border-radius: 5px;
+                font-size: 11px;
+                font-weight: 700;
+                background: ${this.selectedCategory === "car" ? "#ecfdf5" : this.selectedCategory === "pedestrian" ? "#faf5ff" : "#fffbeb"};
+                border: 1px solid ${this.selectedCategory === "car" ? "#a7f3d0" : this.selectedCategory === "pedestrian" ? "#d8b4fe" : "#fcd34d"};
+                color: ${this.selectedCategory === "car" ? "#047857" : this.selectedCategory === "pedestrian" ? "#6b21a8" : "#b45309"};
+              ">
+                <span style="display: flex; align-items: center;">${this.selectedCategory === "car" ? ICONS.car : this.selectedCategory === "pedestrian" ? ICONS.user : ICONS.bicycle}</span>
+                <span>${this.selectedCategory === "car" ? "Ô tô / Xe cơ giới" : this.selectedCategory === "pedestrian" ? "Người đi bộ" : "Xe 2 bánh (Cyclist)"}</span>
+              </div>
+            </div>
 
-            <button class="btn-category-chip" data-cat="pedestrian" style="
-              background: ${this.selectedCategory === "pedestrian" ? "#ffffff" : "transparent"};
-              border: 1px solid ${this.selectedCategory === "pedestrian" ? "#a855f7" : "transparent"};
-              color: ${this.selectedCategory === "pedestrian" ? "#7e22ce" : "#64748b"};
-              box-shadow: ${this.selectedCategory === "pedestrian" ? "0 1px 3px rgba(0,0,0,0.06)" : "none"};
-              padding: 5px 6px;
-              border-radius: 5px;
-              font-size: 11px;
-              font-weight: 600;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 5px;
-              transition: all 0.12s;
+            <!-- THÔNG SỐ TÓM TẮT X, Y, Z, YAW -->
+            <div style="
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 4px;
+              font-size: 10px;
+              font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+              background: #f8fafc;
+              padding: 4px 6px;
+              border-radius: 6px;
+              border: 1px solid #e2e8f0;
+              color: #475569;
+              text-align: center;
             ">
-              <span style="display: flex; align-items: center;">${ICONS.user}</span>
-              <span>Người</span>
-            </button>
-
-            <button class="btn-category-chip" data-cat="cyclist" style="
-              background: ${this.selectedCategory === "cyclist" ? "#ffffff" : "transparent"};
-              border: 1px solid ${this.selectedCategory === "cyclist" ? "#f59e0b" : "transparent"};
-              color: ${this.selectedCategory === "cyclist" ? "#d97706" : "#64748b"};
-              box-shadow: ${this.selectedCategory === "cyclist" ? "0 1px 3px rgba(0,0,0,0.06)" : "none"};
-              padding: 5px 6px;
-              border-radius: 5px;
-              font-size: 11px;
-              font-weight: 600;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 5px;
-              transition: all 0.12s;
-            ">
-              <span style="display: flex; align-items: center;">${ICONS.bicycle}</span>
-              <span>Xe 2 bánh</span>
-            </button>
-          </div>
-
-          <!-- THÔNG SỐ TÓM TẮT X, Y, Z, YAW -->
-          <div style="
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 4px;
-            font-size: 10px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            background: #f8fafc;
-            padding: 4px 6px;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-            color: #475569;
-            text-align: center;
-          ">
-            <div><span style="color: #64748b;">X:</span> ${this.currentX}</div>
-            <div><span style="color: #64748b;">Y:</span> ${this.currentY}</div>
-            <div><span style="color: #64748b;">Z:</span> ${this.currentZ}</div>
-            <div><span style="color: #64748b;">Yaw:</span> <span style="color: #059669; font-weight: bold;">${this.currentYawDeg}°</span></div>
-          </div>
+              <div><span style="color: #64748b;">X:</span> ${this.currentX}</div>
+              <div><span style="color: #64748b;">Y:</span> ${this.currentY}</div>
+              <div><span style="color: #64748b;">Z:</span> ${this.currentZ}</div>
+              <div><span style="color: #64748b;">Yaw:</span> <span style="color: #059669; font-weight: bold;">${this.currentYawDeg}°</span></div>
+            </div>
+          `}
         </div>
 
-        <!-- KHỐI 2: ĐIỀU KHIỂN CĂN CHỈNH 2D/3D & THAO TÁC NHANH -->
+        ${this.selectedUiId !== null ? `
+          <!-- KHỐI 2: ĐIỀU KHIỂN CĂN CHỈNH 2D/3D & THAO TÁC NHANH (PHÂN LẬP THEO NHÃN) -->
         <div style="
           background: #ffffff;
           border: 1px solid #e2e8f0;
@@ -22622,6 +22914,7 @@ Cancel = hủy`
         </button>
 
         ${advancedContentHtml}
+        ` : ""}
 
         <!-- KHỐI 5: NÚT MỞ RỘNG FULLSCREEN TRACK STUDIO (DUYỆT THEO ID) -->
         <button id="btn-banner-fullscreen-editor" title="Mở Rộng Toàn Màn Hình · Duyệt Toàn Bộ Track ID (Shift+M)" style="
@@ -22854,6 +23147,15 @@ Cancel = hủy`
             this.selectTrackByUiId(id);
             this.isDropdownOpen = false;
             this.updateContent();
+          }
+        });
+      });
+      const quickSelectBtns = this.container.querySelectorAll(".btn-quick-select-track");
+      quickSelectBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = parseInt(btn.dataset.uiid || "0", 10);
+          if (id > 0) {
+            this.selectTrackByUiId(id, void 0, true);
           }
         });
       });
@@ -23410,6 +23712,28 @@ Cancel = hủy`
             panel.handleUndo();
             return;
           }
+          if (e.shiftKey && (key === "m" || code === "KeyM")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Shift+M: Mở Fullscreen Track Editor");
+            panel.openFullscreenEditor();
+            return;
+          }
+          if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "[" || code === "BracketLeft")) {
+            consume();
+            panel.selectPrevTrack();
+            return;
+          }
+          if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "]" || code === "BracketRight")) {
+            consume();
+            panel.selectNextTrack();
+            return;
+          }
+          const isActionRequiringActive = key === "z" || code === "KeyZ" || (key === "o" || code === "KeyO") || (key === "i" || code === "KeyI") || (key === "f" || code === "KeyF") || (key === "w" || code === "KeyW" || key === "ư") || (key === "a" || code === "KeyA" || ["á", "à", "ả", "ã", "ạ", "â", "ă"].includes(key)) || (key === "s" || code === "KeyS") || (key === "d" || code === "KeyD" || key === "đ") || (key === "q" || code === "KeyQ") || (key === "e" || code === "KeyE") || (key === "g" || code === "KeyG") || (key === "r" || code === "KeyR") || (key === "1" || code === "Digit1" || code === "Numpad1" || key === "t" || code === "KeyT") || (key === "2" || code === "Digit2" || code === "Numpad2") || (key === "3" || code === "Digit3" || code === "Numpad3") || (key === "4" || code === "Digit4" || code === "Numpad4") || (key === "5" || code === "Digit5" || code === "Numpad5") || (key === "p" || code === "KeyP") || (key === "c" || code === "KeyC") || (key === "b" || code === "KeyB") || (key === "l" || code === "KeyL") || e.shiftKey && (code === "ArrowUp" || code === "ArrowDown" || code === "ArrowLeft" || code === "ArrowRight");
+          if (isActionRequiringActive && panel.selectedUiId === null) {
+            consume();
+            panel.showToast("Cần active đối tượng để thao tác!", "warning");
+            return;
+          }
           if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (key === "z" || code === "KeyZ")) {
             consume();
             console.log("[CVAT 3D Suite] Phím tắt Z: Căn giữa View 3D vào xe đang chọn");
@@ -23433,12 +23757,6 @@ Cancel = hủy`
             panel.handleSetTrackOutside(false);
             return;
           }
-          if (e.shiftKey && (key === "m" || code === "KeyM")) {
-            consume();
-            console.log("[CVAT 3D Suite] Phím tắt Shift+M: Mở Fullscreen Track Editor");
-            panel.openFullscreenEditor();
-            return;
-          }
           if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "f" || code === "KeyF")) {
             consume();
             console.log("[CVAT 3D Suite] Phím tắt Shift+F: Lật toàn bộ Track");
@@ -23459,16 +23777,6 @@ Cancel = hủy`
             consume();
             const nudgeKey = isKeyW ? "w" : isKeyA ? "a" : isKeyS ? "s" : "d";
             panel.handleNudgeByView(nudgeKey);
-            return;
-          }
-          if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "[" || code === "BracketLeft")) {
-            consume();
-            panel.selectPrevTrack();
-            return;
-          }
-          if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "]" || code === "BracketRight")) {
-            consume();
-            panel.selectNextTrack();
             return;
           }
           if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "q" || code === "KeyQ")) {

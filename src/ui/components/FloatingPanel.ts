@@ -70,8 +70,8 @@ export class FloatingPanel {
   private applyToTrack: boolean = false;
 
   // Dữ liệu đối tượng đang chọn
-  private selectedUiId: number | null = null;       // Số 1, 2 hiển thị chuẩn
-  private selectedServerId: number | null = null;   // Số 31, 32 lưu database
+  public selectedUiId: number | null = null;       // Số 1, 2 hiển thị chuẩn
+  public selectedServerId: number | null = null;   // Số 31, 32 lưu database
   private currentLabel: string = "Chưa chọn xe";
   private currentX: number = 0;
   private currentY: number = 0;
@@ -553,6 +553,17 @@ export class FloatingPanel {
       }
     });
 
+    // Lắng nghe sự kiện đối tượng bị hủy kích hoạt (click ra ngoài canvas hoặc bỏ chọn trên CVAT)
+    window.addEventListener("CVAT_EXT_RES_OBJECT_DEACTIVATED", () => {
+      if (this.selectedUiId !== null) {
+        console.log("[CVAT 3D Suite] Đối tượng bị hủy kích hoạt trên CVAT -> chuyển sang Inactive State");
+        this.selectedUiId = null;
+        this.selectedServerId = null;
+        this.currentLabel = "Chưa chọn đối tượng";
+        this.scheduleUpdate();
+      }
+    });
+
     // Lắng nghe tín hiệu khi danh sách track trong Redux thay đổi (vừa vẽ xong box mới)
     window.addEventListener("CVAT_EXT_RES_FRAME_TRACKS_DIRTY", () => {
       this.syncFrameTracks();
@@ -683,32 +694,19 @@ export class FloatingPanel {
 
   /**
    * Đảm bảo luôn có đối tượng được chọn trước khi thực hiện thao tác phím tắt hoặc nút bấm.
-   * Nếu selectedUiId đang null, tự động quét từ Sidebar hoặc lấy xe đầu tiên trong Frame.
+   * Nếu selectedUiId đang null, chỉ lấy khi trên Sidebar CVAT có đối tượng active thực sự.
+   * TUYỆT ĐỐI KHÔNG TỰ Ý CHỌN XE ĐẦU TIÊN KHI NGƯỜI DÙNG CHƯA ACTIVE.
    */
   public async ensureActiveTrackSelected(): Promise<number | null> {
     if (this.selectedUiId !== null) return this.selectedUiId;
 
-    // 1. Thử lấy từ Sidebar active item
+    // 1. Thử lấy từ Sidebar active item nếu người dùng đang click trên CVAT
     const active = CVATBridge.getActiveTrackId();
     if (active.id !== null) {
-      console.log(`[CVAT 3D Suite] Tự động chọn xe active #${active.id} từ Sidebar`);
-      await this.selectTrackByUiId(active.id, undefined, false);
-      return this.selectedUiId;
-    }
-
-    // 2. Thử lấy từ frameTracks đã có
-    if (this.frameTracks.length > 0) {
-      console.log(`[CVAT 3D Suite] Tự động chọn xe đầu tiên #${this.frameTracks[0].uiId} trong frame`);
-      await this.selectTrackByUiId(this.frameTracks[0].uiId, undefined, false);
-      return this.selectedUiId;
-    }
-
-    // 3. Thử đồng bộ lại frameTracks rồi lấy
-    if (this.currentCtx?.jobId) {
-      await this.syncFrameTracks();
-      if (this.frameTracks.length > 0) {
-        console.log(`[CVAT 3D Suite] Tự động đồng bộ và chọn xe #${this.frameTracks[0].uiId}`);
-        await this.selectTrackByUiId(this.frameTracks[0].uiId, undefined, false);
+      const isTrackInCurrentFrame = this.frameTracks.some((t) => t.uiId === active.id);
+      if (isTrackInCurrentFrame) {
+        console.log(`[CVAT 3D Suite] Chọn đối tượng active #${active.id} từ Sidebar`);
+        await this.selectTrackByUiId(active.id, undefined, false);
         return this.selectedUiId;
       }
     }
@@ -717,7 +715,9 @@ export class FloatingPanel {
   }
 
   /**
-   * Đồng bộ danh sách xe có mặt tại Frame hiện tại
+   * Đồng bộ danh sách xe có mặt tại Frame hiện tại.
+   * Duy trì Track ID đang active nếu track đó còn tồn tại ở frame mới;
+   * Nếu track kết thúc hoặc outside, chuyển về Inactive State (TUYỆT ĐỐI KHÔNG NHẢY SANG XE KHÁC).
    */
   public async syncFrameTracks(): Promise<void> {
     if (!this.currentCtx || !this.currentCtx.jobId) return;
@@ -740,36 +740,49 @@ export class FloatingPanel {
         .catch(() => {});
     }
 
-    const isCurrentTrackInFrame = tracks.some((t) => t.uiId === this.selectedUiId);
-    if (!isCurrentTrackInFrame && tracks.length > 0) {
-      // Khi mới F5 hoặc đổi frame, đồng bộ xe đầu tiên lên bảng điều khiển nhưng KHÔNG ép canvas activate/render (chống nháy)
-      await this.selectTrackByUiId(tracks[0].uiId, undefined, false);
-    } else if (isCurrentTrackInFrame && this.selectedUiId) {
-      const cur = tracks.find((t) => t.uiId === this.selectedUiId);
-      if (cur) {
-        this.selectedServerId = cur.serverId;
-        this.currentLabel = cur.label;
-        this.currentX = cur.x;
-        this.currentY = cur.y;
-        this.currentZ = cur.z;
-        this.currentYawDeg = cur.yawDeg;
-        this.currentL = cur.l;
-        this.currentW = cur.w;
-        this.currentH = cur.h;
-        this.editL = cur.l;
-        this.editW = cur.w;
-        this.editH = cur.h;
-      }
+    // 1. Dò tìm đối tượng đang active trong frame mới (ưu tiên serverId, fallback uiId)
+    let matchingTrack: FrameTrackItem | undefined;
+    if (this.selectedServerId) {
+      matchingTrack = tracks.find((t) => t.serverId === this.selectedServerId);
+    }
+    if (!matchingTrack && this.selectedUiId !== null) {
+      matchingTrack = tracks.find((t) => t.uiId === this.selectedUiId);
+    }
+
+    if (matchingTrack) {
+      // Đối tượng VẪN CÒN MẶT tại frame mới: duy trì và cập nhật thông số mới nhất
+      this.selectedUiId = matchingTrack.uiId;
+      this.selectedServerId = matchingTrack.serverId;
+      this.currentLabel = matchingTrack.label;
+      this.syncCategoryFromLabel(this.currentLabel);
+      this.currentX = matchingTrack.x;
+      this.currentY = matchingTrack.y;
+      this.currentZ = matchingTrack.z;
+      this.currentYawDeg = matchingTrack.yawDeg;
+      this.currentL = matchingTrack.l;
+      this.currentW = matchingTrack.w;
+      this.currentH = matchingTrack.h;
+      this.editL = matchingTrack.l;
+      this.editW = matchingTrack.w;
+      this.editH = matchingTrack.h;
+
+      // KÍCH HOẠT LẠI TRÊN THREE.JS CANVAS 3D ĐỂ BẬT LẠI TOP, SIDE, FRONT VIEWS ĐÚNG CHO BOX NÀY
+      CVATBridge.activateCanvasTrack(matchingTrack.uiId, { x: matchingTrack.x, y: matchingTrack.y, z: matchingTrack.z });
+      CVATBridge.setActiveTrackIdInMainWorld(matchingTrack.uiId);
+
       if (this.selectedUiId && (!this.trackStats || this.trackStats.uiId !== this.selectedUiId)) {
         this.loadTrackStats(this.selectedUiId);
       }
       this.scheduleUpdate();
-    } else if (tracks.length === 0 && this.selectedUiId !== null) {
-      // Khi frame rỗng và trước đó có chọn xe -> reset về trạng thái chưa chọn xe
-      this.selectedUiId = null;
-      this.selectedServerId = null;
-      this.currentLabel = "Chưa chọn đối tượng";
-      this.scheduleUpdate();
+    } else {
+      // Đối tượng KHÔNG CÓ MẶT ở frame này (outside hoặc track kết thúc):
+      // Chuyển sang Inactive State, KHÔNG TỰ ĐỘNG CHỌN BOX KHÁC (chống nhảy ID bừa bãi)
+      if (this.selectedUiId !== null) {
+        this.selectedUiId = null;
+        this.selectedServerId = null;
+        this.currentLabel = "Chưa chọn đối tượng";
+        this.scheduleUpdate();
+      }
     }
   }
 
@@ -1287,7 +1300,13 @@ export class FloatingPanel {
     }
 
     if (this.selectedUiId === null) {
-      this.showToast("Vui lòng chọn xe từ danh sách!", "warning");
+      this.showToast("Cần active đối tượng để thao tác!", "warning");
+      return;
+    }
+
+    // Phòng vệ phân lập nhãn: Không lật 180° người đi bộ
+    if (this.selectedCategory === "pedestrian") {
+      this.showToast("Không áp dụng lật 180° cho Người đi bộ!", "warning");
       return;
     }
 
@@ -1678,7 +1697,13 @@ export class FloatingPanel {
       await this.ensureActiveTrackSelected();
     }
     if (this.selectedUiId === null) {
-      this.showToast("Vui lòng chọn xe trước!", "warning");
+      this.showToast("Cần active đối tượng để thao tác!", "warning");
+      return;
+    }
+
+    // Phòng vệ phân lập nhãn: Căn vạch sơn chỉ áp dụng cho Ô tô
+    if (this.selectedCategory !== "car") {
+      this.showToast("Căn làn đường chỉ áp dụng cho Ô tô/Xe cơ giới!", "warning");
       return;
     }
 
@@ -1934,7 +1959,13 @@ export class FloatingPanel {
     }
 
     if (this.selectedUiId === null) {
-      this.showToast("Vui lòng chọn người trước!", "warning");
+      this.showToast("Cần active đối tượng để thao tác!", "warning");
+      return;
+    }
+
+    // Phòng vệ phân lập nhãn: Chỉ áp dụng khi đối tượng là Người đi bộ
+    if (this.selectedCategory !== "pedestrian") {
+      this.showToast("Fit Người chỉ áp dụng cho nhãn Người đi bộ!", "warning");
       return;
     }
 
@@ -2040,7 +2071,13 @@ export class FloatingPanel {
     }
 
     if (this.selectedUiId === null) {
-      this.showToast("Vui lòng chọn xe trước!", "warning");
+      this.showToast("Cần active đối tượng để thao tác!", "warning");
+      return;
+    }
+
+    // Phòng vệ phân lập nhãn: Chỉ áp dụng cho Xe 2 bánh (Cyclist)
+    if (this.selectedCategory !== "cyclist") {
+      this.showToast("Fit Xe 2 bánh chỉ áp dụng cho nhãn Xe 2 bánh (Cyclist)!", "warning");
       return;
     }
 
@@ -2197,7 +2234,13 @@ export class FloatingPanel {
     }
 
     if (this.selectedUiId === null) {
-      this.showToast("Vui lòng chọn xe trước!", "warning");
+      this.showToast("Cần active đối tượng để thao tác!", "warning");
+      return;
+    }
+
+    // Phòng vệ phân lập nhãn: Catalog xe chỉ áp dụng cho Ô tô/Xe cơ giới
+    if (this.selectedCategory !== "car") {
+      this.showToast("Catalog kích thước chỉ áp dụng cho Ô tô/Xe cơ giới!", "warning");
       return;
     }
 
@@ -2763,7 +2806,7 @@ export class FloatingPanel {
             ">
               <span style="display: flex; align-items: center; gap: 6px;">
                 <span style="color: #059669; font-weight: 700;">${this.selectedUiId ? `#${this.selectedUiId}` : "#0"}</span>
-                <span style="font-weight: 600; font-size: 11px; color: #09090b;">${this.selectedUiId ? this.currentLabel : "Chưa chọn đối tượng"}</span>
+                <span style="font-weight: 600; font-size: 11px; color: #09090b;">${this.selectedUiId ? this.currentLabel : "Chưa active đối tượng"}</span>
               </span>
               <span style="color: #64748b; font-size: 9px;">${this.isDropdownOpen ? "▲" : "▼"}</span>
             </button>
@@ -2931,99 +2974,134 @@ export class FloatingPanel {
               : ""
           }
 
-          <!-- PHÂN LOẠI ĐỐI TƯỢNG (CATEGORY CHIPS) -->
-          <div style="
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 4px;
-            background: #f1f5f9;
-            padding: 3px;
-            border-radius: 7px;
-            border: 1px solid #e2e8f0;
-          ">
-            <button class="btn-category-chip" data-cat="car" style="
-              background: ${this.selectedCategory === "car" ? "#ffffff" : "transparent"};
-              border: 1px solid ${this.selectedCategory === "car" ? "#10b981" : "transparent"};
-              color: ${this.selectedCategory === "car" ? "#059669" : "#64748b"};
-              box-shadow: ${this.selectedCategory === "car" ? "0 1px 3px rgba(0,0,0,0.06)" : "none"};
-              padding: 5px 6px;
-              border-radius: 5px;
-              font-size: 11px;
-              font-weight: 600;
-              cursor: pointer;
+          ${
+            this.selectedUiId === null
+              ? `
+            <!-- KHỐI THÔNG BÁO INACTIVE STATE: ẨN TOÀN BỘ CHỨC NĂNG KHI CHƯA ACTIVE -->
+            <div style="
+              background: #f8fafc;
+              border: 1.5px dashed #cbd5e1;
+              border-radius: 10px;
+              padding: 24px 14px;
+              text-align: center;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 10px;
+              margin-top: 4px;
+            ">
+              <div style="
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: #eff6ff;
+                border: 1px solid #bfdbfe;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #2563eb;
+              ">
+                ${ICONS.target}
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-weight: 700; font-size: 13px; color: #0f172a;">Cần active đối tượng để thao tác</span>
+                <span style="font-size: 11px; color: #64748b; line-height: 1.5; max-width: 280px;">
+                  Vui lòng click vào 1 Box 3D trên màn hình hoặc chọn từ danh sách Sidebar để mở khóa các công cụ căn chỉnh.
+                </span>
+              </div>
+
+              ${
+                this.frameTracks.length > 0
+                  ? `
+                <div style="margin-top: 6px; width: 100%; max-width: 270px;">
+                  <span style="font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;">Hoặc chọn trong Frame (${this.frameTracks.length} đối tượng):</span>
+                  <div style="display: flex; flex-direction: column; gap: 4px; max-height: 130px; overflow-y: auto;">
+                    ${this.frameTracks
+                      .map(
+                        (t) => `
+                      <button class="btn-quick-select-track" data-uiid="${t.uiId}" style="
+                        background: #ffffff;
+                        border: 1px solid #e2e8f0;
+                        padding: 5px 8px;
+                        border-radius: 6px;
+                        font-size: 11px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        color: #1e293b;
+                        transition: all 0.12s;
+                      ">
+                        <span style="font-weight: 700; color: #059669;">#${t.uiId}</span>
+                        <span style="font-weight: 500;">${t.label}</span>
+                        <span style="font-size: 9.5px; color: #64748b; font-family: monospace;">Z: ${t.z}m</span>
+                      </button>
+                    `
+                      )
+                      .join("")}
+                  </div>
+                </div>
+              `
+                  : ""
+              }
+            </div>
+          `
+              : `
+            <!-- PHÂN LOẠI ĐỐI TƯỢNG (HIỂN THỊ RÕ NHÃN & CATEGORY) -->
+            <div style="
               display: flex;
               align-items: center;
-              justify-content: center;
-              gap: 5px;
-              transition: all 0.12s;
+              justify-content: space-between;
+              background: #f1f5f9;
+              padding: 5px 8px;
+              border-radius: 7px;
+              border: 1px solid #e2e8f0;
             ">
-              <span style="display: flex; align-items: center;">${ICONS.car}</span>
-              <span>Ô tô</span>
-            </button>
+              <span style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase;">Loại đối tượng:</span>
+              <div style="
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                padding: 2px 8px;
+                border-radius: 5px;
+                font-size: 11px;
+                font-weight: 700;
+                background: ${this.selectedCategory === "car" ? "#ecfdf5" : this.selectedCategory === "pedestrian" ? "#faf5ff" : "#fffbeb"};
+                border: 1px solid ${this.selectedCategory === "car" ? "#a7f3d0" : this.selectedCategory === "pedestrian" ? "#d8b4fe" : "#fcd34d"};
+                color: ${this.selectedCategory === "car" ? "#047857" : this.selectedCategory === "pedestrian" ? "#6b21a8" : "#b45309"};
+              ">
+                <span style="display: flex; align-items: center;">${this.selectedCategory === "car" ? ICONS.car : this.selectedCategory === "pedestrian" ? ICONS.user : ICONS.bicycle}</span>
+                <span>${this.selectedCategory === "car" ? "Ô tô / Xe cơ giới" : this.selectedCategory === "pedestrian" ? "Người đi bộ" : "Xe 2 bánh (Cyclist)"}</span>
+              </div>
+            </div>
 
-            <button class="btn-category-chip" data-cat="pedestrian" style="
-              background: ${this.selectedCategory === "pedestrian" ? "#ffffff" : "transparent"};
-              border: 1px solid ${this.selectedCategory === "pedestrian" ? "#a855f7" : "transparent"};
-              color: ${this.selectedCategory === "pedestrian" ? "#7e22ce" : "#64748b"};
-              box-shadow: ${this.selectedCategory === "pedestrian" ? "0 1px 3px rgba(0,0,0,0.06)" : "none"};
-              padding: 5px 6px;
-              border-radius: 5px;
-              font-size: 11px;
-              font-weight: 600;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 5px;
-              transition: all 0.12s;
+            <!-- THÔNG SỐ TÓM TẮT X, Y, Z, YAW -->
+            <div style="
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 4px;
+              font-size: 10px;
+              font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+              background: #f8fafc;
+              padding: 4px 6px;
+              border-radius: 6px;
+              border: 1px solid #e2e8f0;
+              color: #475569;
+              text-align: center;
             ">
-              <span style="display: flex; align-items: center;">${ICONS.user}</span>
-              <span>Người</span>
-            </button>
-
-            <button class="btn-category-chip" data-cat="cyclist" style="
-              background: ${this.selectedCategory === "cyclist" ? "#ffffff" : "transparent"};
-              border: 1px solid ${this.selectedCategory === "cyclist" ? "#f59e0b" : "transparent"};
-              color: ${this.selectedCategory === "cyclist" ? "#d97706" : "#64748b"};
-              box-shadow: ${this.selectedCategory === "cyclist" ? "0 1px 3px rgba(0,0,0,0.06)" : "none"};
-              padding: 5px 6px;
-              border-radius: 5px;
-              font-size: 11px;
-              font-weight: 600;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 5px;
-              transition: all 0.12s;
-            ">
-              <span style="display: flex; align-items: center;">${ICONS.bicycle}</span>
-              <span>Xe 2 bánh</span>
-            </button>
-          </div>
-
-          <!-- THÔNG SỐ TÓM TẮT X, Y, Z, YAW -->
-          <div style="
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 4px;
-            font-size: 10px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            background: #f8fafc;
-            padding: 4px 6px;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-            color: #475569;
-            text-align: center;
-          ">
-            <div><span style="color: #64748b;">X:</span> ${this.currentX}</div>
-            <div><span style="color: #64748b;">Y:</span> ${this.currentY}</div>
-            <div><span style="color: #64748b;">Z:</span> ${this.currentZ}</div>
-            <div><span style="color: #64748b;">Yaw:</span> <span style="color: #059669; font-weight: bold;">${this.currentYawDeg}°</span></div>
-          </div>
+              <div><span style="color: #64748b;">X:</span> ${this.currentX}</div>
+              <div><span style="color: #64748b;">Y:</span> ${this.currentY}</div>
+              <div><span style="color: #64748b;">Z:</span> ${this.currentZ}</div>
+              <div><span style="color: #64748b;">Yaw:</span> <span style="color: #059669; font-weight: bold;">${this.currentYawDeg}°</span></div>
+            </div>
+          `
+          }
         </div>
 
-        <!-- KHỐI 2: ĐIỀU KHIỂN CĂN CHỈNH 2D/3D & THAO TÁC NHANH -->
+        ${
+          this.selectedUiId !== null
+            ? `
+          <!-- KHỐI 2: ĐIỀU KHIỂN CĂN CHỈNH 2D/3D & THAO TÁC NHANH (PHÂN LẬP THEO NHÃN) -->
         <div style="
           background: #ffffff;
           border: 1px solid #e2e8f0;
@@ -3870,6 +3948,8 @@ export class FloatingPanel {
         </button>
 
         ${advancedContentHtml}
+        ` : ""
+        }
 
         <!-- KHỐI 5: NÚT MỞ RỘNG FULLSCREEN TRACK STUDIO (DUYỆT THEO ID) -->
         <button id="btn-banner-fullscreen-editor" title="Mở Rộng Toàn Màn Hình · Duyệt Toàn Bộ Track ID (Shift+M)" style="
@@ -4156,6 +4236,17 @@ export class FloatingPanel {
           this.selectTrackByUiId(id);
           this.isDropdownOpen = false;
           this.updateContent();
+        }
+      });
+    });
+
+    // Gắn sự kiện click chọn nhanh đối tượng từ Card Inactive State
+    const quickSelectBtns = this.container.querySelectorAll<HTMLButtonElement>(".btn-quick-select-track");
+    quickSelectBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = parseInt(btn.dataset.uiid || "0", 10);
+        if (id > 0) {
+          this.selectTrackByUiId(id, undefined, true);
         }
       });
     });
