@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CVAT 3D Calibration Tuner - Day14 Standalone</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom styling for sleek range sliders */
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      background: #e2e8f0;
+      height: 6px;
+      border-radius: 3px;
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #2563eb;
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .btn-frame.active {
+      background-color: #2563eb !important;
+      color: white !important;
+      border-color: #2563eb !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 h-screen flex flex-col font-sans select-none overflow-hidden">
+
+  <!-- TOP HEADER -->
+  <header class="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between shadow-sm z-10 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center text-white font-bold text-sm shadow">
+        3D
+      </div>
+      <div>
+        <h1 class="text-sm font-bold text-slate-900 leading-tight">CVAT Standalone Calibration Tuner</h1>
+        <p class="text-[11px] text-slate-500">Day14 Brown-Conrady 3D-to-2D Projection Engine (Real-time)</p>
+      </div>
+    </div>
+
+    <!-- Frame Selector -->
+    <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200">
+      <span class="text-xs font-semibold px-2 text-slate-600">Frame:</span>
+      <button class="btn-frame active px-2.5 py-1 text-xs font-semibold rounded bg-white text-slate-700 border border-slate-300 shadow-sm" data-frame="0">#0</button>
+      <button class="btn-frame px-2.5 py-1 text-xs font-semibold rounded bg-white text-slate-700 border border-slate-300 shadow-sm" data-frame="1">#1</button>
+      <button class="btn-frame px-2.5 py-1 text-xs font-semibold rounded bg-white text-slate-700 border border-slate-300 shadow-sm" data-frame="2">#2</button>
+      <button class="btn-frame px-2.5 py-1 text-xs font-semibold rounded bg-white text-slate-700 border border-slate-300 shadow-sm" data-frame="3">#3</button>
+      <button class="btn-frame px-2.5 py-1 text-xs font-semibold rounded bg-white text-slate-700 border border-slate-300 shadow-sm" data-frame="4">#4</button>
+    </div>
+
+    <!-- Status & Quick Actions -->
+    <div class="flex items-center gap-2">
+      <span id="lblInImageStatus" class="text-emerald-600 font-semibold text-xs">Đang tải...</span>
+      <button id="btnCopyJson" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-md shadow flex items-center gap-1.5 transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+        Copy Calib
+      </button>
+      <button id="btnExportAll" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-md shadow flex items-center gap-1.5 transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        Export 8 Cams JSON
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN VIEWPORT CONTAINER -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- LEFT COLUMN: CANVAS VIEWPORT -->
+    <div class="flex-1 flex flex-col bg-slate-900 relative">
+      
+      <!-- Canvas Control Toolbar -->
+      <div class="absolute top-3 left-3 z-10 flex items-center gap-2 bg-slate-950/80 backdrop-blur border border-slate-700/80 p-1.5 rounded-lg shadow-lg text-white">
+        <span class="text-[11px] font-semibold text-slate-400 px-1">Zoom: <span id="lblZoom" class="text-white font-mono">100%</span></span>
+        <button id="btnResetView" class="px-2 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 text-slate-200 transition">
+          Reset View
+        </button>
+        <span class="w-px h-4 bg-slate-700"></span>
+        <label class="flex items-center gap-1.5 text-[11px] text-slate-300 cursor-pointer">
+          <input type="checkbox" id="chkShowVertices" checked class="rounded text-blue-500">
+          8 Đỉnh
+        </label>
+        <label class="flex items-center gap-1.5 text-[11px] text-slate-300 cursor-pointer">
+          <input type="checkbox" id="chkShowLabels" checked class="rounded text-blue-500">
+          Nhãn xe
+        </label>
+      </div>
+
+      <!-- Instruction overlay hint -->
+      <div class="absolute top-3 right-3 z-10 text-[11px] bg-slate-950/80 backdrop-blur border border-slate-700/80 px-2.5 py-1 rounded-md text-slate-400 shadow pointer-events-none">
+        💡 Cuộn chuột: Phóng to/Thu nhỏ • Kéo chuột: Di chuyển
+      </div>
+
+      <!-- Main Canvas Screen -->
+      <div class="flex-1 overflow-hidden flex items-center justify-center cursor-grab active:cursor-grabbing">
+        <canvas id="viewportCanvas" width="1920" height="1536" class="max-w-full max-h-full object-contain shadow-2xl"></canvas>
+      </div>
+
+      <!-- Bottom Bar: Camera Selectors & Objects List -->
+      <div class="bg-white border-t border-slate-200 p-2 shrink-0 flex items-center justify-between gap-4">
+        <!-- 8 Cameras Quick Buttons -->
+        <div class="flex items-center gap-1.5 overflow-x-auto" id="camButtonsContainer">
+          <!-- Sẽ được điền bằng tuner.js -->
+        </div>
+
+        <!-- Mini Objects Accordion / List Toggle -->
+        <div class="flex items-center gap-2 shrink-0">
+          <span class="text-xs font-semibold text-slate-500">3D Objects:</span>
+          <div class="flex items-center gap-1 max-w-[400px] overflow-x-auto" id="trackListContainer">
+            <!-- Sẽ được điền bằng tuner.js -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: CALIBRATION SLIDERS PANEL -->
+    <div class="w-[380px] bg-white border-l border-slate-200 flex flex-col h-full shadow-lg z-10">
+      
+      <!-- Panel Header -->
+      <div class="p-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 block">Đang Hiệu Chuẩn:</span>
+          <h2 id="lblCurrentCam" class="text-sm font-bold text-slate-900 leading-tight">CAM_P_F</h2>
+        </div>
+        <button id="btnResetCam" class="px-2 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-50 rounded border border-red-200 transition">
+          Khôi Phục Gốc
+        </button>
+      </div>
+
+      <!-- Sliders Content (Scrollable) -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-5 text-xs">
+
+        <!-- SECTION 0: AI AUTO-FIT OPTIMIZER (TỰ ĐỘNG TÍNH TOÁN HIỆU CHUẨN) -->
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50/70 p-3 rounded-lg border border-blue-200 shadow-sm space-y-2.5">
+          <div class="flex items-center justify-between border-b border-blue-200/80 pb-1.5">
+            <span class="font-bold text-blue-900 flex items-center gap-1.5 text-xs">
+              <svg class="w-4 h-4 text-blue-600 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              AI Auto-Fit Optimizer (Tự Tính Ma Trận)
+            </span>
+          </div>
+
+          <p class="text-[11px] text-slate-600 leading-relaxed">
+            Giữ phím <kbd class="px-1 py-0.5 bg-white border border-slate-300 rounded font-mono text-[10px] shadow-sm">Shift</kbd> và kéo chuột trên ảnh để vẽ khung vàng bao quanh xe thật. Sau đó bấm nút bên dưới:
+          </p>
+
+          <div class="flex items-center gap-2">
+            <button id="btnAutoFit" disabled class="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md shadow transition flex items-center justify-center gap-1.5 text-xs opacity-50 cursor-not-allowed">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              ⚡ Tự Động Khớp (Auto-Fit)
+            </button>
+            <button id="btnClearTarget" title="Xóa khung xe mục tiêu" class="px-2.5 py-2 bg-white hover:bg-slate-100 text-slate-600 border border-slate-300 rounded-md transition text-xs">
+              ✕
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between pt-0.5">
+            <span id="lblAutoFitStatus" class="text-slate-500 text-[11px] font-medium truncate">
+              Chưa chọn vùng xe mục tiêu
+            </span>
+            <label class="flex items-center gap-1 text-[11px] text-slate-600 cursor-pointer shrink-0">
+              <input type="checkbox" id="chkTargetMode" class="rounded text-blue-600">
+              Chế độ vẽ
+            </label>
+          </div>
+        </div>
+
+        <!-- SECTION 1: GÓC XOAY EXTRINSICS (EULER) -->
+        <div class="space-y-3 bg-slate-50/70 p-3 rounded-lg border border-slate-200">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1.5">
+            <span class="font-bold text-slate-900 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+              Góc Xoay Camera (Extrinsics)
+            </span>
+          </div>
+
+          <!-- YAW -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-slate-700">Yaw (Hướng Ngang Trái/Phải):</label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="inpYaw" step="0.1" class="w-16 text-right px-1.5 py-0.5 border border-slate-300 rounded font-mono text-xs">
+                <span class="text-slate-400">°</span>
+              </div>
+            </div>
+            <input type="range" id="rngYaw" min="-180" max="180" step="0.1" value="0">
+            <div class="flex justify-between text-[10px] text-slate-400 mt-0.5 font-mono">
+              <span>-180° (Sau)</span>
+              <span>0° (Thẳng)</span>
+              <span>+180°</span>
+            </div>
+          </div>
+
+          <!-- PITCH -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-slate-700">Pitch (Ngửa Lên / Cúi Xuống):</label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="inpPitch" step="0.1" class="w-16 text-right px-1.5 py-0.5 border border-slate-300 rounded font-mono text-xs">
+                <span class="text-slate-400">°</span>
+              </div>
+            </div>
+            <input type="range" id="rngPitch" min="-25" max="25" step="0.1" value="1.0">
+            <div class="flex justify-between text-[10px] text-slate-400 mt-0.5 font-mono">
+              <span>-25° (Cúi)</span>
+              <span>0°</span>
+              <span>+25° (Ngửa)</span>
+            </div>
+          </div>
+
+          <!-- ROLL -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-slate-700">Roll (Nghiêng Trục Quang Học):</label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="inpRoll" step="0.1" class="w-16 text-right px-1.5 py-0.5 border border-slate-300 rounded font-mono text-xs">
+                <span class="text-slate-400">°</span>
+              </div>
+            </div>
+            <input type="range" id="rngRoll" min="-20" max="20" step="0.1" value="0.0">
+            <div class="flex justify-between text-[10px] text-slate-400 mt-0.5 font-mono">
+              <span>-20°</span>
+              <span>0°</span>
+              <span>+20°</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: VỊ TRÍ CAMERA TRÊN XE EGO (TRANSLATION) -->
+        <div class="space-y-3 bg-slate-50/70 p-3 rounded-lg border border-slate-200">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1.5">
+            <span class="font-bold text-slate-900 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              Vị Trí Gắn Camera (Mét)
+            </span>
+          </div>
+
+          <!-- TX -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-slate-700">Tx (Tiến + / Lùi -):</label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="inpTx" step="0.02" class="w-16 text-right px-1.5 py-0.5 border border-slate-300 rounded font-mono text-xs">
+                <span class="text-slate-400">m</span>
+              </div>
+            </div>
+            <input type="range" id="rngTx" min="-3.0" max="3.0" step="0.02" value="0.8">
+          </div>
+
+          <!-- TY -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-slate-700">Ty (Trái + / Phải -):</label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="inpTy" step="0.02" class="w-16 text-right px-1.5 py-0.5 border border-slate-300 rounded font-mono text-xs">
+                <span class="text-slate-400">m</span>
+              </div>
+            </div>
+            <input type="range" id="rngTy" min="-1.5" max="1.5" step="0.02" value="0.0">
+          </div>
+
+          <!-- TZ -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-slate-700">Tz (Chiều Cao Sàn Xe):</label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="inpTz" step="0.02" class="w-16 text-right px-1.5 py-0.5 border border-slate-300 rounded font-mono text-xs">
+                <span class="text-slate-400">m</span>
+              </div>
+            </div>
+            <input type="range" id="rngTz" min="0.5" max="2.5" step="0.02" value="1.77">
+          </div>
+        </div>
+
+        <!-- SECTION 3: THÔNG SỐ QUANG HỌC (INTRINSICS K) -->
+        <div class="space-y-3 bg-slate-50/70 p-3 rounded-lg border border-slate-200">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1.5">
+            <span class="font-bold text-slate-900 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+              Tiêu Cự Thấu Kính (Intrinsics K)
+            </span>
+            <label class="flex items-center gap-1 text-[11px] text-slate-500 cursor-pointer">
+              <input type="checkbox" id="chkLockFocal" checked class="rounded text-purple-600">
+              Khóa Fx=Fy
+            </label>
+          </div>
+
+          <!-- FX -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-slate-700">Fx (Tiêu cự ngang):</label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="inpFx" step="1" class="w-16 text-right px-1.5 py-0.5 border border-slate-300 rounded font-mono text-xs">
+                <span class="text-slate-400">px</span>
+              </div>
+            </div>
+            <input type="range" id="rngFx" min="400" max="2500" step="1" value="1842">
+          </div>
+
+          <!-- FY -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-slate-700">Fy (Tiêu cự dọc):</label>
+              <div class="flex items-center gap-1">
+                <input type="number" id="inpFy" step="1" class="w-16 text-right px-1.5 py-0.5 border border-slate-300 rounded font-mono text-xs">
+                <span class="text-slate-400">px</span>
+              </div>
+            </div>
+            <input type="range" id="rngFy" min="400" max="2500" step="1" value="1842">
+          </div>
+
+          <!-- CX & CY -->
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <div>
+              <label class="font-semibold text-slate-700 text-[11px] block mb-1">Cx (Tâm X):</label>
+              <input type="number" id="inpCx" step="1" class="w-full text-right px-1.5 py-0.5 border border-slate-300 rounded font-mono text-xs">
+            </div>
+            <div>
+              <label class="font-semibold text-slate-700 text-[11px] block mb-1">Cy (Tâm Y):</label>
+              <input type="number" id="inpCy" step="1" class="w-full text-right px-1.5 py-0.5 border border-slate-300 rounded font-mono text-xs">
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 4: HỆ SỐ MÉO QUANG HỌC (DISTORTION) -->
+        <div class="space-y-3 bg-slate-50/70 p-3 rounded-lg border border-slate-200">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-1.5">
+            <span class="font-bold text-slate-900 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+              Độ Méo Thấu Kính (Brown-Conrady)
+            </span>
+          </div>
+
+          <!-- K1 -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-slate-700">k1 (Méo thùng xe / Barrel):</label>
+              <input type="number" id="inpK1" step="0.001" class="w-20 text-right px-1.5 py-0.5 border border-slate-300 rounded font-mono text-xs">
+            </div>
+            <input type="range" id="rngK1" min="-1.0" max="0.5" step="0.001" value="-0.494">
+          </div>
+
+          <!-- K2 -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-semibold text-slate-700">k2 (Bù méo bậc 4):</label>
+              <input type="number" id="inpK2" step="0.001" class="w-20 text-right px-1.5 py-0.5 border border-slate-300 rounded font-mono text-xs">
+            </div>
+            <input type="range" id="rngK2" min="-0.5" max="0.8" step="0.001" value="0.254">
+          </div>
+
+          <!-- P1, P2, K3 -->
+          <div class="grid grid-cols-3 gap-1.5 pt-1">
+            <div>
+              <label class="font-semibold text-slate-600 text-[10px] block mb-0.5">p1 (Tangential):</label>
+              <input type="number" id="inpP1" step="0.0005" class="w-full text-right px-1 py-0.5 border border-slate-300 rounded font-mono text-[11px]">
+            </div>
+            <div>
+              <label class="font-semibold text-slate-600 text-[10px] block mb-0.5">p2 (Tangential):</label>
+              <input type="number" id="inpP2" step="0.0005" class="w-full text-right px-1 py-0.5 border border-slate-300 rounded font-mono text-[11px]">
+            </div>
+            <div>
+              <label class="font-semibold text-slate-600 text-[10px] block mb-0.5">k3 (Bậc 6):</label>
+              <input type="number" id="inpK3" step="0.005" class="w-full text-right px-1 py-0.5 border border-slate-300 rounded font-mono text-[11px]">
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Tuner Logic Script -->
+  <script src="tuner.js"></script>
+</body>
+</html>

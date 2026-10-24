@@ -1,6 +1,7 @@
 import { detectCVAT } from "./cvat/detector";
 import { FloatingPanel } from "./ui/components/FloatingPanel";
 import { CVATBridge } from "./cvat/bridge";
+import { HeaderSuiteButton } from "./ui/components/HeaderSuiteButton";
 
 declare global {
   interface Window {
@@ -56,14 +57,48 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
    * Lắng nghe phím tắt toàn cục (Speedrun Hotkeys Engine):
    * Sử dụng Capture Phase ({ capture: true }) để bắt sự kiện TRƯỚC Three.js Canvas và React của CVAT.
    * Hỗ trợ song song cả e.key lẫn e.code (chống lỗi bộ gõ tiếng Việt Telex/VNI trên macOS).
+   * Chặn triệt để sự kiện Backspace/Delete giả lập của bộ gõ macOS để không bao giờ bị popup 'Remove object' của CVAT.
    */
   function setupGlobalHotkeys(): void {
+    const isInputElement = (target: any): boolean => {
+      if (!target) return false;
+      const tagName = target.tagName || "";
+      return ["INPUT", "TEXTAREA", "SELECT"].includes(tagName) || !!target.isContentEditable;
+    };
+
+    // Chặn triệt để keyup và keypress cho các phím tắt của tool và bộ gõ để CVAT không bắt được ở phase sau
+    const blockCvatKeyLeak = (e: KeyboardEvent) => {
+      if (isInputElement(e.target)) return;
+      const key = (e.key || "").toLowerCase();
+      const code = e.code || "";
+      if (
+        key === "w" || code === "KeyW" || key === "ư" ||
+        key === "a" || code === "KeyA" || key === "á" || key === "à" || key === "â" ||
+        key === "s" || code === "KeyS" ||
+        key === "d" || code === "KeyD" || key === "đ" ||
+        key === "backspace" || code === "Backspace" ||
+        key === "delete" || code === "Delete" ||
+        key === "1" || code === "Digit1" || code === "Numpad1" ||
+        key === "2" || code === "Digit2" || code === "Numpad2" ||
+        key === "3" || code === "Digit3" || code === "Numpad3" ||
+        key === "4" || code === "Digit4" || code === "Numpad4" ||
+        key === "5" || code === "Digit5" || code === "Numpad5"
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      }
+    };
+
+    window.addEventListener("keyup", blockCvatKeyLeak, { capture: true, passive: false });
+    window.addEventListener("keypress", blockCvatKeyLeak, { capture: true, passive: false });
+
     window.addEventListener(
       "keydown",
       (e: KeyboardEvent) => {
         // Tuyệt đối không can thiệp khi người dùng đang gõ trong ô input/textarea/select hoặc phần tử contenteditable
         const target = e.target as HTMLElement;
-        if (target && (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) || target.isContentEditable)) {
+        if (isInputElement(target)) {
           return;
         }
 
@@ -75,6 +110,14 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           e.stopPropagation();
           e.stopImmediatePropagation();
         };
+
+        // 🚨 CHẶN TRIỆT ĐỂ PHÍM BACKSPACE / DELETE NGOÀI Ô INPUT:
+        // Khi gõ liên tiếp phím 'd' trên macOS với bộ gõ Telex (để tạo chữ 'đ'), bộ gõ tự động phát ra phím Backspace.
+        // Chặn phím này để CVAT không nhận lệnh xóa và KHÔNG BAO GIỜ hiển thị popup 'Remove object'!
+        if (key === "backspace" || code === "Backspace" || key === "delete" || code === "Delete") {
+          consume();
+          return;
+        }
 
         // Phím ` (dấu huyền): Bật/tắt thu nhỏ cửa sổ nổi
         if (key === "`" || key === "~" || code === "Backquote") {
@@ -105,6 +148,14 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
+        // Phím Z đơn: Căn giữa (Center / Focus) View 3D vào xe đang chọn
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (key === "z" || code === "KeyZ")) {
+          consume();
+          console.log("[CVAT 3D Suite] Phím tắt Z: Căn giữa View 3D vào xe đang chọn");
+          panel.handleCenterCurrentTrack();
+          return;
+        }
+
         // Phím Tab hoặc X: Bật/tắt phạm vi Scope (Chỉ Frame Này <-> Toàn Bộ Track)
         if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "tab" || code === "Tab" || key === "x" || code === "KeyX")) {
           consume();
@@ -117,6 +168,14 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           consume();
           console.log("[CVAT 3D Suite] Phím tắt Shift+O: Đánh dấu Outside toàn bộ Track");
           panel.handleSetTrackOutside(true);
+          return;
+        }
+
+        // Phím Shift + I: Đánh dấu Inside (Hiện lại) toàn bộ Track
+        if (e.shiftKey && (key === "i" || code === "KeyI")) {
+          consume();
+          console.log("[CVAT 3D Suite] Phím tắt Shift+I: Đánh dấu Inside (Hiện lại) toàn bộ Track");
+          panel.handleSetTrackOutside(false);
           return;
         }
 
@@ -144,15 +203,30 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
-        // Phím A đơn hoặc [ : Xe liền trước
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "a" || code === "KeyA" || key === "[" || code === "BracketLeft")) {
+        // Phím Shift + W, Shift + A, Shift + S, Shift + D: BẮT BUỘC NHẤN SHIFT MỚI VI CHỈNH BOX (Screen Space Trực Quan)
+        // Mặc định: 2cm mỗi lần bấm (Chỉ Frame Hiện Tại, không đụng toàn bộ frame khác)
+        // Hỗ trợ cả các ký tự biến thể Telex tiếng Việt: w/ư, a/á/à/ả/ã/ạ/â/ă, s, d/đ
+        const isKeyW = key === "w" || code === "KeyW" || key === "ư";
+        const isKeyA = key === "a" || code === "KeyA" || ["á", "à", "ả", "ã", "ạ", "â", "ă"].includes(key);
+        const isKeyS = key === "s" || code === "KeyS";
+        const isKeyD = key === "d" || code === "KeyD" || key === "đ";
+
+        if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (isKeyW || isKeyA || isKeyS || isKeyD)) {
+          consume();
+          const nudgeKey = isKeyW ? "w" : isKeyA ? "a" : isKeyS ? "s" : "d";
+          panel.handleNudgeByView(nudgeKey);
+          return;
+        }
+
+        // Phím [ : Xe liền trước
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "[" || code === "BracketLeft")) {
           consume();
           panel.selectPrevTrack();
           return;
         }
 
-        // Phím D đơn hoặc ] : Xe kế tiếp
-        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "d" || code === "KeyD" || key === "]" || code === "BracketRight")) {
+        // Phím ] : Xe kế tiếp
+        if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "]" || code === "BracketRight")) {
           consume();
           panel.selectNextTrack();
           return;
@@ -231,6 +305,22 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           consume();
           console.log("[CVAT 3D Suite] Phím tắt 3: Căn FRONT");
           panel.handleFitFront();
+          return;
+        }
+
+        // Phím 4: Fit Riêng Chiều Rộng W (Pedestrian / Cyclist / Car)
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "4" || code === "Digit4" || code === "Numpad4")) {
+          consume();
+          console.log("[CVAT 3D Suite] Phím tắt 4: Fit Rộng (W)");
+          panel.handleFitWidth();
+          return;
+        }
+
+        // Phím 5: Fit Riêng Chiều Cao H - Ground-Lock Bám Sàn Cố Định, Nở Lên Nóc (Pedestrian / Cyclist / Car)
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "5" || code === "Digit5" || code === "Numpad5")) {
+          consume();
+          console.log("[CVAT 3D Suite] Phím tắt 5: Fit Cao (H) [Ground-Lock]");
+          panel.handleFitHeight();
           return;
         }
 
@@ -343,11 +433,47 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
   }
 
   /**
+   * Theo dõi tự động khung nhìn (Top, Side, Front, Perspective 3D) khi con trỏ chuột hover.
+   */
+  function setupViewTracker(): void {
+    let lastCheck = 0;
+    window.addEventListener(
+      "pointermove",
+      (e: PointerEvent) => {
+        const now = Date.now();
+        if (now - lastCheck < 60) return; // Throttle 60ms để tối ưu hiệu năng
+        lastCheck = now;
+
+        const target = e.target as HTMLElement;
+        if (!target) return;
+
+        if (target.closest(".cvat-canvas3d-topview, [id*='topview']")) {
+          panel.setActiveView("top");
+        } else if (target.closest(".cvat-canvas3d-sideview, [id*='sideview']")) {
+          panel.setActiveView("side");
+        } else if (target.closest(".cvat-canvas3d-frontview, [id*='frontview']")) {
+          panel.setActiveView("front");
+        } else if (target.closest(".cvat-canvas3d-perspective, [id*='perspective']")) {
+          panel.setActiveView("perspective");
+        }
+      },
+      { capture: true, passive: true }
+    );
+  }
+
+  /**
    * Khởi động ứng dụng và lắng nghe thay đổi URL thông minh (Chống bão replaceState khi F5).
    */
   function bootstrap(): void {
     updateContext();
     setupGlobalHotkeys();
+    setupViewTracker();
+
+    // Khởi tạo nút Header Toggle CVAT 3D Suite & Auto-boot
+    const headerBtn = HeaderSuiteButton.getInstance();
+    headerBtn.onToggle((enabled) => {
+      panel.setSuiteVisible(enabled);
+    });
 
     let lastPathname = window.location.pathname;
     let navDebounceTimer: any = null;
@@ -364,6 +490,7 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
       if (navDebounceTimer) clearTimeout(navDebounceTimer);
       navDebounceTimer = setTimeout(() => {
         navDebounceTimer = null;
+        headerBtn.tryMount();
         updateContext();
       }, 250);
     }

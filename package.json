@@ -10,7 +10,7 @@
     "build:userscript": "vite build",
     "reload": "node scripts/reload_chrome.mjs",
     "reload:cvat": "node scripts/reload_chrome.mjs --cvat",
-    "test": "node --experimental-strip-types tests/geometry.test.ts",
+    "test": "node --experimental-strip-types tests/geometry.test.ts && node --experimental-strip-types tests/projection.test.ts",
     "test:realtime": "node scripts/test_realtime_flip.mjs",
     "test:ground": "node scripts/test_ground_snap.mjs",
     "test:autofit": "node scripts/test_autofit_and_select.mjs",

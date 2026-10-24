@@ -1,0 +1,40 @@
+{
+  "count": 3,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 611,
+      "name": "Car",
+      "color": "#00ff00",
+      "attributes": [],
+      "type": "any",
+      "sublabels": [],
+      "task_id": 61,
+      "parent_id": null,
+      "has_parent": false
+    },
+    {
+      "id": 612,
+      "name": "Motorcycle",
+      "color": "#ff00ff",
+      "attributes": [],
+      "type": "any",
+      "sublabels": [],
+      "task_id": 61,
+      "parent_id": null,
+      "has_parent": false
+    },
+    {
+      "id": 613,
+      "name": "Pedestrian",
+      "color": "#ffff00",
+      "attributes": [],
+      "type": "any",
+      "sublabels": [],
+      "task_id": 61,
+      "parent_id": null,
+      "has_parent": false
+    }
+  ]
+}

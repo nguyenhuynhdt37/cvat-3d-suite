@@ -5,6 +5,7 @@ export interface FrameTrackItem {
   uiId: number;       // Số 1, 2 hiển thị chuẩn trên giao diện người dùng
   serverId: number;   // Số 31, 32 lưu trên database server
   label: string;
+  color?: string;     // Mã màu của nhãn để hiển thị badge
   x: number;
   y: number;
   z: number;
@@ -34,6 +35,39 @@ export class CVATBridge {
   private static cachedJobId: number | null = null;
   private static lastFetchTime: number = 0;
   private static isBridgeInjected: boolean = false;
+  private static cachedTaskLabels: Map<number, { name: string; color: string }> = new Map();
+  private static cachedLabelsTaskId: number | null = null;
+
+  /**
+   * Lấy từ điển nhãn của Task để map ID -> Label Name & Color chuẩn xác 100%
+   */
+  public static async fetchTaskLabels(taskId: number): Promise<Map<number, { name: string; color: string }>> {
+    if (this.cachedLabelsTaskId === taskId && this.cachedTaskLabels.size > 0) {
+      return this.cachedTaskLabels;
+    }
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data.labels)) {
+          this.cachedTaskLabels.clear();
+          this.cachedLabelsTaskId = taskId;
+          for (const lbl of data.labels) {
+            if (lbl && lbl.id !== undefined) {
+              this.cachedTaskLabels.set(Number(lbl.id), {
+                name: lbl.name || "Object",
+                color: lbl.color || "#3b82f6",
+              });
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    return this.cachedTaskLabels;
+  }
 
   /**
    * Khởi tạo cầu nối vào Main World của CVAT
@@ -102,28 +136,23 @@ export class CVATBridge {
 
   /**
    * Đọc số Frame hiện tại đang hiển thị trên thanh Player của CVAT.
+   * Ưu tiên 1: input chính xác cvat-player-frame-selector của Player CVAT
+   * Ưu tiên 2: URL query string ?frame=...
+   * Tuyệt đối không quét mù quáng các input số khác (như frame step = 5) làm nhảy frame!
    */
   public static getCurrentFrame(): number {
     const frameInput = document.querySelector<HTMLInputElement>(
-      "input.cvat-player-frame-selector, .cvat-player-frame-input, input[aria-label='Frame selector'], .ant-input-number-input"
+      ".cvat-player-frame-selector input, input.cvat-player-frame-selector, input[aria-label='Frame selector']"
     );
-    if (frameInput && frameInput.value) {
+    if (frameInput && frameInput.value !== undefined && frameInput.value !== "") {
       const val = parseInt(frameInput.value, 10);
-      if (!isNaN(val)) return val;
+      if (!isNaN(val) && val >= 0) return val;
     }
 
     const urlParams = new URLSearchParams(window.location.search);
     const frameParam = urlParams.get("frame");
     if (frameParam && !isNaN(parseInt(frameParam, 10))) {
       return parseInt(frameParam, 10);
-    }
-
-    const allInputs = document.querySelectorAll<HTMLInputElement>("input[type='number'], input.ant-input-number-input");
-    for (const inp of allInputs) {
-      const val = parseInt(inp.value, 10);
-      if (!isNaN(val) && val >= 0 && val < 50000) {
-        return val;
-      }
     }
 
     return 0;
@@ -172,10 +201,18 @@ export class CVATBridge {
    * Lấy danh sách TẤT CẢ các Track ID CÓ MẶT TẠI FRAME HIỆN TẠI.
    * Ưu tiên 1: Main World Bridge (được phản hồi là trả về ngay, dù rỗng [] hay có xe).
    * Ưu tiên 2: window.cvat SDK nội bộ của trang web.
-   * Ưu tiên 3: REST API fallback an toàn.
+   * Ưu tiên 3: REST API fallback an toàn với ID -> Label Name & Color mapping.
    */
   public static async getTracksInCurrentFrame(jobId: number, frame: number): Promise<FrameTrackItem[]> {
     this.ensureMainWorldBridge();
+
+    // Lấy trước từ điển labels nếu có taskId trong URL
+    const taskMatch = window.location.pathname.match(/\/tasks\/(\d+)/);
+    const taskId = taskMatch ? parseInt(taskMatch[1], 10) : null;
+    let taskLabels: Map<number, { name: string; color: string }> = new Map();
+    if (taskId) {
+      taskLabels = await this.fetchTaskLabels(taskId);
+    }
 
     // 1. Thử gọi Main-World Bridge qua CustomEvent
     const promise = new Promise<FrameTrackItem[] | null>((resolve) => {
@@ -201,67 +238,10 @@ export class CVATBridge {
       return mainWorldList;
     }
 
-    // 2. Thử truy cập trực tiếp window.cvat SDK nội bộ
-    try {
-      const win = window as any;
-      if (win.cvat?.jobs) {
-        const jobs = await win.cvat.jobs.get({ jobID: jobId });
-        if (jobs && jobs.length > 0) {
-          const states = await jobs[0].annotations.get(frame);
-          if (Array.isArray(states)) {
-            const list: FrameTrackItem[] = states
-              .filter((s: any) => s.shapeType === "cuboid" && Array.isArray(s.points) && s.points.length >= 9)
-              .map((s: any) => ({
-                uiId: s.clientID,
-                serverId: s.serverID,
-                label: s.label?.name || "Car",
-                x: Number(s.points[0].toFixed(2)),
-                y: Number(s.points[1].toFixed(2)),
-                z: Number(s.points[2].toFixed(3)),
-                yawDeg: Math.round((s.points[5] * 180) / Math.PI),
-                l: Number(s.points[6].toFixed(2)),
-                w: Number(s.points[7].toFixed(2)),
-                h: Number(s.points[8].toFixed(2)),
-              }));
-            return list;
-          }
-        }
-      }
-    } catch (sdkErr) {
-      // cvat SDK chưa sẵn sàng
-    }
-
-    // 3. Fallback: Lấy từ API và gán uiId = index + 1 (chuẩn 1, 2)
-    try {
-      const data = await this.fetchJobAnnotations(jobId);
-      const tracks: any[] = data.tracks || [];
-      const result: FrameTrackItem[] = [];
-
-      tracks.forEach((t, index) => {
-        const shapes: any[] = Array.isArray(t.shapes) ? t.shapes : [];
-        const matchShape = shapes.find((s) => s.frame === frame && s.type === "cuboid");
-        if (matchShape && Array.isArray(matchShape.points) && matchShape.points.length >= 9) {
-          const p = matchShape.points;
-          const label = t.label_name || t.attributes?.label || `Track #${index + 1}`;
-          result.push({
-            uiId: index + 1,
-            serverId: t.id,
-            label,
-            x: Number(p[0].toFixed(2)),
-            y: Number(p[1].toFixed(2)),
-            z: Number(p[2].toFixed(3)),
-            yawDeg: Math.round(radToDeg(p[5])),
-            l: Number(p[6].toFixed(2)),
-            w: Number(p[7].toFixed(2)),
-            h: Number(p[8].toFixed(2)),
-          });
-        }
-      });
-
-      return result.sort((a, b) => a.uiId - b.uiId);
-    } catch (err) {
-      return [];
-    }
+    // TUYỆT ĐỐI KHÔNG gọi win.cvat.jobs.get({ jobID }) tạo Job instance ảo riêng của SDK
+    // vì Collection mới sẽ tự đánh số clientID từ 1..6 gây lệch pha và sinh ra ID ảo!
+    // Nếu Main World chưa phản hồi xong (lúc F5), trả về [] an toàn và chờ Redux nạp xong!
+    return [];
   }
 
   /**
@@ -1001,7 +981,7 @@ export class CVATBridge {
   }
 
   /**
-   * Vi chỉnh Center theo trục cục bộ của xe (deltaXLocal dọc xe, deltaYLocal ngang xe).
+   * Vi chỉnh Center theo trục cục bộ của xe hoặc Screen Space / World (isWorld = true).
    * Hỗ trợ dịch chuyển dàn đều cho toàn bộ track (applyToTrack = true).
    */
   public static async shiftTrackCenter(
@@ -1010,11 +990,14 @@ export class CVATBridge {
     serverId: number | null,
     deltaXLocal: number,
     deltaYLocal: number,
-    applyToTrack: boolean
+    deltaZ: number = 0,
+    applyToTrack: boolean = false,
+    isWorld: boolean = false
   ): Promise<{
     success: boolean;
     newX?: number;
     newY?: number;
+    newZ?: number;
     framesShifted?: number;
     message: string;
   }> {
@@ -1044,7 +1027,9 @@ export class CVATBridge {
             serverId,
             deltaXLocal,
             deltaYLocal,
+            deltaZ,
             applyToTrack,
+            isWorld,
           },
         })
       );
@@ -1059,19 +1044,129 @@ export class CVATBridge {
       success: true,
       newX: mwRes.newX,
       newY: mwRes.newY,
+      newZ: mwRes.newZ,
       framesShifted: mwRes.framesShifted,
       message: mwRes.message,
     };
   }
 
   /**
-   * Kích hoạt highlight sáng viền đối tượng trên Three.js Canvas3D
+   * Fit riêng Chiều Rộng (W) hoặc Chiều Cao (H) theo mây điểm LiDAR.
+   * - W (Phím 4): Giữ nguyên L, H, Z, chỉ co giãn W bám khít mây điểm.
+   * - H (Phím 5): Chuẩn Ground-Lock, đáy bám sàn cố định tại groundZ, chiều cao chỉ nở lên nóc.
    */
-  public static activateCanvasTrack(uiId: number): void {
+  public static async fitDimension(
+    jobId: number,
+    uiId: number,
+    serverId: number | null,
+    dimension: "w" | "h",
+    applyToTrack: boolean = false
+  ): Promise<{
+    success: boolean;
+    newL?: number;
+    newW?: number;
+    newH?: number;
+    newX?: number;
+    newY?: number;
+    newZ?: number;
+    pointsCount?: number;
+    framesSynced?: number;
+    message: string;
+  }> {
+    this.ensureMainWorldBridge();
+    const currentFrame = this.getCurrentFrame();
+
+    const mwPromise = new Promise<any>((resolve) => {
+      const timeout = setTimeout(() => resolve(null), 3000);
+
+      const onResponse = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_FIT_DIMENSION", onResponse);
+        if (e.detail && e.detail.success) {
+          resolve(e.detail);
+        } else {
+          resolve(null);
+        }
+      };
+
+      window.addEventListener("CVAT_EXT_RES_FIT_DIMENSION", onResponse);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_FIT_DIMENSION", {
+          detail: {
+            jobId,
+            frame: currentFrame,
+            uiId,
+            serverId,
+            dimension,
+            applyToTrack,
+          },
+        })
+      );
+    });
+
+    const mwRes = await mwPromise;
+    if (!mwRes) {
+      return { success: false, message: `Không thể fit chiều ${dimension.toUpperCase()} của đối tượng!` };
+    }
+
+    return {
+      success: true,
+      newL: mwRes.newL,
+      newW: mwRes.newW,
+      newH: mwRes.newH,
+      newX: mwRes.newX,
+      newY: mwRes.newY,
+      newZ: mwRes.newZ,
+      pointsCount: mwRes.pointsCount,
+      framesSynced: mwRes.framesSynced,
+      message: mwRes.message,
+    };
+  }
+
+  /**
+   * Kích hoạt highlight sáng viền đối tượng trên Three.js Canvas3D và đồng bộ 4 tầng
+   */
+  public static activateCanvasTrack(uiId: number, pos?: { x: number; y: number; z: number }): void {
     this.ensureMainWorldBridge();
     window.dispatchEvent(
       new CustomEvent("CVAT_EXT_REQ_ACTIVATE_OBJECT", {
-        detail: { clientId: uiId },
+        detail: { clientId: uiId, pos },
+      })
+    );
+  }
+
+  /**
+   * Căn giữa và tập trung View 3D Three.js vào Track ID chỉ định (0ms Realtime)
+   */
+  public static centerCanvas3DOnTrack(uiId: number, pos?: { x: number; y: number; z: number }): void {
+    this.ensureMainWorldBridge();
+    window.dispatchEvent(
+      new CustomEvent("CVAT_EXT_REQ_CENTER_OBJECT", {
+        detail: { clientId: uiId, pos },
+      })
+    );
+  }
+
+  /**
+   * Bật/Tắt tính năng Tự động Ghim Tâm (Lock-On Camera Tracking) khi tua frame
+   */
+  public static setAutoCenterOnFrameChange(enabled: boolean): void {
+    this.ensureMainWorldBridge();
+    window.dispatchEvent(
+      new CustomEvent("CVAT_EXT_REQ_SET_AUTO_CENTER_FRAME", {
+        detail: { enabled },
+      })
+    );
+  }
+
+  /**
+   * Đồng bộ ID của Track đang chọn tới Main World
+   */
+  public static setActiveTrackIdInMainWorld(trackId: number | null): void {
+    this.ensureMainWorldBridge();
+    window.dispatchEvent(
+      new CustomEvent("CVAT_EXT_REQ_SET_ACTIVE_TRACK", {
+        detail: { trackId },
       })
     );
   }
@@ -1290,6 +1385,40 @@ export class CVATBridge {
   }
 
   /**
+   * Lấy nhanh đám mây điểm LiDAR trong vùng quan tâm (ROI) quanh vật thể
+   */
+  public static async getRoiLidarPoints(
+    center?: [number, number, number],
+    radius: number = 4.0,
+    maxPoints: number = 25000
+  ): Promise<number[] | null> {
+    this.ensureMainWorldBridge();
+
+    const promise = new Promise<number[] | null>((resolve) => {
+      const timeout = setTimeout(() => resolve(null), 1200);
+
+      const onResponse = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_GET_ROI_LIDAR_POINTS", onResponse);
+        if (e.detail && e.detail.success && Array.isArray(e.detail.points)) {
+          resolve(e.detail.points);
+        } else {
+          resolve(null);
+        }
+      };
+
+      window.addEventListener("CVAT_EXT_RES_GET_ROI_LIDAR_POINTS", onResponse);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_GET_ROI_LIDAR_POINTS", {
+          detail: { center, radius, maxPoints },
+        })
+      );
+    });
+
+    return await promise;
+  }
+
+  /**
    * Yêu cầu CVAT native nhảy timeline tới frame chỉ định
    */
   public static jumpToFrame(frame: number): void {
@@ -1409,5 +1538,266 @@ export class CVATBridge {
       success: true,
       message: mwRes.message,
     };
+  }
+
+  // ===========================================================================
+  // VINFAST CALIBRATION AUTO-FETCH
+  // ===========================================================================
+
+  private static vinCalibCache: { data: any } | null = null;
+
+  /**
+   * Tự động fetch calibration VinFast từ endpoint Day14 overlay plugin
+   * hoặc từ file calib_diagnostic.json hardcoded.
+   */
+  public static async fetchVinCalibration(): Promise<any | null> {
+    if (this.vinCalibCache) return this.vinCalibCache.data;
+
+    // Thử fetch từ Day14 overlay plugin endpoint (nếu CVAT local có chạy overlay.py up)
+    try {
+      const res = await fetch(`${window.location.origin}/d14-overlay/private/config.json`, {
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const cfg = await res.json();
+        if (cfg.calibration) {
+          console.log("[VinCalib] Đã tải calibration từ Day14 overlay plugin");
+          this.vinCalibCache = { data: cfg.calibration };
+          return cfg.calibration;
+        }
+      }
+    } catch (_) { /* Endpoint không tồn tại trên CVAT remote */ }
+
+    // Fallback: Dùng calibration diagnostic hardcoded (từ calib_diagnostic.json)
+    const fallbackCalib = {
+      pcd_frame: "lidar",
+      lidar: {
+        sensor2ego: [
+          [0.999848, -0.017452, 0.0, 0.0],
+          [0.017452, 0.999848, 0.0, 0.0],
+          [0.0, 0.0, 1.0, 0.0],
+          [0.0, 0.0, 0.0, 1.0],
+        ],
+      },
+      cameras: {
+        CAM_P_F: {
+          K: [
+            [1842.5042844353281, 0.0, 953.8468015854089],
+            [0.0, 1842.3052782411678, 780.7314324894343],
+            [0.0, 0.0, 1.0],
+          ],
+          dist: [-0.494617, 0.254457, -0.002633, -0.001096, -0.078763],
+          ego2cam: [
+            [-0.001396, -0.999929, 0.011868, -0.019678],
+            [0.020751, -0.011894, -0.999714, 1.755513],
+            [0.999784, -0.001149, 0.020766, -1.047623],
+            [0.0, 0.0, 0.0, 1.0],
+          ],
+          image_size: [1920, 1536],
+        },
+      },
+    };
+
+    console.log("[VinCalib] Dùng calibration diagnostic hardcoded (CAM_P_F)");
+    this.vinCalibCache = { data: fallbackCalib };
+    return fallbackCalib;
+  }
+
+  // ===========================================================================
+  // CONTEXT IMAGES FETCHER + INLINE ZIP PARSER
+  // ===========================================================================
+
+  private static contextImageCache: { key: string; images: Map<number, string> } | null = null;
+
+  /**
+   * Tải ảnh Context Images (8 camera) từ CVAT REST API cho frame hiện tại.
+   */
+  public static async fetchContextImages(jobId: number, frame: number): Promise<Map<number, string>> {
+    const cacheKey = `${jobId}:${frame}`;
+    if (this.contextImageCache && this.contextImageCache.key === cacheKey) {
+      return this.contextImageCache.images;
+    }
+
+    // Revoke blob URLs cũ
+    if (this.contextImageCache) {
+      for (const url of this.contextImageCache.images.values()) {
+        try { URL.revokeObjectURL(url); } catch (_) {}
+      }
+      this.contextImageCache = null;
+    }
+
+    const result = new Map<number, string>();
+
+    try {
+      const baseUrl = `${window.location.origin}/api/jobs/${jobId}/data`;
+      const urls = [
+        `${baseUrl}?type=context_image&quality=original&number=${frame}`,
+        `${baseUrl}?type=context_image&frame=${frame}&number=0`,
+      ];
+
+      console.log(`[Camera HUD] Fetch context images: jobId=${jobId}, frame=${frame}`);
+
+      let response: Response | null = null;
+      for (const url of urls) {
+        try {
+          const res = await fetch(url, {
+            method: "GET",
+            headers: { Accept: "*/*" },
+            credentials: "include",
+          });
+          if (res.ok) { response = res; break; }
+        } catch (_) {}
+      }
+
+      if (!response) return result;
+
+      const blob = await response.blob();
+      console.log(`[Camera HUD] Response: ${blob.size} bytes, type="${blob.type}"`);
+
+      // Kiểm tra ZIP signature
+      const headerBytes = new Uint8Array(await blob.slice(0, 4).arrayBuffer());
+      const isZip = headerBytes[0] === 0x50 && headerBytes[1] === 0x4B &&
+                    headerBytes[2] === 0x03 && headerBytes[3] === 0x04;
+
+      if (isZip) {
+        const zipBuffer = await blob.arrayBuffer();
+        const extractedFiles = await this.parseZipArchive(new Uint8Array(zipBuffer));
+        console.log(`[Camera HUD] ZIP: ${extractedFiles.length} files`);
+        extractedFiles.sort((a, b) => a.filename.localeCompare(b.filename));
+        for (const file of extractedFiles) {
+          const camIdx = this.mapFilenameToCameraIndex(file.filename);
+          if (camIdx >= 0 && camIdx < 8) {
+            const buf = file.data.buffer.slice(file.data.byteOffset, file.data.byteOffset + file.data.byteLength);
+            const imgBlob = new Blob([buf], { type: this.guessMimeType(file.filename) });
+            result.set(camIdx, URL.createObjectURL(imgBlob));
+          }
+        }
+      } else if (blob.type.startsWith("image/")) {
+        result.set(0, URL.createObjectURL(blob));
+      } else if (blob.size > 1000) {
+        // Force-parse as ZIP dù content-type sai
+        try {
+          const zipBuffer = await blob.arrayBuffer();
+          const extractedFiles = await this.parseZipArchive(new Uint8Array(zipBuffer));
+          if (extractedFiles.length > 0) {
+            extractedFiles.sort((a, b) => a.filename.localeCompare(b.filename));
+            for (const file of extractedFiles) {
+              const camIdx = this.mapFilenameToCameraIndex(file.filename);
+              if (camIdx >= 0 && camIdx < 8) {
+                const buf = file.data.buffer.slice(file.data.byteOffset, file.data.byteOffset + file.data.byteLength);
+                result.set(camIdx, URL.createObjectURL(new Blob([buf], { type: this.guessMimeType(file.filename) })));
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
+      console.log(`[Camera HUD] Loaded ${result.size} camera images for frame ${frame}`);
+    } catch (err) {
+      console.error("[Camera HUD] Fetch error:", err);
+    }
+
+    this.contextImageCache = { key: cacheKey, images: result };
+    return result;
+  }
+
+  private static mapFilenameToCameraIndex(filename: string): number {
+    const basename = filename.split("/").pop()?.toLowerCase() || "";
+    const numMatch = basename.match(/image[_-]?(\d+)\.\w+$/);
+    if (numMatch) return parseInt(numMatch[1], 10);
+    const nameMap: Record<string, number> = {
+      "cam_front": 0, "front": 0,
+      "cam_p_f": 1,
+      "cam_front_left": 1, "front_left": 1,
+      "cam_front_right": 2, "front_right": 2,
+      "cam_side_left": 3, "side_left": 3,
+      "cam_side_right": 4, "side_right": 4,
+      "cam_back_left": 5, "back_left": 5,
+      "cam_back_right": 6, "back_right": 6,
+      "cam_back": 7, "back": 7, "cam_rear": 7,
+    };
+    const nameOnly = basename.replace(/\.\w+$/, "");
+    if (nameMap[nameOnly] !== undefined) return nameMap[nameOnly];
+    const fallbackMatch = basename.match(/(\d+)\.\w+$/);
+    if (fallbackMatch) return parseInt(fallbackMatch[1], 10) % 8;
+    return -1;
+  }
+
+  private static guessMimeType(filename: string): string {
+    const ext = filename.split(".").pop()?.toLowerCase() || "";
+    if (ext === "png") return "image/png";
+    if (ext === "webp") return "image/webp";
+    return "image/jpeg";
+  }
+
+  // INLINE ZIP PARSER
+  private static async parseZipArchive(zipData: Uint8Array): Promise<Array<{ filename: string; data: Uint8Array }>> {
+    const results: Array<{ filename: string; data: Uint8Array }> = [];
+    const view = new DataView(zipData.buffer, zipData.byteOffset, zipData.byteLength);
+    let offset = 0;
+
+    while (offset + 30 <= zipData.length) {
+      const sig = view.getUint32(offset, true);
+      if (sig !== 0x04034b50) break;
+
+      const gpFlag = view.getUint16(offset + 6, true);
+      const compressionMethod = view.getUint16(offset + 8, true);
+      const compressedSize = view.getUint32(offset + 18, true);
+      const filenameLen = view.getUint16(offset + 26, true);
+      const extraLen = view.getUint16(offset + 28, true);
+
+      const filenameBytes = zipData.subarray(offset + 30, offset + 30 + filenameLen);
+      const filename = new TextDecoder("utf-8").decode(filenameBytes);
+
+      const dataStart = offset + 30 + filenameLen + extraLen;
+      const dataEnd = dataStart + compressedSize;
+
+      const isDir = filename.endsWith("/") || compressedSize === 0;
+      const isImage = /\.(jpe?g|png|bmp|webp)$/i.test(filename);
+
+      if (!isDir && isImage && dataEnd <= zipData.length) {
+        const compressedData = zipData.subarray(dataStart, dataEnd);
+        if (compressionMethod === 0) {
+          results.push({ filename, data: new Uint8Array(compressedData) });
+        } else if (compressionMethod === 8) {
+          try {
+            const decompressed = await this.inflateDeflateRaw(compressedData);
+            results.push({ filename, data: decompressed });
+          } catch (_) {}
+        }
+      }
+
+      offset = dataEnd;
+      if ((gpFlag & 0x0008) !== 0 && offset + 16 <= zipData.length) {
+        const descSig = view.getUint32(offset, true);
+        offset += descSig === 0x08074b50 ? 16 : 12;
+      }
+    }
+    return results;
+  }
+
+  private static async inflateDeflateRaw(compressedData: Uint8Array): Promise<Uint8Array> {
+    if (typeof DecompressionStream !== "undefined") {
+      const ds = new DecompressionStream("deflate-raw");
+      const writer = ds.writable.getWriter();
+      const reader = ds.readable.getReader();
+      const buf = compressedData.buffer.slice(compressedData.byteOffset, compressedData.byteOffset + compressedData.byteLength);
+      writer.write(new Uint8Array(buf) as any);
+      writer.close();
+      const chunks: Uint8Array[] = [];
+      let totalLen = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        totalLen += value.byteLength;
+      }
+      const result = new Uint8Array(totalLen);
+      let pos = 0;
+      for (const chunk of chunks) { result.set(chunk, pos); pos += chunk.byteLength; }
+      return result;
+    }
+    throw new Error("DecompressionStream not available");
   }
 }

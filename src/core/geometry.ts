@@ -857,17 +857,88 @@ export function detectLateralWallBounds(
 }
 
 /**
+ * Tính toán trọng số cường độ phản xạ (Intensity Weighting) cho danh sách mây điểm:
+ * - Điểm có cường độ phản xạ / màu sáng cao (vỏ kim loại xe, biển số, đèn phản quang) được gán trọng số lớn hơn (1.5 ~ 2.5x).
+ * - Tự động nhận diện nếu dữ liệu không có intensity hoặc độ biến thiên quá nhỏ để kích hoạt Fallback an toàn (trọng số đồng nhất 1.0).
+ */
+export function computeIntensityWeights(
+  pts: Array<{ intensity?: number }>
+): {
+  weights: number[];
+  hasValidIntensity: boolean;
+  highIntensityThreshold: number;
+} {
+  const n = pts.length;
+  if (n === 0) {
+    return { weights: [], hasValidIntensity: false, highIntensityThreshold: 0 };
+  }
+
+  const intensities: number[] = [];
+  let validCount = 0;
+  for (let i = 0; i < n; i++) {
+    const val = pts[i].intensity;
+    if (typeof val === "number" && !isNaN(val)) {
+      intensities.push(val);
+      validCount++;
+    } else {
+      intensities.push(0);
+    }
+  }
+
+  // Nếu không có điểm nào có intensity hợp lệ
+  if (validCount < 3) {
+    return {
+      weights: new Array(n).fill(1.0),
+      hasValidIntensity: false,
+      highIntensityThreshold: 0,
+    };
+  }
+
+  const sorted = [...intensities].sort((a, b) => a - b);
+  const minI = sorted[0];
+  const maxI = sorted[sorted.length - 1];
+
+  // Nếu độ biến thiên intensity quá nhỏ (< 15 đơn vị trên thang 255) -> Không đủ cơ sở để phân tách
+  if (maxI - minI < 15) {
+    return {
+      weights: new Array(n).fill(1.0),
+      hasValidIntensity: false,
+      highIntensityThreshold: maxI,
+    };
+  }
+
+  // Ngưỡng điểm sáng (Top 25% điểm có intensity cao nhất)
+  const p75Idx = Math.min(sorted.length - 1, Math.floor(sorted.length * 0.75));
+  const highIntensityThreshold = Math.max(minI + 15, sorted[p75Idx]);
+
+  const range = maxI - minI;
+  const weights: number[] = new Array(n);
+  for (let i = 0; i < n; i++) {
+    const norm = Math.max(0, Math.min(1, (intensities[i] - minI) / range));
+    // Trọng số chạy từ 1.0 (điểm tối nhất) đến 2.5 (điểm sáng nhất)
+    weights[i] = 1.0 + 1.5 * norm;
+  }
+
+  return {
+    weights,
+    hasValidIntensity: true,
+    highIntensityThreshold,
+  };
+}
+
+/**
  * Thuật toán Dò Bức Tường Mật Độ Vỏ Xe & Cắt Thung Lũng Mật Độ (Dominant Wall Edge with Density Valley Cutoff):
  * - Thay thế việc lấy phân vị cực biên mù quáng (5% hay 95%) vốn dễ bị "hút" vào người đi bộ hoặc xe khác đỗ sát bên.
- * - Khai thác triệt để 2 đặc tính vật lý cốt lõi:
- *   1. Mật độ: Thân vỏ xe ô tô tạo thành một đỉnh xung mật độ lớn nhất (Dominant Wall Peak).
- *   2. Thung lũng khoảng cách (Air Gap / Density Valley): Giữa xe và người luôn có khoảng trống thưa thớt (gap >= 6cm - 12cm).
+ * - Tích hợp Trọng Số Intensity / Màu Sáng (Intensity Weighting) và Cơ Chế Bảo Vệ Mép Sáng (Bright Edge Protection):
+ *   1. Điểm có màu sáng / intensity cao được bảo tồn, không bị coi là nhiễu thưa thớt, chống co rút lẹm vào object.
+ *   2. Đỉnh mật độ thân xe được tính toán dựa trên Weighted Histogram, ưu tiên phản xạ kim loại/đèn xe.
  *   3. Trải dài hình học: Sườn xe trải dài theo trục dọc lx (spanLx >= 0.7m), người đi bộ là cột trụ hẹp (spanLx <= 0.45m).
- * - Quét từ đỉnh mật độ thân vỏ xe ra phía ngoài đón tia, nếu gặp thung lũng khoảng trống hoặc vật thể hẹp cục bộ,
- *   thuật toán lập tức chốt mép vỏ xe tại đó và CẮT BỎ 100% các điểm nằm sau thung lũng.
+ * - Quét từ đỉnh mật độ thân vỏ xe ra phía ngoài đón tia, chốt mép vỏ xe tại đó và CẮT BỎ 100% các điểm nằm sau thung lũng.
  */
-export function detectDominantWallEdgeWithValleyCutoff(
-  pts: Array<{ lx: number; ly: number; z: number }>,
+export function detectDominantWallEdgeWithValleyCutoff<
+  T extends { lx: number; ly: number; z: number; intensity?: number }
+>(
+  pts: Array<T>,
   axis: "ly" | "lx",
   direction: "positive" | "negative",
   nominalHalf: number,
@@ -875,10 +946,11 @@ export function detectDominantWallEdgeWithValleyCutoff(
     binSize?: number;
     minSpanOrthogonal?: number;
     maxSearchExtension?: number;
+    useIntensity?: boolean;
   } = {}
 ): {
   edge: number;
-  wallPoints: Array<{ lx: number; ly: number; z: number }>;
+  wallPoints: Array<T>;
   peakDensity: number;
 } {
   const isPos = direction === "positive";
@@ -897,49 +969,60 @@ export function detectDominantWallEdgeWithValleyCutoff(
     };
   }
 
+  // Phân tích trọng số Intensity (Cường độ phản xạ & độ sáng)
+  const intensityData = options.useIntensity !== false ? computeIntensityWeights(candidatePts) : null;
+  const weights = intensityData?.weights || new Array(candidatePts.length).fill(1.0);
+  const highThreshold = intensityData?.highIntensityThreshold ?? Infinity;
+  const hasValidIntensity = intensityData?.hasValidIntensity ?? false;
+
   // Quy chuẩn khoảng cách từ tâm xe ra phía ngoài (dist >= 0)
   const maxDist = nominalHalf + maxSearchExt;
   const numBins = Math.ceil(maxDist / binSize) + 2;
-  const bins: Array<Array<{ lx: number; ly: number; z: number }>> = Array.from(
+  const bins: Array<Array<{ pt: T; weight: number; isBright: boolean }>> = Array.from(
     { length: numBins },
     () => []
   );
+  const binWeights: number[] = new Array(numBins).fill(0);
 
-  for (const p of candidatePts) {
+  for (let i = 0; i < candidatePts.length; i++) {
+    const p = candidatePts[i];
+    const w = weights[i];
+    const isBright = hasValidIntensity && typeof p.intensity === "number" && p.intensity >= highThreshold;
     const dist = isPos ? p[axis] : -p[axis];
     if (dist >= 0 && dist <= maxDist) {
       const bIdx = Math.min(numBins - 1, Math.floor(dist / binSize));
-      bins[bIdx].push(p);
+      bins[bIdx].push({ pt: p, weight: w, isBright });
+      binWeights[bIdx] += w;
     }
   }
 
-  // 1. Tìm ĐỈNH MẬT ĐỘ THÂN XE (Dominant Wall Peak)
+  // 1. Tìm ĐỈNH MẬT ĐỘ THÂN XE CÓ TRỌNG SỐ (Dominant Weighted Wall Peak)
   // Quét toàn bộ phạm vi cho phép [nominalHalf - 0.45, nominalHalf + maxSearchExt]
   const nominalMinBin = Math.max(0, Math.floor((nominalHalf - 0.45) / binSize));
   const nominalMaxBin = Math.min(numBins - 1, Math.floor((nominalHalf + maxSearchExt) / binSize));
 
   let peakBin = nominalMinBin;
-  let maxCount = 0;
+  let maxWeight = 0;
 
   for (let b = nominalMinBin; b <= nominalMaxBin; b++) {
-    const count = bins[b].length;
-    if (count > maxCount) {
-      maxCount = count;
+    const bw = binWeights[b];
+    if (bw > maxWeight) {
+      maxWeight = bw;
       peakBin = b;
     }
   }
 
-  // Nếu trong vùng danh định không có điểm nào rõ ràng (maxCount < 2), dò toàn bộ dải
-  if (maxCount < 2) {
+  // Nếu trong vùng danh định không có điểm nào rõ ràng (maxWeight < 2.0), dò toàn bộ dải
+  if (maxWeight < 2.0) {
     for (let b = 1; b < numBins - 1; b++) {
-      if (bins[b].length > maxCount) {
-        maxCount = bins[b].length;
+      if (binWeights[b] > maxWeight) {
+        maxWeight = binWeights[b];
         peakBin = b;
       }
     }
   }
 
-  if (maxCount === 0) {
+  if (maxWeight === 0) {
     return {
       edge: isPos ? nominalHalf : -nominalHalf,
       wallPoints: candidatePts,
@@ -948,7 +1031,7 @@ export function detectDominantWallEdgeWithValleyCutoff(
   }
 
   // 2. Dò mép vỏ xe từ peakBin ra phía ngoài (b tăng dần)
-  const minWallDensity = Math.max(2, Math.floor(maxCount * 0.15));
+  const minWallWeight = Math.max(1.8, maxWeight * 0.12);
   let outerWallBin = peakBin;
 
   // Quét từ peakBin + 1 ra phía ngoài
@@ -956,19 +1039,32 @@ export function detectDominantWallEdgeWithValleyCutoff(
   for (let b = peakBin + 1; b < numBins; b++) {
     const ptsInBin = bins[b];
     const count = ptsInBin.length;
+    const bw = binWeights[b];
+    const hasBrightInBin = ptsInBin.some((item) => item.isBright);
 
     if (count === 0) {
       consecutiveEmptyBins++;
       // Nếu gặp khoảng trống liên tiếp >= 2 bin (>= 6cm): Thung Lũng Mật Độ / Air Gap!
       if (consecutiveEmptyBins >= 2) {
-        break; // Dừng lại ngay lập tức, cắt bỏ toàn bộ phía sau!
+        // Kiểm tra xem ở 1 bin kế tiếp ngay sau có điểm sáng phản quang không (Bright Point Bridge)
+        const nextBinHasBright = b + 1 < numBins && bins[b + 1].some((item) => item.isBright);
+        if (!nextBinHasBright) {
+          break; // Dừng lại ngay lập tức, cắt bỏ toàn bộ phía sau!
+        }
       }
       continue;
     }
 
-    // Nếu bin có điểm nhưng mật độ quá thấp (< minWallDensity) và nằm ngoài mép danh định
+    // NẾU CÓ ĐIỂM SÁNG PHẢN XẠ MẠNH: BẢO VỆ TUYỆT ĐỐI KHÔNG BỊ CO LẸM VÀO TRONG!
+    if (hasBrightInBin) {
+      consecutiveEmptyBins = 0;
+      outerWallBin = b;
+      continue;
+    }
+
+    // Nếu bin có điểm nhưng mật độ quá thấp (< minWallWeight) và nằm ngoài mép danh định
     const distCenter = (b + 0.5) * binSize;
-    if (count < minWallDensity && distCenter > nominalHalf) {
+    if (bw < minWallWeight && distCenter > nominalHalf) {
       consecutiveEmptyBins++;
       if (consecutiveEmptyBins >= 2) {
         break;
@@ -978,10 +1074,8 @@ export function detectDominantWallEdgeWithValleyCutoff(
 
     // Kiểm tra Tiêu chí Trải Dài Hình Học (Orthogonal Span):
     // Điểm ngoài sườn xe (hoặc cản xe) bắt buộc phải có độ trải dài vuông góc hợp lý.
-    // Nếu điểm này chỉ co cụm trong một phạm vi hẹp (< minSpanOrth * 0.6) ở ngoài mép danh định,
-    // đó là người đi bộ hoặc vật thể hẹp đứng ngoài!
     if (distCenter > nominalHalf - 0.05) {
-      const orthVals = ptsInBin.map((p) => p[orthAxis]);
+      const orthVals = ptsInBin.map((item) => item.pt[orthAxis]);
       const spanOrth = Math.max(...orthVals) - Math.min(...orthVals);
       if (count <= 6 && spanOrth < minSpanOrth * 0.6) {
         if (b > peakBin + 1) {
@@ -996,32 +1090,35 @@ export function detectDominantWallEdgeWithValleyCutoff(
   }
 
   // 3. Thu thập toàn bộ điểm của thân xe từ tâm ra đến outerWallBin (đã cắt bỏ 100% người đi bộ bên ngoài)
-  const collectedWallPoints: Array<{ lx: number; ly: number; z: number }> = [];
+  const collectedWallPoints: Array<T> = [];
   for (let b = 0; b <= outerWallBin; b++) {
-    for (const p of bins[b]) {
-      collectedWallPoints.push(p);
+    for (const item of bins[b]) {
+      collectedWallPoints.push(item.pt);
     }
   }
 
   // Điểm mép vỏ xe được tính từ các bin quanh outerWallBin (lớp vỏ ngoài của xe)
-  const outerEdgePts: Array<{ lx: number; ly: number; z: number }> = [];
+  const outerEdgeItems: Array<{ pt: T; weight: number; isBright: boolean }> = [];
   const edgeStartBin = Math.max(0, outerWallBin - 3);
   for (let b = edgeStartBin; b <= outerWallBin; b++) {
-    for (const p of bins[b]) {
-      outerEdgePts.push(p);
+    for (const item of bins[b]) {
+      outerEdgeItems.push(item);
     }
   }
 
   // Tính tọa độ mép ngoài cùng (Edge)
-  if (outerEdgePts.length >= 3) {
-    const dists = outerEdgePts.map((p) => (isPos ? p[axis] : -p[axis])).sort((a, b) => a - b);
+  if (outerEdgeItems.length >= 3) {
+    const brightItems = outerEdgeItems.filter((i) => i.isBright);
+    // Nếu có điểm sáng ở lớp vỏ ngoài, ưu tiên bắt theo phân vị điểm sáng để chống thụt mép lẹm vào object
+    const targetItems = brightItems.length >= 2 ? brightItems : outerEdgeItems;
+    const dists = targetItems.map((item) => (isPos ? item.pt[axis] : -item.pt[axis])).sort((a, b) => a - b);
     const pIdx = Math.max(0, Math.min(dists.length - 1, Math.floor(dists.length * 0.95)));
     const chosenDist = dists[pIdx];
     const edge = isPos ? Number(chosenDist.toFixed(3)) : Number((-chosenDist).toFixed(3));
     return {
       edge,
       wallPoints: collectedWallPoints,
-      peakDensity: maxCount,
+      peakDensity: Math.round(maxWeight),
     };
   }
 
@@ -1030,7 +1127,7 @@ export function detectDominantWallEdgeWithValleyCutoff(
   return {
     edge,
     wallPoints: collectedWallPoints.length > 0 ? collectedWallPoints : candidatePts,
-    peakDensity: maxCount,
+    peakDensity: Math.round(maxWeight),
   };
 }
 
@@ -1042,21 +1139,28 @@ export function detectDominantWallEdgeWithValleyCutoff(
  *   tính góc nghiêng deltaYaw = atan(slope) và vi chỉnh góc Yaw mới: newYaw = currentYaw + deltaYaw.
  * - Giới hạn góc vi chỉnh an toàn (|deltaYaw| <= 8 độ) để chống lộn ngược xe.
  */
-export function straightenYawFromBoundaryEdge(
-  pts: Array<{ lx: number; ly: number; z: number }>,
+export function straightenYawFromBoundaryEdge<
+  T extends { lx: number; ly: number; z: number; intensity?: number }
+>(
+  pts: Array<T>,
   currentYaw: number,
   _L: number,
   _W: number,
   visibleLateral: "left" | "right",
-  options: { maxAdjustmentDeg?: number } = {}
+  options: { maxAdjustmentDeg?: number; useIntensity?: boolean } = {}
 ): { newYawRad: number; newYawDeg: number; deltaYawDeg: number; slope: number } {
   const maxAdjDeg = options.maxAdjustmentDeg ?? 8.0;
   const maxAdjRad = (maxAdjDeg * Math.PI) / 180;
 
+  // Phân tích trọng số Intensity
+  const intensityData = options.useIntensity !== false ? computeIntensityWeights(pts) : null;
+  const highThreshold = intensityData?.highIntensityThreshold ?? Infinity;
+  const hasValidIntensity = intensityData?.hasValidIntensity ?? false;
+
   // Tự động nhận diện sườn xe đón tia dựa trên mật độ và số lượng điểm thực tế
   const leftPts = pts.filter((p) => p.ly > 0);
   const rightPts = pts.filter((p) => p.ly < 0);
-  let sidePts: Array<{ lx: number; ly: number; z: number }>;
+  let sidePts: Array<T>;
   let isTargetLeft: boolean;
 
   if (leftPts.length >= 8 && leftPts.length > rightPts.length * 1.3) {
@@ -1104,7 +1208,7 @@ export function straightenYawFromBoundaryEdge(
   // Chia dải thân xe thành 10 lát cắt dọc theo chiều dài phân bố thực tế
   const numSlices = 10;
   const sliceWidth = spanLx / numSlices;
-  const slicePoints: Array<{ lx: number; ly: number }> = [];
+  const slicePoints: Array<{ lx: number; ly: number; weight: number }> = [];
 
   for (let s = 0; s < numSlices; s++) {
     const sMin = minLxBound + s * sliceWidth;
@@ -1112,15 +1216,22 @@ export function straightenYawFromBoundaryEdge(
     const inSlice = sidePts.filter((p) => p.lx >= sMin && p.lx < sMax);
 
     if (inSlice.length >= 1) {
-      const sortedLy = inSlice.map((p) => p.ly).sort((a, b) => a - b);
+      // Ưu tiên điểm sáng trong lát cắt nếu có
+      const brightInSlice = hasValidIntensity
+        ? inSlice.filter((p) => typeof p.intensity === "number" && p.intensity >= highThreshold)
+        : [];
+      const targetSlicePts = brightInSlice.length >= 1 ? brightInSlice : inSlice;
+      const sliceWeight = brightInSlice.length >= 1 ? 2.0 : 1.0;
+
+      const sortedLy = targetSlicePts.map((p) => p.ly).sort((a, b) => a - b);
       if (isTargetLeft) {
         // Sườn trái đón tia: lấy phân vị mép ngoài cùng (90th percentile)
         const pIdx = Math.max(0, Math.floor(sortedLy.length * 0.90));
-        slicePoints.push({ lx: (sMin + sMax) / 2, ly: sortedLy[pIdx] });
+        slicePoints.push({ lx: (sMin + sMax) / 2, ly: sortedLy[pIdx], weight: sliceWeight });
       } else {
         // Sườn phải đón tia: lấy phân vị mép ngoài cùng (10th percentile)
         const pIdx = Math.min(sortedLy.length - 1, Math.floor(sortedLy.length * 0.10));
-        slicePoints.push({ lx: (sMin + sMax) / 2, ly: sortedLy[pIdx] });
+        slicePoints.push({ lx: (sMin + sMax) / 2, ly: sortedLy[pIdx], weight: sliceWeight });
       }
     }
   }
@@ -1134,23 +1245,35 @@ export function straightenYawFromBoundaryEdge(
     };
   }
 
-  // Hồi quy bền vững kháng ngoại lai Theil-Sen Estimator (Median of Slopes):
+  // Hồi quy bền vững kháng ngoại lai Theil-Sen Estimator có trọng số:
   // Miễn nhiễm 100% với các điểm cản trước/sau lọt vào mép sườn xe
-  const slopes: number[] = [];
+  const slopesWithWeights: Array<{ slope: number; weight: number }> = [];
   for (let i = 0; i < slicePoints.length; i++) {
     for (let j = i + 1; j < slicePoints.length; j++) {
       const dx = slicePoints[j].lx - slicePoints[i].lx;
       const dy = slicePoints[j].ly - slicePoints[i].ly;
       if (Math.abs(dx) >= 0.25) {
-        slopes.push(dy / dx);
+        const pairWeight = (slicePoints[i].weight + slicePoints[j].weight) / 2;
+        slopesWithWeights.push({ slope: dy / dx, weight: pairWeight });
       }
     }
   }
 
   let slope = 0;
-  if (slopes.length >= 3) {
-    slopes.sort((a, b) => a - b);
-    slope = slopes[Math.floor(slopes.length / 2)];
+  if (slopesWithWeights.length >= 3) {
+    slopesWithWeights.sort((a, b) => a.slope - b.slope);
+    // Weighted Median of Slopes
+    const totalW = slopesWithWeights.reduce((sum, item) => sum + item.weight, 0);
+    let cumulativeW = 0;
+    let chosenSlope = slopesWithWeights[Math.floor(slopesWithWeights.length / 2)].slope;
+    for (const item of slopesWithWeights) {
+      cumulativeW += item.weight;
+      if (cumulativeW >= totalW / 2) {
+        chosenSlope = item.slope;
+        break;
+      }
+    }
+    slope = chosenSlope;
   } else {
     let sumLx = 0;
     let sumLy = 0;
@@ -1467,12 +1590,54 @@ export function computeTightFitDimensions(
 }
 
 /**
+ * Thuật toán Cắt Thung Lũng Mật Độ Trục Z (Z-Axis Density Gap Cutoff) & Dò Đỉnh Đầu Thật:
+ * - Sắp xếp các điểm theo Z tăng dần.
+ * - Quét từ điểm cao nhất ngược xuống: nếu phát hiện khoảng trống rỗng deltaZ > maxGap (mặc định 15cm)
+ *   giữa các điểm trên trời và cụm đỉnh đầu người/xe 2 bánh -> Loại bỏ 100% các điểm nhiễu lơ lửng đó.
+ * - Trả về cao độ đỉnh đầu thật (trueHeadZ), kháng 100% điểm lá cây, dây điện, bụi.
+ */
+export function detectTrueHeadZ(
+  zArr: number[],
+  maxGap: number = 0.15,
+  groundZ?: number,
+  maxNormalHeight: number = 1.75
+): number {
+  if (zArr.length === 0) return 0;
+  if (zArr.length === 1) return zArr[0];
+  const sorted = [...zArr].sort((a, b) => a - b);
+
+  // Điểm sàn tham chiếu (nếu không có groundZ thì lấy điểm thấp nhất)
+  const baseZ = groundZ !== undefined ? groundZ : sorted[0];
+  const suspiciousThresholdZ = baseZ + maxNormalHeight;
+
+  // Quét từ điểm cao nhất ngược xuống:
+  // Nếu điểm nằm trên ngưỡng nghi vấn (> baseZ + maxNormalHeight)
+  // và khoảng hở so với điểm bên dưới lớn hơn maxGap (> 15cm)
+  // -> Loại bỏ điểm đó và tiếp tục quét xuống
+  let cutoffIdx = sorted.length - 1;
+  for (let i = sorted.length - 1; i >= 1; i--) {
+    if (sorted[i] > suspiciousThresholdZ) {
+      const gap = sorted[i] - sorted[i - 1];
+      if (gap > maxGap) {
+        cutoffIdx = i - 1;
+      }
+    } else {
+      // Đã chạm vào vùng chiều cao bình thường của vật thể -> dừng kiểm tra
+      break;
+    }
+  }
+
+  const clusterPts = sorted.slice(0, cutoffIdx + 1);
+  return clusterPts[clusterPts.length - 1];
+}
+
+/**
  * Thuật toán Ước lượng Cao độ Mặt đường của xe Ego (Ego Road Surface Ground Z):
- * - Quét các điểm mặt đất trong vành đai lân cận quanh xe Ego (bán kính 1.2m đến 6.0m).
- * - Lọc bỏ thân xe Ego (gầm xe r < 1.2m) và các vật thể nổi.
+ * - Quét các điểm mặt đất trong vành đai lân cận quanh xe Ego (mở rộng bán kính 0.8m đến 15.0m).
+ * - Lọc bỏ thân xe Ego (gầm xe r < 0.8m) và các vật thể nổi.
  * - Sử dụng phân vị thấp (15% ~ 25%) để loại bỏ tia nhiễu đáy cống / vũng nước.
  * - Đóng vai trò là mốc chuẩn (Baseline Ground Reference) để:
- *   1. Chống lún âm đất cho các xe ở xa / ít điểm / không có điểm mặt đất dưới gầm.
+ *   1. Chống lún âm đất / chống bay lơ lửng cho các xe ở xa / ít điểm / không có điểm mặt đất dưới gầm.
  *   2. Nhận diện nền vỉa hè chuẩn xác khi mây điểm cao hơn mặt đường Ego (+8cm ~ +35cm).
  */
 export function estimateEgoRoadGroundZ(
@@ -1480,8 +1645,8 @@ export function estimateEgoRoadGroundZ(
   egoPos: { x: number; y: number; z: number } = { x: 0, y: 0, z: 0 },
   options: { minRadius?: number; maxRadius?: number; defaultZ?: number } = {}
 ): number {
-  const minR = options.minRadius ?? 1.2;
-  const maxR = options.maxRadius ?? 6.0;
+  const minR = options.minRadius ?? 0.8;
+  const maxR = options.maxRadius ?? 15.0;
   const defaultZ = options.defaultZ ?? -1.75;
   const minRSq = minR * minR;
   const maxRSq = maxR * maxR;
@@ -1636,11 +1801,11 @@ export function computeGroundSlopesAndZ(
     options.egoRoadZ !== undefined
       ? options.egoRoadZ
       : pts && pts.length >= 8
-      ? estimateEgoRoadGroundZ(pts, options.egoPos, { defaultZ: 0 })
-      : 0;
+      ? estimateEgoRoadGroundZ(pts, options.egoPos, { defaultZ: -1.75 })
+      : -1.75;
 
-  if (groundPts.length < 6) {
-    // Dưới chân không có điểm hoặc chưa đủ point cloud mặt đất (< 6 điểm) -> Fit theo độ cao Ego Road Z và góc thẳng theo Ego (Roll 0°, Pitch 0°)
+  if (groundPts.length < 10) {
+    // Dưới chân không có điểm hoặc point cloud mặt đất quá ít (< 10 điểm) -> Auto 100% lấy theo Ego Road Z làm chuẩn 0 độ (Roll 0°, Pitch 0°)
     return {
       groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
       pitchRad: 0,
@@ -1737,6 +1902,23 @@ export function computeGroundSlopesAndZ(
   addLowestFromQuadrant(qRR);
 
   const finalPts = fitPts.length >= 4 ? fitPts : validPts.slice(0, Math.max(4, Math.floor(validPts.length * 0.45)));
+
+  if (finalPts.length < 6) {
+    // Số điểm mặt đất sau lọc không đủ tin cậy để OLS mặt phẳng 3D -> Auto 100% lấy theo Ego Road Z làm chuẩn 0° phẳng
+    return {
+      groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
+      pitchRad: 0,
+      rollRad: 0,
+      pitchDeg: 0,
+      rollDeg: 0,
+      groundPointsCount: finalPts.length,
+      isFallbackZeroGround: true,
+      isCurbGround: false,
+      isHalfCurb: false,
+      halfCurbSide: "none",
+      curbHeightCm: 0,
+    };
+  }
 
   // Hồi quy tuyến tính bình phương tối thiểu (OLS) mặt phẳng 3D: z = a * lx + b * ly + c0
   let sumLx = 0;
@@ -1955,6 +2137,58 @@ export function computeGroundSlopesAndZ(
     if (isCurbOrRamp) {
       c0 = lowestRoadZ;
     }
+  }
+
+  // =========================================================================
+  // CĂN DỐC DỌC SIDE VIEW (PITCH) THEO DẢI 30% ĐẦU VÀ 30% CUỐI DỌC TRỤC X:
+  // - Dải 70%–100% (Đầu xe / Bánh trước): lx từ [halfL - L * 0.30] đến [halfL + 0.45].
+  // - Dải 0%–30% (Đuôi xe / Bánh sau): lx từ [-halfL - 0.45] đến [-halfL + L * 0.30].
+  // 1. Khử thành phần dốc ngang Roll để đo dốc dọc Side nguyên bản: zTrans = p.z - bSlope * p.ly.
+  // 2. Nếu cả 2 đầu đều có điểm tiếp đất tin cậy (>= 2 điểm mỗi bên):
+  //    -> Tính độ dốc dọc: pitchRad = -atan((zFront - zRear) / spanX).
+  // 3. Cân bằng tâm sàn c0 giữa 2 đầu bánh xe.
+  // =========================================================================
+  const L = halfL * 2;
+  const edgeFrontPts = sorted.filter(
+    (p) => p.lx >= halfL - L * 0.30 && p.lx <= halfL + 0.45
+  );
+  const edgeRearPts = sorted.filter(
+    (p) => p.lx >= -halfL - 0.45 && p.lx <= -halfL + L * 0.30
+  );
+
+  if (!isCurbOrRamp && !isHalfCurb && edgeFrontPts.length >= 2 && edgeRearPts.length >= 2) {
+    const bSlope = Math.tan(rollRad);
+    const extractSideZ = (edgePts: typeof sorted) => {
+      const transPts = edgePts
+        .map((p) => ({ lx: p.lx, ly: p.ly, zTrans: p.z - bSlope * p.ly }))
+        .sort((a, b) => a.zTrans - b.zTrans);
+      const floorZ = transPts[0].zTrans;
+      const basePts = transPts.filter((p) => p.zTrans <= floorZ + 0.08);
+      if (basePts.length >= 2) {
+        return basePts[Math.floor(basePts.length / 2)].zTrans;
+      }
+      return transPts[0].zTrans;
+    };
+
+    const zFront = extractSideZ(edgeFrontPts);
+    const zRear = extractSideZ(edgeRearPts);
+
+    const sumFrontLx = edgeFrontPts.reduce((s, p) => s + p.lx, 0);
+    const sumRearLx = edgeRearPts.reduce((s, p) => s + p.lx, 0);
+    const meanFrontLx = sumFrontLx / edgeFrontPts.length;
+    const meanRearLx = sumRearLx / edgeRearPts.length;
+    const spanX = Math.max(0.8, meanFrontLx - meanRearLx);
+
+    const deltaZSide = zFront - zRear;
+    const edgePitch = -Math.atan(deltaZSide / spanX);
+
+    if (Math.abs(pitchRad - edgePitch) < 0.05) {
+      pitchRad = edgePitch;
+    } else {
+      pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, edgePitch));
+    }
+
+    c0 = (zFront + zRear) / 2;
   }
 
   // =========================================================================
@@ -2278,6 +2512,8 @@ export interface EgoRayFitResult {
   roofTopZ: number;
   shiftLx: number;
   shiftLy: number;
+  visibleLongitudinal?: "front" | "rear";
+  visibleLateral?: "left" | "right";
   visibleFaces: {
     longitudinal: "front" | "rear";
     lateral: "left" | "right";
@@ -2290,6 +2526,133 @@ export interface EgoRayFitResult {
   };
   pointsCount: number;
   message: string;
+}
+
+/**
+ * Phân tích mật độ 2 đầu xe (20% Đầu vs 20% Đuôi dọc trục X) để xác định chính xác mặt cản đón tia laser:
+ * - 20% Đầu xe (Front Zone): lx từ [+0.30 * L] đến [+L / 2 + 0.35m]
+ * - 20% Đuôi xe (Rear Zone): lx từ [-L / 2 - 0.35m] đến [-0.30 * L]
+ * - 60% Thân giữa (Middle Zone): lx từ (-0.30 * L) đến (+0.30 * L)
+ * @param pts Danh sách điểm thân xe đã khử nhiễu mặt đất (lx, ly)
+ * @param L Chiều dài xe
+ * @param egoLocalX Tọa độ X của Ego trong hệ trục cục bộ của xe
+ * @param egoLocalY Tọa độ Y của Ego trong hệ trục cục bộ của xe
+ */
+export function determineBumperByDensity(
+  pts: Array<{ lx: number; ly: number; z?: number }>,
+  L: number,
+  egoLocalX: number,
+  egoLocalY: number
+): {
+  visibleBumper: "front" | "rear";
+  isParallelBalanced: boolean;
+  nFront20: number;
+  nRear20: number;
+  nMiddle60: number;
+} {
+  if (pts.length === 0) {
+    return {
+      visibleBumper: egoLocalX >= 0 ? "front" : "rear",
+      isParallelBalanced: false,
+      nFront20: 0,
+      nRear20: 0,
+      nMiddle60: 0,
+    };
+  }
+
+  // Xác định 20% đầu xe và 20% đuôi xe theo 2 đầu cực trị của cụm mây điểm thực tế (chống lệch tâm box)
+  const allLx = pts.map((p) => p.lx).sort((a, b) => a - b);
+  const pMinIdx = allLx.length >= 15 ? Math.floor(allLx.length * 0.015) : 0;
+  const pMaxIdx = allLx.length >= 15 ? Math.min(allLx.length - 1, Math.floor(allLx.length * 0.985)) : allLx.length - 1;
+  const lxMin = allLx[pMinIdx];
+  const lxMax = allLx[pMaxIdx];
+
+  const zoneSpan = Math.max(0.40, L * 0.20);
+  const span = lxMax - lxMin;
+
+  let nFront20 = 0;
+  let nRear20 = 0;
+  let nMiddle60 = 0;
+
+  if (span < zoneSpan * 1.5) {
+    // Cụm điểm co cụm hẹp ở một vùng (ví dụ chỉ có 1 đầu xe đón tia laser, đầu kia khuất hoàn toàn)
+    const meanLx = pts.reduce((sum, p) => sum + p.lx, 0) / pts.length;
+    const threshold = Math.max(0.35, L * 0.20);
+    if (meanLx > threshold) {
+      nFront20 = pts.length;
+    } else if (meanLx < -threshold) {
+      nRear20 = pts.length;
+    } else {
+      nMiddle60 = pts.length;
+    }
+  } else {
+    const front20Min = lxMax - zoneSpan;
+    const front20Max = lxMax + 0.35;
+    const rear20Min = lxMin - 0.35;
+    const rear20Max = lxMin + zoneSpan;
+
+    nFront20 = pts.filter((p) => p.lx >= front20Min && p.lx <= front20Max).length;
+    nRear20 = pts.filter((p) => p.lx >= rear20Min && p.lx <= rear20Max).length;
+    nMiddle60 = pts.filter((p) => p.lx > rear20Max && p.lx < front20Min).length;
+  }
+
+  // 1. So sánh mật độ 20% hai đầu xe (Ở khoảng cách gần, cản trực diện đón tia có mật độ vượt trội, cản khuất thưa thớt)
+  const isFrontDominant = (nFront20 >= 6 && nRear20 <= 4) || (nFront20 >= 8 && nFront20 >= nRear20 * 2.5);
+  const isRearDominant = (nRear20 >= 6 && nFront20 <= 4) || (nRear20 >= 8 && nRear20 >= nFront20 * 2.5);
+
+  if (isFrontDominant) {
+    return {
+      visibleBumper: "front",
+      isParallelBalanced: false,
+      nFront20,
+      nRear20,
+      nMiddle60,
+    };
+  }
+
+  if (isRearDominant) {
+    return {
+      visibleBumper: "rear",
+      isParallelBalanced: false,
+      nFront20,
+      nRear20,
+      nMiddle60,
+    };
+  }
+
+  // 2. Trường hợp chiếu ngang sườn song song hoặc phân bố đều đối xứng 2 đầu thân xe
+  const tan25 = 0.466;
+  const isEgoParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * tan25;
+  const isSymmetricBothEnds = Math.abs(nFront20 - nRear20) <= 2 && nFront20 >= 2 && nRear20 >= 2 && nMiddle60 >= 3;
+
+  if ((isEgoParallel || isSymmetricBothEnds) && pts.length >= 4) {
+    return {
+      visibleBumper: egoLocalX >= 0 ? "front" : "rear",
+      isParallelBalanced: true,
+      nFront20,
+      nRear20,
+      nMiddle60,
+    };
+  }
+
+  // 3. Fallback theo hướng đón tia Ego (khi điểm thưa hoặc 2 đầu tương đương)
+  let visibleBumper: "front" | "rear" = egoLocalX >= 0 ? "front" : "rear";
+  const allFrontPts = pts.filter((p) => p.lx > 0.05);
+  const allRearPts = pts.filter((p) => p.lx < -0.05);
+
+  if (visibleBumper === "front" && allFrontPts.length < 2 && allRearPts.length >= 4) {
+    visibleBumper = "rear";
+  } else if (visibleBumper === "rear" && allRearPts.length < 2 && allFrontPts.length >= 4) {
+    visibleBumper = "front";
+  }
+
+  return {
+    visibleBumper,
+    isParallelBalanced: false,
+    nFront20,
+    nRear20,
+    nMiddle60,
+  };
 }
 
 /**
@@ -2331,8 +2694,11 @@ export function fitBoxToEgoRayAndGround(
   const sinY = Math.sin(-yaw);
 
   // 2. Thu thập các điểm thân xe cốt lõi (loại bỏ mặt đất và vệt quét loang sát sàn +22cm)
-  const minBodyZ = groundZ + 0.22;
-  const maxRoofZ = groundZ + H + 0.55;
+  const effectiveGroundZ = (groundInfo.groundZ !== null && !groundInfo.isFallbackZeroGround)
+    ? groundInfo.groundZ
+    : (cz - H / 2);
+  const minBodyZ = effectiveGroundZ + 0.22;
+  const maxRoofZ = effectiveGroundZ + H + 0.55;
   const fitStep = options.fitStep ?? "all";
   const outerL = L / 2 + 0.45;
   const outerW = W / 2 + 0.35;
@@ -2369,6 +2735,7 @@ export function fitBoxToEgoRayAndGround(
 
   let shiftLx = 0;
   let shiftLy = 0;
+  let isSideParallelBalanced = false;
   let roofTopZ = groundZ + H;
   let newH = H;
   let newL = L;
@@ -2432,50 +2799,61 @@ export function fitBoxToEgoRayAndGround(
       const toEgoY = egoPos.y - cy;
       // Chiếu lên trục dọc X của xe (hướng tới trước đầu xe: (cos(yaw), sin(yaw)))
       const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
+      // Chiếu lên trục ngang Y của xe (hướng sang trái xe: (-sin(yaw), cos(yaw)))
+      const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
 
-      // Đếm mật độ điểm thực tế 2 đầu xe (Tia laser không xuyên qua xe, mặt đón tia luôn có nhiều điểm hơn hẳn)
-      const frontBumperPts = validBodyPts.filter((p) => p.lx > 0.05);
-      const rearBumperPts = validBodyPts.filter((p) => p.lx < -0.05);
-
-      let visibleBumper: "front" | "rear";
-      if (frontBumperPts.length >= rearBumperPts.length + 3) {
-        visibleBumper = "front";
-      } else if (rearBumperPts.length >= frontBumperPts.length + 3) {
-        visibleBumper = "rear";
-      } else {
-        visibleBumper = egoLocalX >= 0 ? "front" : "rear";
-      }
-      visibleLongitudinal = visibleBumper;
-
-      // 2. Lấy điểm bao cản xe bằng Bức Tường Mật Độ & Cắt Thung Lũng Mật Độ (Density Valley Cutoff)
-      const targetBumperPts = validBodyPts.filter((p) => Math.abs(p.ly) <= W / 2 + 0.15);
-      const activePtsForL = targetBumperPts.length >= 4 ? targetBumperPts : validBodyPts;
-      const bumperCloudPts = activePtsForL.filter((p) => (visibleBumper === "front" ? p.lx > 0 : p.lx < 0));
-
-      // Lọc nhiễu thưa thớt sát cản xe bằng mật độ lõi 3D
-      const cleanBumperPts = filterSparseNoiseByLocalDensity(bumperCloudPts, { radius: 0.15, minCoreNeighbors: 2 });
-      const finalBumperPts = cleanBumperPts.length >= 3 ? cleanBumperPts : bumperCloudPts;
-
-      let bumperEdge: number;
-      if (finalBumperPts.length >= 3) {
-        const wallDet = detectDominantWallEdgeWithValleyCutoff(
-          finalBumperPts,
-          "lx",
-          visibleBumper === "front" ? "positive" : "negative",
-          L / 2,
-          { minSpanOrthogonal: 0.60 }
-        );
-        bumperEdge = wallDet.edge;
-      } else {
-        bumperEdge = visibleBumper === "front" ? L / 2 : -L / 2;
-      }
-
-      // 3. Căn mép đón tia của Box ôm khít điểm bao cản xe + Padding 5.0cm chống dính điểm:
       const edgePadding = options.edgePadding ?? 0.05; // 5.0cm
-      if (visibleBumper === "front") {
-        shiftLx = (bumperEdge + edgePadding) - L / 2;
+
+      // QUY TẮC CĂN SIDE KẾT HỢP MẬT ĐỘ 20% ĐẦU/ĐUÔI XE & GÓC CHIẾU EGO:
+      const densityDecision = determineBumperByDensity(validBodyPts, L, egoLocalX, egoLocalY);
+
+      if (densityDecision.isParallelBalanced && validBodyPts.length >= 4) {
+        // VÙNG 1: CHIẾU VUÔNG GÓC SƯỜN XE HOẶC PHÂN BỐ ĐỐI XỨNG:
+        // Cả cản trước và cản sau đều không đón tia trực diện.
+        // -> Dàn đều tâm box theo trọng tâm 2 đầu mây điểm thân xe:
+        isSideParallelBalanced = true;
+        const allLx = validBodyPts.map((p) => p.lx).sort((a, b) => a - b);
+        const pMinIdx = allLx.length >= 15 ? Math.floor(allLx.length * 0.015) : 0;
+        const pMaxIdx = allLx.length >= 15 ? Math.min(allLx.length - 1, Math.floor(allLx.length * 0.985)) : allLx.length - 1;
+        const lxMin = allLx[pMinIdx];
+        const lxMax = allLx[pMaxIdx];
+
+        shiftLx = (lxMin + lxMax) / 2;
+        visibleLongitudinal = densityDecision.visibleBumper;
       } else {
-        shiftLx = (bumperEdge - edgePadding) + L / 2;
+        // VÙNG 2 & 3: CÓ MẶT CẢN ĐÓN TIA RÕ RỆT (Ưu tiên theo mật độ 20% đầu/đuôi xe hoặc góc Ego):
+        const visibleBumper = densityDecision.visibleBumper;
+        visibleLongitudinal = visibleBumper;
+
+        // 2. Lấy điểm bao cản xe bằng Bức Tường Mật Độ & Cắt Thung Lũng Mật Độ (Density Valley Cutoff)
+        const targetBumperPts = validBodyPts.filter((p) => Math.abs(p.ly) <= W / 2 + 0.15);
+        const activePtsForL = targetBumperPts.length >= 4 ? targetBumperPts : validBodyPts;
+        const bumperCloudPts = activePtsForL.filter((p) => (visibleBumper === "front" ? p.lx > 0 : p.lx < 0));
+
+        // Lọc nhiễu thưa thớt sát cản xe bằng mật độ lõi 3D
+        const cleanBumperPts = filterSparseNoiseByLocalDensity(bumperCloudPts, { radius: 0.15, minCoreNeighbors: 2 });
+        const finalBumperPts = cleanBumperPts.length >= 3 ? cleanBumperPts : bumperCloudPts;
+
+        let bumperEdge: number;
+        if (finalBumperPts.length >= 3) {
+          const wallDet = detectDominantWallEdgeWithValleyCutoff(
+            finalBumperPts,
+            "lx",
+            visibleBumper === "front" ? "positive" : "negative",
+            L / 2,
+            { minSpanOrthogonal: 0.60 }
+          );
+          bumperEdge = wallDet.edge;
+        } else {
+          bumperEdge = visibleBumper === "front" ? L / 2 : -L / 2;
+        }
+
+        // 3. Căn mép đón tia của Box ôm khít điểm bao cản xe + Padding 5.0cm chống dính điểm:
+        if (visibleBumper === "front") {
+          shiftLx = (bumperEdge + edgePadding) - L / 2;
+        } else {
+          shiftLx = (bumperEdge - edgePadding) + L / 2;
+        }
       }
 
       // Giới hạn an toàn (triệt tiêu 100% hiện tượng di chuyển quá đà) và deadband
@@ -2608,10 +2986,13 @@ export function fitBoxToEgoRayAndGround(
         shiftLy = sideWallEdge + W / 2;
       }
 
-      // Bước 3: Dò cản trước / sau X (Side View)
+      // Bước 3: Dò cản trước / sau X (Side View) kết hợp mật độ 20% đầu/đuôi xe
       if (alignMode === "w_only") {
         shiftLx = 0;
       } else {
+        const bumperDecAll = determineBumperByDensity(alignedPts, L, vLocalX, vLocalY);
+        visibleLongitudinal = bumperDecAll.visibleBumper;
+
         const innerBodyPtsForX = alignedPts.filter((p) => Math.abs(p.ly) <= W / 2 + 0.10);
         const targetBumperPts = innerBodyPtsForX.length >= 4 ? innerBodyPtsForX : alignedPts;
         const bumperEdge = detectLongitudinalBumperBounds(targetBumperPts, L / 2, visibleLongitudinal);
@@ -2678,7 +3059,11 @@ export function fitBoxToEgoRayAndGround(
     msg = `Đã căn TOP: Xoay Yaw (${straightYawResult.newYawDeg}°, Δ=${deltaSign}${straightYawResult.deltaYawDeg}°) song song sườn đón tia [${faceTextLat}], khóa tâm X/Y/Z (giữ nguyên cao độ Z)`;
   } else if (fitStep === "side") {
     const deltaXSign = shiftLx >= 0 ? "+" : "";
-    msg = `Đã căn SIDE: Cản [${faceTextLong}] đón tia (ΔX: ${deltaXSign}${shiftLx.toFixed(2)}m, giữ nguyên cao độ Z)`;
+    if (isSideParallelBalanced) {
+      msg = `Đã căn SIDE: Chiếu ngang sườn song song (Fit đều đầu & cuối xe, ΔX: ${deltaXSign}${shiftLx.toFixed(2)}m, giữ nguyên cao độ Z)`;
+    } else {
+      msg = `Đã căn SIDE: Cản [${faceTextLong}] đón tia (ΔX: ${deltaXSign}${shiftLx.toFixed(2)}m, giữ nguyên cao độ Z)`;
+    }
   } else if (fitStep === "front") {
     const deltaYSign = shiftLy >= 0 ? "+" : "";
     msg = `Đã căn FRONT: Mép sườn [${faceTextLat}] ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên cao độ Z)`;
@@ -2702,6 +3087,8 @@ export function fitBoxToEgoRayAndGround(
     roofTopZ,
     shiftLx: Number(shiftLx.toFixed(3)),
     shiftLy: Number(shiftLy.toFixed(3)),
+    visibleLongitudinal,
+    visibleLateral,
     visibleFaces: {
       longitudinal: visibleLongitudinal,
       lateral: visibleLateral,
@@ -2733,6 +3120,8 @@ export interface PedestrianFitResult {
   rollDeg: 0;
   groundZ: number;
   roofTopZ: number;
+  shiftLx?: number;
+  shiftLy?: number;
   pointsCount: number;
   step?: "all" | "top" | "side" | "front" | "l" | "w" | "h";
   message: string;
@@ -2770,7 +3159,7 @@ export function fitPedestrianBox(
   stepParam: "all" | "top" | "side" | "front" | "l" | "w" | "h" = "all"
 ): PedestrianFitResult {
   const step = options.step ?? stepParam;
-  // Đệm nóc đỉnh đầu chuẩn tinh gọn (+5cm), không đệm quá dày làm box vọt lên quá cao
+  // Đệm nóc đỉnh đầu chuẩn tinh gọn (+5cm theo GEMINI.md), không đệm quá dày làm box vọt lên quá cao
   const headBuffer = options.headBuffer ?? 0.05;
   const margin = options.margin ?? 0.15;
 
@@ -2800,7 +3189,7 @@ export function fitPedestrianBox(
   // - Tầng chân (Foot/Ankle): Z in [groundZ + 0.08m, groundZ + 0.30m] (ở SIDE & FRONT hạ xuống groundZ + 0.02m để giữ trọn curpoint)
   // GIỮ TRỌN CURPOINT: Không gạt bỏ điểm tầng chân khi thân có nhiều điểm (tránh cắt mất curpoint bàn chân/mũi chân)
   const minCoreZ = groundZ + 0.30;
-  const maxBodyZ = groundZ + 2.30;
+  const maxBodyZ = groundZ + 2.00;
   const minFootZ = (step === "side" || step === "front") ? groundZ + 0.02 : groundZ + 0.08;
   const outerL = Math.max(0.45, curL / 2 + 0.25);
   const outerW = Math.max(0.40, curW / 2 + 0.25);
@@ -2857,6 +3246,8 @@ export function fitPedestrianBox(
   let newL = curL;
   let newW = curW;
   let newH = curH;
+  let shiftLx = 0;
+  let shiftLy = 0;
   let roofTopZ = groundZ + curH;
   let msg = "";
 
@@ -2895,7 +3286,8 @@ export function fitPedestrianBox(
   const lxMax = allLx[pMaxIdx];
   const lyMin = allLy[pMinIdx];
   const lyMax = allLy[pMaxIdx];
-  const highestPtZ = allZ[allZ.length - 1];
+  // Cắt thung lũng mật độ trục Z (loại bỏ 100% điểm nhiễu lơ lửng trên cao gap > 15cm)
+  const highestPtZ = detectTrueHeadZ(allZ, 0.15, groundZ, 1.78);
 
   // =========================================================================
   // XỬ LÝ THEO TỪNG CHẾ ĐỘ FIT CHO NGƯỜI ĐI BỘ (TOP, SIDE, FRONT, L, W, H, ALL)
@@ -2944,31 +3336,42 @@ export function fitPedestrianBox(
     newH = curH;
     newCenterZ = cz;
 
-    let shiftLx = 0;
-    let bumperLabel = "Đón tia";
+    shiftLx = 0;
+    let bumperLabel = "Cân đối";
 
     if (options.egoPos) {
-      const dxEgo = options.egoPos.x - cx;
-      const dyEgo = options.egoPos.y - cy;
-      const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
-      if (lxEgo > 0.15) {
-        shiftLx = (lxMax + 0.01) - curL / 2;
-        bumperLabel = "Mặt trước";
-      } else if (lxEgo < -0.15) {
-        shiftLx = (lxMin - 0.01) + curL / 2;
+      const toEgoX = options.egoPos.x - cx;
+      const toEgoY = options.egoPos.y - cy;
+      const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
+      const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+
+      // Ngưỡng góc 25 độ: tan(25°) ≈ 0.466
+      const isSideBeamParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * 0.466;
+
+      if (isSideBeamParallel) {
+        // VÙNG 1: TRỤC Y EGO SONG SONG VẬT THỂ / CHIẾU NGANG SƯỜN:
+        // Dàn đều tâm đối xứng đầu - cuối
+        shiftLx = (lxMin + lxMax) / 2;
+        bumperLabel = "Chiếu ngang sườn (Dàn đều trước - sau)";
+      } else if (egoLocalX < 0) {
+        // VÙNG 2: LỆCH GÓC > 25° VÀ BOX Ở PHÍA TRƯỚC EGO (Ego nhìn từ sau tới):
+        // Laser đập vào Lưng / Sau gót -> Ưu tiên bắt Mép Sau:
+        shiftLx = (lxMin - 0.02) + curL / 2;
         bumperLabel = "Mặt sau";
       } else {
-        shiftLx = (lxMin + lxMax) / 2;
-        bumperLabel = "Cân đối";
+        // VÙNG 3: LỆCH GÓC > 25° VÀ BOX Ở PHÍA SAU EGO (Ego nhìn từ trước về):
+        // Laser đập vào Ngực / Mũi trước -> Ưu tiên bắt Mép Trước:
+        shiftLx = (lxMax + 0.02) - curL / 2;
+        bumperLabel = "Mặt trước";
       }
     } else {
       const frontCount = bodyPts.filter((p) => p.lx > 0).length;
       const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
       if (frontCount > rearCount * 1.5) {
-        shiftLx = (lxMax + 0.01) - curL / 2;
+        shiftLx = (lxMax + 0.02) - curL / 2;
         bumperLabel = "Mặt trước";
       } else if (rearCount > frontCount * 1.5) {
-        shiftLx = (lxMin - 0.01) + curL / 2;
+        shiftLx = (lxMin - 0.02) + curL / 2;
         bumperLabel = "Mặt sau";
       } else {
         shiftLx = (lxMin + lxMax) / 2;
@@ -2977,6 +3380,7 @@ export function fitPedestrianBox(
     }
 
     shiftLx = Math.max(-0.35, Math.min(0.35, shiftLx));
+    if (Math.abs(shiftLx) < 0.005) shiftLx = 0;
     newCenterX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
     newCenterY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
 
@@ -3000,42 +3404,43 @@ export function fitPedestrianBox(
     newCenterZ = cz;
 
     let visibleSide: "left" | "right" | "center" = "center";
+    shiftLy = 0;
+    const edgePadding = 0.025; // 2.5cm
+
     if (options.egoPos) {
       const toEgoX = options.egoPos.x - cx;
       const toEgoY = options.egoPos.y - cy;
+      const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
       const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-      if (egoLocalY > 0.04) {
-        visibleSide = "left";
-      } else if (egoLocalY < -0.04) {
-        visibleSide = "right";
-      } else {
+
+      // Khi Ego nhìn chính diện trước/sau (|egoLocalY| <= |egoLocalX| * 0.15)
+      if (Math.abs(egoLocalY) <= Math.abs(egoLocalX) * 0.15 && Math.abs(egoLocalY) < 0.10) {
         visibleSide = "center";
+        shiftLy = (lyMin + lyMax) / 2;
+      } else if (egoLocalY >= 0) {
+        visibleSide = "left";
+        shiftLy = (lyMax + edgePadding) - curW / 2;
+      } else {
+        visibleSide = "right";
+        shiftLy = (lyMin - edgePadding) + curW / 2;
       }
     } else {
       const leftCount = bodyPts.filter((p) => p.ly > 0.03).length;
       const rightCount = bodyPts.filter((p) => p.ly < -0.03).length;
       if (leftCount > rightCount * 1.3) {
         visibleSide = "left";
+        shiftLy = (lyMax + edgePadding) - curW / 2;
       } else if (rightCount > leftCount * 1.3) {
         visibleSide = "right";
+        shiftLy = (lyMin - edgePadding) + curW / 2;
       } else {
         visibleSide = "center";
+        shiftLy = (lyMin + lyMax) / 2;
       }
     }
 
-    let shiftLy = 0;
-    if (visibleSide === "left") {
-      // Sườn TRÁI đón tia laser từ Ego: Mép trái box (+W/2) phải ÔM SÁT mép ngoài cùng đón tia lyMax
-      shiftLy = (lyMax + 0.01) - curW / 2;
-    } else if (visibleSide === "right") {
-      // Sườn PHẢI đón tia laser từ Ego: Mép phải box (-W/2) phải ÔM SÁT mép ngoài cùng đón tia lyMin
-      shiftLy = (lyMin - 0.01) + curW / 2;
-    } else {
-      // Ego chính diện (hoặc cân bằng 2 bên): Căn tâm cân bằng
-      shiftLy = (lyMin + lyMax) / 2;
-    }
-
     shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+    if (Math.abs(shiftLy) < 0.005) shiftLy = 0;
     newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
     newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
 
@@ -3057,21 +3462,24 @@ export function fitPedestrianBox(
     newCenterZ = cz;
 
     const spanL = (lxMax - lxMin) + 0.05;
-    let shiftLx = 0;
+    shiftLx = 0;
 
     if (spanL > 0.78) {
       // Bị Ghosting vệt dài: Khóa trần an toàn L = 0.78m & Ưu tiên cản đón tia Ego
       newL = 0.78;
       if (options.egoPos) {
-        const dxEgo = options.egoPos.x - cx;
-        const dyEgo = options.egoPos.y - cy;
-        const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
-        if (lxEgo > 0.15) {
-          shiftLx = (lxMax + 0.01) - newL / 2;
-        } else if (lxEgo < -0.15) {
-          shiftLx = (lxMin - 0.01) + newL / 2;
-        } else {
+        const toEgoX = options.egoPos.x - cx;
+        const toEgoY = options.egoPos.y - cy;
+        const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
+        const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+        const isSideBeamParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * 0.466;
+
+        if (isSideBeamParallel) {
           shiftLx = (lxMin + lxMax) / 2;
+        } else if (egoLocalX < 0) {
+          shiftLx = (lxMin - 0.02) + newL / 2;
+        } else {
+          shiftLx = (lxMax + 0.02) - newL / 2;
         }
       } else {
         shiftLx = (lxMin + lxMax) / 2;
@@ -3102,7 +3510,7 @@ export function fitPedestrianBox(
     newCenterZ = cz;
 
     const spanW = (lyMax - lyMin) + 0.04;
-    let shiftLy = 0;
+    shiftLy = 0;
 
     if (spanW > 0.68) {
       // Bị Ghosting: Khóa trần an toàn W = 0.68m & Ưu tiên sườn đón tia Ego
@@ -3151,7 +3559,8 @@ export function fitPedestrianBox(
     const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
 
     roofTopZ = highestPtZ + headBuffer;
-    newH = Number(Math.max(1.00, Math.min(1.95, roofTopZ - effectiveBaseZ)).toFixed(2));
+    const maxCapPedH = options.headBuffer !== undefined ? 1.95 : 1.78;
+    newH = Number(Math.max(1.00, Math.min(maxCapPedH, roofTopZ - effectiveBaseZ)).toFixed(2));
     newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
 
     msg = `Đã fix Chiều Cao (H) Người đi bộ: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên đỉnh đầu +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
@@ -3163,10 +3572,11 @@ export function fitPedestrianBox(
     newW = Number(Math.max(0.38, Math.min(0.68, lyMax - lyMin + 0.04)).toFixed(2));
 
     roofTopZ = highestPtZ + headBuffer;
-    newH = Number(Math.max(1.05, Math.min(1.95, roofTopZ - groundZ)).toFixed(2));
+    const maxCapPedH = options.headBuffer !== undefined ? 1.95 : 1.78;
+    newH = Number(Math.max(1.05, Math.min(maxCapPedH, roofTopZ - groundZ)).toFixed(2));
 
-    let shiftLx = (lxMin + lxMax) / 2;
-    let shiftLy = (lyMin + lyMax) / 2;
+    shiftLx = (lxMin + lxMax) / 2;
+    shiftLy = (lyMin + lyMax) / 2;
 
     const maxShift = 0.40;
     shiftLx = Math.max(-maxShift, Math.min(maxShift, shiftLx));
@@ -3197,6 +3607,8 @@ export function fitPedestrianBox(
     rollDeg: 0,
     groundZ: Number(groundZ.toFixed(3)),
     roofTopZ: Number(roofTopZ.toFixed(3)),
+    shiftLx: Number(shiftLx.toFixed(3)),
+    shiftLy: Number(shiftLy.toFixed(3)),
     pointsCount: bodyPts.length,
     step,
     message: msg,
@@ -3253,10 +3665,11 @@ export function estimateTwoWheelerHeading(
 
   const deltaThetaPca = 0.5 * Math.atan2(2 * sxy, sxx - syy);
 
-  // 2. Vector nối Trọng tâm Cụm Đuôi (Bánh sau) -> Trọng tâm Cụm Đầu (Bánh trước)
+  // 2. Vector nối Trọng tâm Cụm Đuôi 30% (Bánh sau) -> Trọng tâm Cụm Đầu 30% (Bánh trước)
   const sortedByLx = [...bodyPts].sort((a, b) => a.lx - b.lx);
-  const rearSlice = sortedByLx.slice(0, Math.max(1, Math.floor(n * 0.18)));
-  const frontSlice = sortedByLx.slice(Math.max(1, Math.floor(n * 0.82)));
+  const sliceCount = Math.max(1, Math.floor(n * 0.30));
+  const rearSlice = sortedByLx.slice(0, sliceCount);
+  const frontSlice = sortedByLx.slice(Math.max(sliceCount, n - sliceCount));
 
   const rearLx = rearSlice.reduce((s, p) => s + p.lx, 0) / rearSlice.length;
   const rearLy = rearSlice.reduce((s, p) => s + p.ly, 0) / rearSlice.length;
@@ -3266,7 +3679,7 @@ export function estimateTwoWheelerHeading(
   const dLx = frontLx - rearLx;
   const dLy = frontLy - rearLy;
   let deltaThetaExt = deltaThetaPca;
-  if (dLx >= 0.35) {
+  if (dLx >= 0.30) {
     deltaThetaExt = Math.atan2(dLy, dLx);
   }
 
@@ -3315,7 +3728,7 @@ export function fitTwoWheelerBox(
   stepParam: "all" | "top" | "side" | "front" | "w" | "h" = "all"
 ): TwoWheelerFitResult {
   const step = options.step ?? stepParam;
-  // Đệm nóc xe 2 bánh chuẩn tinh gọn (+5cm), tránh box bị cao lêu nghêu
+  // Đệm nóc xe 2 bánh chuẩn tinh gọn (+5cm theo GEMINI.md), tránh box bị cao lêu nghêu
   const headBuffer = options.headBuffer ?? 0.05;
   const margin = options.margin ?? 0.20;
 
@@ -3345,7 +3758,7 @@ export function fitTwoWheelerBox(
   // - Tầng lốp/bánh xe sát đất: Z in [groundZ + 0.08m, groundZ + 0.25m] (ở SIDE & FRONT hạ xuống groundZ + 0.02m để giữ trọn curpoint)
   // GIỮ TRỌN CURPOINT: Không gạt bỏ bánh xe khi thân có nhiều điểm (tránh cắt mất curpoint lốp xe trước/sau)
   const minCoreZ = groundZ + 0.25;
-  const maxBodyZ = groundZ + 2.30;
+  const maxBodyZ = groundZ + 2.00;
   const minWheelZ = (step === "side" || step === "front") ? groundZ + 0.02 : groundZ + 0.08;
   const outerL = curL / 2 + 0.45;
   const outerW = Math.max(curW, 0.85) / 2 + 0.45;
@@ -3400,6 +3813,8 @@ export function fitTwoWheelerBox(
   let newL = curL; // BẢO TOÀN TUYỆT ĐỐI 100% CHIỀU DÀI L
   let newW = curW;
   let newH = curH;
+  let shiftLx = 0;
+  let shiftLy = 0;
   let roofTopZ = groundZ + curH;
   let msg = "";
 
@@ -3438,7 +3853,8 @@ export function fitTwoWheelerBox(
   const lxMax = allLx[pMaxIdx];
   const lyMin = allLy[pMinIdx];
   const lyMax = allLy[pMaxIdx];
-  const highestPtZ = allZ[allZ.length - 1];
+  // Cắt thung lũng mật độ trục Z (loại bỏ 100% điểm nhiễu lơ lửng trên cao gap > 15cm)
+  const highestPtZ = detectTrueHeadZ(allZ, 0.15, groundZ, 1.60);
 
   // =========================================================================
   // BƯỚC 1: XỬ LÝ THEO TỪNG CHẾ ĐỘ FIT (TOP, SIDE, FRONT HOẶC ALL)
@@ -3474,7 +3890,7 @@ export function fitTwoWheelerBox(
     newW = curW;
     newH = curH;
 
-    let shiftLx = 0;
+    shiftLx = 0;
     let bumperLabel = "Đón tia";
 
     // Phân tích Người Lái (Rider): Người lái ở tầng cao Z >= groundZ + 0.65m
@@ -3497,11 +3913,21 @@ export function fitTwoWheelerBox(
     const isMissingFront = hasRider && distFront < 0.28 * curL;
     const isMissingRear = hasRider && distRear < 0.38 * curL;
 
-    let lxEgo: number | null = null;
+    let toEgoX = 0;
+    let toEgoY = 0;
+    let egoLocalX = 0;
+    let egoLocalY = 0;
+    let hasEgo = false;
+    let isSideBeamParallel = false;
+
     if (options.egoPos) {
-      const dxEgo = options.egoPos.x - cx;
-      const dyEgo = options.egoPos.y - cy;
-      lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
+      toEgoX = options.egoPos.x - cx;
+      toEgoY = options.egoPos.y - cy;
+      egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
+      egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+      hasEgo = true;
+      // Ngưỡng góc 25 độ: tan(25°) ≈ 0.466
+      isSideBeamParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * 0.466;
     }
 
     if (isMissingFront && isMissingRear) {
@@ -3513,9 +3939,9 @@ export function fitTwoWheelerBox(
       // 2. MẤT BÁNH TRƯỚC (Có bánh sau hoặc Ego nhìn từ sau):
       // Ước lượng đầu xe từ người lái: lxRider + 0.42 * curL
       const estFrontEdge = lxRider + 0.42 * curL;
-      if (lxEgo !== null && lxEgo < -0.3) {
+      if (hasEgo && !isSideBeamParallel && egoLocalX < 0) {
         // Ego phía sau xe: Mép sau đón tia thật lxMin là chuẩn nhất
-        shiftLx = lxMin + curL / 2;
+        shiftLx = (lxMin - 0.02) + curL / 2;
         bumperLabel = "Cản sau (Mất bánh trước)";
       } else {
         // Ego phía trước hoặc ngang hông: Vì bánh trước bị mất, căn theo mép sau thật kết hợp đầu xe ước lượng
@@ -3526,9 +3952,9 @@ export function fitTwoWheelerBox(
       // 3. MẤT BÁNH SAU (Có bánh trước hoặc Ego nhìn từ trước):
       // Ước lượng đuôi xe từ người lái: lxRider - 0.58 * curL
       const estRearEdge = lxRider - 0.58 * curL;
-      if (lxEgo !== null && lxEgo > 0.3) {
+      if (hasEgo && !isSideBeamParallel && egoLocalX > 0) {
         // Ego phía trước xe: Mép trước đón tia thật lxMax là chuẩn nhất
-        shiftLx = lxMax - curL / 2;
+        shiftLx = (lxMax + 0.02) - curL / 2;
         bumperLabel = "Cản trước (Mất bánh sau)";
       } else {
         // Ego phía sau hoặc ngang hông: Vì bánh sau bị mất, căn theo mép trước thật kết hợp đuôi xe ước lượng
@@ -3537,25 +3963,28 @@ export function fitTwoWheelerBox(
       }
     } else {
       // 4. ĐỦ CẢ 2 BÁNH (Hoặc không có điểm người lái để đối chiếu):
-      if (lxEgo !== null) {
-        if (lxEgo > 0.4) {
-          shiftLx = lxMax - curL / 2;
-          bumperLabel = "Cản trước";
-        } else if (lxEgo < -0.4) {
-          shiftLx = lxMin + curL / 2;
-          bumperLabel = "Cản sau";
-        } else {
+      if (hasEgo) {
+        if (isSideBeamParallel) {
+          // VÙNG 1: CHIẾU NGANG SƯỜN SONG SONG -> DÀN ĐỀU 2 ĐẦU BÁNH XE
           shiftLx = (lxMin + lxMax) / 2;
-          bumperLabel = "Cân đối";
+          bumperLabel = "Chiếu ngang sườn (Dàn đều 2 bánh)";
+        } else if (egoLocalX < 0) {
+          // VÙNG 2: LỆCH GÓC > 25° VÀ BOX Ở TRƯỚC EGO -> ƯU TIÊN BẮT CẢN/BÁNH SAU
+          shiftLx = (lxMin - 0.03) + curL / 2;
+          bumperLabel = "Cản/Bánh sau đón tia";
+        } else {
+          // VÙNG 3: LỆCH GÓC > 25° VÀ BOX Ở SAU EGO -> ƯU TIÊN BẮT CẢN/BÁNH TRƯỚC
+          shiftLx = (lxMax + 0.03) - curL / 2;
+          bumperLabel = "Cản/Bánh trước đón tia";
         }
       } else {
         const frontCount = bodyPts.filter((p) => p.lx > 0).length;
         const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
         if (frontCount > rearCount * 1.5) {
-          shiftLx = lxMax - curL / 2;
+          shiftLx = (lxMax + 0.03) - curL / 2;
           bumperLabel = "Cản trước";
         } else if (rearCount > frontCount * 1.5) {
-          shiftLx = lxMin + curL / 2;
+          shiftLx = (lxMin - 0.03) + curL / 2;
           bumperLabel = "Cản sau";
         } else {
           shiftLx = (lxMin + lxMax) / 2;
@@ -3566,6 +3995,7 @@ export function fitTwoWheelerBox(
 
     // Giới hạn dịch chuyển an toàn theo trục dọc X (±60cm)
     shiftLx = Math.max(-0.60, Math.min(0.60, shiftLx));
+    if (Math.abs(shiftLx) < 0.005) shiftLx = 0;
 
     // TUYỆT ĐỐI KHÔNG GHIM ĐẤT: Giữ nguyên cao độ Z ban đầu của xe 2 bánh (đã có nút ghim đất riêng)
     newCenterZ = cz;
@@ -3593,39 +4023,50 @@ export function fitTwoWheelerBox(
     newCenterZ = cz; // BẢO TOÀN 100% CAO ĐỘ Z (KHÔNG GHIM ĐẤT NHƯ CAR)
 
     // Xác định sườn đón tia (Trái hoặc Phải)
-    let visibleSide: "left" | "right";
+    let visibleSide: "left" | "right" | "center" = "center";
+    const edgePadding = 0.03; // 3.0cm đệm bảo vệ gương xe và tay lái
+    shiftLy = 0;
+
     if (options.egoPos) {
       const toEgoX = options.egoPos.x - cx;
       const toEgoY = options.egoPos.y - cy;
+      const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
       const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-      visibleSide = egoLocalY >= 0 ? "left" : "right";
+
+      // Nếu Ego nhìn thẳng chính diện đầu/đuôi xe (|egoLocalY| <= |egoLocalX| * 0.15 && |egoLocalY| < 0.15)
+      if (Math.abs(egoLocalY) <= Math.abs(egoLocalX) * 0.15 && Math.abs(egoLocalY) < 0.15) {
+        visibleSide = "center";
+        shiftLy = (lyMin + lyMax) / 2;
+      } else if (egoLocalY >= 0) {
+        visibleSide = "left";
+        shiftLy = (lyMax + edgePadding) - curW / 2;
+      } else {
+        visibleSide = "right";
+        shiftLy = (lyMin - edgePadding) + curW / 2;
+      }
     } else {
       const leftCount = bodyPts.filter((p) => p.ly > 0.05).length;
       const rightCount = bodyPts.filter((p) => p.ly < -0.05).length;
-      visibleSide = leftCount >= rightCount ? "left" : "right";
-    }
-
-    // Padding đệm an toàn 5cm để gương và tay lái không cọ sát mép box
-    const edgePadding = 0.05;
-    let shiftLy = 0;
-    if (lyMin <= -0.06 && lyMax >= 0.06) {
-      // Cả 2 bên đều có điểm: Căn tâm cân bằng
-      shiftLy = (lyMin + lyMax) / 2;
-    } else if (visibleSide === "left") {
-      // Sườn Trái đón tia: Mép trái box (+W/2) áp sát viền ngoài cùng đón tia
-      shiftLy = (lyMax + edgePadding) - curW / 2;
-    } else {
-      // Sườn Phải đón tia: Mép phải box (-W/2) áp sát viền ngoài cùng đón tia
-      shiftLy = (lyMin - edgePadding) + curW / 2;
+      if (leftCount > rightCount * 1.3) {
+        visibleSide = "left";
+        shiftLy = (lyMax + edgePadding) - curW / 2;
+      } else if (rightCount > leftCount * 1.3) {
+        visibleSide = "right";
+        shiftLy = (lyMin - edgePadding) + curW / 2;
+      } else {
+        visibleSide = "center";
+        shiftLy = (lyMin + lyMax) / 2;
+      }
     }
 
     shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+    if (Math.abs(shiftLy) < 0.005) shiftLy = 0;
 
     newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
     newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
 
     const deltaYSign = shiftLy >= 0 ? "+" : "";
-    const sideText = visibleSide === "left" ? "Sườn Trái" : "Sườn Phải";
+    const sideText = visibleSide === "left" ? "Sườn Trái" : visibleSide === "right" ? "Sườn Phải" : "Cân đối 2 sườn";
     msg = `Đã căn FRONT Xe 2 bánh: [${sideText}] đón tia ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm), giữ nguyên cao độ Z và kích thước (chuẩn Car)`;
   } else if (step === "w") {
     // -------------------------------------------------------------
@@ -3641,7 +4082,7 @@ export function fitTwoWheelerBox(
     newH = curH;
     newCenterZ = cz;
 
-    let shiftLy = 0;
+    shiftLy = 0;
     let measuredW = curW;
 
     if (lyMin <= -0.06 && lyMax >= 0.06) {
@@ -3705,7 +4146,8 @@ export function fitTwoWheelerBox(
     const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
 
     const roofTopZ = highestPtZ + headBuffer;
-    newH = Number(Math.max(1.10, Math.min(1.85, roofTopZ - effectiveBaseZ)).toFixed(2));
+    const maxCap2WH = options.headBuffer !== undefined ? 1.85 : 1.68;
+    newH = Number(Math.max(1.05, Math.min(maxCap2WH, roofTopZ - effectiveBaseZ)).toFixed(2));
     newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
 
     msg = `Đã fit Cao (H) Xe 2 bánh: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên nóc +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
@@ -3721,7 +4163,7 @@ export function fitTwoWheelerBox(
 
     // 2. SIDE: Căn cản đón tia X & Ghim đất, Khóa L
     newL = curL; // BẢO TOÀN TUYỆT ĐỐI CHIỀU DÀI L
-    let shiftLx = 0;
+    shiftLx = 0;
     const frontCount = bodyPts.filter((p) => p.lx > 0).length;
     const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
     if (frontCount > rearCount * 1.5) {
@@ -3734,7 +4176,7 @@ export function fitTwoWheelerBox(
     shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
 
     // 3. FRONT: Căn ngang Y, linh động W và H
-    let shiftLy = 0;
+    shiftLy = 0;
     let measuredW = curW;
 
     if (lyMin <= -0.06 && lyMax >= 0.06) {
@@ -3756,7 +4198,8 @@ export function fitTwoWheelerBox(
     newW = Number(Math.max(0.55, Math.min(0.85, measuredW)).toFixed(2));
 
     roofTopZ = highestPtZ + headBuffer;
-    newH = Number(Math.max(1.10, Math.min(1.85, roofTopZ - groundZ)).toFixed(2));
+    const maxCap2WH = options.headBuffer !== undefined ? 1.85 : 1.68;
+    newH = Number(Math.max(1.05, Math.min(maxCap2WH, roofTopZ - groundZ)).toFixed(2));
     newCenterZ = Number((groundZ + newH / 2).toFixed(3));
 
     // Tọa độ thế giới kết hợp (xoay theo newYawRad)
@@ -3784,6 +4227,8 @@ export function fitTwoWheelerBox(
     rollDeg: 0,
     groundZ: Number(groundZ.toFixed(3)),
     roofTopZ: Number(roofTopZ.toFixed(3)),
+    shiftLx: Number(shiftLx.toFixed(3)),
+    shiftLy: Number(shiftLy.toFixed(3)),
     pointsCount: bodyPts.length,
     step,
     message: msg,
@@ -3895,7 +4340,8 @@ export function fitCyclistBox(
   } = {},
   step: "all" | "top" | "side" | "front" = "all"
 ): TwoWheelerFitResult {
-  return fitTwoWheelerBox(pts, cx, cy, cz, yaw, curL, curW, curH, options, step);
+  const mergedOptions = { headBuffer: options.headBuffer ?? 0.10, ...options };
+  return fitTwoWheelerBox(pts, cx, cy, cz, yaw, curL, curW, curH, mergedOptions, step);
 }
 
 // =========================================================================
@@ -4481,6 +4927,7 @@ if (typeof globalThis !== "undefined") {
   (globalThis as any).fitTwoWheelerBox = fitTwoWheelerBox;
   (globalThis as any).estimateTwoWheelerHeading = estimateTwoWheelerHeading;
   (globalThis as any).estimateEgoRoadGroundZ = estimateEgoRoadGroundZ;
+  (globalThis as any).detectTrueHeadZ = detectTrueHeadZ;
   (globalThis as any).computeGroundSlopesAndZ = computeGroundSlopesAndZ;
   (globalThis as any).fitYawToLaneIntensity = fitYawToLaneIntensity;
 }
@@ -4496,6 +4943,7 @@ if (typeof window !== "undefined") {
   (window as any).fitTwoWheelerBox = fitTwoWheelerBox;
   (window as any).estimateTwoWheelerHeading = estimateTwoWheelerHeading;
   (window as any).estimateEgoRoadGroundZ = estimateEgoRoadGroundZ;
+  (window as any).detectTrueHeadZ = detectTrueHeadZ;
   (window as any).computeGroundSlopesAndZ = computeGroundSlopesAndZ;
   (window as any).fitYawToLaneIntensity = fitYawToLaneIntensity;
 }

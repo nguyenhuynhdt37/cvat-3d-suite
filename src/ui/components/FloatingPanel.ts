@@ -10,6 +10,11 @@ import {
   VehicleCatalogItem,
 } from "../../core/catalog";
 import { TrackStudioModal } from "./TrackStudioModal";
+import { CameraOverlayManager, setVinCalibForOverlay } from "./CameraOverlay";
+import { CameraFocusModal } from "./CameraFocusModal";
+import { CalibrationModal } from "./CalibrationModal";
+import { HeaderSuiteButton } from "./HeaderSuiteButton";
+import type { Box3D } from "../../core/geometry";
 
 export interface UndoSnapshot {
   uiId: number;
@@ -19,6 +24,18 @@ export interface UndoSnapshot {
   boxPoints: number[];
   trackShapesBackup?: Array<{ frame: number; outside?: boolean; points: number[] }>;
   actionName: string;
+}
+
+export interface TrackStatsInfo {
+  uiId: number;
+  totalFrames: number;
+  startFrame: number;
+  endFrame: number;
+  activeCount: number;
+  outsideCount: number;
+  isFullyOutside: boolean;
+  isFullyActive: boolean;
+  label?: string;
 }
 
 /**
@@ -71,12 +88,18 @@ export class FloatingPanel {
 
   // Danh sách các xe ĐANG CÓ MẶT TẠI FRAME HIỆN TẠI
   private currentFrameNumber: number = 0;
+  private lastContextImageFrame: number = -1;
   private frameTracks: FrameTrackItem[] = [];
 
   // Trạng thái Dropdown Select & Tìm kiếm
   private isDropdownOpen: boolean = false;
   private searchKeyword: string = "";
   private autoSelectListenerAttached: boolean = false;
+  private autoCenterOnFrame: boolean = localStorage.getItem("CVAT_3D_SUITE_AUTO_CENTER_FRAME") !== "false";
+
+  // Thống kê vòng đời của Track ID đang chọn
+  private trackStats: TrackStatsInfo | null = null;
+  private trackStatsLoading: boolean = false;
 
   // Trạng thái xử lý
   private isProcessing: boolean = false;
@@ -88,10 +111,23 @@ export class FloatingPanel {
   private startX: number = 0;
   private startY: number = 0;
 
+  // Khung nhìn đang active (Top, Side, Front, hoặc Perspective 3D) để điều khiển WASD
+  public currentActiveView: "top" | "side" | "front" | "perspective" = "top";
+
   private currentCtx: CVATContext | null = null;
   private pollInterval: any = null;
   private updatePending: boolean = false;
   private lastRenderedHash: string = "";
+
+  /**
+   * Cập nhật khung nhìn đang focus (được gọi từ trình theo dõi chuột trên Canvas)
+   */
+  public setActiveView(view: "top" | "side" | "front" | "perspective"): void {
+    if (this.currentActiveView !== view) {
+      this.currentActiveView = view;
+      this.scheduleUpdate();
+    }
+  }
 
   /**
    * Lên lịch cập nhật giao diện bằng requestAnimationFrame (gộp nhiều lần gọi dồn dập, chống nháy DOM).
@@ -120,9 +156,102 @@ export class FloatingPanel {
       this.setupDraggable();
       this.setupCanvasAutoSelectListener();
       this.startPollingLoop();
+
+      // Khởi tạo Camera 2D Overlay HUD & Focus Modal
+      const camOverlay = CameraOverlayManager.getInstance();
+      camOverlay.mount();
+      camOverlay.onCameraFocusRequested = (camId) => {
+        const box = this.getCurrentBox3D();
+        const imgSrc = CameraOverlayManager.getInstance().getCameraImageSrc(camId);
+        CameraFocusModal.getInstance().open(camId, box, imgSrc || undefined);
+      };
+
+      // Auto-load VinFast calibration từ CVAT hoặc hardcoded
+      this.loadVinCalibration();
+
+      // Đồng bộ cấu hình Ghim Tâm khi tua frame sang Main World
+      CVATBridge.setAutoCenterOnFrameChange(this.autoCenterOnFrame);
     }
 
     this.scheduleUpdate();
+
+    // Tự động kiểm tra cấu hình bật/tắt Suite từ Header / localStorage (Auto-boot)
+    if (!HeaderSuiteButton.isSuiteEnabled()) {
+      this.setSuiteVisible(false);
+    }
+  }
+
+  /**
+   * Bật hoặc Tắt hiển thị Suite Panel và Camera Overlay (Được kích hoạt từ nút Header hoặc API)
+   */
+  public setSuiteVisible(visible: boolean): void {
+    if (!visible) {
+      if (this.container) {
+        this.container.style.display = "none";
+      }
+      try {
+        CameraOverlayManager.getInstance().hide();
+      } catch (_) {}
+    } else {
+      if (this.container) {
+        this.container.style.display = "flex";
+      }
+      try {
+        CameraOverlayManager.getInstance().show();
+      } catch (_) {}
+      this.scheduleUpdate();
+    }
+  }
+
+  /**
+   * Trích xuất đối tượng Box3D hiện thời của đối tượng đang chọn
+   */
+  /**
+   * Trích xuất đối tượng Box3D hiện thời của đối tượng đang chọn.
+   * Ưu tiên dùng rawPoints gốc (chính xác nhất) để chiếu 2D chuẩn.
+   */
+  public getCurrentBox3D(): Box3D | null {
+    if (this.selectedUiId === null || this.currentL <= 0) return null;
+
+    // Ưu tiên dùng rawPoints gốc từ CVAT (full precision, không bị round)
+    // Format CVAT cuboid: [x, y, z, rx, ry, rz, L, W, H, ...]
+    if (this.currentRawPoints && this.currentRawPoints.length >= 9) {
+      return {
+        c: [this.currentRawPoints[0], this.currentRawPoints[1], this.currentRawPoints[2]],
+        s: [this.currentRawPoints[6], this.currentRawPoints[7], this.currentRawPoints[8]],
+        r: [this.currentRawPoints[3], this.currentRawPoints[4], this.currentRawPoints[5]],
+      };
+    }
+
+    // Fallback: dùng giá trị đã round từ UI (kém chính xác hơn)
+    const rx = 0;
+    const ry = 0;
+    const rz = (this.currentYawDeg * Math.PI) / 180;
+    return {
+      c: [this.currentX, this.currentY, this.currentZ],
+      s: [this.currentL, this.currentW, this.currentH],
+      r: [rx, ry, rz],
+    };
+  }
+
+  /**
+   * Tự động tải calibration VinFast từ CVAT Day14 overlay hoặc hardcoded fallback.
+   * Chỉ truyền raw VinCalib cho Day14 engine, KHÔNG thay thế grid 8 camera mặc định.
+   */
+  private async loadVinCalibration(): Promise<void> {
+    try {
+      const vinCalib = await CVATBridge.fetchVinCalibration();
+      if (!vinCalib || !vinCalib.cameras) return;
+
+      // ★ CRITICAL: Truyền raw VinCalib cho Day14 projection engine trong CameraOverlay
+      // Day14 engine cần trực tiếp sensor2ego + ego2cam + dist + K (không qua CameraConfig convert)
+      setVinCalibForOverlay(vinCalib);
+
+      const camNames = Object.keys(vinCalib.cameras);
+      console.log(`[VinCalib] Đã load VinFast calibration: ${camNames.length} cameras [${camNames.join(", ")}] (Day14 engine active)`);
+    } catch (e) {
+      console.warn("[VinCalib] Lỗi load calibration:", e);
+    }
   }
 
   private createContainer(): void {
@@ -131,19 +260,19 @@ export class FloatingPanel {
     this.container.setAttribute("translate", "no");
     this.container.classList.add("notranslate");
     this.container.style.position = "fixed";
-    this.container.style.top = "20px";
-    this.container.style.right = "20px";
-    this.container.style.width = "370px";
-    this.container.style.maxHeight = "calc(100vh - 40px)";
+    this.container.style.top = "70px";
+    this.container.style.right = "24px";
+    this.container.style.width = "360px";
+    this.container.style.maxHeight = "calc(100vh - 90px)";
     this.container.style.zIndex = "999995";
     this.container.style.fontFamily = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
-    // shadcn/ui Light Card style (Giao diện trắng hiện đại)
+    // shadcn/ui Clean Card style (Giao diện trắng tinh tế chuẩn GEMINI.md)
     this.container.style.backgroundColor = "rgba(255, 255, 255, 0.98)";
     this.container.style.backdropFilter = "blur(16px)";
-    this.container.style.border = "1px solid #e4e4e7";
-    this.container.style.borderRadius = "16px";
-    this.container.style.boxShadow = "0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 1px 1px rgba(0, 0, 0, 0.04)";
+    this.container.style.border = "1px solid #e2e8f0";
+    this.container.style.borderRadius = "12px";
+    this.container.style.boxShadow = "0 10px 30px -5px rgba(0, 0, 0, 0.1), 0 0 1px 1px rgba(0, 0, 0, 0.05)";
     this.container.style.color = "#09090b";
     this.container.style.display = "flex";
     this.container.style.flexDirection = "column";
@@ -289,9 +418,19 @@ export class FloatingPanel {
       if (this.isMinimized) {
         this.container.style.display = "none";
         this.miniPill.style.display = "flex";
+        // Khi thu nhỏ: nếu đang gắn ở sidebar, hiện lại nội dung gốc CVAT để người dùng thao tác
+        if (this.isDocked && this.cvatOrigChildrenEl) {
+          this.cvatOrigChildrenEl.style.visibility = "visible";
+          this.cvatOrigChildrenEl.style.pointerEvents = "auto";
+        }
       } else {
         this.container.style.display = "flex";
         this.miniPill.style.display = "none";
+        // Khi mở lại: ẩn nội dung gốc CVAT
+        if (this.isDocked && this.cvatOrigChildrenEl && !this.isShowingCVATOrigSidebar) {
+          this.cvatOrigChildrenEl.style.visibility = "hidden";
+          this.cvatOrigChildrenEl.style.pointerEvents = "none";
+        }
       }
     }
   }
@@ -303,6 +442,9 @@ export class FloatingPanel {
     if (!this.container) return;
 
     const onMouseDown = (e: MouseEvent) => {
+      // Khi đang gắn vào sidebar thì không cho kéo thả lệch vị trí
+      if (this.isDocked) return;
+
       const target = e.target as HTMLElement;
       if (target.closest("button") || target.closest("input") || target.closest("select")) return;
       if (!target.closest("#floating-drag-header")) return;
@@ -388,6 +530,10 @@ export class FloatingPanel {
           this.frameTracks.push(item);
         }
 
+        if (!this.trackStats || this.trackStats.uiId !== details.clientId) {
+          this.loadTrackStats(details.clientId);
+        }
+
         this.scheduleUpdate();
       } else if (clientId && clientId !== this.selectedUiId) {
         console.log(`[CVAT 3D Suite] Tự động chọn xe #${clientId} từ click Canvas 3D`);
@@ -398,6 +544,15 @@ export class FloatingPanel {
     // Lắng nghe tín hiệu khi danh sách track trong Redux thay đổi (vừa vẽ xong box mới)
     window.addEventListener("CVAT_EXT_RES_FRAME_TRACKS_DIRTY", () => {
       this.syncFrameTracks();
+    });
+
+    // Lắng nghe sự kiện chuyển frame tức thì từ Main World (Phím F/D, Timeline, Play)
+    window.addEventListener("CVAT_EXT_RES_FRAME_CHANGED", (e: any) => {
+      const { frame } = e.detail || {};
+      if (typeof frame === "number" && frame !== this.currentFrameNumber) {
+        this.currentFrameNumber = frame;
+        this.syncFrameTracks();
+      }
     });
   }
 
@@ -418,13 +573,100 @@ export class FloatingPanel {
       }
 
       // 2. Quét xem có active item nào trên sidebar không (quét ngầm: không ép Three.js canvas activate)
+      // CHỐNG NHÁY & CHỐNG XUNG ĐỘT: Chỉ chấp nhận ID nếu xe đó THỰC SỰ CÓ MẶT tại frame hiện tại!
       const active = CVATBridge.getActiveTrackId();
       if (active.id !== null && active.id !== this.selectedUiId) {
-        await this.selectTrackByUiId(active.id, undefined, false);
+        const isTrackInCurrentFrame = this.frameTracks.some((t) => t.uiId === active.id);
+        if (isTrackInCurrentFrame) {
+          await this.selectTrackByUiId(active.id, undefined, false);
+        }
       }
     }, 800);
 
-    setTimeout(() => this.syncFrameTracks(), 250);
+    // Chờ CVAT ổn định 1.2s sau khi F5 rồi mới quét lần đầu để chống bão khởi tạo
+    setTimeout(() => this.syncFrameTracks(), 1200);
+  }
+
+  /**
+   * Vi chỉnh nhanh Box 3D bằng tổ hợp phím Shift + WASD theo Screen Space trực quan (độc lập với góc xoay của xe)
+   * - Phím Shift + A: Luôn luôn dịch sang TRÁI màn hình (Chỉ Frame Hiện Tại)
+   * - Phím Shift + D: Luôn luôn dịch sang PHẢI màn hình (Chỉ Frame Hiện Tại)
+   * - Phím Shift + W: Luôn luôn dịch LÊN TRÊN màn hình (Chỉ Frame Hiện Tại)
+   * - Phím Shift + S: Luôn luôn dịch XUỐNG DƯỚI màn hình (Chỉ Frame Hiện Tại)
+   * 🚨 QUY TẮC BẮT BUỘC: TUYỆT ĐỐI KHÔNG ÁP DỤNG TOÀN BỘ TRACK KHI DÙNG SHIFT+WASD (Chỉ tác động Frame này).
+   * @param key Phím bấm ('w', 'a', 's', 'd')
+   */
+  public async handleNudgeByView(key: "w" | "a" | "s" | "d"): Promise<void> {
+    const activeId = await this.ensureActiveTrackSelected();
+    if (!activeId || !this.currentCtx?.jobId) {
+      this.showToast("Chưa chọn đối tượng để vi chỉnh!", "warning");
+      return;
+    }
+
+    const step = 0.02; // 2cm mỗi lần bấm: vừa mịn vừa đủ quan sát tức thì
+    let deltaXWorld = 0;
+    let deltaYWorld = 0;
+    let deltaZWorld = 0;
+
+    const view = this.currentActiveView;
+
+    switch (view) {
+      case "side":
+        // SIDE VIEW (Màn hình: Trục ngang là X, trục đứng là Z)
+        if (key === "w") deltaZWorld = step;        // Lên màn hình (Nâng Z)
+        if (key === "s") deltaZWorld = -step;       // Xuống màn hình (Hạ Z)
+        if (key === "a") deltaXWorld = -step;       // Sang TRÁI màn hình (-X)
+        if (key === "d") deltaXWorld = step;        // Sang PHẢI màn hình (+X)
+        break;
+
+      case "front":
+        // FRONT VIEW (Màn hình: Trục ngang là Y [Trái: +Y, Phải: -Y], trục đứng là Z)
+        if (key === "w") deltaZWorld = step;        // Lên màn hình (Nâng Z)
+        if (key === "s") deltaZWorld = -step;       // Xuống màn hình (Hạ Z)
+        if (key === "a") deltaYWorld = step;        // Sang TRÁI màn hình (+Y)
+        if (key === "d") deltaYWorld = -step;       // Sang PHẢI màn hình (-Y)
+        break;
+
+      case "top":
+      case "perspective":
+      default:
+        // TOP VIEW hoặc 3D (Màn hình: Trục đứng là X [+X đi lên], Trục ngang là Y [Trái: +Y, Phải: -Y])
+        if (key === "w") deltaXWorld = step;        // Đi LÊN màn hình (+X)
+        if (key === "s") deltaXWorld = -step;       // Đi XUỐNG màn hình (-X)
+        if (key === "a") deltaYWorld = step;        // Đi sang TRÁI màn hình (+Y)
+        if (key === "d") deltaYWorld = -step;       // Đi sang PHẢI màn hình (-Y)
+        break;
+    }
+
+    try {
+      // 🚨 BỎ HOÀN TOÀN ÁP DỤNG TOÀN TRACK: Luôn luôn lưu snapshot và shift duy nhất cho Frame này (applyToTrack = false)
+      await this.pushUndoSnapshot(
+        `Shift+WASD Nudge [${view.toUpperCase()}]: ${key.toUpperCase()}`,
+        false
+      );
+
+      // Truyền isWorld = true để tịnh tiến trực tiếp theo toạ độ màn hình (độc lập 100% với góc quay của xe)
+      // applyToTrack = false (Chỉ tác động Frame Hiện Tại!)
+      const res = await CVATBridge.shiftTrackCenter(
+        this.currentCtx.jobId,
+        activeId,
+        this.selectedServerId,
+        deltaXWorld,
+        deltaYWorld,
+        deltaZWorld,
+        false,
+        true
+      );
+
+      if (res.success) {
+        if (res.newX !== undefined) this.currentX = res.newX;
+        if (res.newY !== undefined) this.currentY = res.newY;
+        if (res.newZ !== undefined) this.currentZ = res.newZ;
+        this.scheduleUpdate();
+      }
+    } catch (err: any) {
+      console.warn("[CVAT 3D Suite] Lỗi vi chỉnh WASD:", err);
+    }
   }
 
   /**
@@ -472,6 +714,20 @@ export class FloatingPanel {
     const tracks = await CVATBridge.getTracksInCurrentFrame(this.currentCtx.jobId, this.currentFrameNumber);
     this.frameTracks = tracks;
 
+    // Fetch ảnh Context Images từ CVAT API (chỉ khi frame thay đổi)
+    if (this.currentFrameNumber !== this.lastContextImageFrame) {
+      this.lastContextImageFrame = this.currentFrameNumber;
+      CVATBridge.fetchContextImages(this.currentCtx.jobId, this.currentFrameNumber)
+        .then((images) => {
+          if (images.size > 0) {
+            images.forEach((blobUrl, camIdx) => {
+              CameraOverlayManager.getInstance().updateCameraImage(camIdx, blobUrl);
+            });
+          }
+        })
+        .catch(() => {});
+    }
+
     const isCurrentTrackInFrame = tracks.some((t) => t.uiId === this.selectedUiId);
     if (!isCurrentTrackInFrame && tracks.length > 0) {
       // Khi mới F5 hoặc đổi frame, đồng bộ xe đầu tiên lên bảng điều khiển nhưng KHÔNG ép canvas activate/render (chống nháy)
@@ -492,8 +748,15 @@ export class FloatingPanel {
         this.editW = cur.w;
         this.editH = cur.h;
       }
+      if (this.selectedUiId && (!this.trackStats || this.trackStats.uiId !== this.selectedUiId)) {
+        this.loadTrackStats(this.selectedUiId);
+      }
       this.scheduleUpdate();
-    } else {
+    } else if (tracks.length === 0 && this.selectedUiId !== null) {
+      // Khi frame rỗng và trước đó có chọn xe -> reset về trạng thái chưa chọn xe
+      this.selectedUiId = null;
+      this.selectedServerId = null;
+      this.currentLabel = "Chưa chọn đối tượng";
       this.scheduleUpdate();
     }
   }
@@ -541,10 +804,26 @@ export class FloatingPanel {
    */
   public async selectTrackByUiId(uiId: number, details?: any, activateCanvas: boolean = true): Promise<void> {
     this.selectedUiId = uiId;
+    CVATBridge.setActiveTrackIdInMainWorld(uiId);
+
+    if (!this.trackStats || this.trackStats.uiId !== uiId) {
+      this.loadTrackStats(uiId);
+    }
+
+    let targetPos: { x: number; y: number; z: number } | undefined;
+    if (details) {
+      targetPos = { x: details.x, y: details.y, z: details.z };
+    } else {
+      const foundInFrame = this.frameTracks.find((t) => t.uiId === uiId);
+      if (foundInFrame) {
+        targetPos = { x: foundInFrame.x, y: foundInFrame.y, z: foundInFrame.z };
+      }
+    }
 
     // Chỉ kích hoạt Three.js Canvas nếu người dùng chủ động tương tác
     if (activateCanvas) {
-      CVATBridge.activateCanvasTrack(uiId);
+      CVATBridge.activateCanvasTrack(uiId, targetPos);
+      CVATBridge.centerCanvas3DOnTrack(uiId, targetPos);
     }
 
     if (details) {
@@ -562,6 +841,9 @@ export class FloatingPanel {
       this.editW = details.w;
       this.editH = details.h;
       this.currentRawPoints = Array.isArray(details.points) ? [...details.points] : null;
+      if (activateCanvas && targetPos) {
+        CVATBridge.centerCanvas3DOnTrack(uiId, targetPos);
+      }
       this.scheduleUpdate();
       return;
     }
@@ -581,6 +863,9 @@ export class FloatingPanel {
       this.editL = foundInFrame.l;
       this.editW = foundInFrame.w;
       this.editH = foundInFrame.h;
+      if (activateCanvas) {
+        CVATBridge.centerCanvas3DOnTrack(uiId, { x: foundInFrame.x, y: foundInFrame.y, z: foundInFrame.z });
+      }
       this.scheduleUpdate();
       return;
     }
@@ -606,6 +891,18 @@ export class FloatingPanel {
       this.selectTrackByUiId(this.frameTracks[idx + 1].uiId, undefined, true);
     } else {
       this.selectTrackByUiId(this.frameTracks[0].uiId, undefined, true);
+    }
+  }
+
+  /**
+   * Căn giữa tức thì View 3D vào xe đang chọn
+   */
+  public handleCenterCurrentTrack(): void {
+    if (this.selectedUiId !== null) {
+      CVATBridge.centerCanvas3DOnTrack(this.selectedUiId);
+      this.showToast(`Đã căn giữa xe #${this.selectedUiId}`, "info");
+    } else {
+      this.showToast("Chưa chọn đối tượng để căn giữa!", "warning");
     }
   }
 
@@ -750,7 +1047,7 @@ export class FloatingPanel {
     if (this.isProcessing) return;
 
     // Lưu snapshot vào undo stack trước khi đổi trạng thái
-    await this.pushUndoSnapshot(`Outside Toàn Track #${this.selectedUiId}`, true);
+    await this.pushUndoSnapshot(`${outside ? "Outside (Ẩn)" : "Inside (Hiện)"} Toàn Track #${this.selectedUiId}`, true);
     this.isProcessing = true;
 
     this.showToast(`Đang đánh dấu ${outside ? "Outside" : "Inside"} cho toàn bộ Track #${this.selectedUiId}...`, "info");
@@ -767,10 +1064,11 @@ export class FloatingPanel {
 
       if (res.success) {
         this.showToast(
-          `Đã đánh dấu ${outside ? "Outside" : "Inside"} cho ${res.count || "toàn bộ"} frame của Track #${this.selectedUiId}! Bấm Pre để hoàn tác.`,
+          `Đã đánh dấu ${outside ? "Outside (Ẩn)" : "Inside (Hiện)"} cho ${res.count || "toàn bộ"} frame của Track #${this.selectedUiId}! Bấm Pre để hoàn tác.`,
           "success"
         );
         await this.syncFrameTracks();
+        await this.loadTrackStats(this.selectedUiId);
       } else {
         this.showToast(res.message || "Không thể đổi trạng thái Outside!", "error");
       }
@@ -780,6 +1078,187 @@ export class FloatingPanel {
       this.isProcessing = false;
       this.updateContent();
     }
+  }
+
+  /**
+   * Tải ngầm thống kê toàn bộ vòng đời của Track ID (Total frames, Active, Outside, Dải frame)
+   */
+  public async loadTrackStats(uiId: number | null): Promise<void> {
+    if (uiId === null || !this.currentCtx?.jobId) {
+      this.trackStats = null;
+      this.updateContent();
+      return;
+    }
+
+    try {
+      this.trackStatsLoading = true;
+      const serverId = this.selectedServerId || uiId;
+      const allFrames = await CVATBridge.getTrackAllFrames(this.currentCtx.jobId, uiId, serverId);
+
+      // Nếu người dùng đã chuyển sang xe khác trong lúc đang truy vấn
+      if (this.selectedUiId !== uiId) return;
+
+      if (Array.isArray(allFrames) && allFrames.length > 0) {
+        const totalFrames = allFrames.length;
+        const startFrame = allFrames[0].frame;
+        const endFrame = allFrames[allFrames.length - 1].frame;
+        const outsideCount = allFrames.filter((f) => !!f.outside).length;
+        const activeCount = totalFrames - outsideCount;
+        const isFullyOutside = outsideCount === totalFrames;
+        const isFullyActive = outsideCount === 0;
+
+        this.trackStats = {
+          uiId,
+          totalFrames,
+          startFrame,
+          endFrame,
+          activeCount,
+          outsideCount,
+          isFullyOutside,
+          isFullyActive,
+          label: allFrames[0]?.label || this.currentLabel,
+        };
+      } else {
+        this.trackStats = null;
+      }
+    } catch (err) {
+      console.warn("[CVAT 3D Suite] Lỗi loadTrackStats:", err);
+      this.trackStats = null;
+    } finally {
+      this.trackStatsLoading = false;
+      this.updateContent();
+    }
+  }
+
+  /**
+   * Hiển thị dải Sub-Header thống kê Track ID ngay tại cụm tiêu đề Floating Panel
+   */
+  private renderTrackStatsSubHeader(): string {
+    if (this.selectedUiId === null) {
+      return "";
+    }
+
+    const stats = this.trackStats;
+    const isLoading = this.trackStatsLoading && !stats;
+
+    if (isLoading) {
+      return `
+        <div style="
+          background: #f8fafc;
+          border-bottom: 1px solid #e2e8f0;
+          padding: 4px 10px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 10px;
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          color: #64748b;
+        ">
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-weight: 700; color: #0284c7;">Track #${this.selectedUiId}</span>
+            <span style="font-size: 9px; color: #94a3b8;">Đang tải thống kê track...</span>
+          </div>
+        </div>
+      `;
+    }
+
+    if (!stats) {
+      return `
+        <div style="
+          background: #f8fafc;
+          border-bottom: 1px solid #e2e8f0;
+          padding: 4px 10px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 10px;
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          color: #64748b;
+        ">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-weight: 700; color: #0284c7;">Track #${this.selectedUiId}</span>
+            <span style="color: #64748b; font-size: 9.5px;">${this.currentLabel}</span>
+          </div>
+          <span style="font-size: 9px; color: #94a3b8;">F#${this.currentFrameNumber}</span>
+        </div>
+      `;
+    }
+
+    const { totalFrames, startFrame, endFrame, activeCount, outsideCount, isFullyOutside, isFullyActive } = stats;
+
+    let badgeHtml = "";
+    if (isFullyOutside) {
+      badgeHtml = `
+        <span style="
+          background: #fee2e2;
+          border: 1px solid #fecdd3;
+          color: #e11d48;
+          padding: 1px 6px;
+          border-radius: 4px;
+          font-weight: 700;
+          font-size: 9.5px;
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+        ">
+          ${ICONS.eyeOff}
+          <span>Ẩn Toàn Bộ (${totalFrames}f)</span>
+        </span>
+      `;
+    } else if (isFullyActive) {
+      badgeHtml = `
+        <span style="
+          background: #ecfdf5;
+          border: 1px solid #a7f3d0;
+          color: #059669;
+          padding: 1px 6px;
+          border-radius: 4px;
+          font-weight: 600;
+          font-size: 9.5px;
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+        ">
+          ${ICONS.eye}
+          <span>Hiện Toàn Bộ (${totalFrames}f)</span>
+        </span>
+      `;
+    } else {
+      badgeHtml = `
+        <div style="display: flex; align-items: center; gap: 4px; font-size: 9.5px; font-weight: 600;">
+          <span style="color: #059669; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 1px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px;">
+            ${ICONS.eye} ${activeCount} Hiện
+          </span>
+          <span style="color: #e11d48; background: #fee2e2; border: 1px solid #fecdd3; padding: 1px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px;">
+            ${ICONS.eyeOff} ${outsideCount} Ẩn
+          </span>
+        </div>
+      `;
+    }
+
+    return `
+      <div style="
+        background: ${isFullyOutside ? "#fff5f5" : "#f8fafc"};
+        border-bottom: 1px solid ${isFullyOutside ? "#fed7aa" : "#e2e8f0"};
+        padding: 4px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 10px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        transition: background 0.15s;
+      ">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-weight: 700; color: ${isFullyOutside ? "#e11d48" : "#0284c7"};">Track #${this.selectedUiId}</span>
+          <span style="color: #64748b; font-size: 9.5px;">
+            ${totalFrames} frames (F#${startFrame} ➔ F#${endFrame})
+          </span>
+        </div>
+        <div>
+          ${badgeHtml}
+        </div>
+      </div>
+    `;
   }
 
   /**
@@ -813,6 +1292,10 @@ export class FloatingPanel {
       const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
       if (targetItem) {
         targetItem.yawDeg = res.newYawDeg;
+      }
+
+      if (this.selectedUiId !== null) {
+        CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
       }
 
       this.showToast(res.message, "success");
@@ -877,6 +1360,10 @@ export class FloatingPanel {
         targetItem.z = res.newZ;
       }
 
+      if (this.selectedUiId !== null) {
+        CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
+      }
+
       this.showToast(res.message, "success");
     } catch (err: any) {
       this.showToast(`Lỗi: ${err.message || err}`, "error");
@@ -935,6 +1422,9 @@ export class FloatingPanel {
     );
 
     const sign = deg > 0 ? "+" : "";
+    if (this.selectedUiId !== null) {
+      CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
+    }
     this.showToast(`Xoay Yaw ${sign}${deg}° ➔ ${newDeg}°`, "info");
     this.updateContent();
   }
@@ -1086,6 +1576,10 @@ export class FloatingPanel {
           if (res.newY !== undefined) targetItem.y = res.newY;
         }
 
+        if (this.selectedUiId !== null) {
+          CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
+        }
+
         this.showToast(res.message, "success");
       } else {
         this.showToast(res.message || "Lỗi khi vi chỉnh Center!", "error");
@@ -1140,6 +1634,10 @@ export class FloatingPanel {
         targetItem.z = res.newZ;
       }
 
+      if (this.selectedUiId !== null) {
+        CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
+      }
+
       this.showToast(res.message, "success");
     } catch (err: any) {
       this.showToast(`Lỗi: ${err.message || err}`, "error");
@@ -1188,6 +1686,9 @@ export class FloatingPanel {
 
       if (res.success && res.newYawDeg !== undefined) {
         this.currentYawDeg = res.newYawDeg;
+        if (this.selectedUiId !== null) {
+          CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
+        }
         this.showToast(res.message, "success");
       } else {
         this.showToast(res.message || "Không tìm thấy vạch sơn rõ nét!", "warning");
@@ -1250,6 +1751,10 @@ export class FloatingPanel {
           if (res.newYawDeg !== undefined) targetItem.yawDeg = res.newYawDeg;
         }
 
+        if (this.selectedUiId !== null) {
+          CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
+        }
+
         this.showToast(res.message, "success");
       } else {
         this.showToast(res.message, "error");
@@ -1289,6 +1794,111 @@ export class FloatingPanel {
       await this.handleFitPedestrian("front");
     } else {
       await this.handleEgoRayFit("front");
+    }
+  }
+
+  /**
+   * Fit riêng Chiều Rộng W (Phím 4):
+   * Tự động điều hướng theo loại đối tượng:
+   * - Pedestrian: Fit vai/ngực người
+   * - Cyclist: Fit tay lái / gương xe (+5cm pad)
+   * - Car: Fit riêng bề rộng W (+8cm pad)
+   */
+  public async handleFitWidth(): Promise<void> {
+    if (this.selectedCategory === "pedestrian") {
+      await this.handleFitPedestrian("w");
+    } else if (this.selectedCategory === "cyclist") {
+      await this.handleFitCyclist("w");
+    } else {
+      await this.handleFitCarDimension("w");
+    }
+  }
+
+  /**
+   * Fit riêng Chiều Cao H (Phím 5) - CHUẨN GROUND-LOCK:
+   * Mặt đáy tiếp đất bám sàn cố định tại groundZ, chiều cao nở lên nóc xe.
+   * Tự động điều hướng theo loại đối tượng:
+   * - Pedestrian: Fit đỉnh đầu (+12cm đệm)
+   * - Cyclist: Fit nón bảo hiểm (+12cm đệm)
+   * - Car: Fit nóc xe (+5cm đệm)
+   */
+  public async handleFitHeight(): Promise<void> {
+    if (this.selectedCategory === "pedestrian") {
+      await this.handleFitPedestrian("h");
+    } else if (this.selectedCategory === "cyclist") {
+      await this.handleFitCyclist("h");
+    } else {
+      await this.handleFitCarDimension("h");
+    }
+  }
+
+  /**
+   * Fit riêng Chiều Rộng (W) hoặc Chiều Cao (H Ground-Lock) cho Xe Ô tô (Car) hoặc đối tượng chung
+   */
+  public async handleFitCarDimension(dimension: "w" | "h"): Promise<void> {
+    if (!this.currentCtx || !this.currentCtx.jobId) {
+      this.showToast("Chưa kết nối Job CVAT!", "warning");
+      return;
+    }
+    const activeId = await this.ensureActiveTrackSelected();
+    if (!activeId) {
+      this.showToast("Chưa chọn đối tượng để fit kích thước!", "warning");
+      return;
+    }
+    if (this.isProcessing) return;
+
+    const dimLabel = dimension === "w" ? "Rộng (W) [Phím 4]" : "Cao (H) [Phím 5 - Ground-Lock]";
+    await this.pushUndoSnapshot(`Fit ${dimLabel}`, this.applyToTrack);
+    this.isProcessing = true;
+    this.showToast(`Đang đo mây điểm & Fit ${dimLabel}...`, "info");
+
+    try {
+      const serverId = this.selectedServerId || activeId;
+      const res = await CVATBridge.fitDimension(
+        this.currentCtx.jobId,
+        activeId,
+        serverId,
+        dimension,
+        this.applyToTrack
+      );
+
+      if (res.success) {
+        if (res.newW !== undefined) {
+          this.currentW = res.newW;
+          this.editW = res.newW;
+        }
+        if (res.newH !== undefined) {
+          this.currentH = res.newH;
+          this.editH = res.newH;
+        }
+        if (res.newX !== undefined) this.currentX = res.newX;
+        if (res.newY !== undefined) this.currentY = res.newY;
+        if (res.newZ !== undefined) this.currentZ = res.newZ;
+
+        const targetItem = this.frameTracks.find((t) => t.uiId === activeId);
+        if (targetItem) {
+          if (res.newW !== undefined) targetItem.w = res.newW;
+          if (res.newH !== undefined) targetItem.h = res.newH;
+          if (res.newX !== undefined) targetItem.x = res.newX;
+          if (res.newY !== undefined) targetItem.y = res.newY;
+          if (res.newZ !== undefined) targetItem.z = res.newZ;
+        }
+
+        const inputW = this.container?.querySelector<HTMLInputElement>("#input-dim-w");
+        const inputH = this.container?.querySelector<HTMLInputElement>("#input-dim-h");
+        if (inputW && res.newW !== undefined) inputW.value = String(res.newW);
+        if (inputH && res.newH !== undefined) inputH.value = String(res.newH);
+
+        this.showToast(res.message, "success");
+        this.scheduleUpdate();
+      } else {
+        this.showToast(res.message, "error");
+      }
+    } catch (err: any) {
+      this.showToast(`Lỗi fit ${dimLabel}: ${err.message || String(err)}`, "error");
+    } finally {
+      this.isProcessing = false;
+      this.updateContent();
     }
   }
 
@@ -1727,6 +2337,7 @@ export class FloatingPanel {
       this.selectedCategory,
       this.isAdvancedOpen,
       this.applyToTrack,
+      this.currentActiveView,
     ].join("|");
 
     if (stateHash === this.lastRenderedHash && this.container.children.length > 0) {
@@ -1735,6 +2346,28 @@ export class FloatingPanel {
     this.lastRenderedHash = stateHash;
 
     const jobText = this.currentCtx.jobId ? `#${this.currentCtx.jobId}` : "OFFLINE";
+
+    // Cấu hình Badge Khung nhìn View đang active (Top, Side, Front, 3D)
+    let viewText = "VIEW: TOP";
+    let viewBg = "#f0fdfa";
+    let viewBorder = "#99f6e4";
+    let viewColor = "#0f766e";
+    if (this.currentActiveView === "side") {
+      viewText = "VIEW: SIDE";
+      viewBg = "#eff6ff";
+      viewBorder = "#bfdbfe";
+      viewColor = "#1d4ed8";
+    } else if (this.currentActiveView === "front") {
+      viewText = "VIEW: FRONT";
+      viewBg = "#faf5ff";
+      viewBorder = "#e9d5ff";
+      viewColor = "#7e22ce";
+    } else if (this.currentActiveView === "perspective") {
+      viewText = "VIEW: 3D";
+      viewBg = "#f8fafc";
+      viewBorder = "#cbd5e1";
+      viewColor = "#475569";
+    }
 
     // Lọc danh sách xe theo từ khóa tìm kiếm
     const filteredTracks = this.frameTracks.filter((t) => {
@@ -1749,6 +2382,7 @@ export class FloatingPanel {
       dropdownItemsHtml = filteredTracks
         .map((t) => {
           const isSelected = t.uiId === this.selectedUiId;
+          const badgeColor = t.color || "#3b82f6";
           return `
             <div class="dropdown-track-item" data-uiid="${t.uiId}" style="
               padding: 6px 10px;
@@ -1765,8 +2399,22 @@ export class FloatingPanel {
               transition: background 0.12s;
             ">
               <span style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-weight: 700; color: ${isSelected ? "#059669" : "#64748b"};">#${t.uiId}</span>
-                <span style="color: ${isSelected ? "#047857" : "#0f172a"}; font-weight: 500;">${t.label}</span>
+                <span style="font-weight: 700; color: ${isSelected ? "#059669" : "#64748b"}; font-size: 11px;">#${t.uiId}</span>
+                <span style="
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 4px;
+                  padding: 1px 6px;
+                  border-radius: 4px;
+                  background: ${badgeColor}18;
+                  border: 1px solid ${badgeColor}40;
+                  color: ${badgeColor};
+                  font-weight: 600;
+                  font-size: 10px;
+                ">
+                  <span style="width: 5px; height: 5px; border-radius: 50%; background: ${badgeColor}; display: inline-block;"></span>
+                  ${t.label}
+                </span>
               </span>
               <span style="font-size: 10px; color: #64748b;">
                 Z: ${t.z}m • ${t.yawDeg}°
@@ -1966,6 +2614,21 @@ export class FloatingPanel {
             border: 1px solid #e2e8f0;
             font-weight: 600;
           ">${jobText}</span>
+          <span id="floating-badge-view" title="Khung nhìn đang active. Giữ Shift + WASD để vi chỉnh 2cm theo màn hình (Chỉ Frame Hiện Tại)" style="
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9.5px;
+            font-weight: 700;
+            font-family: ui-monospace, monospace;
+            background: ${viewBg};
+            border: 1px solid ${viewBorder};
+            color: ${viewColor};
+            cursor: pointer;
+            transition: all 0.12s;
+          ">${viewText}</span>
         </div>
 
         <div style="display: flex; align-items: center; gap: 3px;">
@@ -2042,6 +2705,9 @@ export class FloatingPanel {
         </div>
       </div>
 
+      <!-- DẢI SUB-HEADER THỐNG KÊ TRACK ID (CỤM TIÊU ĐỀ) -->
+      ${this.renderTrackStatsSubHeader()}
+
       <!-- MAIN CONTAINER BODY (LIGHT) -->
       <div style="
         padding: 10px;
@@ -2049,6 +2715,7 @@ export class FloatingPanel {
         display: flex;
         flex-direction: column;
         gap: 8px;
+        flex: 1;
         max-height: calc(100vh - 120px);
       ">
         <!-- KHỐI 1: CHỌN XE & THÔNG SỐ TÓM TẮT -->
@@ -2111,6 +2778,29 @@ export class FloatingPanel {
               align-items: center;
             ">
               ${ICONS.chevronRight}
+            </button>
+
+            <!-- NÚT GHIM TÂM KHI TUA FRAME (LOCK-ON CAMERA TRACKING) -->
+            <button id="btn-toggle-auto-center" title="Tự động ghim đối tượng đang chọn ở chính giữa màn hình khi tua frame. Nhấn để Bật/Tắt." style="
+              background: ${this.autoCenterOnFrame ? "#ecfdf5" : "#ffffff"};
+              border: 1px solid ${this.autoCenterOnFrame ? "#a7f3d0" : "#e2e8f0"};
+              color: ${this.autoCenterOnFrame ? "#047857" : "#64748b"};
+              padding: 6px 8px;
+              border-radius: 6px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              font-size: 11px;
+              font-weight: 600;
+              transition: all 0.12s;
+              box-shadow: ${this.autoCenterOnFrame ? "0 1px 2px rgba(16, 185, 129, 0.12)" : "none"};
+              white-space: nowrap;
+            ">
+              <span style="display: flex; align-items: center; color: ${this.autoCenterOnFrame ? "#10b981" : "#94a3b8"};">
+                ${ICONS.target}
+              </span>
+              <span>${this.autoCenterOnFrame ? "Ghim" : "Tự do"}</span>
             </button>
           </div>
 
@@ -2335,6 +3025,65 @@ export class FloatingPanel {
                 <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Sườn xe W</span>
               </button>
             </div>
+
+            <!-- THANH 2 NÚT TÁCH BIỆT CHO CAR: FIT RỘNG (W) & FIT CAO (H GROUND-LOCK) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+              <!-- 1. NÚT FIT RỘNG W -->
+              <button id="btn-fit-car-w" title="Tự động đo mây điểm và fit riêng chiều rộng W (bám khít 2 sườn xe +8cm đệm), giữ nguyên L, H và Z (Phím 4)" style="
+                background: #faf5ff;
+                border: 1px solid #d8b4fe;
+                color: #7e22ce;
+                padding: 6px 8px;
+                border-radius: 7px;
+                font-size: 10px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2px;
+                transition: all 0.12s;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="display: flex; align-items: center; gap: 4px; font-weight: 700;">
+                    ${ICONS.sparkles}
+                    <span>Fit Rộng (W)</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #e9d5ff; color: #7e22ce;">4</kbd>
+                </div>
+                <span style="font-size: 8.5px; opacity: 0.85;">+8cm đệm vỏ</span>
+              </button>
+
+              <!-- 2. NÚT FIT CAO H -->
+              <button id="btn-fit-car-h" title="Tự động đo mây điểm nóc xe và fit riêng chiều cao H (Mặt đáy tiếp đất bám sàn cố định tại groundZ, nở lên nóc xe +5cm), giữ nguyên L, W và XY (Phím 5)" style="
+                background: #fff7ed;
+                border: 1px solid #fdba74;
+                color: #c2410c;
+                padding: 6px 8px;
+                border-radius: 7px;
+                font-size: 10px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2px;
+                transition: all 0.12s;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="display: flex; align-items: center; gap: 4px; font-weight: 700;">
+                    ${ICONS.arrowUpDown}
+                    <span>Fit Cao (H)</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #fed7aa; color: #c2410c;">5</kbd>
+                </div>
+                <span style="font-size: 8.5px; opacity: 0.85;">Ground-Lock nở nóc</span>
+              </button>
+            </div>
           `
               : this.selectedCategory === "cyclist"
               ? `
@@ -2419,7 +3168,7 @@ export class FloatingPanel {
             <!-- THANH 2 NÚT TÁCH BIỆT: FIT RỘNG (W) & FIT CAO (H) CHO XE 2 BÁNH -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
               <!-- 1. NÚT FIT RỘNG W -->
-              <button id="btn-fit-cyclist-w" title="Tự động đo mây điểm và fit riêng chiều rộng W (bắt trọn gương chiếu hậu, tay lái, đệm +5cm mỗi bên), giữ nguyên L, H và Z" style="
+              <button id="btn-fit-cyclist-w" title="Tự động đo mây điểm và fit riêng chiều rộng W (bắt trọn gương chiếu hậu, tay lái, đệm +5cm mỗi bên), giữ nguyên L, H và Z (Phím 4)" style="
                 background: #fffbeb;
                 border: 1px solid #fcd34d;
                 color: #b45309;
@@ -2430,17 +3179,20 @@ export class FloatingPanel {
                 cursor: pointer;
                 display: flex;
                 align-items: center;
-                justify-content: center;
+                justify-content: space-between;
                 gap: 4px;
                 transition: all 0.12s;
                 box-shadow: 0 1px 2px rgba(0,0,0,0.03);
               ">
-                <span style="display: flex; align-items: center; color: #d97706;">${ICONS.sparkles}</span>
-                <span>Fit Rộng (W) [+5cm Pad]</span>
+                <span style="display: flex; align-items: center; gap: 4px;">
+                  <span style="display: flex; align-items: center; color: #d97706;">${ICONS.sparkles}</span>
+                  <span>Fit Rộng (W)</span>
+                </span>
+                <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #fde68a; color: #b45309;">4</kbd>
               </button>
 
               <!-- 2. NÚT FIT CAO H -->
-              <button id="btn-fit-cyclist-h" title="Tự động đo đỉnh nón bảo hiểm và fit riêng chiều cao H (Mặt đáy tiếp đất giữ nguyên cố định 100%, nở lên nóc +12cm), giữ nguyên L, W và XY" style="
+              <button id="btn-fit-cyclist-h" title="Tự động đo đỉnh nón bảo hiểm và fit riêng chiều cao H (Mặt đáy tiếp đất giữ nguyên cố định 100%, nở lên nóc +12cm), giữ nguyên L, W và XY (Phím 5)" style="
                 background: #fff7ed;
                 border: 1px solid #fdba74;
                 color: #c2410c;
@@ -2451,13 +3203,16 @@ export class FloatingPanel {
                 cursor: pointer;
                 display: flex;
                 align-items: center;
-                justify-content: center;
+                justify-content: space-between;
                 gap: 4px;
                 transition: all 0.12s;
                 box-shadow: 0 1px 2px rgba(0,0,0,0.03);
               ">
-                <span style="display: flex; align-items: center; color: #ea580c;">${ICONS.arrowUpDown}</span>
-                <span>Fit Cao (H) [Nở Nóc]</span>
+                <span style="display: flex; align-items: center; gap: 4px;">
+                  <span style="display: flex; align-items: center; color: #ea580c;">${ICONS.arrowUpDown}</span>
+                  <span>Fit Cao (H)</span>
+                </span>
+                <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #fed7aa; color: #c2410c;">5</kbd>
               </button>
             </div>
 
@@ -2587,7 +3342,7 @@ export class FloatingPanel {
               </button>
 
               <!-- 2. NÚT FIX RỘNG W -->
-              <button id="btn-fit-ped-w" title="Tự động đo và co giãn riêng Chiều Rộng W ôm vai/ngực (giữ nguyên L, H & Z)" style="
+              <button id="btn-fit-ped-w" title="Tự động đo và co giãn riêng Chiều Rộng W ôm vai/ngực (giữ nguyên L, H & Z) (Phím 4)" style="
                 background: #faf5ff;
                 border: 1px solid #d8b4fe;
                 color: #7e22ce;
@@ -2598,17 +3353,20 @@ export class FloatingPanel {
                 cursor: pointer;
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                gap: 3px;
+                justify-content: space-between;
+                gap: 2px;
                 transition: all 0.12s;
                 box-shadow: 0 1px 2px rgba(0,0,0,0.03);
               ">
-                <span style="display: flex; align-items: center; color: #9333ea;">${ICONS.sparkles}</span>
-                <span>Fit Rộng (W)</span>
+                <span style="display: flex; align-items: center; gap: 2px;">
+                  <span style="display: flex; align-items: center; color: #9333ea;">${ICONS.sparkles}</span>
+                  <span>Fit Rộng</span>
+                </span>
+                <kbd style="font-size: 8px; font-family: monospace; background: #ffffff; padding: 1px 3px; border-radius: 3px; border: 1px solid #e9d5ff; color: #7e22ce;">4</kbd>
               </button>
 
               <!-- 3. NÚT FIX CAO H -->
-              <button id="btn-fit-ped-h" title="Tự động đo đỉnh đầu và fit riêng Chiều Cao H (Đáy tiếp đất giữ nguyên cố định, đỉnh đầu nở lên +12cm), giữ nguyên L, W và XY" style="
+              <button id="btn-fit-ped-h" title="Tự động đo đỉnh đầu và fit riêng Chiều Cao H (Đáy tiếp đất giữ nguyên cố định, đỉnh đầu nở lên +12cm), giữ nguyên L, W và XY (Phím 5)" style="
                 background: #fff7ed;
                 border: 1px solid #fdba74;
                 color: #c2410c;
@@ -2619,11 +3377,17 @@ export class FloatingPanel {
                 cursor: pointer;
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                gap: 3px;
+                justify-content: space-between;
+                gap: 2px;
                 transition: all 0.12s;
                 box-shadow: 0 1px 2px rgba(0,0,0,0.03);
               ">
+                <span style="display: flex; align-items: center; gap: 2px;">
+                  <span style="display: flex; align-items: center; color: #ea580c;">${ICONS.arrowUpDown}</span>
+                  <span>Fit Cao</span>
+                </span>
+                <kbd style="font-size: 8px; font-family: monospace; background: #ffffff; padding: 1px 3px; border-radius: 3px; border: 1px solid #fed7aa; color: #c2410c;">5</kbd>
+              </button>
                 <span style="display: flex; align-items: center; color: #ea580c;">${ICONS.arrowUpDown}</span>
                 <span>Fit Cao (H)</span>
               </button>
@@ -2837,8 +3601,9 @@ export class FloatingPanel {
             </div>
           </div>
 
-          <!-- NÚT ĐÁNH DẤU OUTSIDE TOÀN TRACK -->
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 5px;">
+          <!-- CẶP NÚT ẨN / HIỆN TOÀN TRACK -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <!-- NÚT ẨN TOÀN TRACK (OUTSIDE) -->
             <button id="btn-outside-entire-track" title="Đánh dấu Outside (ẩn) cho toàn bộ frame của Track này (Shift+O)" style="
               width: 100%;
               background: #fff1f2;
@@ -2855,11 +3620,35 @@ export class FloatingPanel {
               transition: all 0.12s;
               box-shadow: 0 1px 2px rgba(0,0,0,0.02);
             ">
-              <span style="display: flex; align-items: center; gap: 5px;">
+              <span style="display: flex; align-items: center; gap: 4px;">
                 <span style="display: flex; align-items: center;">${ICONS.eyeOff}</span>
-                <span>Outside Toàn Track</span>
+                <span>Ẩn Toàn Track</span>
               </span>
               <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; border: 1px solid #fecdd3; padding: 1px 4px; border-radius: 3px; color: #e11d48;">⇧O</kbd>
+            </button>
+
+            <!-- NÚT HIỆN TOÀN TRACK (INSIDE) -->
+            <button id="btn-inside-entire-track" title="Đánh dấu Inside (hiện lại) cho toàn bộ frame của Track này (Shift+I)" style="
+              width: 100%;
+              background: #ecfdf5;
+              border: 1px solid #a7f3d0;
+              color: #059669;
+              padding: 5px 8px;
+              border-radius: 6px;
+              font-size: 10px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            ">
+              <span style="display: flex; align-items: center; gap: 4px;">
+                <span style="display: flex; align-items: center;">${ICONS.eye}</span>
+                <span>Hiện Toàn Track</span>
+              </span>
+              <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; border: 1px solid #a7f3d0; padding: 1px 4px; border-radius: 3px; color: #059669;">⇧I</kbd>
             </button>
           </div>
 
@@ -3069,6 +3858,13 @@ export class FloatingPanel {
     const fitFrontBtn = this.container.querySelector("#btn-fit-front");
     if (fitFrontBtn) fitFrontBtn.addEventListener("click", () => this.handleFitFront());
 
+    // Nút Fit riêng W và H cho Xe Ô tô (Car)
+    const fitCarWBtn = this.container.querySelector("#btn-fit-car-w");
+    if (fitCarWBtn) fitCarWBtn.addEventListener("click", () => this.handleFitWidth());
+
+    const fitCarHBtn = this.container.querySelector("#btn-fit-car-h");
+    if (fitCarHBtn) fitCarHBtn.addEventListener("click", () => this.handleFitHeight());
+
     // Nút Hero 1-Click Smart Fit (dành riêng cho Người Đi Bộ hoặc Xe 2 bánh)
     const heroBtn = this.container.querySelector("#btn-hero-smart-fit");
     if (heroBtn) {
@@ -3150,6 +3946,17 @@ export class FloatingPanel {
     const minBtn = this.container.querySelector("#floating-btn-minimize");
     if (minBtn) minBtn.addEventListener("click", () => this.toggleMinimize());
 
+    // Badge View: Click để chuyển nhanh khung nhìn đang active
+    const badgeView = this.container.querySelector("#floating-badge-view");
+    if (badgeView) {
+      badgeView.addEventListener("click", () => {
+        const views: Array<"top" | "side" | "front" | "perspective"> = ["top", "side", "front", "perspective"];
+        const nextIdx = (views.indexOf(this.currentActiveView) + 1) % views.length;
+        this.setActiveView(views[nextIdx]);
+        this.showToast(`Khung nhìn WASD: ${views[nextIdx].toUpperCase()}`, "info");
+      });
+    }
+
     const helpBtn = this.container.querySelector("#floating-btn-help");
     if (helpBtn) helpBtn.addEventListener("click", () => this.toggleHotkeysHelpModal());
 
@@ -3194,6 +4001,7 @@ export class FloatingPanel {
             itemsContainer.innerHTML = filtered
               .map((t) => {
                 const isSelected = t.uiId === this.selectedUiId;
+                const badgeColor = t.color || "#3b82f6";
                 return `
                   <div class="dropdown-track-item" data-uiid="${t.uiId}" style="
                     padding: 6px 10px;
@@ -3210,8 +4018,22 @@ export class FloatingPanel {
                     transition: background 0.12s;
                   ">
                     <span style="display: flex; align-items: center; gap: 8px;">
-                      <span style="font-weight: 700; color: ${isSelected ? "#10b981" : "#a1a1aa"};">#${t.uiId}</span>
-                      <span style="color: #fafafa; font-weight: 500;">${t.label}</span>
+                      <span style="font-weight: 700; color: ${isSelected ? "#10b981" : "#a1a1aa"}; font-size: 11px;">#${t.uiId}</span>
+                      <span style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 4px;
+                        padding: 1px 6px;
+                        border-radius: 4px;
+                        background: ${badgeColor}25;
+                        border: 1px solid ${badgeColor}60;
+                        color: ${badgeColor};
+                        font-weight: 600;
+                        font-size: 10px;
+                      ">
+                        <span style="width: 5px; height: 5px; border-radius: 50%; background: ${badgeColor}; display: inline-block;"></span>
+                        ${t.label}
+                      </span>
                     </span>
                     <span style="font-size: 10px; color: #71717a;">
                       Z: ${t.z}m • ${t.yawDeg}°
@@ -3256,6 +4078,24 @@ export class FloatingPanel {
 
     const nextBtn = this.container.querySelector("#btn-next-frame-track");
     if (nextBtn) nextBtn.addEventListener("click", () => this.selectNextTrack());
+
+    // 7b. Gắn sự kiện Bật/Tắt Ghim Tâm khi tua frame (Lock-On Camera Tracking)
+    const autoCenterBtn = this.container.querySelector("#btn-toggle-auto-center");
+    if (autoCenterBtn) {
+      autoCenterBtn.addEventListener("click", () => {
+        this.autoCenterOnFrame = !this.autoCenterOnFrame;
+        localStorage.setItem("CVAT_3D_SUITE_AUTO_CENTER_FRAME", String(this.autoCenterOnFrame));
+        CVATBridge.setAutoCenterOnFrameChange(this.autoCenterOnFrame);
+        this.showToast(
+          `Đã ${this.autoCenterOnFrame ? "BẬT Ghim Tâm (Lock-On)" : "TẮT Ghim Tâm (Tự do)"} khi tua frame`,
+          this.autoCenterOnFrame ? "success" : "info"
+        );
+        if (this.autoCenterOnFrame && this.selectedUiId !== null) {
+          CVATBridge.centerCanvas3DOnTrack(this.selectedUiId);
+        }
+        this.updateContent();
+      });
+    }
 
     // 8. Gắn sự kiện Toggle Scope: Frame Này vs Toàn Track
     const scopeToggle = this.container.querySelector("#btn-toggle-scope");
@@ -3316,10 +4156,16 @@ export class FloatingPanel {
       });
     });
 
-    // Gắn sự kiện Đánh dấu Outside toàn bộ frame của Track (Shift+O)
+    // Gắn sự kiện Đánh dấu Outside (Ẩn) toàn bộ frame của Track (Shift+O)
     const outsideTrackBtn = this.container.querySelector("#btn-outside-entire-track");
     if (outsideTrackBtn) {
       outsideTrackBtn.addEventListener("click", () => this.handleSetTrackOutside(true));
+    }
+
+    // Gắn sự kiện Đánh dấu Inside (Hiện lại) toàn bộ frame của Track (Shift+I)
+    const insideTrackBtn = this.container.querySelector("#btn-inside-entire-track");
+    if (insideTrackBtn) {
+      insideTrackBtn.addEventListener("click", () => this.handleSetTrackOutside(false));
     }
 
     // Gắn sự kiện Vi Chỉnh Center 2D Dàn Đều (deltaXLocal, deltaYLocal)
@@ -3438,6 +4284,16 @@ export class FloatingPanel {
     if (fullscreenBannerBtn) {
       fullscreenBannerBtn.addEventListener("click", () => this.openFullscreenEditor());
     }
+
+    // Đồng bộ vẽ Box 3D lên Camera 2D Overlay HUD & Focus Modal (Realtime)
+    const activeBox = this.getCurrentBox3D();
+    if (activeBox) {
+      CameraOverlayManager.getInstance().renderBox(activeBox);
+      CameraFocusModal.getInstance().setBox(activeBox);
+    } else {
+      CameraOverlayManager.getInstance().clearAllCanvases();
+      CameraFocusModal.getInstance().setBox(null);
+    }
   }
 
   /**
@@ -3539,7 +4395,7 @@ export class FloatingPanel {
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <!-- CỘT 1 -->
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
-              <div style="font-weight: 700; color: #0f766e; font-size: 11px; margin-bottom: 2px;">🎯 CĂN CHỈNH 3 CHIỀU ĐỘC LẬP</div>
+              <div style="font-weight: 700; color: #0f766e; font-size: 11px; margin-bottom: 2px;">🎯 CĂN CHỈNH 3 CHIỀU & FIT SIZE</div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Căn TOP (Yaw & Nóc quanh tâm)</span>
                 <div><kbd style="background: #f0fdfa; border: 1px solid #99f6e4; color: #0f766e; padding: 1px 5px; border-radius: 4px; font-weight: 700;">1</kbd> / <kbd style="background: #f0fdfa; border: 1px solid #99f6e4; color: #0f766e; padding: 1px 5px; border-radius: 4px; font-weight: 700;">T</kbd></div>
@@ -3552,9 +4408,21 @@ export class FloatingPanel {
                 <span>Căn FRONT (Sườn ngang W, giữ Z)</span>
                 <kbd style="background: #faf5ff; border: 1px solid #e9d5ff; color: #7e22ce; padding: 1px 5px; border-radius: 4px; font-weight: 700;">3</kbd>
               </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Fit Rộng (W) [Mọi đối tượng]</span>
+                <kbd style="background: #faf5ff; border: 1px solid #d8b4fe; color: #7e22ce; padding: 1px 5px; border-radius: 4px; font-weight: 700;">4</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Fit Cao (H) [Ground-Lock nở nóc]</span>
+                <kbd style="background: #fff7ed; border: 1px solid #fdba74; color: #c2410c; padding: 1px 5px; border-radius: 4px; font-weight: 700;">5</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Căn giữa (Center / Focus) xe đang chọn</span>
+                <kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; padding: 1px 6px; border-radius: 4px; font-weight: 700;">Z</kbd>
+              </div>
               <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 2px;">
-                <span style="font-weight: 600; color: #64748b; font-size: 10px;">Nguyên tắc Front/Side</span>
-                <span style="font-size: 9.5px; color: #059669; font-weight: 600;">Khóa Z & Giữ Kích Thước</span>
+                <span style="font-weight: 600; color: #64748b; font-size: 10px;">Nguyên tắc Front/Side/Fit H</span>
+                <span style="font-size: 9.5px; color: #059669; font-weight: 600;">Khóa Z & Đáy Bám Sàn</span>
               </div>
             </div>
 
@@ -3609,10 +4477,22 @@ export class FloatingPanel {
 
             <!-- CỘT 4 -->
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
-              <div style="font-weight: 700; color: #4338ca; font-size: 11px; margin-bottom: 2px;">⚡ ĐIỀU HƯỚNG & KÍCH THƯỚC</div>
+              <div style="font-weight: 700; color: #4338ca; font-size: 11px; margin-bottom: 2px;">⚡ VI CHỈNH SHIFT + WASD (SCREEN SPACE)</div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Shift + A: Trái | Shift + D: Phải</span>
+                <div><kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Shift</kbd> + <kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; padding: 1px 4px; border-radius: 4px; font-weight: 700;">A/D</kbd></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Shift + W: Lên | Shift + S: Xuống</span>
+                <div><kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Shift</kbd> + <kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; padding: 1px 4px; border-radius: 4px; font-weight: 700;">W/S</kbd></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 9.5px; color: #64748b;">Bước nhảy: 2cm / lần bấm</span>
+                <span style="font-size: 9px; color: #059669; font-weight: 600;">Chỉ Frame này (Không đổi cả Track)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 2px;">
                 <span>Xe Liền Trước / Xe Kế Tiếp</span>
-                <div><kbd style="background: #e0e7ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 1px 5px; border-radius: 4px; font-weight: 700;">A</kbd> / <kbd style="background: #e0e7ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 1px 5px; border-radius: 4px; font-weight: 700;">D</kbd></div>
+                <div><kbd style="background: #e0e7ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 1px 5px; border-radius: 4px; font-weight: 700;">[</kbd> / <kbd style="background: #e0e7ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 1px 5px; border-radius: 4px; font-weight: 700;">]</kbd></div>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Đổi Phạm Vi: Frame Này ⟷ Toàn Track</span>
@@ -3621,6 +4501,10 @@ export class FloatingPanel {
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Hoàn Tác Thao Tác Vừa Làm (Pre)</span>
                 <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Ctrl+Z</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Ẩn / Hiện Toàn Bộ Track</span>
+                <div><kbd style="background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Shift+O</kbd> / <kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #059669; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Shift+I</kbd></div>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Fit Người Đi Bộ / Xe 2 Bánh</span>
@@ -3683,6 +4567,7 @@ export class FloatingPanel {
       clearTimeout(this.toastTimer);
       this.toastTimer = null;
     }
+
     if (this.container && this.container.parentNode) {
       this.container.parentNode.removeChild(this.container);
       this.container = null;

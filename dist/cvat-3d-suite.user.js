@@ -138,8 +138,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     chevronLeft: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
     chevronRight: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`,
     refresh: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>`,
-    // Xoay / Lật Yaw
-    rotate: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>`,
     flip: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 5 5-5 5V7"/><path d="m21 7-5 5 5 5V7"/><path d="M12 20v2"/><path d="M12 14v2"/><path d="M12 8v2"/><path d="M12 2v2"/></svg>`,
     // Thao tác Kích thước & Fit
     save: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>`,
@@ -166,9 +164,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     arrowUpDown: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/></svg>`,
     // Điều khiển Modal & Lọc dữ liệu
     close: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
-    filter: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>`,
     undo: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>`,
-    eyeOff: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`
+    eyeOff: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`,
+    eye: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+    camera: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`,
+    cameraFocus: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/></svg>`,
+    box3d: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-9 5-9-5V8l9-5 9 5v8Z"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg>`,
+    target: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`
   };
   function flipYaw(currentYaw) {
     let newYaw = currentYaw + Math.PI;
@@ -317,6 +319,53 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   function detectLateralWallBounds(pts, halfW, visibleLateral, binSize = 0.025) {
     return detectLateralWallBoundsWithStatus(pts, halfW, visibleLateral, binSize).edge;
   }
+  function computeIntensityWeights(pts) {
+    const n = pts.length;
+    if (n === 0) {
+      return { weights: [], hasValidIntensity: false, highIntensityThreshold: 0 };
+    }
+    const intensities = [];
+    let validCount = 0;
+    for (let i = 0; i < n; i++) {
+      const val = pts[i].intensity;
+      if (typeof val === "number" && !isNaN(val)) {
+        intensities.push(val);
+        validCount++;
+      } else {
+        intensities.push(0);
+      }
+    }
+    if (validCount < 3) {
+      return {
+        weights: new Array(n).fill(1),
+        hasValidIntensity: false,
+        highIntensityThreshold: 0
+      };
+    }
+    const sorted = [...intensities].sort((a, b) => a - b);
+    const minI = sorted[0];
+    const maxI = sorted[sorted.length - 1];
+    if (maxI - minI < 15) {
+      return {
+        weights: new Array(n).fill(1),
+        hasValidIntensity: false,
+        highIntensityThreshold: maxI
+      };
+    }
+    const p75Idx = Math.min(sorted.length - 1, Math.floor(sorted.length * 0.75));
+    const highIntensityThreshold = Math.max(minI + 15, sorted[p75Idx]);
+    const range = maxI - minI;
+    const weights = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const norm = Math.max(0, Math.min(1, (intensities[i] - minI) / range));
+      weights[i] = 1 + 1.5 * norm;
+    }
+    return {
+      weights,
+      hasValidIntensity: true,
+      highIntensityThreshold
+    };
+  }
   function detectDominantWallEdgeWithValleyCutoff(pts, axis, direction, nominalHalf, options = {}) {
     const isPos = direction === "positive";
     const orthAxis = axis === "ly" ? "lx" : "ly";
@@ -331,60 +380,79 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         peakDensity: candidatePts.length
       };
     }
+    const intensityData = options.useIntensity !== false ? computeIntensityWeights(candidatePts) : null;
+    const weights = (intensityData == null ? void 0 : intensityData.weights) || new Array(candidatePts.length).fill(1);
+    const highThreshold = (intensityData == null ? void 0 : intensityData.highIntensityThreshold) ?? Infinity;
+    const hasValidIntensity = (intensityData == null ? void 0 : intensityData.hasValidIntensity) ?? false;
     const maxDist = nominalHalf + maxSearchExt;
     const numBins = Math.ceil(maxDist / binSize) + 2;
     const bins = Array.from(
       { length: numBins },
       () => []
     );
-    for (const p of candidatePts) {
+    const binWeights = new Array(numBins).fill(0);
+    for (let i = 0; i < candidatePts.length; i++) {
+      const p = candidatePts[i];
+      const w = weights[i];
+      const isBright = hasValidIntensity && typeof p.intensity === "number" && p.intensity >= highThreshold;
       const dist = isPos ? p[axis] : -p[axis];
       if (dist >= 0 && dist <= maxDist) {
         const bIdx = Math.min(numBins - 1, Math.floor(dist / binSize));
-        bins[bIdx].push(p);
+        bins[bIdx].push({ pt: p, weight: w, isBright });
+        binWeights[bIdx] += w;
       }
     }
     const nominalMinBin = Math.max(0, Math.floor((nominalHalf - 0.45) / binSize));
     const nominalMaxBin = Math.min(numBins - 1, Math.floor((nominalHalf + maxSearchExt) / binSize));
     let peakBin = nominalMinBin;
-    let maxCount = 0;
+    let maxWeight = 0;
     for (let b = nominalMinBin; b <= nominalMaxBin; b++) {
-      const count = bins[b].length;
-      if (count > maxCount) {
-        maxCount = count;
+      const bw = binWeights[b];
+      if (bw > maxWeight) {
+        maxWeight = bw;
         peakBin = b;
       }
     }
-    if (maxCount < 2) {
+    if (maxWeight < 2) {
       for (let b = 1; b < numBins - 1; b++) {
-        if (bins[b].length > maxCount) {
-          maxCount = bins[b].length;
+        if (binWeights[b] > maxWeight) {
+          maxWeight = binWeights[b];
           peakBin = b;
         }
       }
     }
-    if (maxCount === 0) {
+    if (maxWeight === 0) {
       return {
         edge: isPos ? nominalHalf : -nominalHalf,
         wallPoints: candidatePts,
         peakDensity: 0
       };
     }
-    const minWallDensity = Math.max(2, Math.floor(maxCount * 0.15));
+    const minWallWeight = Math.max(1.8, maxWeight * 0.12);
     let outerWallBin = peakBin;
     let consecutiveEmptyBins = 0;
     for (let b = peakBin + 1; b < numBins; b++) {
       const ptsInBin = bins[b];
       const count = ptsInBin.length;
+      const bw = binWeights[b];
+      const hasBrightInBin = ptsInBin.some((item) => item.isBright);
       if (count === 0) {
         consecutiveEmptyBins++;
         if (consecutiveEmptyBins >= 2) {
-          break;
+          const nextBinHasBright = b + 1 < numBins && bins[b + 1].some((item) => item.isBright);
+          if (!nextBinHasBright) {
+            break;
+          }
         }
         continue;
       }
+      if (hasBrightInBin) {
+        consecutiveEmptyBins = 0;
+        outerWallBin = b;
+        continue;
+      }
       const distCenter = (b + 0.5) * binSize;
-      if (count < minWallDensity && distCenter > nominalHalf) {
+      if (bw < minWallWeight && distCenter > nominalHalf) {
         consecutiveEmptyBins++;
         if (consecutiveEmptyBins >= 2) {
           break;
@@ -392,7 +460,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         continue;
       }
       if (distCenter > nominalHalf - 0.05) {
-        const orthVals = ptsInBin.map((p) => p[orthAxis]);
+        const orthVals = ptsInBin.map((item) => item.pt[orthAxis]);
         const spanOrth = Math.max(...orthVals) - Math.min(...orthVals);
         if (count <= 6 && spanOrth < minSpanOrth * 0.6) {
           if (b > peakBin + 1) {
@@ -405,26 +473,28 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     const collectedWallPoints = [];
     for (let b = 0; b <= outerWallBin; b++) {
-      for (const p of bins[b]) {
-        collectedWallPoints.push(p);
+      for (const item of bins[b]) {
+        collectedWallPoints.push(item.pt);
       }
     }
-    const outerEdgePts = [];
+    const outerEdgeItems = [];
     const edgeStartBin = Math.max(0, outerWallBin - 3);
     for (let b = edgeStartBin; b <= outerWallBin; b++) {
-      for (const p of bins[b]) {
-        outerEdgePts.push(p);
+      for (const item of bins[b]) {
+        outerEdgeItems.push(item);
       }
     }
-    if (outerEdgePts.length >= 3) {
-      const dists = outerEdgePts.map((p) => isPos ? p[axis] : -p[axis]).sort((a, b) => a - b);
+    if (outerEdgeItems.length >= 3) {
+      const brightItems = outerEdgeItems.filter((i) => i.isBright);
+      const targetItems = brightItems.length >= 2 ? brightItems : outerEdgeItems;
+      const dists = targetItems.map((item) => isPos ? item.pt[axis] : -item.pt[axis]).sort((a, b) => a - b);
       const pIdx = Math.max(0, Math.min(dists.length - 1, Math.floor(dists.length * 0.95)));
       const chosenDist = dists[pIdx];
       const edge2 = isPos ? Number(chosenDist.toFixed(3)) : Number((-chosenDist).toFixed(3));
       return {
         edge: edge2,
         wallPoints: collectedWallPoints,
-        peakDensity: maxCount
+        peakDensity: Math.round(maxWeight)
       };
     }
     const fallbackDist = (outerWallBin + 1) * binSize;
@@ -432,12 +502,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return {
       edge,
       wallPoints: collectedWallPoints.length > 0 ? collectedWallPoints : candidatePts,
-      peakDensity: maxCount
+      peakDensity: Math.round(maxWeight)
     };
   }
   function straightenYawFromBoundaryEdge(pts, currentYaw, _L, _W, visibleLateral, options = {}) {
     const maxAdjDeg = options.maxAdjustmentDeg ?? 8;
     const maxAdjRad = maxAdjDeg * Math.PI / 180;
+    const intensityData = options.useIntensity !== false ? computeIntensityWeights(pts) : null;
+    const highThreshold = (intensityData == null ? void 0 : intensityData.highIntensityThreshold) ?? Infinity;
+    const hasValidIntensity = (intensityData == null ? void 0 : intensityData.hasValidIntensity) ?? false;
     const leftPts = pts.filter((p) => p.ly > 0);
     const rightPts = pts.filter((p) => p.ly < 0);
     let sidePts;
@@ -487,13 +560,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const sMax = sMin + sliceWidth;
       const inSlice = sidePts.filter((p) => p.lx >= sMin && p.lx < sMax);
       if (inSlice.length >= 1) {
-        const sortedLy = inSlice.map((p) => p.ly).sort((a, b) => a - b);
+        const brightInSlice = hasValidIntensity ? inSlice.filter((p) => typeof p.intensity === "number" && p.intensity >= highThreshold) : [];
+        const targetSlicePts = brightInSlice.length >= 1 ? brightInSlice : inSlice;
+        const sliceWeight = brightInSlice.length >= 1 ? 2 : 1;
+        const sortedLy = targetSlicePts.map((p) => p.ly).sort((a, b) => a - b);
         if (isTargetLeft) {
           const pIdx = Math.max(0, Math.floor(sortedLy.length * 0.9));
-          slicePoints.push({ lx: (sMin + sMax) / 2, ly: sortedLy[pIdx] });
+          slicePoints.push({ lx: (sMin + sMax) / 2, ly: sortedLy[pIdx], weight: sliceWeight });
         } else {
           const pIdx = Math.min(sortedLy.length - 1, Math.floor(sortedLy.length * 0.1));
-          slicePoints.push({ lx: (sMin + sMax) / 2, ly: sortedLy[pIdx] });
+          slicePoints.push({ lx: (sMin + sMax) / 2, ly: sortedLy[pIdx], weight: sliceWeight });
         }
       }
     }
@@ -505,20 +581,31 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         slope: 0
       };
     }
-    const slopes = [];
+    const slopesWithWeights = [];
     for (let i = 0; i < slicePoints.length; i++) {
       for (let j = i + 1; j < slicePoints.length; j++) {
         const dx = slicePoints[j].lx - slicePoints[i].lx;
         const dy = slicePoints[j].ly - slicePoints[i].ly;
         if (Math.abs(dx) >= 0.25) {
-          slopes.push(dy / dx);
+          const pairWeight = (slicePoints[i].weight + slicePoints[j].weight) / 2;
+          slopesWithWeights.push({ slope: dy / dx, weight: pairWeight });
         }
       }
     }
     let slope = 0;
-    if (slopes.length >= 3) {
-      slopes.sort((a, b) => a - b);
-      slope = slopes[Math.floor(slopes.length / 2)];
+    if (slopesWithWeights.length >= 3) {
+      slopesWithWeights.sort((a, b) => a.slope - b.slope);
+      const totalW = slopesWithWeights.reduce((sum, item) => sum + item.weight, 0);
+      let cumulativeW = 0;
+      let chosenSlope = slopesWithWeights[Math.floor(slopesWithWeights.length / 2)].slope;
+      for (const item of slopesWithWeights) {
+        cumulativeW += item.weight;
+        if (cumulativeW >= totalW / 2) {
+          chosenSlope = item.slope;
+          break;
+        }
+      }
+      slope = chosenSlope;
     } else {
       let sumLx = 0;
       let sumLy = 0;
@@ -652,9 +739,29 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       validPointsCount: cleanPts.length
     };
   }
+  function detectTrueHeadZ(zArr, maxGap = 0.15, groundZ, maxNormalHeight = 1.75) {
+    if (zArr.length === 0) return 0;
+    if (zArr.length === 1) return zArr[0];
+    const sorted = [...zArr].sort((a, b) => a - b);
+    const baseZ = groundZ !== void 0 ? groundZ : sorted[0];
+    const suspiciousThresholdZ = baseZ + maxNormalHeight;
+    let cutoffIdx = sorted.length - 1;
+    for (let i = sorted.length - 1; i >= 1; i--) {
+      if (sorted[i] > suspiciousThresholdZ) {
+        const gap = sorted[i] - sorted[i - 1];
+        if (gap > maxGap) {
+          cutoffIdx = i - 1;
+        }
+      } else {
+        break;
+      }
+    }
+    const clusterPts = sorted.slice(0, cutoffIdx + 1);
+    return clusterPts[clusterPts.length - 1];
+  }
   function estimateEgoRoadGroundZ(pts, egoPos = { x: 0, y: 0, z: 0 }, options = {}) {
-    const minR = options.minRadius ?? 1.2;
-    const maxR = options.maxRadius ?? 6;
+    const minR = options.minRadius ?? 0.8;
+    const maxR = options.maxRadius ?? 15;
     const defaultZ = options.defaultZ ?? -1.75;
     const minRSq = minR * minR;
     const maxRSq = maxR * maxR;
@@ -736,8 +843,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
     }
-    const resolvedEgoRoadZ = options.egoRoadZ !== void 0 ? options.egoRoadZ : pts && pts.length >= 8 ? estimateEgoRoadGroundZ(pts, options.egoPos, { defaultZ: 0 }) : 0;
-    if (groundPts.length < 6) {
+    const resolvedEgoRoadZ = options.egoRoadZ !== void 0 ? options.egoRoadZ : pts && pts.length >= 8 ? estimateEgoRoadGroundZ(pts, options.egoPos, { defaultZ: -1.75 }) : -1.75;
+    if (groundPts.length < 10) {
       return {
         groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
         pitchRad: 0,
@@ -815,6 +922,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     addLowestFromQuadrant(qRL);
     addLowestFromQuadrant(qRR);
     const finalPts = fitPts.length >= 4 ? fitPts : validPts.slice(0, Math.max(4, Math.floor(validPts.length * 0.45)));
+    if (finalPts.length < 6) {
+      return {
+        groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
+        pitchRad: 0,
+        rollRad: 0,
+        pitchDeg: 0,
+        rollDeg: 0,
+        groundPointsCount: finalPts.length,
+        isFallbackZeroGround: true,
+        isCurbGround: false,
+        isHalfCurb: false,
+        halfCurbSide: "none",
+        curbHeightCm: 0
+      };
+    }
     let sumLx = 0;
     let sumLy = 0;
     let sumZ = 0;
@@ -976,6 +1098,40 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         c0 = lowestRoadZ;
       }
     }
+    const L = halfL * 2;
+    const edgeFrontPts = sorted.filter(
+      (p) => p.lx >= halfL - L * 0.3 && p.lx <= halfL + 0.45
+    );
+    const edgeRearPts = sorted.filter(
+      (p) => p.lx >= -halfL - 0.45 && p.lx <= -halfL + L * 0.3
+    );
+    if (!isCurbOrRamp && !isHalfCurb && edgeFrontPts.length >= 2 && edgeRearPts.length >= 2) {
+      const bSlope = Math.tan(rollRad);
+      const extractSideZ = (edgePts) => {
+        const transPts = edgePts.map((p) => ({ lx: p.lx, ly: p.ly, zTrans: p.z - bSlope * p.ly })).sort((a, b) => a.zTrans - b.zTrans);
+        const floorZ = transPts[0].zTrans;
+        const basePts = transPts.filter((p) => p.zTrans <= floorZ + 0.08);
+        if (basePts.length >= 2) {
+          return basePts[Math.floor(basePts.length / 2)].zTrans;
+        }
+        return transPts[0].zTrans;
+      };
+      const zFront = extractSideZ(edgeFrontPts);
+      const zRear = extractSideZ(edgeRearPts);
+      const sumFrontLx = edgeFrontPts.reduce((s, p) => s + p.lx, 0);
+      const sumRearLx = edgeRearPts.reduce((s, p) => s + p.lx, 0);
+      const meanFrontLx = sumFrontLx / edgeFrontPts.length;
+      const meanRearLx = sumRearLx / edgeRearPts.length;
+      const spanX = Math.max(0.8, meanFrontLx - meanRearLx);
+      const deltaZSide = zFront - zRear;
+      const edgePitch = -Math.atan(deltaZSide / spanX);
+      if (Math.abs(pitchRad - edgePitch) < 0.05) {
+        pitchRad = edgePitch;
+      } else {
+        pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, edgePitch));
+      }
+      c0 = (zFront + zRear) / 2;
+    }
     let isCurbGround = false;
     if (!isCurbOrRamp && !isHalfCurb && options.egoRoadZ !== void 0) {
       const egoZ = options.egoRoadZ;
@@ -1012,6 +1168,93 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       curbHeightCm
     };
   }
+  function determineBumperByDensity(pts, L, egoLocalX, egoLocalY) {
+    if (pts.length === 0) {
+      return {
+        visibleBumper: egoLocalX >= 0 ? "front" : "rear",
+        isParallelBalanced: false,
+        nFront20: 0,
+        nRear20: 0,
+        nMiddle60: 0
+      };
+    }
+    const allLx = pts.map((p) => p.lx).sort((a, b) => a - b);
+    const pMinIdx = allLx.length >= 15 ? Math.floor(allLx.length * 0.015) : 0;
+    const pMaxIdx = allLx.length >= 15 ? Math.min(allLx.length - 1, Math.floor(allLx.length * 0.985)) : allLx.length - 1;
+    const lxMin = allLx[pMinIdx];
+    const lxMax = allLx[pMaxIdx];
+    const zoneSpan = Math.max(0.4, L * 0.2);
+    const span = lxMax - lxMin;
+    let nFront20 = 0;
+    let nRear20 = 0;
+    let nMiddle60 = 0;
+    if (span < zoneSpan * 1.5) {
+      const meanLx = pts.reduce((sum, p) => sum + p.lx, 0) / pts.length;
+      const threshold = Math.max(0.35, L * 0.2);
+      if (meanLx > threshold) {
+        nFront20 = pts.length;
+      } else if (meanLx < -threshold) {
+        nRear20 = pts.length;
+      } else {
+        nMiddle60 = pts.length;
+      }
+    } else {
+      const front20Min = lxMax - zoneSpan;
+      const front20Max = lxMax + 0.35;
+      const rear20Min = lxMin - 0.35;
+      const rear20Max = lxMin + zoneSpan;
+      nFront20 = pts.filter((p) => p.lx >= front20Min && p.lx <= front20Max).length;
+      nRear20 = pts.filter((p) => p.lx >= rear20Min && p.lx <= rear20Max).length;
+      nMiddle60 = pts.filter((p) => p.lx > rear20Max && p.lx < front20Min).length;
+    }
+    const isFrontDominant = nFront20 >= 6 && nRear20 <= 4 || nFront20 >= 8 && nFront20 >= nRear20 * 2.5;
+    const isRearDominant = nRear20 >= 6 && nFront20 <= 4 || nRear20 >= 8 && nRear20 >= nFront20 * 2.5;
+    if (isFrontDominant) {
+      return {
+        visibleBumper: "front",
+        isParallelBalanced: false,
+        nFront20,
+        nRear20,
+        nMiddle60
+      };
+    }
+    if (isRearDominant) {
+      return {
+        visibleBumper: "rear",
+        isParallelBalanced: false,
+        nFront20,
+        nRear20,
+        nMiddle60
+      };
+    }
+    const tan25 = 0.466;
+    const isEgoParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * tan25;
+    const isSymmetricBothEnds = Math.abs(nFront20 - nRear20) <= 2 && nFront20 >= 2 && nRear20 >= 2 && nMiddle60 >= 3;
+    if ((isEgoParallel || isSymmetricBothEnds) && pts.length >= 4) {
+      return {
+        visibleBumper: egoLocalX >= 0 ? "front" : "rear",
+        isParallelBalanced: true,
+        nFront20,
+        nRear20,
+        nMiddle60
+      };
+    }
+    let visibleBumper = egoLocalX >= 0 ? "front" : "rear";
+    const allFrontPts = pts.filter((p) => p.lx > 0.05);
+    const allRearPts = pts.filter((p) => p.lx < -0.05);
+    if (visibleBumper === "front" && allFrontPts.length < 2 && allRearPts.length >= 4) {
+      visibleBumper = "rear";
+    } else if (visibleBumper === "rear" && allRearPts.length < 2 && allFrontPts.length >= 4) {
+      visibleBumper = "front";
+    }
+    return {
+      visibleBumper,
+      isParallelBalanced: false,
+      nFront20,
+      nRear20,
+      nMiddle60
+    };
+  }
   function fitBoxToEgoRayAndGround(pts, cx, cy, cz, yaw, L, W, H, egoPos = { x: 0, y: 0, z: 0 }, options = {}) {
     const ceilingZ = cz - Math.max(0.15, H / 2 * 0.4);
     const groundInfo = computeGroundSlopesAndZ(pts, cx, cy, cz, yaw, L / 2, W / 2, ceilingZ, { lockRollFlat: false });
@@ -1022,8 +1265,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const rollDeg = groundInfo.rollDeg;
     const cosY = Math.cos(-yaw);
     const sinY = Math.sin(-yaw);
-    const minBodyZ = groundZ + 0.22;
-    const maxRoofZ = groundZ + H + 0.55;
+    const effectiveGroundZ = groundInfo.groundZ !== null && !groundInfo.isFallbackZeroGround ? groundInfo.groundZ : cz - H / 2;
+    const minBodyZ = effectiveGroundZ + 0.22;
+    const maxRoofZ = effectiveGroundZ + H + 0.55;
     const fitStep = options.fitStep ?? "all";
     const outerL = L / 2 + 0.45;
     const outerW = W / 2 + 0.35;
@@ -1049,6 +1293,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     let visibleLateral = vLocalY >= 0 ? "left" : "right";
     let shiftLx = 0;
     let shiftLy = 0;
+    let isSideParallelBalanced = false;
     let roofTopZ = groundZ + H;
     let newH = H;
     let newL = L;
@@ -1083,40 +1328,44 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const toEgoX = egoPos.x - cx;
         const toEgoY = egoPos.y - cy;
         const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
-        const frontBumperPts = validBodyPts.filter((p) => p.lx > 0.05);
-        const rearBumperPts = validBodyPts.filter((p) => p.lx < -0.05);
-        let visibleBumper;
-        if (frontBumperPts.length >= rearBumperPts.length + 3) {
-          visibleBumper = "front";
-        } else if (rearBumperPts.length >= frontBumperPts.length + 3) {
-          visibleBumper = "rear";
-        } else {
-          visibleBumper = egoLocalX >= 0 ? "front" : "rear";
-        }
-        visibleLongitudinal = visibleBumper;
-        const targetBumperPts = validBodyPts.filter((p) => Math.abs(p.ly) <= W / 2 + 0.15);
-        const activePtsForL = targetBumperPts.length >= 4 ? targetBumperPts : validBodyPts;
-        const bumperCloudPts = activePtsForL.filter((p) => visibleBumper === "front" ? p.lx > 0 : p.lx < 0);
-        const cleanBumperPts = filterSparseNoiseByLocalDensity(bumperCloudPts, { radius: 0.15, minCoreNeighbors: 2 });
-        const finalBumperPts = cleanBumperPts.length >= 3 ? cleanBumperPts : bumperCloudPts;
-        let bumperEdge;
-        if (finalBumperPts.length >= 3) {
-          const wallDet = detectDominantWallEdgeWithValleyCutoff(
-            finalBumperPts,
-            "lx",
-            visibleBumper === "front" ? "positive" : "negative",
-            L / 2,
-            { minSpanOrthogonal: 0.6 }
-          );
-          bumperEdge = wallDet.edge;
-        } else {
-          bumperEdge = visibleBumper === "front" ? L / 2 : -L / 2;
-        }
+        const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
         const edgePadding = options.edgePadding ?? 0.05;
-        if (visibleBumper === "front") {
-          shiftLx = bumperEdge + edgePadding - L / 2;
+        const densityDecision = determineBumperByDensity(validBodyPts, L, egoLocalX, egoLocalY);
+        if (densityDecision.isParallelBalanced && validBodyPts.length >= 4) {
+          isSideParallelBalanced = true;
+          const allLx = validBodyPts.map((p) => p.lx).sort((a, b) => a - b);
+          const pMinIdx = allLx.length >= 15 ? Math.floor(allLx.length * 0.015) : 0;
+          const pMaxIdx = allLx.length >= 15 ? Math.min(allLx.length - 1, Math.floor(allLx.length * 0.985)) : allLx.length - 1;
+          const lxMin = allLx[pMinIdx];
+          const lxMax = allLx[pMaxIdx];
+          shiftLx = (lxMin + lxMax) / 2;
+          visibleLongitudinal = densityDecision.visibleBumper;
         } else {
-          shiftLx = bumperEdge - edgePadding + L / 2;
+          const visibleBumper = densityDecision.visibleBumper;
+          visibleLongitudinal = visibleBumper;
+          const targetBumperPts = validBodyPts.filter((p) => Math.abs(p.ly) <= W / 2 + 0.15);
+          const activePtsForL = targetBumperPts.length >= 4 ? targetBumperPts : validBodyPts;
+          const bumperCloudPts = activePtsForL.filter((p) => visibleBumper === "front" ? p.lx > 0 : p.lx < 0);
+          const cleanBumperPts = filterSparseNoiseByLocalDensity(bumperCloudPts, { radius: 0.15, minCoreNeighbors: 2 });
+          const finalBumperPts = cleanBumperPts.length >= 3 ? cleanBumperPts : bumperCloudPts;
+          let bumperEdge;
+          if (finalBumperPts.length >= 3) {
+            const wallDet = detectDominantWallEdgeWithValleyCutoff(
+              finalBumperPts,
+              "lx",
+              visibleBumper === "front" ? "positive" : "negative",
+              L / 2,
+              { minSpanOrthogonal: 0.6 }
+            );
+            bumperEdge = wallDet.edge;
+          } else {
+            bumperEdge = visibleBumper === "front" ? L / 2 : -L / 2;
+          }
+          if (visibleBumper === "front") {
+            shiftLx = bumperEdge + edgePadding - L / 2;
+          } else {
+            shiftLx = bumperEdge - edgePadding + L / 2;
+          }
         }
         const maxShiftL = Math.min(0.4, L * 0.25);
         shiftLx = Math.max(-maxShiftL, Math.min(maxShiftL, shiftLx));
@@ -1213,6 +1462,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (alignMode === "w_only") {
           shiftLx = 0;
         } else {
+          const bumperDecAll = determineBumperByDensity(alignedPts, L, vLocalX, vLocalY);
+          visibleLongitudinal = bumperDecAll.visibleBumper;
           const innerBodyPtsForX = alignedPts.filter((p) => Math.abs(p.ly) <= W / 2 + 0.1);
           const targetBumperPts = innerBodyPtsForX.length >= 4 ? innerBodyPtsForX : alignedPts;
           const bumperEdge = detectLongitudinalBumperBounds(targetBumperPts, L / 2, visibleLongitudinal);
@@ -1259,7 +1510,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       msg = `Đã căn TOP: Xoay Yaw (${straightYawResult.newYawDeg}°, Δ=${deltaSign}${straightYawResult.deltaYawDeg}°) song song sườn đón tia [${faceTextLat}], khóa tâm X/Y/Z (giữ nguyên cao độ Z)`;
     } else if (fitStep === "side") {
       const deltaXSign = shiftLx >= 0 ? "+" : "";
-      msg = `Đã căn SIDE: Cản [${faceTextLong}] đón tia (ΔX: ${deltaXSign}${shiftLx.toFixed(2)}m, giữ nguyên cao độ Z)`;
+      if (isSideParallelBalanced) {
+        msg = `Đã căn SIDE: Chiếu ngang sườn song song (Fit đều đầu & cuối xe, ΔX: ${deltaXSign}${shiftLx.toFixed(2)}m, giữ nguyên cao độ Z)`;
+      } else {
+        msg = `Đã căn SIDE: Cản [${faceTextLong}] đón tia (ΔX: ${deltaXSign}${shiftLx.toFixed(2)}m, giữ nguyên cao độ Z)`;
+      }
     } else if (fitStep === "front") {
       const deltaYSign = shiftLy >= 0 ? "+" : "";
       msg = `Đã căn FRONT: Mép sườn [${faceTextLat}] ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên cao độ Z)`;
@@ -1282,6 +1537,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       roofTopZ,
       shiftLx: Number(shiftLx.toFixed(3)),
       shiftLy: Number(shiftLy.toFixed(3)),
+      visibleLongitudinal,
+      visibleLateral,
       visibleFaces: {
         longitudinal: visibleLongitudinal,
         lateral: visibleLateral
@@ -1318,7 +1575,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       groundZ = footGroundPts[Math.max(0, Math.floor(footGroundPts.length * 0.15))];
     }
     const minCoreZ = groundZ + 0.3;
-    const maxBodyZ = groundZ + 2.3;
+    const maxBodyZ = groundZ + 2;
     const minFootZ = step === "side" || step === "front" ? groundZ + 0.02 : groundZ + 0.08;
     const outerL = Math.max(0.45, curL / 2 + 0.25);
     const outerW = Math.max(0.4, curW / 2 + 0.25);
@@ -1362,6 +1619,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     let newL = curL;
     let newW = curW;
     let newH = curH;
+    let shiftLx = 0;
+    let shiftLy = 0;
     let roofTopZ = groundZ + curH;
     let msg = "";
     if (bodyPts.length < 3) {
@@ -1395,7 +1654,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const lxMax = allLx[pMaxIdx];
     const lyMin = allLy[pMinIdx];
     const lyMax = allLy[pMaxIdx];
-    const highestPtZ = allZ[allZ.length - 1];
+    const highestPtZ = detectTrueHeadZ(allZ, 0.15, groundZ, 1.78);
     if (step === "top") {
       const headingRes = estimateTwoWheelerHeading(bodyPts, yaw);
       if (Math.abs(headingRes.deltaYawDeg) <= 25) {
@@ -1423,30 +1682,32 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newW = curW;
       newH = curH;
       newCenterZ = cz;
-      let shiftLx = 0;
-      let bumperLabel = "Đón tia";
+      shiftLx = 0;
+      let bumperLabel = "Cân đối";
       if (options.egoPos) {
-        const dxEgo = options.egoPos.x - cx;
-        const dyEgo = options.egoPos.y - cy;
-        const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
-        if (lxEgo > 0.15) {
-          shiftLx = lxMax + 0.01 - curL / 2;
-          bumperLabel = "Mặt trước";
-        } else if (lxEgo < -0.15) {
-          shiftLx = lxMin - 0.01 + curL / 2;
+        const toEgoX = options.egoPos.x - cx;
+        const toEgoY = options.egoPos.y - cy;
+        const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
+        const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+        const isSideBeamParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * 0.466;
+        if (isSideBeamParallel) {
+          shiftLx = (lxMin + lxMax) / 2;
+          bumperLabel = "Chiếu ngang sườn (Dàn đều trước - sau)";
+        } else if (egoLocalX < 0) {
+          shiftLx = lxMin - 0.02 + curL / 2;
           bumperLabel = "Mặt sau";
         } else {
-          shiftLx = (lxMin + lxMax) / 2;
-          bumperLabel = "Cân đối";
+          shiftLx = lxMax + 0.02 - curL / 2;
+          bumperLabel = "Mặt trước";
         }
       } else {
         const frontCount = bodyPts.filter((p) => p.lx > 0).length;
         const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
         if (frontCount > rearCount * 1.5) {
-          shiftLx = lxMax + 0.01 - curL / 2;
+          shiftLx = lxMax + 0.02 - curL / 2;
           bumperLabel = "Mặt trước";
         } else if (rearCount > frontCount * 1.5) {
-          shiftLx = lxMin - 0.01 + curL / 2;
+          shiftLx = lxMin - 0.02 + curL / 2;
           bumperLabel = "Mặt sau";
         } else {
           shiftLx = (lxMin + lxMax) / 2;
@@ -1454,6 +1715,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
       shiftLx = Math.max(-0.35, Math.min(0.35, shiftLx));
+      if (Math.abs(shiftLx) < 5e-3) shiftLx = 0;
       newCenterX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
       newCenterY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
       const deltaXSign = shiftLx >= 0 ? "+" : "";
@@ -1467,37 +1729,39 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newH = curH;
       newCenterZ = cz;
       let visibleSide = "center";
+      shiftLy = 0;
+      const edgePadding = 0.025;
       if (options.egoPos) {
         const toEgoX = options.egoPos.x - cx;
         const toEgoY = options.egoPos.y - cy;
+        const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
         const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-        if (egoLocalY > 0.04) {
-          visibleSide = "left";
-        } else if (egoLocalY < -0.04) {
-          visibleSide = "right";
-        } else {
+        if (Math.abs(egoLocalY) <= Math.abs(egoLocalX) * 0.15 && Math.abs(egoLocalY) < 0.1) {
           visibleSide = "center";
+          shiftLy = (lyMin + lyMax) / 2;
+        } else if (egoLocalY >= 0) {
+          visibleSide = "left";
+          shiftLy = lyMax + edgePadding - curW / 2;
+        } else {
+          visibleSide = "right";
+          shiftLy = lyMin - edgePadding + curW / 2;
         }
       } else {
         const leftCount = bodyPts.filter((p) => p.ly > 0.03).length;
         const rightCount = bodyPts.filter((p) => p.ly < -0.03).length;
         if (leftCount > rightCount * 1.3) {
           visibleSide = "left";
+          shiftLy = lyMax + edgePadding - curW / 2;
         } else if (rightCount > leftCount * 1.3) {
           visibleSide = "right";
+          shiftLy = lyMin - edgePadding + curW / 2;
         } else {
           visibleSide = "center";
+          shiftLy = (lyMin + lyMax) / 2;
         }
       }
-      let shiftLy = 0;
-      if (visibleSide === "left") {
-        shiftLy = lyMax + 0.01 - curW / 2;
-      } else if (visibleSide === "right") {
-        shiftLy = lyMin - 0.01 + curW / 2;
-      } else {
-        shiftLy = (lyMin + lyMax) / 2;
-      }
       shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      if (Math.abs(shiftLy) < 5e-3) shiftLy = 0;
       newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
       newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
       const deltaYSign = shiftLy >= 0 ? "+" : "";
@@ -1511,19 +1775,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newH = curH;
       newCenterZ = cz;
       const spanL = lxMax - lxMin + 0.05;
-      let shiftLx = 0;
+      shiftLx = 0;
       if (spanL > 0.78) {
         newL = 0.78;
         if (options.egoPos) {
-          const dxEgo = options.egoPos.x - cx;
-          const dyEgo = options.egoPos.y - cy;
-          const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
-          if (lxEgo > 0.15) {
-            shiftLx = lxMax + 0.01 - newL / 2;
-          } else if (lxEgo < -0.15) {
-            shiftLx = lxMin - 0.01 + newL / 2;
-          } else {
+          const toEgoX = options.egoPos.x - cx;
+          const toEgoY = options.egoPos.y - cy;
+          const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
+          const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+          const isSideBeamParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * 0.466;
+          if (isSideBeamParallel) {
             shiftLx = (lxMin + lxMax) / 2;
+          } else if (egoLocalX < 0) {
+            shiftLx = lxMin - 0.02 + newL / 2;
+          } else {
+            shiftLx = lxMax + 0.02 - newL / 2;
           }
         } else {
           shiftLx = (lxMin + lxMax) / 2;
@@ -1545,7 +1811,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newH = curH;
       newCenterZ = cz;
       const spanW = lyMax - lyMin + 0.04;
-      let shiftLy = 0;
+      shiftLy = 0;
       if (spanW > 0.68) {
         newW = 0.68;
         if (options.egoPos) {
@@ -1582,16 +1848,18 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const currentBaseZ = cz - curH / 2;
       const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
       roofTopZ = highestPtZ + headBuffer;
-      newH = Number(Math.max(1, Math.min(1.95, roofTopZ - effectiveBaseZ)).toFixed(2));
+      const maxCapPedH = options.headBuffer !== void 0 ? 1.95 : 1.78;
+      newH = Number(Math.max(1, Math.min(maxCapPedH, roofTopZ - effectiveBaseZ)).toFixed(2));
       newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
       msg = `Đã fix Chiều Cao (H) Người đi bộ: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên đỉnh đầu +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
     } else {
       newL = Number(Math.max(0.4, Math.min(0.78, lxMax - lxMin + 0.05)).toFixed(2));
       newW = Number(Math.max(0.38, Math.min(0.68, lyMax - lyMin + 0.04)).toFixed(2));
       roofTopZ = highestPtZ + headBuffer;
-      newH = Number(Math.max(1.05, Math.min(1.95, roofTopZ - groundZ)).toFixed(2));
-      let shiftLx = (lxMin + lxMax) / 2;
-      let shiftLy = (lyMin + lyMax) / 2;
+      const maxCapPedH = options.headBuffer !== void 0 ? 1.95 : 1.78;
+      newH = Number(Math.max(1.05, Math.min(maxCapPedH, roofTopZ - groundZ)).toFixed(2));
+      shiftLx = (lxMin + lxMax) / 2;
+      shiftLy = (lyMin + lyMax) / 2;
       const maxShift = 0.4;
       shiftLx = Math.max(-maxShift, Math.min(maxShift, shiftLx));
       shiftLy = Math.max(-maxShift, Math.min(maxShift, shiftLy));
@@ -1618,6 +1886,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       rollDeg: 0,
       groundZ: Number(groundZ.toFixed(3)),
       roofTopZ: Number(roofTopZ.toFixed(3)),
+      shiftLx: Number(shiftLx.toFixed(3)),
+      shiftLy: Number(shiftLy.toFixed(3)),
       pointsCount: bodyPts.length,
       step,
       message: msg
@@ -1651,8 +1921,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     sxy /= n;
     const deltaThetaPca = 0.5 * Math.atan2(2 * sxy, sxx - syy);
     const sortedByLx = [...bodyPts].sort((a, b) => a.lx - b.lx);
-    const rearSlice = sortedByLx.slice(0, Math.max(1, Math.floor(n * 0.18)));
-    const frontSlice = sortedByLx.slice(Math.max(1, Math.floor(n * 0.82)));
+    const sliceCount = Math.max(1, Math.floor(n * 0.3));
+    const rearSlice = sortedByLx.slice(0, sliceCount);
+    const frontSlice = sortedByLx.slice(Math.max(sliceCount, n - sliceCount));
     const rearLx = rearSlice.reduce((s, p) => s + p.lx, 0) / rearSlice.length;
     const rearLy = rearSlice.reduce((s, p) => s + p.ly, 0) / rearSlice.length;
     const frontLx = frontSlice.reduce((s, p) => s + p.lx, 0) / frontSlice.length;
@@ -1660,7 +1931,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const dLx = frontLx - rearLx;
     const dLy = frontLy - rearLy;
     let deltaThetaExt = deltaThetaPca;
-    if (dLx >= 0.35) {
+    if (dLx >= 0.3) {
       deltaThetaExt = Math.atan2(dLy, dLx);
     }
     let deltaTheta = Math.abs(deltaThetaPca - deltaThetaExt) < 0.2 ? 0.7 * deltaThetaPca + 0.3 * deltaThetaExt : deltaThetaPca;
@@ -1693,7 +1964,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       groundZ = groundPts[Math.max(0, Math.floor(groundPts.length * 0.15))];
     }
     const minCoreZ = groundZ + 0.25;
-    const maxBodyZ = groundZ + 2.3;
+    const maxBodyZ = groundZ + 2;
     const minWheelZ = step === "side" || step === "front" ? groundZ + 0.02 : groundZ + 0.08;
     const outerL = curL / 2 + 0.45;
     const outerW = Math.max(curW, 0.85) / 2 + 0.45;
@@ -1737,6 +2008,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     let newL = curL;
     let newW = curW;
     let newH = curH;
+    let shiftLx = 0;
+    let shiftLy = 0;
     let roofTopZ = groundZ + curH;
     let msg = "";
     if (bodyPts.length < 3) {
@@ -1770,7 +2043,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const lxMax = allLx[pMaxIdx];
     const lyMin = allLy[pMinIdx];
     const lyMax = allLy[pMaxIdx];
-    const highestPtZ = allZ[allZ.length - 1];
+    const highestPtZ = detectTrueHeadZ(allZ, 0.15, groundZ, 1.6);
     if (step === "top") {
       const headingRes = estimateTwoWheelerHeading(bodyPts, yaw);
       newYawRad = headingRes.newYawRad;
@@ -1791,7 +2064,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newL = curL;
       newW = curW;
       newH = curH;
-      let shiftLx = 0;
+      shiftLx = 0;
       let bumperLabel = "Đón tia";
       const riderPts = bodyPts.filter((p) => p.z >= groundZ + 0.65);
       const hasRider = riderPts.length >= 2;
@@ -1804,19 +2077,27 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const distRear = hasRider ? lxRider - lxMin : curL / 2;
       const isMissingFront = hasRider && distFront < 0.28 * curL;
       const isMissingRear = hasRider && distRear < 0.38 * curL;
-      let lxEgo = null;
+      let toEgoX = 0;
+      let toEgoY = 0;
+      let egoLocalX = 0;
+      let egoLocalY = 0;
+      let hasEgo = false;
+      let isSideBeamParallel = false;
       if (options.egoPos) {
-        const dxEgo = options.egoPos.x - cx;
-        const dyEgo = options.egoPos.y - cy;
-        lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
+        toEgoX = options.egoPos.x - cx;
+        toEgoY = options.egoPos.y - cy;
+        egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
+        egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+        hasEgo = true;
+        isSideBeamParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * 0.466;
       }
       if (isMissingFront && isMissingRear) {
         shiftLx = lxRider - 0.08 * curL;
         bumperLabel = "Người lái 42% (Mất cả 2 bánh)";
       } else if (isMissingFront) {
         const estFrontEdge = lxRider + 0.42 * curL;
-        if (lxEgo !== null && lxEgo < -0.3) {
-          shiftLx = lxMin + curL / 2;
+        if (hasEgo && !isSideBeamParallel && egoLocalX < 0) {
+          shiftLx = lxMin - 0.02 + curL / 2;
           bumperLabel = "Cản sau (Mất bánh trước)";
         } else {
           shiftLx = (lxMin + estFrontEdge) / 2;
@@ -1824,33 +2105,33 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       } else if (isMissingRear) {
         const estRearEdge = lxRider - 0.58 * curL;
-        if (lxEgo !== null && lxEgo > 0.3) {
-          shiftLx = lxMax - curL / 2;
+        if (hasEgo && !isSideBeamParallel && egoLocalX > 0) {
+          shiftLx = lxMax + 0.02 - curL / 2;
           bumperLabel = "Cản trước (Mất bánh sau)";
         } else {
           shiftLx = (estRearEdge + lxMax) / 2;
           bumperLabel = "Người lái 42% + Bánh trước (Mất bánh sau)";
         }
       } else {
-        if (lxEgo !== null) {
-          if (lxEgo > 0.4) {
-            shiftLx = lxMax - curL / 2;
-            bumperLabel = "Cản trước";
-          } else if (lxEgo < -0.4) {
-            shiftLx = lxMin + curL / 2;
-            bumperLabel = "Cản sau";
-          } else {
+        if (hasEgo) {
+          if (isSideBeamParallel) {
             shiftLx = (lxMin + lxMax) / 2;
-            bumperLabel = "Cân đối";
+            bumperLabel = "Chiếu ngang sườn (Dàn đều 2 bánh)";
+          } else if (egoLocalX < 0) {
+            shiftLx = lxMin - 0.03 + curL / 2;
+            bumperLabel = "Cản/Bánh sau đón tia";
+          } else {
+            shiftLx = lxMax + 0.03 - curL / 2;
+            bumperLabel = "Cản/Bánh trước đón tia";
           }
         } else {
           const frontCount = bodyPts.filter((p) => p.lx > 0).length;
           const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
           if (frontCount > rearCount * 1.5) {
-            shiftLx = lxMax - curL / 2;
+            shiftLx = lxMax + 0.03 - curL / 2;
             bumperLabel = "Cản trước";
           } else if (rearCount > frontCount * 1.5) {
-            shiftLx = lxMin + curL / 2;
+            shiftLx = lxMin - 0.03 + curL / 2;
             bumperLabel = "Cản sau";
           } else {
             shiftLx = (lxMin + lxMax) / 2;
@@ -1859,6 +2140,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
       shiftLx = Math.max(-0.6, Math.min(0.6, shiftLx));
+      if (Math.abs(shiftLx) < 5e-3) shiftLx = 0;
       newCenterZ = cz;
       newCenterX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
       newCenterY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
@@ -1872,31 +2154,44 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newW = curW;
       newH = curH;
       newCenterZ = cz;
-      let visibleSide;
+      let visibleSide = "center";
+      const edgePadding = 0.03;
+      shiftLy = 0;
       if (options.egoPos) {
         const toEgoX = options.egoPos.x - cx;
         const toEgoY = options.egoPos.y - cy;
+        const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
         const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-        visibleSide = egoLocalY >= 0 ? "left" : "right";
+        if (Math.abs(egoLocalY) <= Math.abs(egoLocalX) * 0.15 && Math.abs(egoLocalY) < 0.15) {
+          visibleSide = "center";
+          shiftLy = (lyMin + lyMax) / 2;
+        } else if (egoLocalY >= 0) {
+          visibleSide = "left";
+          shiftLy = lyMax + edgePadding - curW / 2;
+        } else {
+          visibleSide = "right";
+          shiftLy = lyMin - edgePadding + curW / 2;
+        }
       } else {
         const leftCount = bodyPts.filter((p) => p.ly > 0.05).length;
         const rightCount = bodyPts.filter((p) => p.ly < -0.05).length;
-        visibleSide = leftCount >= rightCount ? "left" : "right";
-      }
-      const edgePadding = 0.05;
-      let shiftLy = 0;
-      if (lyMin <= -0.06 && lyMax >= 0.06) {
-        shiftLy = (lyMin + lyMax) / 2;
-      } else if (visibleSide === "left") {
-        shiftLy = lyMax + edgePadding - curW / 2;
-      } else {
-        shiftLy = lyMin - edgePadding + curW / 2;
+        if (leftCount > rightCount * 1.3) {
+          visibleSide = "left";
+          shiftLy = lyMax + edgePadding - curW / 2;
+        } else if (rightCount > leftCount * 1.3) {
+          visibleSide = "right";
+          shiftLy = lyMin - edgePadding + curW / 2;
+        } else {
+          visibleSide = "center";
+          shiftLy = (lyMin + lyMax) / 2;
+        }
       }
       shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      if (Math.abs(shiftLy) < 5e-3) shiftLy = 0;
       newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
       newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
       const deltaYSign = shiftLy >= 0 ? "+" : "";
-      const sideText = visibleSide === "left" ? "Sườn Trái" : "Sườn Phải";
+      const sideText = visibleSide === "left" ? "Sườn Trái" : visibleSide === "right" ? "Sườn Phải" : "Cân đối 2 sườn";
       msg = `Đã căn FRONT Xe 2 bánh: [${sideText}] đón tia ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm), giữ nguyên cao độ Z và kích thước (chuẩn Car)`;
     } else if (step === "w") {
       newYawRad = yaw;
@@ -1905,7 +2200,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newL = curL;
       newH = curH;
       newCenterZ = cz;
-      let shiftLy = 0;
+      shiftLy = 0;
       let measuredW = curW;
       if (lyMin <= -0.06 && lyMax >= 0.06) {
         measuredW = lyMax - lyMin + 0.06;
@@ -1953,7 +2248,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const currentBaseZ = cz - curH / 2;
       const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
       const roofTopZ2 = highestPtZ + headBuffer;
-      newH = Number(Math.max(1.1, Math.min(1.85, roofTopZ2 - effectiveBaseZ)).toFixed(2));
+      const maxCap2WH = options.headBuffer !== void 0 ? 1.85 : 1.68;
+      newH = Number(Math.max(1.05, Math.min(maxCap2WH, roofTopZ2 - effectiveBaseZ)).toFixed(2));
       newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
       msg = `Đã fit Cao (H) Xe 2 bánh: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên nóc +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
     } else {
@@ -1962,7 +2258,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newYawDeg = headingRes.newYawDeg;
       deltaYawDeg = headingRes.deltaYawDeg;
       newL = curL;
-      let shiftLx = 0;
+      shiftLx = 0;
       const frontCount = bodyPts.filter((p) => p.lx > 0).length;
       const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
       if (frontCount > rearCount * 1.5) {
@@ -1973,7 +2269,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         shiftLx = (lxMin + lxMax) / 2;
       }
       shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
-      let shiftLy = 0;
+      shiftLy = 0;
       let measuredW = curW;
       if (lyMin <= -0.06 && lyMax >= 0.06) {
         measuredW = lyMax - lyMin + 0.06;
@@ -1992,7 +2288,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       newW = Number(Math.max(0.55, Math.min(0.85, measuredW)).toFixed(2));
       roofTopZ = highestPtZ + headBuffer;
-      newH = Number(Math.max(1.1, Math.min(1.85, roofTopZ - groundZ)).toFixed(2));
+      const maxCap2WH = options.headBuffer !== void 0 ? 1.85 : 1.68;
+      newH = Number(Math.max(1.05, Math.min(maxCap2WH, roofTopZ - groundZ)).toFixed(2));
       newCenterZ = Number((groundZ + newH / 2).toFixed(3));
       const cosWorld = Math.cos(newYawRad);
       const sinWorld = Math.sin(newYawRad);
@@ -2016,6 +2313,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       rollDeg: 0,
       groundZ: Number(groundZ.toFixed(3)),
       roofTopZ: Number(roofTopZ.toFixed(3)),
+      shiftLx: Number(shiftLx.toFixed(3)),
+      shiftLy: Number(shiftLy.toFixed(3)),
       pointsCount: bodyPts.length,
       step,
       message: msg
@@ -2031,7 +2330,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return fitPedestrianBox(pts, cx, cy, cz, yaw, curL, curW, curH, options, "h");
   }
   function fitCyclistBox(pts, cx, cy, cz, yaw, curL = 1.75, curW = 0.65, curH = 1.55, options = {}, step = "all") {
-    return fitTwoWheelerBox(pts, cx, cy, cz, yaw, curL, curW, curH, options, step);
+    const mergedOptions = { headBuffer: options.headBuffer ?? 0.1, ...options };
+    return fitTwoWheelerBox(pts, cx, cy, cz, yaw, curL, curW, curH, mergedOptions, step);
   }
   function pointsToBox(points) {
     return {
@@ -2072,16 +2372,50 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       ez: [d, -b * c, a * c]
     };
   }
+  function axesToEuler(ax) {
+    const m11 = ax.ex[0], m12 = ax.ey[0], m13 = ax.ez[0];
+    const m22 = ax.ey[1], m23 = ax.ez[1];
+    const m32 = ax.ey[2], m33 = ax.ez[2];
+    const y = Math.asin(Math.min(1, Math.max(-1, m13)));
+    if (Math.abs(m13) < 0.9999999) {
+      return [Math.atan2(-m23, m33), y, Math.atan2(-m12, m11)];
+    }
+    return [Math.atan2(m32, m22), y, 0];
+  }
+  function rotateLocal(r, axis, angle) {
+    const ax = axes(r);
+    const keys = ["ex", "ey", "ez"];
+    const j = keys[(axis + 1) % 3];
+    const k = keys[(axis + 2) % 3];
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    const ej = ax[j];
+    const ek = ax[k];
+    const out = { ...ax };
+    out[j] = [0, 1, 2].map((i) => c * ej[i] + s * ek[i]);
+    out[k] = [0, 1, 2].map((i) => -s * ej[i] + c * ek[i]);
+    return axesToEuler(out);
+  }
+  const dotVec = (u, v) => u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
   const addVec = (u, v) => [
     u[0] + v[0],
     u[1] + v[1],
     u[2] + v[2]
+  ];
+  const subVec = (u, v) => [
+    u[0] - v[0],
+    u[1] - v[1],
+    u[2] - v[2]
   ];
   const scaleVec = (u, k) => [
     u[0] * k,
     u[1] * k,
     u[2] * k
   ];
+  function worldToLocal(p, c, ax) {
+    const v = subVec(p, c);
+    return [dotVec(v, ax.ex), dotVec(v, ax.ey), dotVec(v, ax.ez)];
+  }
   function localToWorld(q, c, ax) {
     return addVec(
       c,
@@ -2299,6 +2633,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     globalThis.fitTwoWheelerBox = fitTwoWheelerBox;
     globalThis.estimateTwoWheelerHeading = estimateTwoWheelerHeading;
     globalThis.estimateEgoRoadGroundZ = estimateEgoRoadGroundZ;
+    globalThis.detectTrueHeadZ = detectTrueHeadZ;
     globalThis.computeGroundSlopesAndZ = computeGroundSlopesAndZ;
     globalThis.fitYawToLaneIntensity = fitYawToLaneIntensity$1;
   }
@@ -2314,6 +2649,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     window.fitTwoWheelerBox = fitTwoWheelerBox;
     window.estimateTwoWheelerHeading = estimateTwoWheelerHeading;
     window.estimateEgoRoadGroundZ = estimateEgoRoadGroundZ;
+    window.detectTrueHeadZ = detectTrueHeadZ;
     window.computeGroundSlopesAndZ = computeGroundSlopesAndZ;
     window.fitYawToLaneIntensity = fitYawToLaneIntensity$1;
   }
@@ -2349,11 +2685,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const storeJob = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.job) == null ? void 0 : _c.instance;
       if (storeJob) {
         return storeJob;
-      }
-      const win = window;
-      if (win.cvat && win.cvat.jobs && jobId) {
-        const jobs = await win.cvat.jobs.get({ jobID: jobId });
-        if (jobs && jobs.length > 0) return jobs[0];
       }
       return null;
     }
@@ -2406,10 +2737,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     function getEgoRoadGroundZInMainWorld(egoPos = { x: 0, y: 0, z: 0 }) {
       const lidar = getSceneLidarPoints();
-      if (!lidar || lidar.count === 0) return 0;
+      if (!lidar || lidar.count === 0) return -1.75;
       const { count, array } = lidar;
-      const minRSq = 1.2 * 1.2;
-      const maxRSq = 6 * 6;
+      const minRSq = 0.8 * 0.8;
+      const maxRSq = 15 * 15;
       const zArr = [];
       for (let i = 0; i < count; i++) {
         const x = array[i * 3];
@@ -2424,7 +2755,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
       }
-      if (zArr.length < 8) return 0;
+      if (zArr.length < 8) return -1.75;
       zArr.sort((a, b) => a - b);
       const cutLow = Math.floor(zArr.length * 0.01);
       const validZ = zArr.slice(cutLow);
@@ -2435,7 +2766,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const lidar = getSceneLidarPoints();
       if (!lidar || lidar.count === 0) {
         return {
-          groundZ: 0,
+          groundZ: -1.75,
           pitchRad: 0,
           rollRad: 0,
           pitchDeg: 0,
@@ -2457,7 +2788,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const innerL = isInitialBox ? 0.2 : Math.max(0.15, halfL - 0.35);
       const innerW = isInitialBox ? 0.2 : Math.max(0.15, halfW - 0.35);
       const maxGroundZ = cz - Math.max(0.15, halfH * 0.4);
-      const minGroundZ = cz - 4.5;
+      const minGroundZ = Math.min(cz - 4.5, -4.5);
       for (let i = 0; i < count; i++) {
         const z = array[i * 3 + 2];
         if (z > maxGroundZ || z < minGroundZ) continue;
@@ -2489,7 +2820,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
       const resolvedEgoRoadZ = getEgoRoadGroundZInMainWorld();
-      if (groundPts.length < 6) {
+      if (groundPts.length < 10) {
         return {
           groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
           pitchRad: 0,
@@ -2567,6 +2898,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       addLowestFromQuadrant(qRL);
       addLowestFromQuadrant(qRR);
       const finalPts = fitPts.length >= 4 ? fitPts : validPts.slice(0, Math.max(4, Math.floor(validPts.length * 0.45)));
+      if (finalPts.length < 6) {
+        return {
+          groundZ: Number(resolvedEgoRoadZ.toFixed(3)),
+          pitchRad: 0,
+          rollRad: 0,
+          pitchDeg: 0,
+          rollDeg: 0,
+          groundPointsCount: finalPts.length,
+          isFallbackZeroGround: true,
+          isCurbGround: false,
+          isHalfCurb: false,
+          halfCurbSide: "none",
+          curbHeightCm: 0
+        };
+      }
       let sumLx = 0;
       let sumLy = 0;
       let sumZ = 0;
@@ -2727,6 +3073,40 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           c0 = lowestRoadZ;
         }
       }
+      const L = halfL * 2;
+      const edgeFrontPts = sorted.filter(
+        (p) => p.lx >= halfL - L * 0.3 && p.lx <= halfL + 0.45
+      );
+      const edgeRearPts = sorted.filter(
+        (p) => p.lx >= -halfL - 0.45 && p.lx <= -halfL + L * 0.3
+      );
+      if (!isCurbOrRamp && !isHalfCurb && edgeFrontPts.length >= 2 && edgeRearPts.length >= 2) {
+        const bSlope = Math.tan(rollRad);
+        const extractSideZ = (edgePts) => {
+          const transPts = edgePts.map((p) => ({ lx: p.lx, ly: p.ly, zTrans: p.z - bSlope * p.ly })).sort((a2, b2) => a2.zTrans - b2.zTrans);
+          const floorZ = transPts[0].zTrans;
+          const basePts = transPts.filter((p) => p.zTrans <= floorZ + 0.08);
+          if (basePts.length >= 2) {
+            return basePts[Math.floor(basePts.length / 2)].zTrans;
+          }
+          return transPts[0].zTrans;
+        };
+        const zFront = extractSideZ(edgeFrontPts);
+        const zRear = extractSideZ(edgeRearPts);
+        const sumFrontLx = edgeFrontPts.reduce((s, p) => s + p.lx, 0);
+        const sumRearLx = edgeRearPts.reduce((s, p) => s + p.lx, 0);
+        const meanFrontLx = sumFrontLx / edgeFrontPts.length;
+        const meanRearLx = sumRearLx / edgeRearPts.length;
+        const spanX = Math.max(0.8, meanFrontLx - meanRearLx);
+        const deltaZSide = zFront - zRear;
+        const edgePitch = -Math.atan(deltaZSide / spanX);
+        if (Math.abs(pitchRad - edgePitch) < 0.05) {
+          pitchRad = edgePitch;
+        } else {
+          pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, edgePitch));
+        }
+        c0 = (zFront + zRear) / 2;
+      }
       let isCurbGround = false;
       const refEgoZ = getEgoRoadGroundZInMainWorld();
       if (!isCurbOrRamp && !isHalfCurb) {
@@ -2832,6 +3212,27 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         roadGroundZ: Number(Math.min(leftZ, rightZ).toFixed(3)),
         deltaCenterZ: 0
       };
+    }
+    function detectTrueHeadZInMainWorld(zArr, maxGap = 0.15, groundZ, maxNormalHeight = 1.75) {
+      if (zArr.length === 0) return 0;
+      if (zArr.length === 1) return zArr[0];
+      const sorted = [...zArr].sort((a, b) => a - b);
+      const baseZ = groundZ !== void 0 ? groundZ : sorted[0];
+      const suspiciousThresholdZ = baseZ + maxNormalHeight;
+      let cutoffIdx = sorted.length - 1;
+      for (let i = sorted.length - 1; i >= 1; i--) {
+        if (sorted[i] > suspiciousThresholdZ) {
+          const gap = sorted[i] - sorted[i - 1];
+          if (gap > maxGap) {
+            cutoffIdx = i - 1;
+          }
+        } else {
+          break;
+        }
+      }
+      const clusterPts = sorted.slice(0, cutoffIdx + 1);
+      const pIdx = clusterPts.length >= 20 ? Math.min(clusterPts.length - 1, Math.floor(clusterPts.length * 0.98)) : clusterPts.length - 1;
+      return clusterPts[pIdx];
     }
     function filterDenseConnectedCluster1D2(pts, axis, maxGap = 0.22, centerBias = 0) {
       if (pts.length < 8) return pts;
@@ -2999,6 +3400,53 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (corePts.length >= 6 && corePts.length >= n * 0.4) return corePts;
       return pts;
     }
+    function computeIntensityWeights2(pts) {
+      const n = pts.length;
+      if (n === 0) {
+        return { weights: [], hasValidIntensity: false, highIntensityThreshold: 0 };
+      }
+      const intensities = [];
+      let validCount = 0;
+      for (let i = 0; i < n; i++) {
+        const val = pts[i].intensity;
+        if (typeof val === "number" && !isNaN(val)) {
+          intensities.push(val);
+          validCount++;
+        } else {
+          intensities.push(0);
+        }
+      }
+      if (validCount < 3) {
+        return {
+          weights: new Array(n).fill(1),
+          hasValidIntensity: false,
+          highIntensityThreshold: 0
+        };
+      }
+      const sorted = [...intensities].sort((a, b) => a - b);
+      const minI = sorted[0];
+      const maxI = sorted[sorted.length - 1];
+      if (maxI - minI < 15) {
+        return {
+          weights: new Array(n).fill(1),
+          hasValidIntensity: false,
+          highIntensityThreshold: maxI
+        };
+      }
+      const p75Idx = Math.min(sorted.length - 1, Math.floor(sorted.length * 0.75));
+      const highIntensityThreshold = Math.max(minI + 15, sorted[p75Idx]);
+      const range = maxI - minI;
+      const weights = new Array(n);
+      for (let i = 0; i < n; i++) {
+        const norm = Math.max(0, Math.min(1, (intensities[i] - minI) / range));
+        weights[i] = 1 + 1.5 * norm;
+      }
+      return {
+        weights,
+        hasValidIntensity: true,
+        highIntensityThreshold
+      };
+    }
     function detectDominantWallEdgeWithValleyCutoff2(pts, axis, direction, nominalHalf, options = {}) {
       const isPos = direction === "positive";
       const orthAxis = axis === "ly" ? "lx" : "ly";
@@ -3013,57 +3461,79 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           peakDensity: candidatePts.length
         };
       }
+      const intensityData = options.useIntensity !== false ? computeIntensityWeights2(candidatePts) : null;
+      const weights = (intensityData == null ? void 0 : intensityData.weights) || new Array(candidatePts.length).fill(1);
+      const highThreshold = (intensityData == null ? void 0 : intensityData.highIntensityThreshold) ?? Infinity;
+      const hasValidIntensity = (intensityData == null ? void 0 : intensityData.hasValidIntensity) ?? false;
       const maxDist = nominalHalf + maxSearchExt;
       const numBins = Math.ceil(maxDist / binSize) + 2;
-      const bins = Array.from({ length: numBins }, () => []);
-      for (const p of candidatePts) {
+      const bins = Array.from(
+        { length: numBins },
+        () => []
+      );
+      const binWeights = new Array(numBins).fill(0);
+      for (let i = 0; i < candidatePts.length; i++) {
+        const p = candidatePts[i];
+        const w = weights[i];
+        const isBright = hasValidIntensity && typeof p.intensity === "number" && p.intensity >= highThreshold;
         const dist = isPos ? p[axis] : -p[axis];
         if (dist >= 0 && dist <= maxDist) {
           const bIdx = Math.min(numBins - 1, Math.floor(dist / binSize));
-          bins[bIdx].push(p);
+          bins[bIdx].push({ pt: p, weight: w, isBright });
+          binWeights[bIdx] += w;
         }
       }
       const nominalMinBin = Math.max(0, Math.floor((nominalHalf - 0.45) / binSize));
       const nominalMaxBin = Math.min(numBins - 1, Math.floor((nominalHalf + maxSearchExt) / binSize));
       let peakBin = nominalMinBin;
-      let maxCount = 0;
+      let maxWeight = 0;
       for (let b = nominalMinBin; b <= nominalMaxBin; b++) {
-        const count = bins[b].length;
-        if (count > maxCount) {
-          maxCount = count;
+        const bw = binWeights[b];
+        if (bw > maxWeight) {
+          maxWeight = bw;
           peakBin = b;
         }
       }
-      if (maxCount < 2) {
+      if (maxWeight < 2) {
         for (let b = 1; b < numBins - 1; b++) {
-          if (bins[b].length > maxCount) {
-            maxCount = bins[b].length;
+          if (binWeights[b] > maxWeight) {
+            maxWeight = binWeights[b];
             peakBin = b;
           }
         }
       }
-      if (maxCount === 0) {
+      if (maxWeight === 0) {
         return {
           edge: isPos ? nominalHalf : -nominalHalf,
           wallPoints: candidatePts,
           peakDensity: 0
         };
       }
-      const minWallDensity = Math.max(2, Math.floor(maxCount * 0.15));
+      const minWallWeight = Math.max(1.8, maxWeight * 0.12);
       let outerWallBin = peakBin;
       let consecutiveEmptyBins = 0;
       for (let b = peakBin + 1; b < numBins; b++) {
         const ptsInBin = bins[b];
         const count = ptsInBin.length;
+        const bw = binWeights[b];
+        const hasBrightInBin = ptsInBin.some((item) => item.isBright);
         if (count === 0) {
           consecutiveEmptyBins++;
           if (consecutiveEmptyBins >= 2) {
-            break;
+            const nextBinHasBright = b + 1 < numBins && bins[b + 1].some((item) => item.isBright);
+            if (!nextBinHasBright) {
+              break;
+            }
           }
           continue;
         }
+        if (hasBrightInBin) {
+          consecutiveEmptyBins = 0;
+          outerWallBin = b;
+          continue;
+        }
         const distCenter = (b + 0.5) * binSize;
-        if (count < minWallDensity && distCenter > nominalHalf) {
+        if (bw < minWallWeight && distCenter > nominalHalf) {
           consecutiveEmptyBins++;
           if (consecutiveEmptyBins >= 2) {
             break;
@@ -3071,7 +3541,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           continue;
         }
         if (distCenter > nominalHalf - 0.05) {
-          const orthVals = ptsInBin.map((p) => p[orthAxis]);
+          const orthVals = ptsInBin.map((item) => item.pt[orthAxis]);
           const spanOrth = Math.max(...orthVals) - Math.min(...orthVals);
           if (count <= 6 && spanOrth < minSpanOrth * 0.6) {
             if (b > peakBin + 1) {
@@ -3084,26 +3554,28 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       const collectedWallPoints = [];
       for (let b = 0; b <= outerWallBin; b++) {
-        for (const p of bins[b]) {
-          collectedWallPoints.push(p);
+        for (const item of bins[b]) {
+          collectedWallPoints.push(item.pt);
         }
       }
-      const outerEdgePts = [];
+      const outerEdgeItems = [];
       const edgeStartBin = Math.max(0, outerWallBin - 3);
       for (let b = edgeStartBin; b <= outerWallBin; b++) {
-        for (const p of bins[b]) {
-          outerEdgePts.push(p);
+        for (const item of bins[b]) {
+          outerEdgeItems.push(item);
         }
       }
-      if (outerEdgePts.length >= 3) {
-        const dists = outerEdgePts.map((p) => isPos ? p[axis] : -p[axis]).sort((a, b) => a - b);
+      if (outerEdgeItems.length >= 3) {
+        const brightItems = outerEdgeItems.filter((i) => i.isBright);
+        const targetItems = brightItems.length >= 2 ? brightItems : outerEdgeItems;
+        const dists = targetItems.map((item) => isPos ? item.pt[axis] : -item.pt[axis]).sort((a, b) => a - b);
         const pIdx = Math.max(0, Math.min(dists.length - 1, Math.floor(dists.length * 0.95)));
         const chosenDist = dists[pIdx];
         const edge2 = isPos ? Number(chosenDist.toFixed(3)) : Number((-chosenDist).toFixed(3));
         return {
           edge: edge2,
           wallPoints: collectedWallPoints,
-          peakDensity: maxCount
+          peakDensity: Math.round(maxWeight)
         };
       }
       const fallbackDist = (outerWallBin + 1) * binSize;
@@ -3111,7 +3583,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return {
         edge,
         wallPoints: collectedWallPoints.length > 0 ? collectedWallPoints : candidatePts,
-        peakDensity: maxCount
+        peakDensity: Math.round(maxWeight)
       };
     }
     function detectRoofTopBounds2(pts, expectedRoofZ) {
@@ -3135,6 +3607,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     function straightenYawFromBoundaryEdge2(pts, currentYaw, L, _W, visibleLateral, options = {}) {
       const maxAdjDeg = options.maxAdjustmentDeg ?? 8;
       const maxAdjRad = maxAdjDeg * Math.PI / 180;
+      const intensityData = options.useIntensity !== false ? computeIntensityWeights2(pts) : null;
+      const highThreshold = (intensityData == null ? void 0 : intensityData.highIntensityThreshold) ?? Infinity;
+      const hasValidIntensity = (intensityData == null ? void 0 : intensityData.hasValidIntensity) ?? false;
       const isLeft = visibleLateral === "left";
       const sidePts = pts.filter((p) => (isLeft ? p.ly > 0 : p.ly < 0) && Math.abs(p.lx) <= L / 2);
       if (sidePts.length < 8) {
@@ -3153,16 +3628,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const maxLx = minLx + sliceWidth;
         const inSlice = sidePts.filter((p) => p.lx >= minLx && p.lx < maxLx);
         if (inSlice.length >= 1) {
+          const brightInSlice = hasValidIntensity ? inSlice.filter((p) => typeof p.intensity === "number" && p.intensity >= highThreshold) : [];
+          const targetSlicePts = brightInSlice.length >= 1 ? brightInSlice : inSlice;
+          const sliceWeight = brightInSlice.length >= 1 ? 2 : 1;
           if (isLeft) {
-            const sortedLy = inSlice.map((p) => p.ly).sort((a, b) => a - b);
+            const sortedLy = targetSlicePts.map((p) => p.ly).sort((a, b) => a - b);
             const pIdx = Math.max(0, Math.floor(sortedLy.length * 0.9));
             const medianLx = (minLx + maxLx) / 2;
-            slicePoints.push({ lx: medianLx, ly: sortedLy[pIdx] });
+            slicePoints.push({ lx: medianLx, ly: sortedLy[pIdx], weight: sliceWeight });
           } else {
-            const sortedLy = inSlice.map((p) => p.ly).sort((a, b) => a - b);
+            const sortedLy = targetSlicePts.map((p) => p.ly).sort((a, b) => a - b);
             const pIdx = Math.min(sortedLy.length - 1, Math.floor(sortedLy.length * 0.1));
             const medianLx = (minLx + maxLx) / 2;
-            slicePoints.push({ lx: medianLx, ly: sortedLy[pIdx] });
+            slicePoints.push({ lx: medianLx, ly: sortedLy[pIdx], weight: sliceWeight });
           }
         }
       }
@@ -3174,20 +3652,31 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           slope: 0
         };
       }
-      const slopes = [];
+      const slopesWithWeights = [];
       for (let i = 0; i < slicePoints.length; i++) {
         for (let j = i + 1; j < slicePoints.length; j++) {
           const dx = slicePoints[j].lx - slicePoints[i].lx;
           const dy = slicePoints[j].ly - slicePoints[i].ly;
           if (Math.abs(dx) >= 0.25) {
-            slopes.push(dy / dx);
+            const pairWeight = (slicePoints[i].weight + slicePoints[j].weight) / 2;
+            slopesWithWeights.push({ slope: dy / dx, weight: pairWeight });
           }
         }
       }
       let slope = 0;
-      if (slopes.length >= 3) {
-        slopes.sort((a, b) => a - b);
-        slope = slopes[Math.floor(slopes.length / 2)];
+      if (slopesWithWeights.length >= 3) {
+        slopesWithWeights.sort((a, b) => a.slope - b.slope);
+        const totalW = slopesWithWeights.reduce((sum, item) => sum + item.weight, 0);
+        let cumulativeW = 0;
+        let chosenSlope = slopesWithWeights[Math.floor(slopesWithWeights.length / 2)].slope;
+        for (const item of slopesWithWeights) {
+          cumulativeW += item.weight;
+          if (cumulativeW >= totalW / 2) {
+            chosenSlope = item.slope;
+            break;
+          }
+        }
+        slope = chosenSlope;
       } else {
         let sumLx = 0, sumLy = 0, sumLxLy = 0, sumLx2 = 0;
         const m = slicePoints.length;
@@ -3215,6 +3704,93 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newYawDeg: Number((newYaw * 180 / Math.PI).toFixed(2)),
         deltaYawDeg,
         slope: Number(slope.toFixed(4))
+      };
+    }
+    function determineBumperByDensity2(pts, L, egoLocalX, egoLocalY) {
+      if (pts.length === 0) {
+        return {
+          visibleBumper: egoLocalX >= 0 ? "front" : "rear",
+          isParallelBalanced: false,
+          nFront20: 0,
+          nRear20: 0,
+          nMiddle60: 0
+        };
+      }
+      const allLx = pts.map((p) => p.lx).sort((a, b) => a - b);
+      const pMinIdx = allLx.length >= 15 ? Math.floor(allLx.length * 0.015) : 0;
+      const pMaxIdx = allLx.length >= 15 ? Math.min(allLx.length - 1, Math.floor(allLx.length * 0.985)) : allLx.length - 1;
+      const lxMin = allLx[pMinIdx];
+      const lxMax = allLx[pMaxIdx];
+      const zoneSpan = Math.max(0.4, L * 0.2);
+      const span = lxMax - lxMin;
+      let nFront20 = 0;
+      let nRear20 = 0;
+      let nMiddle60 = 0;
+      if (span < zoneSpan * 1.5) {
+        const meanLx = pts.reduce((sum, p) => sum + p.lx, 0) / pts.length;
+        const threshold = Math.max(0.35, L * 0.2);
+        if (meanLx > threshold) {
+          nFront20 = pts.length;
+        } else if (meanLx < -threshold) {
+          nRear20 = pts.length;
+        } else {
+          nMiddle60 = pts.length;
+        }
+      } else {
+        const front20Min = lxMax - zoneSpan;
+        const front20Max = lxMax + 0.35;
+        const rear20Min = lxMin - 0.35;
+        const rear20Max = lxMin + zoneSpan;
+        nFront20 = pts.filter((p) => p.lx >= front20Min && p.lx <= front20Max).length;
+        nRear20 = pts.filter((p) => p.lx >= rear20Min && p.lx <= rear20Max).length;
+        nMiddle60 = pts.filter((p) => p.lx > rear20Max && p.lx < front20Min).length;
+      }
+      const isFrontDominant = nFront20 >= 6 && nRear20 <= 4 || nFront20 >= 8 && nFront20 >= nRear20 * 2.5;
+      const isRearDominant = nRear20 >= 6 && nFront20 <= 4 || nRear20 >= 8 && nRear20 >= nFront20 * 2.5;
+      if (isFrontDominant) {
+        return {
+          visibleBumper: "front",
+          isParallelBalanced: false,
+          nFront20,
+          nRear20,
+          nMiddle60
+        };
+      }
+      if (isRearDominant) {
+        return {
+          visibleBumper: "rear",
+          isParallelBalanced: false,
+          nFront20,
+          nRear20,
+          nMiddle60
+        };
+      }
+      const tan25 = 0.466;
+      const isEgoParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * tan25;
+      const isSymmetricBothEnds = Math.abs(nFront20 - nRear20) <= 2 && nFront20 >= 2 && nRear20 >= 2 && nMiddle60 >= 3;
+      if ((isEgoParallel || isSymmetricBothEnds) && pts.length >= 4) {
+        return {
+          visibleBumper: egoLocalX >= 0 ? "front" : "rear",
+          isParallelBalanced: true,
+          nFront20,
+          nRear20,
+          nMiddle60
+        };
+      }
+      let visibleBumper = egoLocalX >= 0 ? "front" : "rear";
+      const allFrontPts = pts.filter((p) => p.lx > 0.05);
+      const allRearPts = pts.filter((p) => p.lx < -0.05);
+      if (visibleBumper === "front" && allFrontPts.length < 2 && allRearPts.length >= 4) {
+        visibleBumper = "rear";
+      } else if (visibleBumper === "rear" && allRearPts.length < 2 && allFrontPts.length >= 4) {
+        visibleBumper = "front";
+      }
+      return {
+        visibleBumper,
+        isParallelBalanced: false,
+        nFront20,
+        nRear20,
+        nMiddle60
       };
     }
     function fitBoxToEgoRayAndGroundInMainWorld(points, egoPos = { x: 0, y: 0, z: 0 }, options = {}) {
@@ -3271,7 +3847,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const lx = dx * cosY - dy * sinY;
         const ly = dx * sinY + dy * cosY;
         if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
-          rawBodyPts.push({ x, y, z, lx, ly });
+          rawBodyPts.push({ x, y, z, lx, ly, intensity: lidar.getIntensityAt(i) });
         }
       }
       const denseCorePts = filterSparseNoiseByLocalDensity2(rawBodyPts, { radius: 0.12, minCoreNeighbors: 2 });
@@ -3292,6 +3868,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       let finalYaw = yaw;
       let straightYawDeg = Number((yaw * 180 / Math.PI).toFixed(2));
       let deltaYawDeg = 0;
+      let isSideParallelBalanced = false;
       const preserveDimensions = options.preserveDimensions ?? true;
       const validBodyPts = bodyPts.length >= 4 ? bodyPts : denseCorePts.length >= 4 ? denseCorePts : rawBodyPts;
       if (validBodyPts.length >= 4) {
@@ -3299,16 +3876,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           const toEgoX = ego_pos.x - center_x;
           const toEgoY = ego_pos.y - center_y;
           const egoLocalX = toEgoX * Math.cos(currentYaw) + toEgoY * Math.sin(currentYaw);
-          const frontBumperPts = pts.filter((p) => p.lx > 0.05);
-          const rearBumperPts = pts.filter((p) => p.lx < -0.05);
-          let visibleBumper;
-          if (frontBumperPts.length >= rearBumperPts.length + 3) {
-            visibleBumper = "front";
-          } else if (rearBumperPts.length >= frontBumperPts.length + 3) {
-            visibleBumper = "rear";
-          } else {
-            visibleBumper = egoLocalX >= 0 ? "front" : "rear";
+          const egoLocalY = -toEgoX * Math.sin(currentYaw) + toEgoY * Math.cos(currentYaw);
+          const edgePadding = options.edgePadding ?? 0.05;
+          const densityDecision = determineBumperByDensity2(pts, targetL, egoLocalX, egoLocalY);
+          if (densityDecision.isParallelBalanced && pts.length >= 4) {
+            const allLx = pts.map((p) => p.lx).sort((a, b) => a - b);
+            const pMinIdx = allLx.length >= 15 ? Math.floor(allLx.length * 0.015) : 0;
+            const pMaxIdx = allLx.length >= 15 ? Math.min(allLx.length - 1, Math.floor(allLx.length * 0.985)) : allLx.length - 1;
+            const lxMin = allLx[pMinIdx];
+            const lxMax = allLx[pMaxIdx];
+            let sLx2 = (lxMin + lxMax) / 2;
+            const maxShiftL2 = Math.min(0.4, targetL * 0.25);
+            sLx2 = Math.max(-maxShiftL2, Math.min(maxShiftL2, sLx2));
+            if (Math.abs(sLx2) < 0.01) sLx2 = 0;
+            return { shiftLx: sLx2, visibleBumper: densityDecision.visibleBumper, isBalanced: true };
           }
+          const visibleBumper = densityDecision.visibleBumper;
           const targetBumperPts = pts.filter((p) => Math.abs(p.ly) <= targetW / 2 + 0.15);
           const activePtsForL = targetBumperPts.length >= 4 ? targetBumperPts : pts;
           const bumperCloudPts = activePtsForL.filter((p) => visibleBumper === "front" ? p.lx > 0 : p.lx < 0);
@@ -3327,7 +3910,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           } else {
             bumperEdge = visibleBumper === "front" ? targetL / 2 : -targetL / 2;
           }
-          const edgePadding = options.edgePadding ?? 0.05;
           let sLx = 0;
           if (visibleBumper === "front") {
             sLx = bumperEdge + edgePadding - targetL / 2;
@@ -3337,7 +3919,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           const maxShiftL = Math.min(0.4, targetL * 0.25);
           sLx = Math.max(-maxShiftL, Math.min(maxShiftL, sLx));
           if (Math.abs(sLx) < 0.01) sLx = 0;
-          return { shiftLx: sLx, visibleBumper };
+          return { shiftLx: sLx, visibleBumper, isBalanced: false };
         };
         const computeTopYaw = (pts, currentYaw, targetL, targetW, visibleSide) => {
           const wallDet = detectDominantWallEdgeWithValleyCutoff2(
@@ -3412,6 +3994,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           const sideRes = computeSideShift(validBodyPts, L, W, yaw, cx, cy, egoPos);
           shiftLx = sideRes.shiftLx;
           visibleLongitudinal = sideRes.visibleBumper;
+          isSideParallelBalanced = sideRes.isBalanced;
           shiftLy = 0;
         } else if (fitStep === "front") {
           finalYaw = yaw;
@@ -3523,7 +4106,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         msg = `Đã căn TOP: Xoay Yaw (${straightYawDeg}°, Δ=${deltaSign}${deltaYawDeg}°) song song sườn đón tia [${faceTextLat}], khóa tâm X/Y (giữ nguyên cao độ Z)`;
       } else if (fitStep === "side") {
         const deltaXSign = shiftLx >= 0 ? "+" : "";
-        msg = `Đã căn SIDE: Cản [${faceTextLong}] đón tia (ΔX: ${deltaXSign}${shiftLx.toFixed(2)}m, giữ nguyên cao độ Z)`;
+        if (isSideParallelBalanced) {
+          msg = `Đã căn SIDE: Chiếu ngang sườn song song (Fit đều đầu & cuối xe, ΔX: ${deltaXSign}${shiftLx.toFixed(2)}m, giữ nguyên cao độ Z)`;
+        } else {
+          msg = `Đã căn SIDE: Cản [${faceTextLong}] đón tia (ΔX: ${deltaXSign}${shiftLx.toFixed(2)}m, giữ nguyên cao độ Z)`;
+        }
       } else if (fitStep === "front") {
         const deltaYSign = shiftLy >= 0 ? "+" : "";
         msg = `Đã căn FRONT: Mép sườn [${faceTextLat}] ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên cao độ Z)`;
@@ -3589,7 +4176,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         };
       }
       const { count, array } = lidar;
-      const headBuffer = options.headBuffer ?? 0.05;
+      const headBuffer = options.headBuffer ?? 0.02;
       const margin = options.margin ?? 0.15;
       const footRadius = Math.max(0.35, Math.max(curL, curW) / 2 + margin);
       const footGroundPts = [];
@@ -3612,7 +4199,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         groundZ = footGroundPts[Math.max(0, Math.floor(footGroundPts.length * 0.15))];
       }
       const minCoreZ = groundZ + 0.3;
-      const maxBodyZ = groundZ + 2.3;
+      const maxBodyZ = groundZ + 2;
       const minFootZ = step === "side" || step === "front" ? groundZ + 0.02 : groundZ + 0.08;
       const outerL = Math.max(0.45, curL / 2 + 0.25);
       const outerW = Math.max(0.4, curW / 2 + 0.25);
@@ -3629,12 +4216,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const dy = y - cy;
         const lx = dx * cosY - dy * sinY;
         const ly = dx * sinY + dy * cosY;
+        const intensity = lidar.getIntensityAt(i);
         if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
           if (z >= minCoreZ) {
-            coreBodyPts.push({ lx, ly, z });
+            coreBodyPts.push({ lx, ly, z, intensity });
           } else {
             if (Math.abs(lx) <= Math.max(0.35, curL / 2 + 0.12) && Math.abs(ly) <= Math.max(0.3, curW / 2 + 0.12)) {
-              footPts.push({ lx, ly, z });
+              footPts.push({ lx, ly, z, intensity });
             }
           }
         }
@@ -3686,7 +4274,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const lxMax = allLx[pMaxIdx];
       const lyMin = allLy[pMinIdx];
       const lyMax = allLy[pMaxIdx];
-      const highestPtZ = allZ[allZ.length - 1];
+      const highestPtZ = detectTrueHeadZInMainWorld(allZ, 0.15, groundZ, 1.78);
       const normalizeRad = (r) => {
         let a = r;
         while (a > Math.PI) a -= 2 * Math.PI;
@@ -3740,29 +4328,31 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newH = curH;
         newZ = cz;
         let shiftLx = 0;
-        let bumperName = "Đón tia";
+        let bumperName = "Cân đối";
         if (options.egoPos) {
-          const dxEgo = options.egoPos.x - cx;
-          const dyEgo = options.egoPos.y - cy;
-          const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
-          if (lxEgo > 0.15) {
-            shiftLx = lxMax + 0.01 - curL / 2;
-            bumperName = "Mặt trước";
-          } else if (lxEgo < -0.15) {
-            shiftLx = lxMin - 0.01 + curL / 2;
+          const toEgoX = options.egoPos.x - cx;
+          const toEgoY = options.egoPos.y - cy;
+          const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
+          const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+          const isSideBeamParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * 0.466;
+          if (isSideBeamParallel) {
+            shiftLx = (lxMin + lxMax) / 2;
+            bumperName = "Chiếu ngang sườn (Dàn đều trước - sau)";
+          } else if (egoLocalX < 0) {
+            shiftLx = lxMin - 0.02 + curL / 2;
             bumperName = "Mặt sau";
           } else {
-            shiftLx = (lxMin + lxMax) / 2;
-            bumperName = "Cân đối";
+            shiftLx = lxMax + 0.02 - curL / 2;
+            bumperName = "Mặt trước";
           }
         } else {
           const frontCount = bodyPts.filter((p) => p.lx > 0).length;
           const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
           if (frontCount > rearCount * 1.5) {
-            shiftLx = lxMax + 0.01 - curL / 2;
+            shiftLx = lxMax + 0.02 - curL / 2;
             bumperName = "Mặt trước";
           } else if (rearCount > frontCount * 1.5) {
-            shiftLx = lxMin - 0.01 + curL / 2;
+            shiftLx = lxMin - 0.02 + curL / 2;
             bumperName = "Mặt sau";
           } else {
             shiftLx = (lxMin + lxMax) / 2;
@@ -3770,6 +4360,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
         shiftLx = Math.max(-0.35, Math.min(0.35, shiftLx));
+        if (Math.abs(shiftLx) < 5e-3) shiftLx = 0;
         newX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
         newY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
         const signX = shiftLx >= 0 ? "+" : "";
@@ -3783,37 +4374,39 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newH = curH;
         newZ = cz;
         let visibleSide = "center";
+        let shiftLy = 0;
+        const edgePadding = 0.025;
         if (options.egoPos) {
           const toEgoX = options.egoPos.x - cx;
           const toEgoY = options.egoPos.y - cy;
+          const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
           const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-          if (egoLocalY > 0.04) {
-            visibleSide = "left";
-          } else if (egoLocalY < -0.04) {
-            visibleSide = "right";
-          } else {
+          if (Math.abs(egoLocalY) <= Math.abs(egoLocalX) * 0.15 && Math.abs(egoLocalY) < 0.1) {
             visibleSide = "center";
+            shiftLy = (lyMin + lyMax) / 2;
+          } else if (egoLocalY >= 0) {
+            visibleSide = "left";
+            shiftLy = lyMax + edgePadding - curW / 2;
+          } else {
+            visibleSide = "right";
+            shiftLy = lyMin - edgePadding + curW / 2;
           }
         } else {
           const leftCount = bodyPts.filter((p) => p.ly > 0.03).length;
           const rightCount = bodyPts.filter((p) => p.ly < -0.03).length;
           if (leftCount > rightCount * 1.3) {
             visibleSide = "left";
+            shiftLy = lyMax + edgePadding - curW / 2;
           } else if (rightCount > leftCount * 1.3) {
             visibleSide = "right";
+            shiftLy = lyMin - edgePadding + curW / 2;
           } else {
             visibleSide = "center";
+            shiftLy = (lyMin + lyMax) / 2;
           }
         }
-        let shiftLy = 0;
-        if (visibleSide === "left") {
-          shiftLy = lyMax + 0.01 - curW / 2;
-        } else if (visibleSide === "right") {
-          shiftLy = lyMin - 0.01 + curW / 2;
-        } else {
-          shiftLy = (lyMin + lyMax) / 2;
-        }
         shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+        if (Math.abs(shiftLy) < 5e-3) shiftLy = 0;
         newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
         newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
         const signY = shiftLy >= 0 ? "+" : "";
@@ -3831,15 +4424,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (spanL > 0.78) {
           newL = 0.78;
           if (options.egoPos) {
-            const dxEgo = options.egoPos.x - cx;
-            const dyEgo = options.egoPos.y - cy;
-            const lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
-            if (lxEgo > 0.15) {
-              shiftLx = lxMax + 0.01 - newL / 2;
-            } else if (lxEgo < -0.15) {
-              shiftLx = lxMin - 0.01 + newL / 2;
-            } else {
+            const toEgoX = options.egoPos.x - cx;
+            const toEgoY = options.egoPos.y - cy;
+            const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
+            const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+            const isSideBeamParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * 0.466;
+            if (isSideBeamParallel) {
               shiftLx = (lxMin + lxMax) / 2;
+            } else if (egoLocalX < 0) {
+              shiftLx = lxMin - 0.02 + newL / 2;
+            } else {
+              shiftLx = lxMax + 0.02 - newL / 2;
             }
           } else {
             shiftLx = (lxMin + lxMax) / 2;
@@ -3898,7 +4493,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const currentBaseZ = cz - curH / 2;
         const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
         const roofTopZ = highestPtZ + headBuffer;
-        newH = Number(Math.max(1, Math.min(1.95, roofTopZ - effectiveBaseZ)).toFixed(2));
+        const maxCapPedH = options.headBuffer !== void 0 ? 1.95 : 1.78;
+        newH = Number(Math.max(1, Math.min(maxCapPedH, roofTopZ - effectiveBaseZ)).toFixed(2));
         newZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
         msg = `Đã fix Chiều Cao (H) Người đi bộ: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên đỉnh đầu +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
       } else {
@@ -3907,7 +4503,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const spanW = lyMax - lyMin + 0.04;
         newW = Number(Math.max(0.38, Math.min(0.68, spanW)).toFixed(2));
         const roofTopZ = highestPtZ + headBuffer;
-        newH = Number(Math.max(1.05, Math.min(1.95, roofTopZ - groundZ)).toFixed(2));
+        const maxCapPedH = options.headBuffer !== void 0 ? 1.95 : 1.78;
+        newH = Number(Math.max(1.05, Math.min(maxCapPedH, roofTopZ - groundZ)).toFixed(2));
         let shiftLx = (lxMin + lxMax) / 2;
         let shiftLy = (lyMin + lyMax) / 2;
         const maxShift = 0.4;
@@ -3965,7 +4562,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         };
       }
       const { count, array } = lidar;
-      const headBuffer = options.headBuffer ?? 0.05;
+      const headBuffer = options.headBuffer ?? 0.02;
       const margin = options.margin ?? 0.2;
       const footRadius = Math.max(0.6, curL / 2 + margin);
       const groundPts = [];
@@ -3988,7 +4585,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         groundZ = groundPts[Math.max(0, Math.floor(groundPts.length * 0.15))];
       }
       const minCoreZ = groundZ + 0.25;
-      const maxBodyZ = groundZ + 2.3;
+      const maxBodyZ = groundZ + 2;
       const minWheelZ = step === "side" || step === "front" ? groundZ + 0.02 : groundZ + 0.08;
       const outerL = curL / 2 + 0.45;
       const outerW = Math.max(curW, 0.85) / 2 + 0.45;
@@ -4005,12 +4602,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const dy = y - cy;
         const lx = dx * cosY - dy * sinY;
         const ly = dx * sinY + dy * cosY;
+        const intensity = lidar.getIntensityAt(i);
         if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
           if (z >= minCoreZ) {
-            corePts.push({ lx, ly, z });
+            corePts.push({ lx, ly, z, intensity });
           } else {
             if (Math.abs(ly) <= Math.max(0.25, curW / 2 + 0.08)) {
-              wheelPts.push({ lx, ly, z });
+              wheelPts.push({ lx, ly, z, intensity });
             }
           }
         }
@@ -4062,7 +4660,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const lxMax = allLx[pMaxIdx];
       const lyMin = allLy[pMinIdx];
       const lyMax = allLy[pMaxIdx];
-      const highestPtZ = allZ[allZ.length - 1];
+      const highestPtZ = detectTrueHeadZInMainWorld(allZ, 0.15, groundZ, 1.6);
       const normalizeRad = (r) => {
         let a = r;
         while (a > Math.PI) a -= 2 * Math.PI;
@@ -4094,8 +4692,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         sxy /= n;
         const deltaThetaPca = 0.5 * Math.atan2(2 * sxy, sxx - syy);
         const sorted = [...bodyPts].sort((a, b) => a.lx - b.lx);
-        const rearSlice = sorted.slice(0, Math.max(1, Math.floor(n * 0.18)));
-        const frontSlice = sorted.slice(Math.max(1, Math.floor(n * 0.82)));
+        const sliceCount = Math.max(1, Math.floor(n * 0.3));
+        const rearSlice = sorted.slice(0, sliceCount);
+        const frontSlice = sorted.slice(Math.max(sliceCount, n - sliceCount));
         const rearLx = rearSlice.reduce((s, p) => s + p.lx, 0) / rearSlice.length;
         const rearLy = rearSlice.reduce((s, p) => s + p.ly, 0) / rearSlice.length;
         const frontLx = frontSlice.reduce((s, p) => s + p.lx, 0) / frontSlice.length;
@@ -4103,7 +4702,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const dLx = frontLx - rearLx;
         const dLy = frontLy - rearLy;
         let deltaThetaExt = deltaThetaPca;
-        if (dLx >= 0.35) {
+        if (dLx >= 0.3) {
           deltaThetaExt = Math.atan2(dLy, dLx);
         }
         let dTheta = Math.abs(deltaThetaPca - deltaThetaExt) < 0.2 ? 0.7 * deltaThetaPca + 0.3 * deltaThetaExt : deltaThetaPca;
@@ -4142,19 +4741,27 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const distRear = hasRider ? lxRider - lxMin : curL / 2;
         const isMissingFront = hasRider && distFront < 0.28 * curL;
         const isMissingRear = hasRider && distRear < 0.38 * curL;
-        let lxEgo = null;
+        let toEgoX = 0;
+        let toEgoY = 0;
+        let egoLocalX = 0;
+        let egoLocalY = 0;
+        let hasEgo = false;
+        let isSideBeamParallel = false;
         if (options.egoPos) {
-          const dxEgo = options.egoPos.x - cx;
-          const dyEgo = options.egoPos.y - cy;
-          lxEgo = dxEgo * Math.cos(-yaw) - dyEgo * Math.sin(-yaw);
+          toEgoX = options.egoPos.x - cx;
+          toEgoY = options.egoPos.y - cy;
+          egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
+          egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+          hasEgo = true;
+          isSideBeamParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * 0.466;
         }
         if (isMissingFront && isMissingRear) {
           shiftLx = lxRider - 0.08 * curL;
           bumperName = "Người lái 42% (Mất cả 2 bánh)";
         } else if (isMissingFront) {
           const estFrontEdge = lxRider + 0.42 * curL;
-          if (lxEgo !== null && lxEgo < -0.3) {
-            shiftLx = lxMin + curL / 2;
+          if (hasEgo && !isSideBeamParallel && egoLocalX < 0) {
+            shiftLx = lxMin - 0.02 + curL / 2;
             bumperName = "Cản sau (Mất bánh trước)";
           } else {
             shiftLx = (lxMin + estFrontEdge) / 2;
@@ -4162,33 +4769,33 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         } else if (isMissingRear) {
           const estRearEdge = lxRider - 0.58 * curL;
-          if (lxEgo !== null && lxEgo > 0.3) {
-            shiftLx = lxMax - curL / 2;
+          if (hasEgo && !isSideBeamParallel && egoLocalX > 0) {
+            shiftLx = lxMax + 0.02 - curL / 2;
             bumperName = "Cản trước (Mất bánh sau)";
           } else {
             shiftLx = (estRearEdge + lxMax) / 2;
             bumperName = "Người lái 42% + Bánh trước (Mất bánh sau)";
           }
         } else {
-          if (lxEgo !== null) {
-            if (lxEgo > 0.4) {
-              shiftLx = lxMax - curL / 2;
-              bumperName = "Cản trước";
-            } else if (lxEgo < -0.4) {
-              shiftLx = lxMin + curL / 2;
-              bumperName = "Cản sau";
-            } else {
+          if (hasEgo) {
+            if (isSideBeamParallel) {
               shiftLx = (lxMin + lxMax) / 2;
-              bumperName = "Cân đối";
+              bumperName = "Chiếu ngang sườn (Dàn đều 2 bánh)";
+            } else if (egoLocalX < 0) {
+              shiftLx = lxMin - 0.03 + curL / 2;
+              bumperName = "Cản/Bánh sau đón tia";
+            } else {
+              shiftLx = lxMax + 0.03 - curL / 2;
+              bumperName = "Cản/Bánh trước đón tia";
             }
           } else {
             const frontCount = bodyPts.filter((p) => p.lx > 0).length;
             const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
             if (frontCount > rearCount * 1.5) {
-              shiftLx = lxMax - curL / 2;
+              shiftLx = lxMax + 0.03 - curL / 2;
               bumperName = "Cản trước";
             } else if (rearCount > frontCount * 1.5) {
-              shiftLx = lxMin + curL / 2;
+              shiftLx = lxMin - 0.03 + curL / 2;
               bumperName = "Cản sau";
             } else {
               shiftLx = (lxMin + lxMax) / 2;
@@ -4197,6 +4804,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
         shiftLx = Math.max(-0.6, Math.min(0.6, shiftLx));
+        if (Math.abs(shiftLx) < 5e-3) shiftLx = 0;
         newZ = cz;
         newX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
         newY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
@@ -4210,31 +4818,44 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newW = curW;
         newH = curH;
         newZ = cz;
-        let visibleSide;
+        let visibleSide = "center";
+        const edgePadding = 0.03;
+        let shiftLy = 0;
         if (options.egoPos) {
           const toEgoX = options.egoPos.x - cx;
           const toEgoY = options.egoPos.y - cy;
+          const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
           const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-          visibleSide = egoLocalY >= 0 ? "left" : "right";
+          if (Math.abs(egoLocalY) <= Math.abs(egoLocalX) * 0.15 && Math.abs(egoLocalY) < 0.15) {
+            visibleSide = "center";
+            shiftLy = (lyMin + lyMax) / 2;
+          } else if (egoLocalY >= 0) {
+            visibleSide = "left";
+            shiftLy = lyMax + edgePadding - curW / 2;
+          } else {
+            visibleSide = "right";
+            shiftLy = lyMin - edgePadding + curW / 2;
+          }
         } else {
           const leftCount = bodyPts.filter((p) => p.ly > 0.05).length;
           const rightCount = bodyPts.filter((p) => p.ly < -0.05).length;
-          visibleSide = leftCount >= rightCount ? "left" : "right";
-        }
-        const edgePadding = 0.05;
-        let shiftLy = 0;
-        if (lyMin <= -0.06 && lyMax >= 0.06) {
-          shiftLy = (lyMin + lyMax) / 2;
-        } else if (visibleSide === "left") {
-          shiftLy = lyMax + edgePadding - curW / 2;
-        } else {
-          shiftLy = lyMin - edgePadding + curW / 2;
+          if (leftCount > rightCount * 1.3) {
+            visibleSide = "left";
+            shiftLy = lyMax + edgePadding - curW / 2;
+          } else if (rightCount > leftCount * 1.3) {
+            visibleSide = "right";
+            shiftLy = lyMin - edgePadding + curW / 2;
+          } else {
+            visibleSide = "center";
+            shiftLy = (lyMin + lyMax) / 2;
+          }
         }
         shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+        if (Math.abs(shiftLy) < 5e-3) shiftLy = 0;
         newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
         newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
         const signY = shiftLy >= 0 ? "+" : "";
-        const sideText = visibleSide === "left" ? "Sườn Trái" : "Sườn Phải";
+        const sideText = visibleSide === "left" ? "Sườn Trái" : visibleSide === "right" ? "Sườn Phải" : "Cân đối 2 sườn";
         msg = `Đã căn FRONT Xe 2 bánh: [${sideText}] đón tia ăn khít phương W (ΔY: ${signY}${(shiftLy * 100).toFixed(1)}cm), giữ nguyên cao độ Z và kích thước (chuẩn Car)`;
       } else if (step === "w") {
         newYaw = yaw;
@@ -4291,7 +4912,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const currentBaseZ = cz - curH / 2;
         const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
         const roofTopZ = highestPtZ + headBuffer;
-        newH = Number(Math.max(1.1, Math.min(1.85, roofTopZ - effectiveBaseZ)).toFixed(2));
+        const maxCap2WH = options.headBuffer !== void 0 ? 1.85 : 1.68;
+        newH = Number(Math.max(1.05, Math.min(maxCap2WH, roofTopZ - effectiveBaseZ)).toFixed(2));
         newZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
         msg = `Đã fit Cao (H) Xe 2 bánh: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên nóc +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
       } else {
@@ -4330,7 +4952,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         newW = Number(Math.max(0.55, Math.min(0.85, measuredW)).toFixed(2));
         const roofTopZ = highestPtZ + headBuffer;
-        newH = Number(Math.max(1.1, Math.min(1.85, roofTopZ - groundZ)).toFixed(2));
+        const maxCap2WH = options.headBuffer !== void 0 ? 1.85 : 1.68;
+        newH = Number(Math.max(1.05, Math.min(maxCap2WH, roofTopZ - groundZ)).toFixed(2));
         newZ = Number((groundZ + newH / 2).toFixed(3));
         const cosW = Math.cos(newYaw);
         const sinW = Math.sin(newYaw);
@@ -4504,6 +5127,171 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         pointsCount: candidateBodyPts.length
       };
     }
+    const mainWorldLabelsCache = /* @__PURE__ */ new Map();
+    function updateMainWorldLabels(job) {
+      var _a, _b, _c, _d, _e, _f, _g;
+      try {
+        const store = getReduxStore();
+        const storeJob = ((_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.job) == null ? void 0 : _c.instance) || job;
+        const labels = (storeJob == null ? void 0 : storeJob.labels) || ((_d = storeJob == null ? void 0 : storeJob.task) == null ? void 0 : _d.labels) || ((_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.job) == null ? void 0 : _g.labels);
+        if (Array.isArray(labels)) {
+          for (const l of labels) {
+            if (l && l.id !== void 0) {
+              mainWorldLabelsCache.set(Number(l.id), {
+                name: l.name || "Object",
+                color: l.color || "#3b82f6"
+              });
+            }
+          }
+        }
+      } catch (_) {
+      }
+    }
+    function resolveLabelName(stateOrShape) {
+      if ((stateOrShape == null ? void 0 : stateOrShape.label) && typeof stateOrShape.label.name === "string" && stateOrShape.label.name.trim()) {
+        return {
+          name: stateOrShape.label.name.trim(),
+          color: stateOrShape.label.color || "#22c55e"
+        };
+      }
+      const lblId = (stateOrShape == null ? void 0 : stateOrShape.labelID) ?? (stateOrShape == null ? void 0 : stateOrShape.labelId) ?? (stateOrShape == null ? void 0 : stateOrShape.label_id);
+      if (lblId !== void 0 && mainWorldLabelsCache.has(Number(lblId))) {
+        return mainWorldLabelsCache.get(Number(lblId));
+      }
+      return { name: "Car", color: "#22c55e" };
+    }
+    function center3DViewOnObject(uiId, targetPos) {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
+      try {
+        const store = getReduxStore();
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (!canvas || !canvas.view) return false;
+        try {
+          if (typeof canvas.center === "function") {
+            canvas.center(uiId);
+          }
+          if (typeof ((_d = canvas.view) == null ? void 0 : _d.center) === "function") {
+            canvas.view.center(uiId);
+          }
+          if (typeof ((_e = canvas.view) == null ? void 0 : _e.focus) === "function") {
+            canvas.view.focus(uiId);
+          }
+        } catch (_) {
+        }
+        let pos = targetPos;
+        if (!pos) {
+          const drawn = (_g = (_f = canvas.view) == null ? void 0 : _f.drawnObjects) == null ? void 0 : _g[String(uiId)];
+          if (((_h = drawn == null ? void 0 : drawn.data) == null ? void 0 : _h.points) && Array.isArray(drawn.data.points)) {
+            pos = {
+              x: drawn.data.points[0],
+              y: drawn.data.points[1],
+              z: drawn.data.points[2]
+            };
+          }
+        }
+        if (!pos || typeof pos.x !== "number" || isNaN(pos.x)) return false;
+        const views = canvas.view.views;
+        if (views) {
+          const pView = views.perspective;
+          if ((_i = pView == null ? void 0 : pView.controls) == null ? void 0 : _i.target) {
+            const curTarget = pView.controls.target;
+            const deltaX = pos.x - curTarget.x;
+            const deltaY = pos.y - curTarget.y;
+            const deltaZ = pos.z - curTarget.z;
+            curTarget.set(pos.x, pos.y, pos.z);
+            if (pView.camera) {
+              pView.camera.position.x += deltaX;
+              pView.camera.position.y += deltaY;
+              pView.camera.position.z += deltaZ;
+              pView.camera.lookAt(pos.x, pos.y, pos.z);
+            }
+            if (typeof pView.controls.update === "function") {
+              pView.controls.update();
+            }
+          }
+          for (const viewName of ["top", "side", "front"]) {
+            const oView = views[viewName];
+            if (oView) {
+              if ((_j = oView.controls) == null ? void 0 : _j.target) {
+                oView.controls.target.set(pos.x, pos.y, pos.z);
+                if (typeof oView.controls.update === "function") {
+                  oView.controls.update();
+                }
+              }
+              if (typeof oView.updateControls === "function") {
+                oView.updateControls();
+              }
+            }
+          }
+          if (typeof canvas.render === "function") {
+            canvas.render();
+          }
+        }
+        return true;
+      } catch (err) {
+        console.warn("[CVAT 3D Suite] Lỗi center3DViewOnObject:", err);
+        return false;
+      }
+    }
+    let autoCenterOnFrameChange = true;
+    let lastActiveTrackId = null;
+    function lockOnActiveObjectAtFrame(targetId, targetFrame, attempt = 0) {
+      var _a, _b, _c, _d, _e, _f;
+      if (!autoCenterOnFrameChange) return;
+      if (targetId === null || targetId === void 0 || isNaN(targetId)) return;
+      try {
+        const store = getReduxStore();
+        const anno = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation;
+        const canvas = (_b = anno == null ? void 0 : anno.canvas) == null ? void 0 : _b.instance;
+        let foundPos = null;
+        const drawnItem = (_d = (_c = canvas == null ? void 0 : canvas.view) == null ? void 0 : _c.drawnObjects) == null ? void 0 : _d[String(targetId)];
+        if (((_e = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _e.points) && Array.isArray(drawnItem.data.points)) {
+          foundPos = {
+            x: drawnItem.data.points[0],
+            y: drawnItem.data.points[1],
+            z: drawnItem.data.points[2]
+          };
+        }
+        if (!foundPos) {
+          const states = ((_f = anno == null ? void 0 : anno.annotations) == null ? void 0 : _f.states) || [];
+          const matched = states.find(
+            (s) => s.clientID === targetId || s.parentID === targetId || s.trackID === targetId
+          );
+          if (matched && Array.isArray(matched.points) && matched.points.length >= 3) {
+            foundPos = {
+              x: matched.points[0],
+              y: matched.points[1],
+              z: matched.points[2]
+            };
+          }
+        }
+        if (foundPos && typeof foundPos.x === "number" && !isNaN(foundPos.x)) {
+          center3DViewOnObject(targetId, foundPos);
+          if (canvas && typeof canvas.activate === "function") {
+            try {
+              canvas.activate(targetId);
+              if (typeof canvas.render === "function") {
+                canvas.render();
+              }
+            } catch (_) {
+            }
+          }
+          return;
+        }
+        const delays = [30, 70, 140, 250];
+        if (attempt < delays.length) {
+          setTimeout(() => {
+            var _a2, _b2, _c2, _d2, _e2, _f2;
+            const curF = ((_b2 = (_a2 = anno == null ? void 0 : anno.player) == null ? void 0 : _a2.frame) == null ? void 0 : _b2.number) ?? ((_f2 = (_e2 = (_d2 = (_c2 = store == null ? void 0 : store.getState()) == null ? void 0 : _c2.annotation) == null ? void 0 : _d2.job) == null ? void 0 : _e2.instance) == null ? void 0 : _f2.frame);
+            if (curF === targetFrame) {
+              lockOnActiveObjectAtFrame(targetId, targetFrame, attempt + 1);
+            }
+          }, delays[attempt]);
+        }
+      } catch (err) {
+        console.warn("[CVAT 3D Suite] Lỗi lockOnActiveObjectAtFrame:", err);
+      }
+    }
     function updateThreeJsCuboid(uiId, newYaw, newPos, newScale, newRot) {
       var _a, _b, _c, _d;
       try {
@@ -4554,6 +5342,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             cuboid.setPosition(newPos.x, newPos.y, newPos.z);
           }
         }
+        if (newPos) {
+          center3DViewOnObject(uiId, newPos);
+        } else {
+          center3DViewOnObject(uiId);
+        }
         if (typeof canvas.render === "function") {
           canvas.render();
         }
@@ -4564,18 +5357,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
     function extractObjectDetails(clientId) {
-      var _a, _b, _c, _d, _e, _f, _g;
+      var _a, _b, _c, _d, _e;
       try {
         const store = getReduxStore();
         const anno = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation;
         const canvas = (_b = anno == null ? void 0 : anno.canvas) == null ? void 0 : _b.instance;
+        updateMainWorldLabels();
         const drawnItem = (_d = (_c = canvas == null ? void 0 : canvas.view) == null ? void 0 : _c.drawnObjects) == null ? void 0 : _d[String(clientId)];
         if (drawnItem && drawnItem.data && Array.isArray(drawnItem.data.points)) {
           const p = drawnItem.data.points;
+          const resolved = resolveLabelName(drawnItem.data);
           return {
             clientId,
             serverId: drawnItem.data.serverID || null,
-            label: ((_e = drawnItem.data.label) == null ? void 0 : _e.name) || "Car",
+            label: resolved.name,
+            color: resolved.color,
             x: Number(p[0].toFixed(2)),
             y: Number(p[1].toFixed(2)),
             z: Number(p[2].toFixed(3)),
@@ -4586,14 +5382,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             points: [...p]
           };
         }
-        const states = ((_f = anno == null ? void 0 : anno.annotations) == null ? void 0 : _f.states) || [];
+        const states = ((_e = anno == null ? void 0 : anno.annotations) == null ? void 0 : _e.states) || [];
         const matched = states.find((s) => s.clientID === clientId);
         if (matched && Array.isArray(matched.points)) {
           const p = matched.points;
+          const resolved = resolveLabelName(matched);
           return {
             clientId,
             serverId: matched.serverID || null,
-            label: ((_g = matched.label) == null ? void 0 : _g.name) || "Car",
+            label: resolved.name,
+            color: resolved.color,
             x: Number(p[0].toFixed(2)),
             y: Number(p[1].toFixed(2)),
             z: Number(p[2].toFixed(3)),
@@ -4841,17 +5639,35 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (store2) {
           let prevActiveId = null;
           let prevStatesLen = 0;
+          let prevFrame = null;
           let activeDebounceTimer = null;
           let dirtyDebounceTimer = null;
           store2.subscribe(() => {
-            var _a, _b, _c, _d;
+            var _a, _b, _c, _d, _e, _f, _g, _h;
             try {
               const anno = (_a = store2.getState()) == null ? void 0 : _a.annotation;
               const curActiveId = (_b = anno == null ? void 0 : anno.annotations) == null ? void 0 : _b.activatedStateClientID;
               const curStatesLen = ((_d = (_c = anno == null ? void 0 : anno.annotations) == null ? void 0 : _c.states) == null ? void 0 : _d.length) || 0;
+              const curFrame = ((_f = (_e = anno == null ? void 0 : anno.player) == null ? void 0 : _e.frame) == null ? void 0 : _f.number) ?? ((_h = (_g = anno == null ? void 0 : anno.job) == null ? void 0 : _g.instance) == null ? void 0 : _h.frame);
+              if (curFrame !== void 0 && curFrame !== null && curFrame !== prevFrame) {
+                const oldFrame = prevFrame;
+                prevFrame = curFrame;
+                if (oldFrame !== null) {
+                  window.dispatchEvent(
+                    new CustomEvent("CVAT_EXT_RES_FRAME_CHANGED", {
+                      detail: { frame: curFrame, prevFrame: oldFrame }
+                    })
+                  );
+                  const activeIdToLock = curActiveId !== null && curActiveId !== void 0 ? Number(curActiveId) : lastActiveTrackId;
+                  if (activeIdToLock !== null && !isNaN(activeIdToLock)) {
+                    lockOnActiveObjectAtFrame(activeIdToLock, curFrame);
+                  }
+                }
+              }
               if (curActiveId !== prevActiveId) {
                 prevActiveId = curActiveId;
                 if (curActiveId !== null && curActiveId !== void 0) {
+                  lastActiveTrackId = Number(curActiveId);
                   if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
                   activeDebounceTimer = setTimeout(() => {
                     activeDebounceTimer = null;
@@ -4880,40 +5696,103 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       window.addEventListener("CVAT_EXT_REQ_ACTIVATE_OBJECT", (e) => {
         var _a, _b, _c, _d, _e, _f, _g;
-        const { clientId } = e.detail || {};
-        if (!clientId) return;
+        const { clientId, pos } = e.detail || {};
+        if (clientId === void 0 || clientId === null) return;
+        const numId = Number(clientId);
+        lastActiveTrackId = numId;
         try {
           const store2 = getReduxStore();
           const canvas = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
           if (canvas && typeof canvas.activate === "function") {
             const curActive = ((_d = canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
-            if (curActive !== clientId) {
-              canvas.activate(clientId);
+            if (curActive !== numId) {
+              canvas.activate(numId);
               if (typeof canvas.render === "function") {
                 canvas.render();
               }
             }
           }
+          if (store2 && typeof store2.dispatch === "function") {
+            try {
+              store2.dispatch({
+                type: "ACTIVATE_OBJECT",
+                payload: { activatedStateClientID: numId, activatedElementID: numId }
+              });
+            } catch (_) {
+            }
+          }
+          try {
+            const sidebarItem = document.querySelector(`#cvat-objects-sidebar-state-item-${numId}`) || document.querySelector(`[data-cvat-state-item-id="${numId}"]`) || document.querySelector(`[class*="cvat-objects-sidebar-state-item"][id*="${numId}"]`);
+            if (sidebarItem) {
+              sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+              const allItems = document.querySelectorAll("[class*='cvat-objects-sidebar-state-item']");
+              allItems.forEach((el) => el.classList.remove("cvat-objects-sidebar-state-item-active", "selected"));
+              sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
+            }
+          } catch (_) {
+          }
+          center3DViewOnObject(numId, pos);
         } catch (err) {
+        }
+      });
+      window.addEventListener("CVAT_EXT_REQ_SET_ACTIVE_TRACK", (e) => {
+        const { trackId } = e.detail || {};
+        if (trackId !== void 0 && trackId !== null && !isNaN(Number(trackId))) {
+          lastActiveTrackId = Number(trackId);
+        }
+      });
+      window.addEventListener("CVAT_EXT_REQ_SET_AUTO_CENTER_FRAME", (e) => {
+        const { enabled } = e.detail || {};
+        if (typeof enabled === "boolean") {
+          autoCenterOnFrameChange = enabled;
+          console.log(`[CVAT 3D Suite] Đã ${enabled ? "BẬT" : "TẮT"} tính năng Ghim Tâm khi tua frame.`);
+        }
+      });
+      window.addEventListener("CVAT_EXT_REQ_CENTER_OBJECT", (e) => {
+        const { clientId, pos } = e.detail || {};
+        if (clientId !== void 0 && clientId !== null) {
+          center3DViewOnObject(Number(clientId), pos);
         }
       });
     }
     setTimeout(() => setupCanvasAutoSelect(), 1500);
     window.addEventListener("CVAT_EXT_REQ_FRAME_TRACKS", async (e) => {
+      var _a, _b, _c;
       const { jobId, frame } = e.detail || {};
       try {
-        const job = await getActiveJobInstance(jobId);
-        if (!job) throw new Error("Không tìm thấy Job Instance của CVAT");
-        const annotations = await job.annotations.get(frame);
-        const list = annotations.filter((s) => s.shapeType === "cuboid" && Array.isArray(s.points) && s.points.length >= 9).map((s) => {
-          var _a;
+        let job = await getActiveJobInstance(jobId);
+        let annotations = [];
+        if (job) {
+          updateMainWorldLabels(job);
+          try {
+            annotations = await job.annotations.get(frame);
+          } catch (fErr) {
+            annotations = [];
+          }
+        } else {
+          const store = getReduxStore();
+          const reduxStates = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.states;
+          if (Array.isArray(reduxStates) && reduxStates.length > 0) {
+            annotations = reduxStates;
+          } else {
+            window.dispatchEvent(
+              new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS", {
+                detail: { success: false, loading: true, frame, list: [] }
+              })
+            );
+            return;
+          }
+        }
+        const list = annotations.filter((s) => s && s.shapeType === "cuboid" && Array.isArray(s.points) && s.points.length >= 9 && typeof s.clientID === "number").map((s) => {
           const p = s.points;
+          const resolved = resolveLabelName(s);
           return {
             uiId: s.clientID,
-            // SỐ 1, 2 HIỂN THỊ CHUẨN XÁC 100% TRÊN GIAO DIỆN!
+            // SỐ CLIENT_ID HIỂN THỊ CHUẨN XÁC 100% TRÊN GIAO DIỆN!
             serverId: s.serverID,
-            // SỐ 31, 32 LƯU DƯỚI CƠ SỞ DỮ LIỆU
-            label: ((_a = s.label) == null ? void 0 : _a.name) || "Car",
+            // SỐ SERVER_ID LƯU DƯỚI CƠ SỞ DỮ LIỆU
+            label: resolved.name,
+            color: resolved.color,
             x: Number(p[0].toFixed(2)),
             y: Number(p[1].toFixed(2)),
             z: Number(p[2].toFixed(3)),
@@ -4937,14 +5816,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     });
     window.addEventListener("CVAT_EXT_REQ_GET_TRACK_ALL_FRAMES", async (e) => {
-      var _a, _b;
       const { jobId, uiId, serverId } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
         if (!job) throw new Error("Không tìm thấy Job Instance của CVAT");
+        updateMainWorldLabels(job);
         const framesMap = /* @__PURE__ */ new Map();
         const parentTrack = await findTrackInJob(job, uiId, serverId);
-        const trackLabel = ((_a = parentTrack == null ? void 0 : parentTrack.label) == null ? void 0 : _a.name) || "Vehicle";
+        const trackLabel = resolveLabelName(parentTrack).name;
         if (parentTrack) {
           const shapes = toArray(parentTrack.shapes || parentTrack.keyframes);
           for (const sh of shapes) {
@@ -4954,7 +5833,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 isKeyframe: true,
                 outside: !!sh.outside,
                 points: [...sh.points],
-                label: trackLabel
+                label: resolveLabelName(sh).name || trackLabel
               });
             }
           }
@@ -4975,7 +5854,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                   isKeyframe: existing ? existing.isKeyframe : !!st.keyframe,
                   outside: !!st.outside,
                   points: [...st.points],
-                  label: ((_b = st.label) == null ? void 0 : _b.name) || trackLabel
+                  label: resolveLabelName(st).name || trackLabel
                 });
               }
             }
@@ -5142,6 +6021,56 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       } catch (err) {
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_GET_LIDAR_POINTS", {
+            detail: { success: false, error: err.message || String(err) }
+          })
+        );
+      }
+    });
+    window.addEventListener("CVAT_EXT_REQ_GET_ROI_LIDAR_POINTS", (e) => {
+      try {
+        const { center, radius = 4, maxPoints = 25e3 } = e.detail || {};
+        const lidar = getSceneLidarPoints();
+        if (!lidar || !lidar.array) {
+          window.dispatchEvent(
+            new CustomEvent("CVAT_EXT_RES_GET_ROI_LIDAR_POINTS", {
+              detail: { success: false, error: "Không tìm thấy buffer điểm LiDAR trong Three.js scene" }
+            })
+          );
+          return;
+        }
+        const arr = lidar.array;
+        const count = lidar.count;
+        const sampled = [];
+        if (Array.isArray(center) && center.length >= 3) {
+          const [cx, cy, cz] = center;
+          const rSq = radius * radius;
+          const maxDz = Math.max(3, radius * 0.85);
+          for (let i = 0; i < count; i++) {
+            const px = arr[i * 3];
+            const py = arr[i * 3 + 1];
+            const pz = arr[i * 3 + 2];
+            const dx = px - cx;
+            const dy = py - cy;
+            const dz = Math.abs(pz - cz);
+            if (dx * dx + dy * dy <= rSq && dz <= maxDz) {
+              sampled.push(px, py, pz);
+              if (sampled.length >= maxPoints * 3) break;
+            }
+          }
+        } else {
+          const step = Math.max(1, Math.floor(count / maxPoints));
+          for (let i = 0; i < count; i += step) {
+            sampled.push(arr[i * 3], arr[i * 3 + 1], arr[i * 3 + 2]);
+          }
+        }
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_GET_ROI_LIDAR_POINTS", {
+            detail: { success: true, points: sampled, totalCount: sampled.length / 3 }
+          })
+        );
+      } catch (err) {
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_GET_ROI_LIDAR_POINTS", {
             detail: { success: false, error: err.message || String(err) }
           })
         );
@@ -5518,12 +6447,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           const curL = newPoints[6] || 4.6;
           const curW2 = newPoints[7] || 1.85;
           const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW2 / 2, curH / 2, false, false);
-          if (groundInfo.isFallbackZeroGround || groundInfo.groundPointsCount < 6) {
-            const baseZ = groundInfo.groundZ !== null ? groundInfo.groundZ : 0;
+          if (groundInfo.isFallbackZeroGround || groundInfo.groundPointsCount < 10) {
+            const baseZ = groundInfo.groundZ !== null ? groundInfo.groundZ : -1.75;
             newRotX = 0;
             newRotY = 0;
             newZ = Number((baseZ + curH / 2).toFixed(3));
-            msg = `Chưa đủ point cloud mặt đất (${groundInfo.groundPointsCount} điểm) ➔ Fit độ cao & góc thẳng theo Ego (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
+            msg = `Point mặt đất quá ít (${groundInfo.groundPointsCount} điểm) ➔ Auto 100% lấy Z Ego làm chuẩn 0° (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
           } else if (groundInfo.groundZ !== null) {
             const cosPitch = Math.cos(groundInfo.pitchRad);
             const cosRoll = Math.cos(groundInfo.rollRad);
@@ -6396,7 +7325,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     });
     window.addEventListener("CVAT_EXT_REQ_SET_TRACK_OUTSIDE", async (e) => {
-      var _a, _b, _c;
+      var _a, _b, _c, _d, _e, _f, _g;
       const { jobId, frame, uiId, serverId, outside = true } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
@@ -6425,59 +7354,100 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               countModified++;
             }
             if (typeof parentTrack.save === "function") {
-              await parentTrack.save();
+              try {
+                await parentTrack.save();
+              } catch (pSaveErr) {
+                console.warn("[CVAT 3D Suite] Lưu parentTrack trong SET_TRACK_OUTSIDE:", pSaveErr);
+              }
             }
           }
         }
-        if (countModified === 0) {
-          const startF = typeof job.startFrame === "number" ? job.startFrame : 0;
-          const stopF = typeof job.stopFrame === "number" ? job.stopFrame : startF + 300;
-          for (let f = startF; f <= stopF; f++) {
-            try {
-              const states = await job.annotations.get(f);
-              if (Array.isArray(states)) {
-                const st = states.find(
-                  (s) => Number(s.clientID) === Number(uiId) || serverId && Number(s.serverID) === Number(serverId) || parentID && (Number(s.clientID) === Number(parentID) || Number(s.parentID) === Number(parentID))
-                );
-                if (st) {
+        const startF = typeof job.startFrame === "number" ? job.startFrame : 0;
+        const stopF = typeof job.stopFrame === "number" ? job.stopFrame : startF + 300;
+        for (let f = startF; f <= stopF; f++) {
+          try {
+            const states = await job.annotations.get(f);
+            if (Array.isArray(states)) {
+              const st = states.find(
+                (s) => Number(s.clientID) === Number(uiId) || serverId && Number(s.serverID) === Number(serverId) || parentID && (Number(s.clientID) === Number(parentID) || Number(s.parentID) === Number(parentID))
+              );
+              if (st) {
+                if (!previousStates.some((ps) => ps.frame === f)) {
                   previousStates.push({
                     frame: f,
                     outside: !!st.outside,
                     points: Array.isArray(st.points) ? [...st.points] : []
                   });
-                  st.outside = !!outside;
-                  if (typeof st.save === "function") {
-                    await st.save();
-                  }
-                  countModified++;
                 }
+                st.outside = !!outside;
+                if (typeof st.save === "function") {
+                  try {
+                    await st.save();
+                  } catch (stErr) {
+                  }
+                }
+                countModified++;
               }
-            } catch (e2) {
             }
+          } catch (e2) {
           }
         }
-        if (countModified === 0 && currentTarget) {
-          previousStates.push({
-            frame: currentFrame,
-            outside: !!currentTarget.outside,
-            points: Array.isArray(currentTarget.points) ? [...currentTarget.points] : []
-          });
+        if (currentTarget) {
           currentTarget.outside = !!outside;
           if (typeof currentTarget.save === "function") {
-            await currentTarget.save();
+            try {
+              await currentTarget.save();
+            } catch (cErr) {
+            }
           }
-          countModified = 1;
         }
         if (countModified === 0) {
           throw new Error(`Không tìm thấy Track hoặc Shape #${uiId} trong toàn bộ Job`);
         }
-        markCvatSaveButtonUnsaved();
         const store = getReduxStore();
         const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (canvas && canvas.view && canvas.view.drawnObjects) {
+          const drawnItem = canvas.view.drawnObjects[String(uiId)];
+          if (drawnItem) {
+            if (drawnItem.data) {
+              drawnItem.data.outside = !!outside;
+              drawnItem.data.updated = true;
+            }
+            if (drawnItem.cuboid) {
+              const isVis = !outside;
+              if (drawnItem.cuboid.perspective) drawnItem.cuboid.perspective.visible = isVis;
+              if (drawnItem.cuboid.top) drawnItem.cuboid.top.visible = isVis;
+              if (drawnItem.cuboid.side) drawnItem.cuboid.side.visible = isVis;
+              if (drawnItem.cuboid.front) drawnItem.cuboid.front.visible = isVis;
+              if (typeof drawnItem.cuboid.visible === "boolean") drawnItem.cuboid.visible = isVis;
+            }
+          }
+          const activeId = (_d = canvas.view) == null ? void 0 : _d.activatedElementID;
+          if (outside && (Number(activeId) === Number(uiId) || String(activeId) === String(uiId))) {
+            if (typeof canvas.activate === "function") {
+              try {
+                canvas.activate(null);
+              } catch (aErr) {
+              }
+            }
+          }
+        }
+        try {
+          const reduxStates = (_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.states;
+          if (Array.isArray(reduxStates)) {
+            const matchedState = reduxStates.find((s) => Number(s.clientID) === Number(uiId));
+            if (matchedState) {
+              matchedState.outside = !!outside;
+            }
+          }
+        } catch (rErr) {
+        }
+        markCvatSaveButtonUnsaved();
         if (canvas && typeof canvas.render === "function") {
           canvas.render();
         }
-        const msg = `Đã đánh dấu ${outside ? "Outside" : "Inside"} cho ${countModified} frame của xe #${uiId}`;
+        window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS_DIRTY"));
+        const msg = `Đã đánh dấu ${outside ? "Outside (Ẩn)" : "Inside (Hiện)"} cho ${countModified} frame của xe #${uiId} (Realtime)`;
         console.log(`[CVAT 3D Suite] ${msg}`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_SET_TRACK_OUTSIDE", {
@@ -6501,7 +7471,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     });
     window.addEventListener("CVAT_EXT_REQ_RESTORE_BOX", async (e) => {
-      var _a, _b, _c;
+      var _a, _b, _c, _d, _e, _f;
       const { jobId, frame, uiId, serverId, applyToTrack, boxPoints, trackShapesBackup } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
@@ -6578,9 +7548,28 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             console.warn("[CVAT 3D Suite] Khôi phục frame hiện tại:", curErr);
           }
         }
+        const currentBackup = trackShapesBackup == null ? void 0 : trackShapesBackup.find((b) => b.frame === currentFrame);
+        if (currentBackup && currentBackup.outside !== void 0) {
+          const store2 = getReduxStore();
+          const canvas2 = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+          if (canvas2 && canvas2.view && canvas2.view.drawnObjects) {
+            const drawnItem = canvas2.view.drawnObjects[String(uiId)];
+            if (drawnItem) {
+              drawnItem.data.outside = !!currentBackup.outside;
+              if (drawnItem.cuboid) {
+                const isVis = !currentBackup.outside;
+                if (drawnItem.cuboid.perspective) drawnItem.cuboid.perspective.visible = isVis;
+                if (drawnItem.cuboid.top) drawnItem.cuboid.top.visible = isVis;
+                if (drawnItem.cuboid.side) drawnItem.cuboid.side.visible = isVis;
+                if (drawnItem.cuboid.front) drawnItem.cuboid.front.visible = isVis;
+                if (typeof drawnItem.cuboid.visible === "boolean") drawnItem.cuboid.visible = isVis;
+              }
+            }
+          }
+        }
         markCvatSaveButtonUnsaved();
         const store = getReduxStore();
-        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        const canvas = (_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.canvas) == null ? void 0 : _f.instance;
         if (canvas && typeof canvas.render === "function") {
           canvas.render();
         }
@@ -6605,15 +7594,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     });
     window.addEventListener("CVAT_EXT_REQ_SHIFT_CENTER", async (e) => {
-      const { jobId, frame, uiId, serverId, deltaXLocal = 0, deltaYLocal = 0, applyToTrack = false } = e.detail || {};
+      const { jobId, frame, uiId, serverId, deltaXLocal = 0, deltaYLocal = 0, deltaZ = 0, applyToTrack = false, isWorld = false } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
         const yaw = target.points[5] || 0;
         const cosYaw = Math.cos(yaw);
         const sinYaw = Math.sin(yaw);
-        const deltaXWorld = deltaXLocal * cosYaw - deltaYLocal * sinYaw;
-        const deltaYWorld = deltaXLocal * sinYaw + deltaYLocal * cosYaw;
+        let deltaXWorld = deltaXLocal;
+        let deltaYWorld = deltaYLocal;
+        if (!isWorld) {
+          deltaXWorld = deltaXLocal * cosYaw - deltaYLocal * sinYaw;
+          deltaYWorld = deltaXLocal * sinYaw + deltaYLocal * cosYaw;
+        }
         let framesShifted = 1;
         if (applyToTrack) {
           const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
@@ -6623,6 +7616,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 const pts = [...sh.points];
                 pts[0] = Number((pts[0] + deltaXWorld).toFixed(3));
                 pts[1] = Number((pts[1] + deltaYWorld).toFixed(3));
+                if (deltaZ !== 0) {
+                  pts[2] = Number((pts[2] + deltaZ).toFixed(3));
+                }
                 sh.points = pts;
                 framesShifted++;
               }
@@ -6633,6 +7629,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const currentPts = [...target.points];
         currentPts[0] = Number((currentPts[0] + deltaXWorld).toFixed(3));
         currentPts[1] = Number((currentPts[1] + deltaYWorld).toFixed(3));
+        if (deltaZ !== 0) {
+          currentPts[2] = Number((currentPts[2] + deltaZ).toFixed(3));
+        }
         target.points = currentPts;
         if (!isDrawn && typeof target.save === "function") {
           await target.save();
@@ -6642,11 +7641,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           yaw,
           { x: currentPts[0], y: currentPts[1], z: currentPts[2] },
           { l: currentPts[6], w: currentPts[7], h: currentPts[8] },
-          { rx: 0, ry: 0, rz: yaw }
+          { rx: currentPts[3] || 0, ry: currentPts[4] || 0, rz: yaw }
         );
         markCvatSaveButtonUnsaved();
         const scopeText = applyToTrack ? `toàn bộ ${framesShifted} frames trong track` : `frame #${frame}`;
-        const msg = `Đã vi chỉnh Center (ΔX: ${deltaXLocal > 0 ? "+" : ""}${(deltaXLocal * 100).toFixed(0)}cm, ΔY: ${deltaYLocal > 0 ? "+" : ""}${(deltaYLocal * 100).toFixed(0)}cm) cho ${scopeText}`;
+        const msg = `Đã vi chỉnh Center (${isWorld ? "Screen Space" : "Local"} ΔX: ${deltaXWorld > 0 ? "+" : ""}${(deltaXWorld * 100).toFixed(1)}cm, ΔY: ${deltaYWorld > 0 ? "+" : ""}${(deltaYWorld * 100).toFixed(1)}cm, ΔZ: ${deltaZ > 0 ? "+" : ""}${(deltaZ * 100).toFixed(1)}cm) cho ${scopeText}`;
         console.log(`[CVAT 3D Suite] ${msg}`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_SHIFT_CENTER", {
@@ -6655,8 +7654,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               uiId,
               newX: currentPts[0],
               newY: currentPts[1],
+              newZ: currentPts[2],
               deltaXLocal,
               deltaYLocal,
+              deltaZ,
               framesShifted,
               message: msg
             }
@@ -6671,8 +7672,186 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         );
       }
     });
+    window.addEventListener("CVAT_EXT_REQ_FIT_DIMENSION", async (e) => {
+      const { jobId, frame, uiId, serverId, dimension = "w", applyToTrack = false } = e.detail || {};
+      try {
+        const job = await getActiveJobInstance(jobId);
+        const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+        const cx = target.points[0];
+        const cy = target.points[1];
+        const cz = target.points[2];
+        const rx = target.points[3] || 0;
+        const ry = target.points[4] || 0;
+        const yaw = target.points[5] || 0;
+        const curL = target.points[6] || 4.65;
+        const curW = target.points[7] || 1.85;
+        const curH = target.points[8] || 1.45;
+        const lidar = getSceneLidarPoints();
+        if (!lidar || lidar.count === 0) {
+          throw new Error("Không tìm thấy điểm LiDAR trong scene");
+        }
+        const { count, array } = lidar;
+        const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, curL / 2, curW / 2, curH / 2, false, false);
+        const groundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : cz - curH / 2;
+        const cosY = Math.cos(-yaw);
+        const sinY = Math.sin(-yaw);
+        const minBodyZ = groundZ + 0.2;
+        const maxRoofZ = groundZ + 4;
+        const searchHalfL = curL / 2 + 0.55;
+        const searchHalfW = curW / 2 + 0.45;
+        const rawBodyPts = [];
+        for (let i = 0; i < count; i++) {
+          const z = array[i * 3 + 2];
+          if (z < minBodyZ || z > maxRoofZ) continue;
+          const x = array[i * 3];
+          const y = array[i * 3 + 1];
+          const dx = x - cx;
+          const dy = y - cy;
+          const lx = dx * cosY - dy * sinY;
+          const ly = dx * sinY + dy * cosY;
+          if (Math.abs(lx) <= searchHalfL && Math.abs(ly) <= searchHalfW) {
+            rawBodyPts.push({ lx, ly, z });
+          }
+        }
+        if (rawBodyPts.length < 5) {
+          throw new Error(`Cụm điểm quá thưa (${rawBodyPts.length} điểm), không đủ để fit tự động!`);
+        }
+        const clLy = filterDenseConnectedCluster1D2(rawBodyPts, "ly", 0.2, 0);
+        const bodyPts = filterDenseConnectedCluster1D2(clLy, "lx", 0.2, 0);
+        const finalPts = bodyPts.length >= 5 ? bodyPts : rawBodyPts;
+        let newL = curL;
+        let newW = curW;
+        let newH = curH;
+        let newX = cx;
+        let newY = cy;
+        let newZ = cz;
+        let dimMessage = "";
+        if (dimension === "w") {
+          const leftWall = detectDominantWallEdgeWithValleyCutoff2(finalPts, "ly", "positive", curW / 2, { binSize: 0.03 });
+          const rightWall = detectDominantWallEdgeWithValleyCutoff2(finalPts, "ly", "negative", curW / 2, { binSize: 0.03 });
+          const measuredW = Math.max(0.4, Math.min(3.5, Number((leftWall.edge - rightWall.edge).toFixed(3))));
+          newW = Number((measuredW + 0.08).toFixed(2));
+          const shiftLy = Number(((leftWall.edge + rightWall.edge) / 2).toFixed(3));
+          if (Math.abs(shiftLy) < 0.2) {
+            newX = Number((cx - shiftLy * sinY).toFixed(3));
+            newY = Number((cy + shiftLy * cosY).toFixed(3));
+          }
+          dimMessage = `Fit Rộng W=${newW}m (đo ${measuredW}m + 8cm đệm)`;
+        } else {
+          const zList = finalPts.map((p) => p.z).sort((a, b) => a - b);
+          const zRoof = zList[Math.floor(zList.length * 0.95)];
+          const measuredH = Math.max(0.4, Math.min(4.5, Number((zRoof - groundZ).toFixed(3))));
+          newH = Number((measuredH + 0.05).toFixed(2));
+          newZ = Number((groundZ + newH / 2).toFixed(3));
+          dimMessage = `Fit Cao H=${newH}m [Ground-Lock nở nóc] (đo nóc ${zRoof.toFixed(2)}m, đáy ${groundZ.toFixed(2)}m)`;
+        }
+        let framesSynced = 1;
+        if (applyToTrack) {
+          const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
+          if (parentTrack) {
+            const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || parentTrack._shapes);
+            for (const sh of shapesList) {
+              if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+                const pts = [...sh.points];
+                if (dimension === "w") {
+                  pts[7] = newW;
+                } else {
+                  const sOldZ = pts[2];
+                  const sOldH = pts[8];
+                  pts[2] = Number((sOldZ + (newH - sOldH) / 2).toFixed(3));
+                  pts[8] = newH;
+                }
+                sh.points = pts;
+                framesSynced++;
+              }
+            }
+            if (typeof parentTrack.save === "function") {
+              await parentTrack.save();
+            }
+          }
+        }
+        const currentPts = [...target.points];
+        currentPts[0] = newX;
+        currentPts[1] = newY;
+        currentPts[2] = newZ;
+        currentPts[6] = newL;
+        currentPts[7] = newW;
+        currentPts[8] = newH;
+        target.points = currentPts;
+        if (!isDrawn && typeof target.save === "function") {
+          await target.save();
+        }
+        updateThreeJsCuboid(
+          uiId,
+          yaw,
+          { x: newX, y: newY, z: newZ },
+          { l: newL, w: newW, h: newH },
+          { rx, ry, rz: yaw }
+        );
+        markCvatSaveButtonUnsaved();
+        const scopeText = applyToTrack ? `toàn bộ ${framesSynced} frames trong track` : `frame #${frame}`;
+        const msg = `Đã ${dimMessage} cho ${scopeText}`;
+        console.log(`[CVAT 3D Suite] ${msg}`);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_FIT_DIMENSION", {
+            detail: {
+              success: true,
+              uiId,
+              dimension,
+              newL,
+              newW,
+              newH,
+              newX,
+              newY,
+              newZ,
+              pointsCount: finalPts.length,
+              framesSynced,
+              message: msg
+            }
+          })
+        );
+      } catch (err) {
+        console.error("[CVAT 3D Suite] Lỗi Fit Dimension:", err);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_FIT_DIMENSION", {
+            detail: { success: false, error: err.message || String(err) }
+          })
+        );
+      }
+    });
   }
   class CVATBridge {
+    /**
+     * Lấy từ điển nhãn của Task để map ID -> Label Name & Color chuẩn xác 100%
+     */
+    static async fetchTaskLabels(taskId) {
+      if (this.cachedLabelsTaskId === taskId && this.cachedTaskLabels.size > 0) {
+        return this.cachedTaskLabels;
+      }
+      try {
+        const response = await fetch(`/api/tasks/${taskId}`, {
+          credentials: "include",
+          headers: { "Content-Type": "application/json" }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data.labels)) {
+            this.cachedTaskLabels.clear();
+            this.cachedLabelsTaskId = taskId;
+            for (const lbl of data.labels) {
+              if (lbl && lbl.id !== void 0) {
+                this.cachedTaskLabels.set(Number(lbl.id), {
+                  name: lbl.name || "Object",
+                  color: lbl.color || "#3b82f6"
+                });
+              }
+            }
+          }
+        }
+      } catch (_) {
+      }
+      return this.cachedTaskLabels;
+    }
     /**
      * Khởi tạo cầu nối vào Main World của CVAT
      */
@@ -6731,26 +7910,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     /**
      * Đọc số Frame hiện tại đang hiển thị trên thanh Player của CVAT.
+     * Ưu tiên 1: input chính xác cvat-player-frame-selector của Player CVAT
+     * Ưu tiên 2: URL query string ?frame=...
+     * Tuyệt đối không quét mù quáng các input số khác (như frame step = 5) làm nhảy frame!
      */
     static getCurrentFrame() {
       const frameInput = document.querySelector(
-        "input.cvat-player-frame-selector, .cvat-player-frame-input, input[aria-label='Frame selector'], .ant-input-number-input"
+        ".cvat-player-frame-selector input, input.cvat-player-frame-selector, input[aria-label='Frame selector']"
       );
-      if (frameInput && frameInput.value) {
+      if (frameInput && frameInput.value !== void 0 && frameInput.value !== "") {
         const val = parseInt(frameInput.value, 10);
-        if (!isNaN(val)) return val;
+        if (!isNaN(val) && val >= 0) return val;
       }
       const urlParams = new URLSearchParams(window.location.search);
       const frameParam = urlParams.get("frame");
       if (frameParam && !isNaN(parseInt(frameParam, 10))) {
         return parseInt(frameParam, 10);
-      }
-      const allInputs = document.querySelectorAll("input[type='number'], input.ant-input-number-input");
-      for (const inp of allInputs) {
-        const val = parseInt(inp.value, 10);
-        if (!isNaN(val) && val >= 0 && val < 5e4) {
-          return val;
-        }
       }
       return 0;
     }
@@ -6791,11 +7966,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
      * Lấy danh sách TẤT CẢ các Track ID CÓ MẶT TẠI FRAME HIỆN TẠI.
      * Ưu tiên 1: Main World Bridge (được phản hồi là trả về ngay, dù rỗng [] hay có xe).
      * Ưu tiên 2: window.cvat SDK nội bộ của trang web.
-     * Ưu tiên 3: REST API fallback an toàn.
+     * Ưu tiên 3: REST API fallback an toàn với ID -> Label Name & Color mapping.
      */
     static async getTracksInCurrentFrame(jobId, frame) {
-      var _a;
       this.ensureMainWorldBridge();
+      const taskMatch = window.location.pathname.match(/\/tasks\/(\d+)/);
+      const taskId = taskMatch ? parseInt(taskMatch[1], 10) : null;
+      if (taskId) {
+        await this.fetchTaskLabels(taskId);
+      }
       const promise = new Promise((resolve) => {
         const timeout = setTimeout(() => resolve(null), 600);
         const onResponse = (e) => {
@@ -6814,63 +7993,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (Array.isArray(mainWorldList)) {
         return mainWorldList;
       }
-      try {
-        const win = window;
-        if ((_a = win.cvat) == null ? void 0 : _a.jobs) {
-          const jobs = await win.cvat.jobs.get({ jobID: jobId });
-          if (jobs && jobs.length > 0) {
-            const states = await jobs[0].annotations.get(frame);
-            if (Array.isArray(states)) {
-              const list = states.filter((s) => s.shapeType === "cuboid" && Array.isArray(s.points) && s.points.length >= 9).map((s) => {
-                var _a2;
-                return {
-                  uiId: s.clientID,
-                  serverId: s.serverID,
-                  label: ((_a2 = s.label) == null ? void 0 : _a2.name) || "Car",
-                  x: Number(s.points[0].toFixed(2)),
-                  y: Number(s.points[1].toFixed(2)),
-                  z: Number(s.points[2].toFixed(3)),
-                  yawDeg: Math.round(s.points[5] * 180 / Math.PI),
-                  l: Number(s.points[6].toFixed(2)),
-                  w: Number(s.points[7].toFixed(2)),
-                  h: Number(s.points[8].toFixed(2))
-                };
-              });
-              return list;
-            }
-          }
-        }
-      } catch (sdkErr) {
-      }
-      try {
-        const data = await this.fetchJobAnnotations(jobId);
-        const tracks = data.tracks || [];
-        const result = [];
-        tracks.forEach((t, index) => {
-          var _a2;
-          const shapes = Array.isArray(t.shapes) ? t.shapes : [];
-          const matchShape = shapes.find((s) => s.frame === frame && s.type === "cuboid");
-          if (matchShape && Array.isArray(matchShape.points) && matchShape.points.length >= 9) {
-            const p = matchShape.points;
-            const label = t.label_name || ((_a2 = t.attributes) == null ? void 0 : _a2.label) || `Track #${index + 1}`;
-            result.push({
-              uiId: index + 1,
-              serverId: t.id,
-              label,
-              x: Number(p[0].toFixed(2)),
-              y: Number(p[1].toFixed(2)),
-              z: Number(p[2].toFixed(3)),
-              yawDeg: Math.round(radToDeg(p[5])),
-              l: Number(p[6].toFixed(2)),
-              w: Number(p[7].toFixed(2)),
-              h: Number(p[8].toFixed(2))
-            });
-          }
-        });
-        return result.sort((a, b) => a.uiId - b.uiId);
-      } catch (err) {
-        return [];
-      }
+      return [];
     }
     /**
      * Lật hướng Yaw 180° cho Track (REALTIME TRÊN THREE.JS CANVAS, LƯU NGẦM SERVER, ZERO-F5).
@@ -7372,10 +8495,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       };
     }
     /**
-     * Vi chỉnh Center theo trục cục bộ của xe (deltaXLocal dọc xe, deltaYLocal ngang xe).
+     * Vi chỉnh Center theo trục cục bộ của xe hoặc Screen Space / World (isWorld = true).
      * Hỗ trợ dịch chuyển dàn đều cho toàn bộ track (applyToTrack = true).
      */
-    static async shiftTrackCenter(jobId, uiId, serverId, deltaXLocal, deltaYLocal, applyToTrack) {
+    static async shiftTrackCenter(jobId, uiId, serverId, deltaXLocal, deltaYLocal, deltaZ = 0, applyToTrack = false, isWorld = false) {
       this.ensureMainWorldBridge();
       const currentFrame = this.getCurrentFrame();
       const mwPromise = new Promise((resolve) => {
@@ -7399,7 +8522,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               serverId,
               deltaXLocal,
               deltaYLocal,
-              applyToTrack
+              deltaZ,
+              applyToTrack,
+              isWorld
             }
           })
         );
@@ -7412,18 +8537,102 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         success: true,
         newX: mwRes.newX,
         newY: mwRes.newY,
+        newZ: mwRes.newZ,
         framesShifted: mwRes.framesShifted,
         message: mwRes.message
       };
     }
     /**
-     * Kích hoạt highlight sáng viền đối tượng trên Three.js Canvas3D
+     * Fit riêng Chiều Rộng (W) hoặc Chiều Cao (H) theo mây điểm LiDAR.
+     * - W (Phím 4): Giữ nguyên L, H, Z, chỉ co giãn W bám khít mây điểm.
+     * - H (Phím 5): Chuẩn Ground-Lock, đáy bám sàn cố định tại groundZ, chiều cao chỉ nở lên nóc.
      */
-    static activateCanvasTrack(uiId) {
+    static async fitDimension(jobId, uiId, serverId, dimension, applyToTrack = false) {
+      this.ensureMainWorldBridge();
+      const currentFrame = this.getCurrentFrame();
+      const mwPromise = new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(null), 3e3);
+        const onResponse = (e) => {
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_FIT_DIMENSION", onResponse);
+          if (e.detail && e.detail.success) {
+            resolve(e.detail);
+          } else {
+            resolve(null);
+          }
+        };
+        window.addEventListener("CVAT_EXT_RES_FIT_DIMENSION", onResponse);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_FIT_DIMENSION", {
+            detail: {
+              jobId,
+              frame: currentFrame,
+              uiId,
+              serverId,
+              dimension,
+              applyToTrack
+            }
+          })
+        );
+      });
+      const mwRes = await mwPromise;
+      if (!mwRes) {
+        return { success: false, message: `Không thể fit chiều ${dimension.toUpperCase()} của đối tượng!` };
+      }
+      return {
+        success: true,
+        newL: mwRes.newL,
+        newW: mwRes.newW,
+        newH: mwRes.newH,
+        newX: mwRes.newX,
+        newY: mwRes.newY,
+        newZ: mwRes.newZ,
+        pointsCount: mwRes.pointsCount,
+        framesSynced: mwRes.framesSynced,
+        message: mwRes.message
+      };
+    }
+    /**
+     * Kích hoạt highlight sáng viền đối tượng trên Three.js Canvas3D và đồng bộ 4 tầng
+     */
+    static activateCanvasTrack(uiId, pos) {
       this.ensureMainWorldBridge();
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_REQ_ACTIVATE_OBJECT", {
-          detail: { clientId: uiId }
+          detail: { clientId: uiId, pos }
+        })
+      );
+    }
+    /**
+     * Căn giữa và tập trung View 3D Three.js vào Track ID chỉ định (0ms Realtime)
+     */
+    static centerCanvas3DOnTrack(uiId, pos) {
+      this.ensureMainWorldBridge();
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_CENTER_OBJECT", {
+          detail: { clientId: uiId, pos }
+        })
+      );
+    }
+    /**
+     * Bật/Tắt tính năng Tự động Ghim Tâm (Lock-On Camera Tracking) khi tua frame
+     */
+    static setAutoCenterOnFrameChange(enabled) {
+      this.ensureMainWorldBridge();
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_SET_AUTO_CENTER_FRAME", {
+          detail: { enabled }
+        })
+      );
+    }
+    /**
+     * Đồng bộ ID của Track đang chọn tới Main World
+     */
+    static setActiveTrackIdInMainWorld(trackId) {
+      this.ensureMainWorldBridge();
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_SET_ACTIVE_TRACK", {
+          detail: { trackId }
         })
       );
     }
@@ -7597,6 +8806,31 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return await promise;
     }
     /**
+     * Lấy nhanh đám mây điểm LiDAR trong vùng quan tâm (ROI) quanh vật thể
+     */
+    static async getRoiLidarPoints(center, radius = 4, maxPoints = 25e3) {
+      this.ensureMainWorldBridge();
+      const promise = new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(null), 1200);
+        const onResponse = (e) => {
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_GET_ROI_LIDAR_POINTS", onResponse);
+          if (e.detail && e.detail.success && Array.isArray(e.detail.points)) {
+            resolve(e.detail.points);
+          } else {
+            resolve(null);
+          }
+        };
+        window.addEventListener("CVAT_EXT_RES_GET_ROI_LIDAR_POINTS", onResponse);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_GET_ROI_LIDAR_POINTS", {
+            detail: { center, radius, maxPoints }
+          })
+        );
+      });
+      return await promise;
+    }
+    /**
      * Yêu cầu CVAT native nhảy timeline tới frame chỉ định
      */
     static jumpToFrame(frame) {
@@ -7681,11 +8915,261 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         message: mwRes.message
       };
     }
+    /**
+     * Tự động fetch calibration VinFast từ endpoint Day14 overlay plugin
+     * hoặc từ file calib_diagnostic.json hardcoded.
+     */
+    static async fetchVinCalibration() {
+      if (this.vinCalibCache) return this.vinCalibCache.data;
+      try {
+        const res = await fetch(`${window.location.origin}/d14-overlay/private/config.json`, {
+          credentials: "same-origin",
+          cache: "no-store"
+        });
+        if (res.ok) {
+          const cfg = await res.json();
+          if (cfg.calibration) {
+            console.log("[VinCalib] Đã tải calibration từ Day14 overlay plugin");
+            this.vinCalibCache = { data: cfg.calibration };
+            return cfg.calibration;
+          }
+        }
+      } catch (_) {
+      }
+      const fallbackCalib = {
+        pcd_frame: "lidar",
+        lidar: {
+          sensor2ego: [
+            [0.999848, -0.017452, 0, 0],
+            [0.017452, 0.999848, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1]
+          ]
+        },
+        cameras: {
+          CAM_P_F: {
+            K: [
+              [1842.5042844353281, 0, 953.8468015854089],
+              [0, 1842.3052782411678, 780.7314324894343],
+              [0, 0, 1]
+            ],
+            dist: [-0.494617, 0.254457, -2633e-6, -1096e-6, -0.078763],
+            ego2cam: [
+              [-1396e-6, -0.999929, 0.011868, -0.019678],
+              [0.020751, -0.011894, -0.999714, 1.755513],
+              [0.999784, -1149e-6, 0.020766, -1.047623],
+              [0, 0, 0, 1]
+            ],
+            image_size: [1920, 1536]
+          }
+        }
+      };
+      console.log("[VinCalib] Dùng calibration diagnostic hardcoded (CAM_P_F)");
+      this.vinCalibCache = { data: fallbackCalib };
+      return fallbackCalib;
+    }
+    /**
+     * Tải ảnh Context Images (8 camera) từ CVAT REST API cho frame hiện tại.
+     */
+    static async fetchContextImages(jobId, frame) {
+      const cacheKey = `${jobId}:${frame}`;
+      if (this.contextImageCache && this.contextImageCache.key === cacheKey) {
+        return this.contextImageCache.images;
+      }
+      if (this.contextImageCache) {
+        for (const url of this.contextImageCache.images.values()) {
+          try {
+            URL.revokeObjectURL(url);
+          } catch (_) {
+          }
+        }
+        this.contextImageCache = null;
+      }
+      const result = /* @__PURE__ */ new Map();
+      try {
+        const baseUrl = `${window.location.origin}/api/jobs/${jobId}/data`;
+        const urls = [
+          `${baseUrl}?type=context_image&quality=original&number=${frame}`,
+          `${baseUrl}?type=context_image&frame=${frame}&number=0`
+        ];
+        console.log(`[Camera HUD] Fetch context images: jobId=${jobId}, frame=${frame}`);
+        let response = null;
+        for (const url of urls) {
+          try {
+            const res = await fetch(url, {
+              method: "GET",
+              headers: { Accept: "*/*" },
+              credentials: "include"
+            });
+            if (res.ok) {
+              response = res;
+              break;
+            }
+          } catch (_) {
+          }
+        }
+        if (!response) return result;
+        const blob = await response.blob();
+        console.log(`[Camera HUD] Response: ${blob.size} bytes, type="${blob.type}"`);
+        const headerBytes = new Uint8Array(await blob.slice(0, 4).arrayBuffer());
+        const isZip = headerBytes[0] === 80 && headerBytes[1] === 75 && headerBytes[2] === 3 && headerBytes[3] === 4;
+        if (isZip) {
+          const zipBuffer = await blob.arrayBuffer();
+          const extractedFiles = await this.parseZipArchive(new Uint8Array(zipBuffer));
+          console.log(`[Camera HUD] ZIP: ${extractedFiles.length} files`);
+          extractedFiles.sort((a, b) => a.filename.localeCompare(b.filename));
+          for (const file of extractedFiles) {
+            const camIdx = this.mapFilenameToCameraIndex(file.filename);
+            if (camIdx >= 0 && camIdx < 8) {
+              const buf = file.data.buffer.slice(file.data.byteOffset, file.data.byteOffset + file.data.byteLength);
+              const imgBlob = new Blob([buf], { type: this.guessMimeType(file.filename) });
+              result.set(camIdx, URL.createObjectURL(imgBlob));
+            }
+          }
+        } else if (blob.type.startsWith("image/")) {
+          result.set(0, URL.createObjectURL(blob));
+        } else if (blob.size > 1e3) {
+          try {
+            const zipBuffer = await blob.arrayBuffer();
+            const extractedFiles = await this.parseZipArchive(new Uint8Array(zipBuffer));
+            if (extractedFiles.length > 0) {
+              extractedFiles.sort((a, b) => a.filename.localeCompare(b.filename));
+              for (const file of extractedFiles) {
+                const camIdx = this.mapFilenameToCameraIndex(file.filename);
+                if (camIdx >= 0 && camIdx < 8) {
+                  const buf = file.data.buffer.slice(file.data.byteOffset, file.data.byteOffset + file.data.byteLength);
+                  result.set(camIdx, URL.createObjectURL(new Blob([buf], { type: this.guessMimeType(file.filename) })));
+                }
+              }
+            }
+          } catch (_) {
+          }
+        }
+        console.log(`[Camera HUD] Loaded ${result.size} camera images for frame ${frame}`);
+      } catch (err) {
+        console.error("[Camera HUD] Fetch error:", err);
+      }
+      this.contextImageCache = { key: cacheKey, images: result };
+      return result;
+    }
+    static mapFilenameToCameraIndex(filename) {
+      var _a;
+      const basename = ((_a = filename.split("/").pop()) == null ? void 0 : _a.toLowerCase()) || "";
+      const numMatch = basename.match(/image[_-]?(\d+)\.\w+$/);
+      if (numMatch) return parseInt(numMatch[1], 10);
+      const nameMap = {
+        "cam_front": 0,
+        "front": 0,
+        "cam_p_f": 1,
+        "cam_front_left": 1,
+        "front_left": 1,
+        "cam_front_right": 2,
+        "front_right": 2,
+        "cam_side_left": 3,
+        "side_left": 3,
+        "cam_side_right": 4,
+        "side_right": 4,
+        "cam_back_left": 5,
+        "back_left": 5,
+        "cam_back_right": 6,
+        "back_right": 6,
+        "cam_back": 7,
+        "back": 7,
+        "cam_rear": 7
+      };
+      const nameOnly = basename.replace(/\.\w+$/, "");
+      if (nameMap[nameOnly] !== void 0) return nameMap[nameOnly];
+      const fallbackMatch = basename.match(/(\d+)\.\w+$/);
+      if (fallbackMatch) return parseInt(fallbackMatch[1], 10) % 8;
+      return -1;
+    }
+    static guessMimeType(filename) {
+      var _a;
+      const ext = ((_a = filename.split(".").pop()) == null ? void 0 : _a.toLowerCase()) || "";
+      if (ext === "png") return "image/png";
+      if (ext === "webp") return "image/webp";
+      return "image/jpeg";
+    }
+    // INLINE ZIP PARSER
+    static async parseZipArchive(zipData) {
+      const results = [];
+      const view = new DataView(zipData.buffer, zipData.byteOffset, zipData.byteLength);
+      let offset = 0;
+      while (offset + 30 <= zipData.length) {
+        const sig = view.getUint32(offset, true);
+        if (sig !== 67324752) break;
+        const gpFlag = view.getUint16(offset + 6, true);
+        const compressionMethod = view.getUint16(offset + 8, true);
+        const compressedSize = view.getUint32(offset + 18, true);
+        const filenameLen = view.getUint16(offset + 26, true);
+        const extraLen = view.getUint16(offset + 28, true);
+        const filenameBytes = zipData.subarray(offset + 30, offset + 30 + filenameLen);
+        const filename = new TextDecoder("utf-8").decode(filenameBytes);
+        const dataStart = offset + 30 + filenameLen + extraLen;
+        const dataEnd = dataStart + compressedSize;
+        const isDir = filename.endsWith("/") || compressedSize === 0;
+        const isImage = /\.(jpe?g|png|bmp|webp)$/i.test(filename);
+        if (!isDir && isImage && dataEnd <= zipData.length) {
+          const compressedData = zipData.subarray(dataStart, dataEnd);
+          if (compressionMethod === 0) {
+            results.push({ filename, data: new Uint8Array(compressedData) });
+          } else if (compressionMethod === 8) {
+            try {
+              const decompressed = await this.inflateDeflateRaw(compressedData);
+              results.push({ filename, data: decompressed });
+            } catch (_) {
+            }
+          }
+        }
+        offset = dataEnd;
+        if ((gpFlag & 8) !== 0 && offset + 16 <= zipData.length) {
+          const descSig = view.getUint32(offset, true);
+          offset += descSig === 134695760 ? 16 : 12;
+        }
+      }
+      return results;
+    }
+    static async inflateDeflateRaw(compressedData) {
+      if (typeof DecompressionStream !== "undefined") {
+        const ds = new DecompressionStream("deflate-raw");
+        const writer = ds.writable.getWriter();
+        const reader = ds.readable.getReader();
+        const buf = compressedData.buffer.slice(compressedData.byteOffset, compressedData.byteOffset + compressedData.byteLength);
+        writer.write(new Uint8Array(buf));
+        writer.close();
+        const chunks = [];
+        let totalLen = 0;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+          totalLen += value.byteLength;
+        }
+        const result = new Uint8Array(totalLen);
+        let pos = 0;
+        for (const chunk of chunks) {
+          result.set(chunk, pos);
+          pos += chunk.byteLength;
+        }
+        return result;
+      }
+      throw new Error("DecompressionStream not available");
+    }
   }
   __publicField(CVATBridge, "cachedAnnotations", null);
   __publicField(CVATBridge, "cachedJobId", null);
   __publicField(CVATBridge, "lastFetchTime", 0);
   __publicField(CVATBridge, "isBridgeInjected", false);
+  __publicField(CVATBridge, "cachedTaskLabels", /* @__PURE__ */ new Map());
+  __publicField(CVATBridge, "cachedLabelsTaskId", null);
+  // ===========================================================================
+  // VINFAST CALIBRATION AUTO-FETCH
+  // ===========================================================================
+  __publicField(CVATBridge, "vinCalibCache", null);
+  // ===========================================================================
+  // CONTEXT IMAGES FETCHER + INLINE ZIP PARSER
+  // ===========================================================================
+  __publicField(CVATBridge, "contextImageCache", null);
   const CAR_PRESETS = [
     {
       id: "compact_car",
@@ -8170,6 +9654,939 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
   }
+  const VIEWS_DEF = {
+    top: { u: "ex", v: "ey", d: "ez", ui: 0, vi: 1, di: 2 },
+    side: { u: "ex", v: "ez", d: "ey", ui: 0, vi: 2, di: 1 },
+    front: { u: "ey", v: "ez", d: "ex", ui: 1, vi: 2, di: 0 }
+  };
+  const HANDLE_RADIUS = 7;
+  class OrthoInteractionEngine {
+    /**
+     * Tính tỷ lệ điểm ảnh trên mét (Pixels Per Meter - PPM).
+     */
+    static calculatePpm(cell, w, h, refSize, globalViewZoom, isContextMode = true) {
+      const V = VIEWS_DEF[cell.view];
+      const fitFactor = isContextMode ? 2.6 : 1.7;
+      const k = Math.min(
+        w / (Math.max(0.3, refSize[V.ui]) * fitFactor),
+        h / (Math.max(0.3, refSize[V.vi]) * fitFactor)
+      );
+      return k * (globalViewZoom[cell.view] || 1) * (cell.zoom || 1);
+    }
+    /**
+     * Trích xuất camera state cố định trong phiên kéo để tránh giật hình.
+     */
+    static getCamera(cell, box) {
+      const ax = axes(box.r);
+      return {
+        c: [box.c[0], box.c[1], box.c[2]],
+        ax,
+        half: [box.s[0] / 2, box.s[1] / 2, box.s[2] / 2],
+        pan: [cell.pan[0], cell.pan[1]]
+      };
+    }
+    /**
+     * Chuyển tọa độ thế giới (world x, y, z) sang tọa độ pixel trong Canvas.
+     */
+    static project(p, cam, view, rect, ppm) {
+      const V = VIEWS_DEF[view];
+      const w = subVec(p, cam.c);
+      return [
+        rect.w / 2 + cam.pan[0] + dotVec(w, cam.ax[V.u]) * ppm,
+        rect.h / 2 + cam.pan[1] - dotVec(w, cam.ax[V.v]) * ppm
+      ];
+    }
+    /**
+     * Chuyển tọa độ pixel trong Canvas về tọa độ thế giới (world) trên mặt phẳng cắt đi qua tâm.
+     */
+    static unproject(px, py, cam, view, rect, ppm) {
+      const V = VIEWS_DEF[view];
+      const u = (px - rect.w / 2 - cam.pan[0]) / ppm;
+      const v = -(py - rect.h / 2 - cam.pan[1]) / ppm;
+      return addVec(
+        cam.c,
+        addVec(scaleVec(cam.ax[V.u], u), scaleVec(cam.ax[V.v], v))
+      );
+    }
+    /**
+     * Tính toán vị trí các tay cầm (Handles): 4 góc đỏ, 4 cạnh giữa trắng, chấm vàng xoay.
+     */
+    static calculateHandles(box, cam, view, rect, ppm) {
+      const V = VIEWS_DEF[view];
+      const ax = axes(box.r);
+      const h = [box.s[0] / 2, box.s[1] / 2, box.s[2] / 2];
+      const P = (a, b) => {
+        const q = [0, 0, 0];
+        q[V.ui] = a * h[V.ui];
+        q[V.vi] = b * h[V.vi];
+        const worldP = localToWorld(q, box.c, ax);
+        return this.project(worldP, cam, view, rect, ppm);
+      };
+      const list = [];
+      for (const a of [-1, 0, 1]) {
+        for (const b of [-1, 0, 1]) {
+          if (a === 0 && b === 0) continue;
+          list.push({ kind: "resize", a, b, p: P(a, b) });
+        }
+      }
+      const center = P(0, 0);
+      const top = P(0, 1);
+      const dx = top[0] - center[0];
+      const dy = top[1] - center[1];
+      const len = Math.hypot(dx, dy) || 1;
+      const rot = [
+        top[0] + dx / len * 22,
+        top[1] + dy / len * 22
+      ];
+      return { list, center, top, rot, P };
+    }
+    /**
+     * Nhận diện phần tử mà chuột click trúng (Hit-Test).
+     */
+    static hitTest(mx, my, cell, box, rect, ppm, allowTilt = false) {
+      const cam = this.getCamera(cell, box);
+      const hs = this.calculateHandles(box, cam, cell.view, rect, ppm);
+      const canRotate = cell.view === "top" || allowTilt;
+      if (canRotate && Math.hypot(mx - hs.rot[0], my - hs.rot[1]) <= HANDLE_RADIUS + 2) {
+        return { kind: "rotate", box, cam, rect, ppm, hs };
+      }
+      let bestHd = null;
+      for (const hd of hs.list) {
+        const d = Math.hypot(mx - hd.p[0], my - hd.p[1]);
+        if (d <= HANDLE_RADIUS && (!bestHd || d < bestHd.d)) {
+          bestHd = { ...hd, d };
+        }
+      }
+      if (bestHd) {
+        return {
+          kind: "resize",
+          a: bestHd.a,
+          b: bestHd.b,
+          box,
+          cam,
+          rect,
+          ppm,
+          hs
+        };
+      }
+      const V = VIEWS_DEF[cell.view];
+      const ax = axes(box.r);
+      const p = this.unproject(mx, my, cam, cell.view, rect, ppm);
+      const q = worldToLocal(p, box.c, ax);
+      const hu = box.s[V.ui] / 2;
+      const hv = box.s[V.vi] / 2;
+      const tol = 5 / ppm;
+      const inU = Math.abs(q[V.ui]) <= hu + tol;
+      const inV = Math.abs(q[V.vi]) <= hv + tol;
+      if (inV && Math.abs(Math.abs(q[V.ui]) - hu) <= tol) {
+        return {
+          kind: "resize",
+          a: Math.sign(q[V.ui]) || 1,
+          b: 0,
+          box,
+          cam,
+          rect,
+          ppm,
+          hs
+        };
+      }
+      if (inU && Math.abs(Math.abs(q[V.vi]) - hv) <= tol) {
+        return {
+          kind: "resize",
+          a: 0,
+          b: Math.sign(q[V.vi]) || 1,
+          box,
+          cam,
+          rect,
+          ppm,
+          hs
+        };
+      }
+      if (Math.abs(q[V.ui]) < hu && Math.abs(q[V.vi]) < hv) {
+        return { kind: "move", box, cam, rect, ppm, hs };
+      }
+      return null;
+    }
+    /**
+     * Tính toán box mới khi người dùng đang kéo chuột (PointerMove).
+     */
+    static computeDragUpdate(session, mx, my, isShiftPressed = false) {
+      const { cell, kind, a, b, startBox, cam, rect, ppm, p0, ang0 } = session;
+      const V = VIEWS_DEF[cell.view];
+      const box = cloneBox(startBox);
+      const p = this.unproject(mx, my, cam, cell.view, rect, ppm);
+      if (kind === "move") {
+        const deltaWorld = subVec(p, p0);
+        box.c = addVec(startBox.c, deltaWorld);
+      } else if (kind === "resize") {
+        const ax = axes(startBox.r);
+        const q = worldToLocal(p, startBox.c, ax);
+        const shift = [0, 0, 0];
+        const axesToAdjust = [
+          [V.ui, a],
+          [V.vi, b]
+        ];
+        for (const [axis, sign] of axesToAdjust) {
+          if (!sign) continue;
+          const half = startBox.s[axis] / 2;
+          const newSize = Math.max(0.05, sign * q[axis] + half);
+          shift[axis] = sign * (newSize - startBox.s[axis]) / 2;
+          box.s[axis] = Number(newSize.toFixed(4));
+        }
+        box.c = localToWorld(shift, startBox.c, ax);
+      } else if (kind === "rotate") {
+        const center = this.project(startBox.c, cam, cell.view, rect, ppm);
+        const ang = Math.atan2(-(my - center[1]), mx - center[0]);
+        let delta = ang - ang0;
+        if (isShiftPressed) {
+          const step = Math.PI / 36;
+          delta = Math.round(delta / step) * step;
+        }
+        if (cell.view === "top") {
+          if (!startBox.r[0] && !startBox.r[1]) {
+            box.r[2] = startBox.r[2] + delta;
+          } else {
+            box.r = rotateLocal(startBox.r, 2, delta);
+          }
+        } else if (cell.view === "side") {
+          box.r = rotateLocal(startBox.r, 1, -delta);
+        } else {
+          box.r = rotateLocal(startBox.r, 0, delta);
+        }
+      }
+      return box;
+    }
+  }
+  class OrthoEditorPanel {
+    constructor(onBoxChange, onSelectFrame) {
+      __publicField(this, "container", null);
+      __publicField(this, "framesData", []);
+      __publicField(this, "activeFrame", -1);
+      __publicField(this, "onBoxChangeCallback", null);
+      __publicField(this, "onSelectFrameCallback", null);
+      // Lưu trữ trạng thái từng cell: key là `${frame}_${view}`
+      __publicField(this, "cells", /* @__PURE__ */ new Map());
+      __publicField(this, "globalZoom", { top: 1, side: 1, front: 1 });
+      __publicField(this, "pointSize", 2);
+      __publicField(this, "isContextMode", true);
+      __publicField(this, "slabThickness", 2);
+      __publicField(this, "activeDrag", null);
+      __publicField(this, "activePan", null);
+      __publicField(this, "resizeObserver", null);
+      this.onBoxChangeCallback = onBoxChange;
+      this.onSelectFrameCallback = onSelectFrame || null;
+      this.handleGlobalPointerMove = this.handleGlobalPointerMove.bind(this);
+      this.handleGlobalPointerUp = this.handleGlobalPointerUp.bind(this);
+    }
+    /**
+     * Khởi tạo container gắn vào DOM cha
+     */
+    mount(parentEl) {
+      this.container = document.createElement("div");
+      this.container.className = "ortho-multi-frame-panel-container";
+      this.container.style.display = "grid";
+      this.container.style.gridTemplateColumns = "repeat(5, minmax(0, 1fr))";
+      this.container.style.gap = "6px";
+      this.container.style.width = "100%";
+      this.container.style.height = "100%";
+      this.container.style.minHeight = "460px";
+      this.container.style.background = "#09090b";
+      this.container.style.padding = "6px";
+      this.container.style.boxSizing = "border-box";
+      this.container.style.borderRadius = "8px";
+      this.container.style.overflow = "hidden";
+      parentEl.appendChild(this.container);
+      window.addEventListener("pointermove", this.handleGlobalPointerMove);
+      window.addEventListener("pointerup", this.handleGlobalPointerUp);
+      if (typeof ResizeObserver !== "undefined") {
+        this.resizeObserver = new ResizeObserver(() => {
+          this.renderAll();
+        });
+        this.resizeObserver.observe(this.container);
+      }
+    }
+    unmount() {
+      window.removeEventListener("pointermove", this.handleGlobalPointerMove);
+      window.removeEventListener("pointerup", this.handleGlobalPointerUp);
+      if (this.resizeObserver) {
+        this.resizeObserver.disconnect();
+        this.resizeObserver = null;
+      }
+      if (this.container && this.container.parentNode) {
+        this.container.parentNode.removeChild(this.container);
+      }
+      this.container = null;
+      this.cells.clear();
+    }
+    /**
+     * Cập nhật danh sách 5 frames hiển thị và frame đang được chọn
+     */
+    setFrames(frames, activeFrame) {
+      this.framesData = frames;
+      this.activeFrame = activeFrame;
+      if (!this.container) return;
+      const colCount = Math.max(1, frames.length);
+      this.container.style.gridTemplateColumns = `repeat(${colCount}, minmax(0, 1fr))`;
+      const currentFrameKeys = frames.map((f) => f.frame).join(",");
+      const existingFrameKeys = this.container.getAttribute("data-frame-keys") || "";
+      if (currentFrameKeys !== existingFrameKeys) {
+        this.container.setAttribute("data-frame-keys", currentFrameKeys);
+        this.container.innerHTML = "";
+        this.cells.clear();
+        for (const fData of frames) {
+          const colEl = this.createFrameColumn(fData);
+          this.container.appendChild(colEl);
+        }
+      } else {
+        this.container.querySelectorAll(".frame-column-card").forEach((col) => {
+          const f = parseInt(col.dataset.frame || "-1", 10);
+          const isActive = f === this.activeFrame;
+          col.style.border = isActive ? "2px solid #2563eb" : "1px solid #1e293b";
+          col.style.boxShadow = isActive ? "0 0 10px rgba(37, 99, 235, 0.45)" : "none";
+          col.style.background = isActive ? "#0f172a" : "#020617";
+          const badgeActive = col.querySelector(".badge-active-indicator");
+          if (badgeActive) {
+            badgeActive.style.display = isActive ? "inline-block" : "none";
+          }
+        });
+      }
+      this.renderAll();
+    }
+    /**
+     * Tạo một cột hiển thị cho 1 frame (chứa Header + 3 Viewports: TOP, SIDE, FRONT)
+     */
+    createFrameColumn(fData) {
+      const f = fData.frame;
+      const isActive = f === this.activeFrame;
+      const col = document.createElement("div");
+      col.className = "frame-column-card";
+      col.dataset.frame = String(f);
+      col.style.display = "flex";
+      col.style.flexDirection = "column";
+      col.style.background = isActive ? "#0f172a" : "#020617";
+      col.style.border = isActive ? "2px solid #2563eb" : "1px solid #1e293b";
+      col.style.borderRadius = "6px";
+      col.style.overflow = "hidden";
+      col.style.position = "relative";
+      col.style.minWidth = "0";
+      col.style.minHeight = "0";
+      col.style.boxShadow = isActive ? "0 0 10px rgba(37, 99, 235, 0.45)" : "none";
+      col.style.transition = "border-color 0.15s, box-shadow 0.15s";
+      const header = document.createElement("div");
+      header.style.display = "flex";
+      header.style.alignItems = "center";
+      header.style.justifyContent = "space-between";
+      header.style.padding = "4px 8px";
+      header.style.background = isActive ? "#1e293b" : "#0b0f19";
+      header.style.borderBottom = "1px solid #1e293b";
+      header.style.cursor = "pointer";
+      header.title = `Click để chọn Frame #${f}`;
+      header.addEventListener("click", () => {
+        if (this.activeFrame !== f && this.onSelectFrameCallback) {
+          this.onSelectFrameCallback(f);
+        }
+      });
+      const l = fData.box.s[0].toFixed(2);
+      const w = fData.box.s[1].toFixed(2);
+      const h = fData.box.s[2].toFixed(2);
+      header.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 4px; overflow: hidden;">
+        <span style="font-size: 11px; font-weight: bold; font-family: monospace; color: ${isActive ? "#38bdf8" : "#94a3b8"};">#${f}</span>
+        <span style="
+          font-size: 9px;
+          font-weight: bold;
+          padding: 1px 4px;
+          border-radius: 3px;
+          background: ${fData.outside ? "#fee2e2" : "#ecfdf5"};
+          color: ${fData.outside ? "#dc2626" : "#059669"};
+        ">${fData.outside ? "OUT" : "KF"}</span>
+        <span class="badge-active-indicator" style="
+          display: ${isActive ? "inline-block" : "none"};
+          font-size: 8px;
+          font-weight: bold;
+          background: #2563eb;
+          color: white;
+          padding: 1px 4px;
+          border-radius: 3px;
+        ">ACTIVE</span>
+      </div>
+      <span style="font-size: 9px; color: #64748b; font-family: monospace;">${l}×${w}×${h}</span>
+    `;
+      col.appendChild(header);
+      const viewsWrap = document.createElement("div");
+      viewsWrap.style.flex = "1";
+      viewsWrap.style.minHeight = "0";
+      viewsWrap.style.display = "grid";
+      viewsWrap.style.gridTemplateRows = "repeat(3, 1fr)";
+      viewsWrap.style.gap = "4px";
+      viewsWrap.style.padding = "4px";
+      viewsWrap.style.boxSizing = "border-box";
+      const viewTypes = ["top", "side", "front"];
+      for (const vType of viewTypes) {
+        const vEl = this.createViewportCell(f, vType);
+        viewsWrap.appendChild(vEl);
+      }
+      col.appendChild(viewsWrap);
+      return col;
+    }
+    /**
+     * Tạo ô Canvas cho một khung nhìn cụ thể của frame
+     */
+    createViewportCell(frame, view) {
+      const card = document.createElement("div");
+      card.style.position = "relative";
+      card.style.background = "#05070d";
+      card.style.border = "1px solid #1e293b";
+      card.style.borderRadius = "4px";
+      card.style.overflow = "hidden";
+      card.style.minWidth = "0";
+      card.style.minHeight = "0";
+      const canvas = document.createElement("canvas");
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
+      canvas.style.display = "block";
+      canvas.style.cursor = "crosshair";
+      card.appendChild(canvas);
+      const labelBadge = document.createElement("span");
+      labelBadge.textContent = view.toUpperCase();
+      labelBadge.style.position = "absolute";
+      labelBadge.style.top = "2px";
+      labelBadge.style.left = "4px";
+      labelBadge.style.fontSize = "9px";
+      labelBadge.style.fontWeight = "bold";
+      labelBadge.style.fontFamily = "monospace";
+      labelBadge.style.color = "rgba(56, 189, 248, 0.75)";
+      labelBadge.style.pointerEvents = "none";
+      labelBadge.style.textShadow = "0 1px 2px #000";
+      card.appendChild(labelBadge);
+      const cellKey = `${frame}_${view}`;
+      const cellState = {
+        canvas,
+        frame,
+        view,
+        zoom: 1,
+        pan: [0, 0]
+      };
+      this.cells.set(cellKey, cellState);
+      this.attachCanvasListeners(canvas, cellKey, frame, view);
+      return card;
+    }
+    /**
+     * Vẽ lại toàn bộ 15 khung nhìn (5 frames x 3 views)
+     */
+    renderAll() {
+      for (const [key, cell] of this.cells.entries()) {
+        const fData = this.framesData.find((f) => f.frame === cell.frame);
+        if (fData) {
+          this.renderCell(cell, fData);
+        }
+      }
+    }
+    /**
+     * Vẽ 1 khung nhìn cụ thể
+     */
+    renderCell(cell, fData) {
+      const canvas = cell.canvas;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      const rect = canvas.getBoundingClientRect();
+      const w = Math.max(10, Math.floor(rect.width));
+      const h = Math.max(10, Math.floor(rect.height));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+      const isActive = cell.frame === this.activeFrame;
+      ctx.fillStyle = isActive ? "#09090b" : "#020617";
+      ctx.fillRect(0, 0, w, h);
+      const box = fData.box;
+      const refSize = [box.s[0], box.s[1], box.s[2]];
+      const ppm = OrthoInteractionEngine.calculatePpm(
+        cell,
+        w,
+        h,
+        refSize,
+        this.globalZoom,
+        this.isContextMode
+      );
+      const cam = OrthoInteractionEngine.getCamera(cell, box);
+      this.drawSubtleGrid(ctx, cam, cell.view, { w, h }, ppm, isActive);
+      this.drawLidarPoints(ctx, cell, box, fData.points, cam, { w, h }, ppm);
+      this.drawBoundingBox(
+        ctx,
+        cell,
+        box,
+        fData.keyframe,
+        fData.outside,
+        fData.labelColor,
+        cam,
+        { w, h },
+        ppm,
+        isActive
+      );
+    }
+    drawSubtleGrid(ctx, cam, view, rect, ppm, isActive) {
+      ctx.strokeStyle = isActive ? "rgba(51, 65, 85, 0.4)" : "rgba(30, 41, 59, 0.3)";
+      ctx.lineWidth = 0.5;
+      const stepPixels = 1 * ppm;
+      if (stepPixels < 12) return;
+      const cx = rect.w / 2 + cam.pan[0];
+      const cy = rect.h / 2 + cam.pan[1];
+      ctx.beginPath();
+      for (let x = cx % stepPixels; x < rect.w; x += stepPixels) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, rect.h);
+      }
+      for (let y = cy % stepPixels; y < rect.h; y += stepPixels) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(rect.w, y);
+      }
+      ctx.stroke();
+      ctx.strokeStyle = isActive ? "rgba(56, 189, 248, 0.3)" : "rgba(56, 189, 248, 0.15)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx, 0);
+      ctx.lineTo(cx, rect.h);
+      ctx.moveTo(0, cy);
+      ctx.lineTo(rect.w, cy);
+      ctx.stroke();
+    }
+    drawLidarPoints(ctx, cell, box, pts, cam, rect, ppm) {
+      if (!pts || pts.length === 0) return;
+      const V = VIEWS_DEF[cell.view];
+      const ax = cam.ax;
+      const c = box.c;
+      const half = [box.s[0] / 2 + 0.04, box.s[1] / 2 + 0.04, box.s[2] / 2 + 0.04];
+      const slab = this.slabThickness;
+      const hd = cam.half[V.di];
+      const totalPoints = pts.length / 3;
+      for (let i = 0; i < totalPoints; i++) {
+        const px = pts[i * 3];
+        const py = pts[i * 3 + 1];
+        const pz = pts[i * 3 + 2];
+        const dx = px - cam.c[0];
+        const dy = py - cam.c[1];
+        const dz = pz - cam.c[2];
+        const depth = dx * cam.ax[V.d][0] + dy * cam.ax[V.d][1] + dz * cam.ax[V.d][2];
+        if (depth < -hd - slab || depth > hd + slab) continue;
+        const screenP = OrthoInteractionEngine.project([px, py, pz], cam, cell.view, rect, ppm);
+        if (screenP[0] < -8 || screenP[0] > rect.w + 8 || screenP[1] < -8 || screenP[1] > rect.h + 8) {
+          continue;
+        }
+        const bx = px - c[0];
+        const by = py - c[1];
+        const bz = pz - c[2];
+        const qx = Math.abs(bx * ax.ex[0] + by * ax.ex[1] + bz * ax.ex[2]);
+        const qy = Math.abs(bx * ax.ey[0] + by * ax.ey[1] + bz * ax.ey[2]);
+        const qz = Math.abs(bx * ax.ez[0] + by * ax.ez[1] + bz * ax.ez[2]);
+        const isInside = qx <= half[0] && qy <= half[1] && qz <= half[2];
+        ctx.fillStyle = isInside ? "#38bdf8" : "rgba(148, 163, 184, 0.4)";
+        ctx.fillRect(screenP[0] - 1, screenP[1] - 1, this.pointSize, this.pointSize);
+      }
+    }
+    drawBoundingBox(ctx, cell, box, keyframe, outside, labelColor, cam, rect, ppm, isActive) {
+      const corners = boxCorners(box).map(
+        (p) => OrthoInteractionEngine.project(p, cam, cell.view, rect, ppm)
+      );
+      ctx.lineWidth = isActive ? 1.8 : 1.2;
+      ctx.strokeStyle = outside ? "#64748b" : labelColor || "#38bdf8";
+      ctx.setLineDash(keyframe ? [] : [4, 4]);
+      ctx.beginPath();
+      for (const [i, j] of BOX_EDGES) {
+        ctx.moveTo(corners[i][0], corners[i][1]);
+        ctx.lineTo(corners[j][0], corners[j][1]);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      if (outside) return;
+      const hs = OrthoInteractionEngine.calculateHandles(box, cam, cell.view, rect, ppm);
+      if (cell.view === "top") {
+        const front = hs.P(1, 0);
+        ctx.strokeStyle = "#ef4444";
+        ctx.lineWidth = isActive ? 2.2 : 1.5;
+        ctx.beginPath();
+        ctx.moveTo(hs.center[0], hs.center[1]);
+        ctx.lineTo(front[0], front[1]);
+        ctx.stroke();
+        const dx = front[0] - hs.center[0];
+        const dy = front[1] - hs.center[1];
+        const len = Math.hypot(dx, dy);
+        if (len > 8) {
+          const ux = dx / len;
+          const uy = dy / len;
+          const arrowLen = 8;
+          const arrowW = 4;
+          ctx.fillStyle = "#ef4444";
+          ctx.beginPath();
+          ctx.moveTo(front[0], front[1]);
+          ctx.lineTo(front[0] - ux * arrowLen - uy * arrowW, front[1] - uy * arrowLen + ux * arrowW);
+          ctx.lineTo(front[0] - ux * arrowLen + uy * arrowW, front[1] - uy * arrowLen - ux * arrowW);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+      if (isActive) {
+        if (cell.view === "top") {
+          ctx.strokeStyle = "#38bdf8";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(hs.top[0], hs.top[1]);
+          ctx.lineTo(hs.rot[0], hs.rot[1]);
+          ctx.stroke();
+          ctx.fillStyle = "#fbbf24";
+          ctx.beginPath();
+          ctx.arc(hs.rot[0], hs.rot[1], 5.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#09090b";
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+        }
+        for (const hd of hs.list) {
+          const isCorner = hd.a !== 0 && hd.b !== 0;
+          ctx.fillStyle = isCorner ? "#ef4444" : "#ffffff";
+          ctx.fillRect(hd.p[0] - 3.5, hd.p[1] - 3.5, 7, 7);
+          ctx.strokeStyle = "#09090b";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(hd.p[0] - 3.5, hd.p[1] - 3.5, 7, 7);
+        }
+      }
+    }
+    /**
+     * Gắn sự kiện chuột trên từng Canvas
+     */
+    attachCanvasListeners(canvas, cellKey, frame, view) {
+      canvas.addEventListener("pointerdown", (e) => {
+        if (frame !== this.activeFrame) {
+          if (this.onSelectFrameCallback) {
+            this.onSelectFrameCallback(frame);
+          }
+          return;
+        }
+        const cell = this.cells.get(cellKey);
+        const fData = this.framesData.find((f) => f.frame === frame);
+        if (!cell || !fData) return;
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        if (e.button === 2 || e.altKey) {
+          e.preventDefault();
+          this.activePan = {
+            key: cellKey,
+            startX: e.clientX,
+            startY: e.clientY,
+            pan0: [...cell.pan]
+          };
+          canvas.style.cursor = "grabbing";
+          return;
+        }
+        if (e.button !== 0) return;
+        const box = fData.box;
+        const refSize = [box.s[0], box.s[1], box.s[2]];
+        const ppm = OrthoInteractionEngine.calculatePpm(
+          cell,
+          rect.width,
+          rect.height,
+          refSize,
+          this.globalZoom,
+          this.isContextMode
+        );
+        const hit = OrthoInteractionEngine.hitTest(
+          mx,
+          my,
+          cell,
+          box,
+          { w: rect.width, h: rect.height },
+          ppm,
+          false
+        );
+        if (hit) {
+          e.preventDefault();
+          canvas.setPointerCapture(e.pointerId);
+          const cam = OrthoInteractionEngine.getCamera(cell, box);
+          const p0 = OrthoInteractionEngine.unproject(
+            mx,
+            my,
+            cam,
+            cell.view,
+            { w: rect.width, h: rect.height },
+            ppm
+          );
+          let ang0 = 0;
+          if (hit.kind === "rotate") {
+            const center = OrthoInteractionEngine.project(
+              box.c,
+              cam,
+              cell.view,
+              { w: rect.width, h: rect.height },
+              ppm
+            );
+            ang0 = Math.atan2(-(my - center[1]), mx - center[0]);
+          }
+          this.activeDrag = {
+            cell,
+            kind: hit.kind,
+            a: hit.a,
+            b: hit.b,
+            startBox: cloneBox(box),
+            cam,
+            rect: { w: rect.width, h: rect.height },
+            ppm,
+            p0,
+            ang0,
+            moved: false
+          };
+        }
+      });
+      canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+      canvas.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          const cell = this.cells.get(cellKey);
+          if (!cell) return;
+          const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+          cell.zoom = Math.max(0.2, Math.min(10, (cell.zoom || 1) * factor));
+          this.globalZoom[view] = cell.zoom;
+          this.renderAll();
+        },
+        { passive: false }
+      );
+    }
+    handleGlobalPointerMove(e) {
+      if (this.activePan) {
+        const cell = this.cells.get(this.activePan.key);
+        if (cell) {
+          const dx = e.clientX - this.activePan.startX;
+          const dy = e.clientY - this.activePan.startY;
+          cell.pan = [this.activePan.pan0[0] + dx, this.activePan.pan0[1] + dy];
+          this.renderAll();
+        }
+        return;
+      }
+      if (!this.activeDrag) return;
+      const drag = this.activeDrag;
+      const canvas = drag.cell.canvas;
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const newBox = OrthoInteractionEngine.applyDrag(drag, mx, my, { lockBottom: true });
+      drag.moved = true;
+      const fData = this.framesData.find((f) => f.frame === this.activeFrame);
+      if (fData) {
+        fData.box = cloneBox(newBox);
+      }
+      this.renderAll();
+      if (this.onBoxChangeCallback) {
+        this.onBoxChangeCallback(newBox, true);
+      }
+    }
+    handleGlobalPointerUp(e) {
+      if (this.activePan) {
+        const cell = this.cells.get(this.activePan.key);
+        if (cell && cell.canvas) {
+          cell.canvas.style.cursor = "crosshair";
+        }
+        this.activePan = null;
+      }
+      if (!this.activeDrag) return;
+      const drag = this.activeDrag;
+      const canvas = drag.cell.canvas;
+      try {
+        canvas.releasePointerCapture(e.pointerId);
+      } catch (err) {
+      }
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const finalBox = OrthoInteractionEngine.applyDrag(drag, mx, my, { lockBottom: true });
+      this.activeDrag = null;
+      const fData = this.framesData.find((f) => f.frame === this.activeFrame);
+      if (fData) {
+        fData.box = cloneBox(finalBox);
+      }
+      this.renderAll();
+      if (this.onBoxChangeCallback) {
+        this.onBoxChangeCallback(finalBox, false);
+      }
+    }
+  }
+  class TrackPointManager {
+    constructor() {
+      __publicField(this, "activeTrackId", -1);
+      // Lưu trữ các điểm LiDAR thô (World coordinates) theo từng frame
+      __publicField(this, "framePointsCache", /* @__PURE__ */ new Map());
+      // Lưu trữ Box3D tương ứng tại frame đã lưu điểm để nội suy chuyển hệ tọa độ
+      __publicField(this, "frameBoxCache", /* @__PURE__ */ new Map());
+      __publicField(this, "isScanning", false);
+      __publicField(this, "abortScanFlag", false);
+    }
+    /**
+     * Đặt Track ID hiện tại. Nếu đổi xe khác thì reset cache
+     */
+    setActiveTrack(trackId) {
+      if (this.activeTrackId !== trackId) {
+        this.clear();
+        this.activeTrackId = trackId;
+      }
+    }
+    /**
+     * Xóa toàn bộ cache mây điểm
+     */
+    clear() {
+      this.abortScan();
+      this.framePointsCache.clear();
+      this.frameBoxCache.clear();
+    }
+    /**
+     * Lưu các điểm LiDAR của frame cụ thể vào cache
+     */
+    setFramePoints(frame, points, box) {
+      const arr = points instanceof Float32Array ? points : new Float32Array(points);
+      this.framePointsCache.set(frame, arr);
+      this.frameBoxCache.set(frame, {
+        c: [...box.c],
+        s: [...box.s],
+        r: [...box.r]
+      });
+    }
+    /**
+     * Lấy điểm LiDAR riêng của một frame
+     */
+    getFramePoints(frame) {
+      return this.framePointsCache.get(frame) || null;
+    }
+    /**
+     * Kiểm tra frame đã có mây điểm trong cache chưa
+     */
+    hasFrame(frame) {
+      return this.framePointsCache.has(frame);
+    }
+    /**
+     * Đếm tổng số frame đã được nạp mây điểm
+     */
+    get loadedFramesCount() {
+      return this.framePointsCache.size;
+    }
+    /**
+     * Lấy danh sách các frame đã có dữ liệu mây điểm
+     */
+    getLoadedFrames() {
+      return Array.from(this.framePointsCache.keys()).sort((a, b) => a - b);
+    }
+    /**
+     * Thuật toán GỘP MÂY ĐIỂM TOÀN TRACK (Dense Multi-Frame Accumulation):
+     * Biến đổi tọa độ các điểm từ mọi frame trong cache về hệ quy chiếu của box ở frame mục tiêu.
+     */
+    getAccumulatedPoints(currentFrame, targetBox) {
+      if (this.framePointsCache.size === 0) return null;
+      const targetAxes = axes(targetBox.r);
+      const totalAccumulated = [];
+      const maxTotalPoints = 65e3;
+      const curPts = this.framePointsCache.get(currentFrame);
+      if (curPts && curPts.length > 0) {
+        const curCount = curPts.length / 3;
+        for (let i = 0; i < curCount; i++) {
+          totalAccumulated.push(curPts[i * 3], curPts[i * 3 + 1], curPts[i * 3 + 2]);
+        }
+      }
+      for (const [f, pts] of this.framePointsCache.entries()) {
+        if (f === currentFrame) continue;
+        if (totalAccumulated.length / 3 >= maxTotalPoints) break;
+        const srcBox = this.frameBoxCache.get(f);
+        if (!srcBox) continue;
+        const srcAxes = axes(srcBox.r);
+        const ptCount = pts.length / 3;
+        const step = ptCount > 3e3 ? 2 : 1;
+        for (let i = 0; i < ptCount; i += step) {
+          if (totalAccumulated.length / 3 >= maxTotalPoints) break;
+          const wx = pts[i * 3];
+          const wy = pts[i * 3 + 1];
+          const wz = pts[i * 3 + 2];
+          const localP = worldToLocal([wx, wy, wz], srcBox.c, srcAxes);
+          const targetWorldP = localToWorld(localP, targetBox.c, targetAxes);
+          totalAccumulated.push(targetWorldP[0], targetWorldP[1], targetWorldP[2]);
+        }
+      }
+      if (totalAccumulated.length === 0) return null;
+      return new Float32Array(totalAccumulated);
+    }
+    /**
+     * Quét tự động tải toàn bộ curpoint của toàn track:
+     * Duyệt qua dải frame của track, lấy ROI point cloud từ Three.js scene và nạp vào cache.
+     */
+    async scanTrackCurpoints(track2, onProgress, onComplete) {
+      if (this.isScanning) return;
+      this.isScanning = true;
+      this.abortScanFlag = false;
+      const shapes = [...track2.shapes].sort((a, b) => a.frame - b.frame);
+      if (shapes.length === 0) {
+        this.isScanning = false;
+        onComplete(false, 0);
+        return;
+      }
+      const firstF = shapes[0].frame;
+      const lastF = shapes[shapes.length - 1].frame;
+      const framesToScan = [];
+      for (let f = firstF; f <= lastF; f++) {
+        const pos = track2.at(f);
+        if (pos && !pos.outside) {
+          framesToScan.push(f);
+        }
+      }
+      const total = framesToScan.length;
+      let loaded = 0;
+      for (let i = 0; i < total; i++) {
+        if (this.abortScanFlag) {
+          break;
+        }
+        const f = framesToScan[i];
+        const pos = track2.at(f);
+        if (!pos) continue;
+        onProgress(i + 1, total, f);
+        if (this.framePointsCache.has(f)) {
+          loaded++;
+          continue;
+        }
+        try {
+          CVATBridge.jumpToFrame(f);
+          await new Promise((res) => setTimeout(res, 160));
+          if (this.abortScanFlag) break;
+          const diag = Math.hypot(pos.box.s[0], pos.box.s[1]);
+          const radius = Math.max(3.2, diag / 2 + 1.2);
+          const rawPoints = await CVATBridge.getRoiLidarPoints(pos.box.c, radius, 12e3);
+          if (rawPoints && rawPoints.length > 0) {
+            this.setFramePoints(f, rawPoints, pos.box);
+            loaded++;
+          }
+        } catch (err) {
+          console.warn(`[CVAT 3D Suite] Lỗi khi tải điểm LiDAR frame #${f}:`, err);
+        }
+      }
+      this.isScanning = false;
+      onComplete(!this.abortScanFlag, loaded);
+    }
+    /**
+     * Hủy tiến trình quét tự động
+     */
+    abortScan() {
+      if (this.isScanning) {
+        this.abortScanFlag = true;
+        this.isScanning = false;
+      }
+    }
+    get isScanActive() {
+      return this.isScanning;
+    }
+  }
+  function float32ToVec3Array(arr) {
+    const count = Math.floor(arr.length / 3);
+    const res = [];
+    for (let i = 0; i < count; i++) {
+      res.push({ x: arr[i * 3], y: arr[i * 3 + 1], z: arr[i * 3 + 2] });
+    }
+    return res;
+  }
   class TrackStudioModal {
     constructor() {
       __publicField(this, "overlay", null);
@@ -8180,6 +10597,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       __publicField(this, "allJobTracks", []);
       __publicField(this, "selectedFrame", 0);
       __publicField(this, "isSaving", false);
+      // Thành phần 3D Ortho Editor và Mây Điểm
+      __publicField(this, "orthoEditor", null);
+      __publicField(this, "pointManager", new TrackPointManager());
+      __publicField(this, "showAllPoints", false);
+      __publicField(this, "applyToAllFrames", false);
+      __publicField(this, "isPlaying", false);
+      __publicField(this, "playInterval", null);
       this.createOverlay();
       this.attachGlobalHotkeys();
     }
@@ -8189,12 +10613,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.allJobTracks = allJobTracks;
       this.selectedFrame = CVATBridge.getCurrentFrame();
       this.currentTab = "active_track";
+      this.pointManager.setActiveTrack(activeTrackId);
       if (this.overlay) {
         this.overlay.style.display = "flex";
       }
       await this.loadInitialData();
     }
     close() {
+      this.stopPlayback();
+      this.pointManager.abortScan();
+      if (this.orthoEditor) {
+        this.orthoEditor.unmount();
+        this.orthoEditor = null;
+      }
       if (this.overlay) {
         this.overlay.style.display = "none";
       }
@@ -8211,8 +10642,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.overlay.style.position = "fixed";
       this.overlay.style.inset = "0";
       this.overlay.style.zIndex = "999999";
-      this.overlay.style.background = "rgba(255, 255, 255, 0.98)";
-      this.overlay.style.backdropFilter = "blur(12px)";
+      this.overlay.style.background = "#ffffff";
       this.overlay.style.color = "#09090b";
       this.overlay.style.display = "none";
       this.overlay.style.flexDirection = "column";
@@ -8235,23 +10665,44 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             this.triggerCommitSave();
             return;
           }
+          if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
+            e.preventDefault();
+            this.triggerUndo();
+            return;
+          }
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y" || (e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z") {
+            e.preventDefault();
+            this.triggerRedo();
+            return;
+          }
+          const target = e.target;
+          if (target && (target.tagName === "INPUT" || target.tagName === "SELECT")) return;
+          if (e.code === "Space" && this.currentTab === "active_track") {
+            e.preventDefault();
+            this.togglePlayback();
+            return;
+          }
+          if ((e.key === "ArrowLeft" || e.key.toLowerCase() === "a") && this.currentTab === "active_track") {
+            e.preventDefault();
+            this.stepFrame(-1);
+            return;
+          }
+          if ((e.key === "ArrowRight" || e.key.toLowerCase() === "d") && this.currentTab === "active_track") {
+            e.preventDefault();
+            this.stepFrame(1);
+            return;
+          }
           if (e.key.toLowerCase() === "o" && this.currentTab === "active_track") {
-            const target = e.target;
-            if (target && (target.tagName === "INPUT" || target.tagName === "SELECT")) return;
             e.preventDefault();
             this.toggleOutsideFrame(this.selectedFrame);
             return;
           }
           if (e.key === "[" && this.currentTab === "active_track") {
-            const target = e.target;
-            if (target && (target.tagName === "INPUT" || target.tagName === "SELECT")) return;
             e.preventDefault();
             this.switchPrevTrack();
             return;
           }
           if (e.key === "]" && this.currentTab === "active_track") {
-            const target = e.target;
-            if (target && (target.tagName === "INPUT" || target.tagName === "SELECT")) return;
             e.preventDefault();
             this.switchNextTrack();
             return;
@@ -8293,6 +10744,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           this.store.setTracks(fallbackList);
         }
         this.render();
+        if (this.currentTab === "active_track") {
+          this.updateOrthoEditorState(track);
+          await this.preloadPointsForVisibleFrames(track);
+        }
       } catch (err) {
         if (this.overlay) {
           this.overlay.innerHTML = `
@@ -8323,22 +10778,23 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const activeTrack = this.store.getTrack(this.activeTrackId) || allTracks[0];
       const dirtyCount = this.store.getDirtyTracks().length;
       this.overlay.innerHTML = `
-      <!-- 1. HEADER BAR CHUYÊN NGHIỆP (LIGHT) -->
+      <!-- 1. HEADER BAR CHUYÊN NGHIỆP -->
       <div style="
         background: #ffffff;
         border-bottom: 1px solid #e2e8f0;
-        padding: 10px 20px;
+        padding: 8px 16px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 16px;
-        min-height: 52px;
+        gap: 12px;
+        min-height: 48px;
+        box-sizing: border-box;
       ">
-        <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
           <!-- Badge Studio -->
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="background: #2563eb; color: white; padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;">RETIME STUDIO</span>
-            <span style="font-size: 14px; font-weight: bold; color: #09090b;">Job #${this.currentCtx.jobId}</span>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="background: #2563eb; color: white; padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;">ORTHO 3D STUDIO</span>
+            <span style="font-size: 13px; font-weight: bold; color: #09090b;">Job #${this.currentCtx.jobId}</span>
           </div>
 
           <!-- Tab Switcher -->
@@ -8348,21 +10804,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               background: ${this.currentTab === "active_track" ? "#ffffff" : "transparent"};
               color: ${this.currentTab === "active_track" ? "#09090b" : "#64748b"};
               box-shadow: ${this.currentTab === "active_track" ? "0 1px 3px rgba(0,0,0,0.08)" : "none"};
-              padding: 5px 14px;
-              font-size: 12px;
+              padding: 4px 12px;
+              font-size: 11px;
               font-weight: 600;
               cursor: pointer;
               border-radius: 4px;
               transition: all 0.15s;
-            ">Duyệt Frame (Xe #${this.activeTrackId})</button>
+            ">Duyệt Track (Xe #${this.activeTrackId})</button>
 
             <button id="studio-tab-batch" style="
               border: none;
               background: ${this.currentTab === "batch_all" ? "#ffffff" : "transparent"};
               color: ${this.currentTab === "batch_all" ? "#09090b" : "#64748b"};
               box-shadow: ${this.currentTab === "batch_all" ? "0 1px 3px rgba(0,0,0,0.08)" : "none"};
-              padding: 5px 14px;
-              font-size: 12px;
+              padding: 4px 12px;
+              font-size: 11px;
               font-weight: 600;
               cursor: pointer;
               border-radius: 4px;
@@ -8370,19 +10826,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             ">Tất Cả Track ID (${allTracks.length})</button>
           </div>
 
-          <!-- Quick Track Selector Dropdown & Switcher -->
+          <!-- Quick Track Selector Dropdown -->
           <div style="display: flex; align-items: center; gap: 4px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 6px;">
             <span style="font-size: 11px; color: #64748b; font-weight: 600;">Track:</span>
             <select id="studio-quick-track-select" style="
               background: transparent;
               border: none;
               color: #0284c7;
-              font-size: 12px;
+              font-size: 11px;
               font-weight: bold;
               cursor: pointer;
               outline: none;
-              padding: 3px 4px;
-              max-width: 200px;
+              padding: 2px 4px;
+              max-width: 180px;
             ">
               ${allTracks.map(
         (t) => `
@@ -8393,52 +10849,45 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       ).join("")}
             </select>
             <button id="btn-quick-prev-track" title="Xe trước (phím [)" style="
-              background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 4px; cursor: pointer;
+              background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 10px; padding: 2px 6px; border-radius: 4px; cursor: pointer;
             ">◀</button>
             <button id="btn-quick-next-track" title="Xe sau (phím ])" style="
-              background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 4px; cursor: pointer;
+              background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 10px; padding: 2px 6px; border-radius: 4px; cursor: pointer;
             ">▶</button>
           </div>
 
-          <!-- Status Indicator -->
-          <span style="
-            font-size: 11px;
-            font-family: ui-monospace, monospace;
-            background: #ecfdf5;
-            color: #059669;
-            border: 1px solid #a7f3d0;
-            padding: 2px 8px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-          ">
-            <span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%;"></span>
-            <span>THREE.JS NATIVE CONNECTED</span>
-          </span>
+          <!-- Undo / Redo Buttons -->
+          <div style="display: flex; align-items: center; gap: 3px;">
+            <button id="btn-studio-undo" title="Hoàn tác (Ctrl+Z)" style="
+              background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer;
+            ">↶ Undo</button>
+            <button id="btn-studio-redo" title="Làm lại (Ctrl+Y)" style="
+              background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer;
+            ">↷ Redo</button>
+          </div>
         </div>
 
         <!-- Right Action Controls -->
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <!-- Nút Lưu vào CVAT (TUYỆT ĐỐI KHÔNG TỰ ĐỘNG AUTOSAVE NGẦM) -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <!-- Nút Lưu vào CVAT -->
           <button id="btn-studio-commit-save" style="
             background: ${dirtyCount > 0 ? "#ea580c" : "#059669"};
             border: 1px solid ${dirtyCount > 0 ? "#ea580c" : "#059669"};
             color: white;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            padding: 6px 16px;
-            border-radius: 6px;
+            padding: 5px 14px;
+            border-radius: 5px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
-            box-shadow: 0 2px 8px ${dirtyCount > 0 ? "rgba(234, 88, 12, 0.25)" : "rgba(5, 150, 105, 0.25)"};
+            gap: 5px;
+            box-shadow: 0 1px 4px ${dirtyCount > 0 ? "rgba(234, 88, 12, 0.2)" : "rgba(5, 150, 105, 0.2)"};
             transition: all 0.2s;
           ">
             <span style="display: flex; align-items: center;">${ICONS.save}</span>
             <span>${this.isSaving ? "Đang lưu..." : dirtyCount > 0 ? `Lưu vào CVAT (${dirtyCount} track)` : "Lưu vào CVAT"}</span>
-            <span style="font-size: 10px; opacity: 0.85; font-family: monospace;">(Ctrl+S)</span>
+            <span style="font-size: 9px; opacity: 0.85; font-family: monospace;">(Ctrl+S)</span>
           </button>
 
           <!-- Nút Đóng -->
@@ -8446,10 +10895,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             background: #f1f5f9;
             border: 1px solid #e2e8f0;
             color: #334155;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 5px 10px;
+            border-radius: 5px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -8462,347 +10911,756 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       </div>
 
       <!-- 2. NỘI DUNG CHÍNH (TAB 1 HOẶC TAB 2) -->
-      <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden;">
+      <div id="studio-main-content-area" style="flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden;">
         ${this.currentTab === "active_track" ? this.renderActiveTrackHtml(activeTrack) : this.renderBatchAllHtml(allTracks)}
       </div>
     `;
       this.attachHeaderListeners();
       if (this.currentTab === "active_track") {
         this.attachActiveTrackListeners(activeTrack);
+        this.mountOrthoEditor(activeTrack);
       } else {
         this.attachBatchAllListeners();
       }
     }
     // =========================================================================
-    // TAB 2: ACTIVE TRACK RETIME STUDIO (Duyệt toàn bộ frame của xe)
+    // TAB 2: ACTIVE TRACK ORTHOGRAPHIC STUDIO (TOP / SIDE / FRONT)
     // =========================================================================
-    renderActiveTrackHtml(track) {
-      if (!track) {
+    renderActiveTrackHtml(track2) {
+      if (!track2) {
         return `
         <div style="flex: 1; display: flex; align-items: center; justify-content: center; color: #71717a;">
           Chưa chọn xe nào để duyệt. Vui lòng chuyển sang tab danh sách xe.
         </div>
       `;
       }
-      const sizes = track.shapes.map((s) => s.points.slice(6, 9));
-      const medL = this.median(sizes.map((s) => s[0]));
-      const medW = this.median(sizes.map((s) => s[1]));
-      const medH = this.median(sizes.map((s) => s[2]));
-      const sortedShapes = [...track.shapes].sort((a, b) => a.frame - b.frame);
-      const rowsHtml = sortedShapes.map((sh) => {
+      const pos = track2.at(this.selectedFrame);
+      const box = pos ? pos.box : { c: [0, 0, 0], s: [4, 1.8, 1.5], r: [0, 0, 0] };
+      const yawDeg = Math.round(box.r[2] * 180 / Math.PI);
+      const sortedShapes = [...track2.shapes].sort((a, b) => a.frame - b.frame);
+      const firstF = sortedShapes.length > 0 ? sortedShapes[0].frame : 0;
+      const lastF = sortedShapes.length > 0 ? sortedShapes[sortedShapes.length - 1].frame : 0;
+      const filmstripCardsHtml = sortedShapes.map((sh) => {
         const f = sh.frame;
+        const isSel = f === this.selectedFrame;
         const pts = sh.points;
-        const curL = pts[6] || 0;
-        const curW = pts[7] || 0;
-        const curH = pts[8] || 0;
-        const curZ = pts[2] || 0;
-        const curYawDeg = Number(((pts[5] || 0) * 180 / Math.PI).toFixed(1));
-        const isSelected = f === this.selectedFrame;
+        const l = (pts[6] || 0).toFixed(2);
+        const w = (pts[7] || 0).toFixed(2);
+        const h = (pts[8] || 0).toFixed(2);
         return `
-          <tr class="studio-frame-row ${isSelected ? "selected-row" : ""}" data-frame="${f}" style="
-            border-bottom: 1px solid #f1f5f9;
-            background: ${isSelected ? "#eff6ff" : sh.outside ? "#f8fafc" : "transparent"};
+          <div class="filmstrip-card ${isSel ? "active" : ""}" data-frame="${f}" style="
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: ${isSel ? "#eff6ff" : sh.outside ? "#f8fafc" : "#ffffff"};
+            border: 1.5px solid ${isSel ? "#2563eb" : sh.outside ? "#e2e8f0" : "#cbd5e1"};
+            border-radius: 6px;
+            padding: 4px 8px;
+            min-width: 68px;
             cursor: pointer;
-            transition: background 0.12s;
+            transition: all 0.12s;
+            box-shadow: ${isSel ? "0 2px 6px rgba(37, 99, 235, 0.2)" : "none"};
           ">
-            <!-- Cột 1: Frame Number -->
-            <td style="padding: 10px 14px; font-weight: bold; font-family: monospace;">
-              <span class="btn-jump-frame" data-frame="${f}" style="
-                background: ${isSelected ? "#2563eb" : "#f1f5f9"};
-                color: ${isSelected ? "white" : "#0284c7"};
-                border: 1px solid ${isSelected ? "#2563eb" : "#cbd5e1"};
-                padding: 3px 8px;
-                border-radius: 4px;
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-              ">
-                <span>f#${f}</span>
-                ${isSelected ? '<span style="font-size: 9px;">●</span>' : ""}
-              </span>
-            </td>
-
-            <!-- Cột 2: Keyframe Status -->
-            <td style="padding: 10px 14px; text-align: center;">
-              <span style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px;">KF</span>
-            </td>
-
-            <!-- Cột 3: Outside Toggle -->
-            <td style="padding: 10px 14px;">
-              <button class="btn-toggle-outside" data-frame="${f}" style="
-                border: 1px solid ${sh.outside ? "#fca5a5" : "#a7f3d0"};
+            <div style="display: flex; align-items: center; gap: 4px; width: 100%; justify-content: space-between;">
+              <span style="font-size: 11px; font-weight: bold; font-family: monospace; color: ${isSel ? "#1d4ed8" : "#0f172a"};">#${f}</span>
+              <span style="
+                font-size: 9px;
+                font-weight: bold;
+                padding: 1px 4px;
+                border-radius: 3px;
                 background: ${sh.outside ? "#fee2e2" : "#ecfdf5"};
                 color: ${sh.outside ? "#dc2626" : "#059669"};
-                font-size: 10px;
-                font-weight: 600;
-                padding: 3px 8px;
-                border-radius: 4px;
-                cursor: pointer;
-              ">${sh.outside ? "Outside (Ẩn)" : "Visible (Hiện)"}</button>
-            </td>
-
-            <!-- Cột 4: Kích Thước L / W / H (Nhập trực tiếp) -->
-            <td style="padding: 10px 8px; font-family: monospace;">
-              <div style="display: flex; align-items: center; gap: 4px;">
-                <input class="input-shape-l" data-frame="${f}" type="number" step="0.02" value="${curL.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
-                <span style="color: #94a3b8;">×</span>
-                <input class="input-shape-w" data-frame="${f}" type="number" step="0.02" value="${curW.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
-                <span style="color: #94a3b8;">×</span>
-                <input class="input-shape-h" data-frame="${f}" type="number" step="0.02" value="${curH.toFixed(2)}" title="Đổi H giữ nguyên mặt đáy" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
-                <span style="color: #64748b; font-size: 10px;">m</span>
-              </div>
-            </td>
-
-            <!-- Cột 5: Cao độ Z & Góc Yaw -->
-            <td style="padding: 10px 8px; font-family: monospace;">
-              <div style="display: flex; align-items: center; gap: 6px; font-size: 11px;">
-                <span style="color: #64748b;">Z:</span>
-                <input class="input-shape-z" data-frame="${f}" type="number" step="0.02" value="${curZ.toFixed(2)}" style="width: 54px; background: #f8fafc; border: 1px solid #cbd5e1; color: #09090b; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
-                <span style="color: #64748b;">Yaw:</span>
-                <span style="color: #059669; font-weight: bold;">${curYawDeg}°</span>
-              </div>
-            </td>
-
-            <!-- Cột 6: Thao tác từng frame -->
-            <td style="padding: 10px 14px; text-align: right;">
-              <button class="btn-snap-ground-single" data-frame="${f}" title="Hút đáy xe bám sát mặt đất tại frame này" style="
-                background: #f0fdf4;
-                border: 1px solid #bbf7d0;
-                color: #15803d;
-                font-size: 11px;
-                font-weight: 600;
-                padding: 4px 8px;
-                border-radius: 4px;
-                cursor: pointer;
-              ">⇩ Đất</button>
-
-              <button class="btn-apply-size-to-all" data-frame="${f}" title="Lấy kích thước L, W, H của frame này ép cho toàn bộ các frame khác" style="
-                background: #ecfdf5;
-                border: 1px solid #a7f3d0;
-                color: #059669;
-                font-size: 11px;
-                font-weight: 600;
-                padding: 4px 8px;
-                border-radius: 4px;
-                cursor: pointer;
-                margin-left: 4px;
-              ">L/W/H ➔ Toàn Track</button>
-            </td>
-          </tr>
+              ">${sh.outside ? "OUT" : "KF"}</span>
+            </div>
+            <span style="font-size: 10px; color: #64748b; font-family: monospace; margin-top: 2px;">${l}×${w}×${h}</span>
+          </div>
         `;
       }).join("");
       return `
-      <!-- Studio Toolbar (LIGHT) -->
-      <div style="
-        background: #f8fafc;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 10px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        flex-wrap: wrap;
-      ">
-        <!-- Info Active Track -->
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="width: 10px; height: 10px; border-radius: 50%; background: ${track.labelColor};"></span>
-            <span style="font-size: 14px; font-weight: bold; color: #09090b;">${track.labelName} #${track.uiId}</span>
-            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${track.firstFrame} ➔ ${track.lastFrame}, ${track.shapes.length} frames)</span>
-          </div>
+      <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #f8fafc;">
+        <!-- KHU VỰC TRÊN: 3 ORTHO VIEWS (75%) + SIDEBAR ĐIỀU KHIỂN & VI CHỈNH (25%) -->
+        <div style="flex: 1; min-height: 0; display: flex; gap: 8px; padding: 8px;">
+          <!-- Khung chứa 3 Canvas Trực Giao TOP / SIDE / FRONT -->
+          <div id="ortho-canvas-mount-point" style="flex: 1; min-width: 0; min-height: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);"></div>
 
-          <div style="font-size: 12px; color: #334155; font-family: monospace; background: #ffffff; padding: 4px 10px; border-radius: 5px; border: 1px solid #e2e8f0;">
-            Trung vị: <b style="color: #0284c7;">${medL.toFixed(2)} × ${medW.toFixed(2)} × ${medH.toFixed(2)}m</b>
+          <!-- Sidebar Điều Khiển Nhanh & Vi Chỉnh Số Liệu -->
+          <div style="
+            width: 280px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            box-sizing: border-box;
+          ">
+            <!-- Thông tin Track & Frame Hiện Tại -->
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${track2.labelColor};"></span>
+                <span style="font-size: 13px; font-weight: bold; color: #09090b;">${track2.labelName} #${track2.uiId}</span>
+              </div>
+              <span style="font-size: 12px; font-weight: bold; font-family: monospace; color: #2563eb; background: #eff6ff; padding: 2px 6px; border-radius: 4px;">Frame #${this.selectedFrame}</span>
+            </div>
+
+            <!-- Tọa độ Tâm X, Y, Z -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px;">
+              <span style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">Tọa Độ Tâm (Center)</span>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 4px;">
+                <div>
+                  <span style="font-size: 10px; color: #64748b;">X (dọc)</span>
+                  <input id="input-center-x" type="number" step="0.01" value="${box.c[0].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
+                </div>
+                <div>
+                  <span style="font-size: 10px; color: #64748b;">Y (ngang)</span>
+                  <input id="input-center-y" type="number" step="0.01" value="${box.c[1].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
+                </div>
+                <div>
+                  <span style="font-size: 10px; color: #64748b;">Z (cao)</span>
+                  <input id="input-center-z" type="number" step="0.01" value="${box.c[2].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
+                </div>
+              </div>
+
+              <!-- Nút Stepper vi chỉnh nhanh X/Y/Z -->
+              <div style="display: flex; gap: 4px; margin-top: 6px; justify-content: space-between;">
+                <button class="btn-step-move" data-axis="x" data-val="-0.02" style="font-size: 10px; padding: 2px 4px; background: white; border: 1px solid #cbd5e1; border-radius: 3px; cursor: pointer;">-2cm X</button>
+                <button class="btn-step-move" data-axis="x" data-val="0.02" style="font-size: 10px; padding: 2px 4px; background: white; border: 1px solid #cbd5e1; border-radius: 3px; cursor: pointer;">+2cm X</button>
+                <button class="btn-step-move" data-axis="y" data-val="-0.02" style="font-size: 10px; padding: 2px 4px; background: white; border: 1px solid #cbd5e1; border-radius: 3px; cursor: pointer;">-2cm Y</button>
+                <button class="btn-step-move" data-axis="y" data-val="0.02" style="font-size: 10px; padding: 2px 4px; background: white; border: 1px solid #cbd5e1; border-radius: 3px; cursor: pointer;">+2cm Y</button>
+              </div>
+            </div>
+
+            <!-- Kích thước L, W, H & Góc Yaw -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px;">
+              <span style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">Kích Thước & Hướng</span>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 4px;">
+                <div>
+                  <span style="font-size: 10px; color: #64748b;">Dài L</span>
+                  <input id="input-dim-l" type="number" step="0.02" value="${box.s[0].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
+                </div>
+                <div>
+                  <span style="font-size: 10px; color: #64748b;">Rộng W</span>
+                  <input id="input-dim-w" type="number" step="0.02" value="${box.s[1].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
+                </div>
+                <div>
+                  <span style="font-size: 10px; color: #64748b;">Cao H</span>
+                  <input id="input-dim-h" type="number" step="0.02" value="${box.s[2].toFixed(2)}" title="Ground-Lock nở lên trên" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
+                </div>
+                <div>
+                  <span style="font-size: 10px; color: #64748b;">Yaw°</span>
+                  <input id="input-dim-yaw" type="number" step="1" value="${yawDeg}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
+                </div>
+              </div>
+
+              <!-- Checkbox Áp dụng cho Toàn Track -->
+              <div style="margin-top: 8px; display: flex; align-items: center; gap: 6px;">
+                <input id="chk-apply-all-frames" type="checkbox" ${this.applyToAllFrames ? "checked" : ""} style="cursor: pointer;" />
+                <label for="chk-apply-all-frames" style="font-size: 11px; font-weight: 600; color: #0f172a; cursor: pointer;">Áp dụng cho Toàn Track</label>
+              </div>
+            </div>
+
+            <!-- Bộ Nút Auto-Fit Nhanh (GEMINI.md Standard) -->
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">Căn Chỉnh Nhanh (Auto-Fit)</span>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+                <button id="btn-fit-top" title="Căn góc xoay Yaw ôm viền đón tia" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-size: 11px; font-weight: bold; padding: 5px; border-radius: 4px; cursor: pointer;">TOP</button>
+                <button id="btn-fit-side" title="Căn cản trước/sau trục X (giữ nguyên Z)" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-size: 11px; font-weight: bold; padding: 5px; border-radius: 4px; cursor: pointer;">SIDE</button>
+                <button id="btn-fit-front" title="Áp sát sườn đón tia laser trục Y (giữ nguyên Z)" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-size: 11px; font-weight: bold; padding: 5px; border-radius: 4px; cursor: pointer;">FRONT</button>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 2px;">
+                <button id="btn-fit-ground" title="Ghim đáy xe bám sát mặt đất (Ground-Lock)" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 11px; font-weight: 600; padding: 5px; border-radius: 4px; cursor: pointer;">⇩ Ghim Đất</button>
+                <button id="btn-fit-flip-180" title="Lật ngược đầu xe 180°" style="background: #fffbeb; border: 1px solid #fde68a; color: #b45309; font-size: 11px; font-weight: 600; padding: 5px; border-radius: 4px; cursor: pointer;">🔄 Lật 180°</button>
+              </div>
+            </div>
+
+            <!-- Nút Toggle Outside tại Frame hiện tại -->
+            <button id="btn-toggle-outside-cur" style="
+              background: ${(pos == null ? void 0 : pos.outside) ? "#fee2e2" : "#f1f5f9"};
+              border: 1px solid ${(pos == null ? void 0 : pos.outside) ? "#fca5a5" : "#cbd5e1"};
+              color: ${(pos == null ? void 0 : pos.outside) ? "#dc2626" : "#334155"};
+              font-size: 11px;
+              font-weight: 600;
+              padding: 6px;
+              border-radius: 4px;
+              cursor: pointer;
+              margin-top: auto;
+            ">${(pos == null ? void 0 : pos.outside) ? "Đang Ẩn (Outside) - Bấm để Hiện" : "Đang Hiện - Bấm để Ẩn (Phím O)"}</button>
           </div>
         </div>
 
-        <!-- Batch Action Buttons For Active Track (FLAT ICONS) -->
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <button id="btn-batch-snap-ground" style="
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #15803d;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-          ">⇩ Ghim Đất Toàn Track</button>
+        <!-- KHU VỰC DƯỚI: TIMELINE CONTROLS & DẢI PHIM FILMSTRIP TOÀN BỘ CÁC FRAME -->
+        <div style="
+          background: #ffffff;
+          border-top: 1px solid #e2e8f0;
+          padding: 8px 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        ">
+          <!-- Hàng 1: Bộ điều khiển Timeline & Mây điểm -->
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <!-- Bộ điều khiển phát & chuyển frame -->
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <button id="btn-timeline-prev5" title="Lùi 5 frames" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 4px 6px; border-radius: 4px; cursor: pointer;">◀◀ -5f</button>
+              <button id="btn-timeline-prev" title="Frame trước (phím A hoặc ◀)" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer;">◀ Prev</button>
+              <button id="btn-timeline-play" title="Phát lướt tự động (Space)" style="background: #2563eb; border: none; color: white; font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 4px; cursor: pointer;">${this.isPlaying ? "❚❚ Pause" : "▶ Play"}</button>
+              <button id="btn-timeline-next" title="Frame sau (phím D hoặc ▶)" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Next ▶</button>
+              <button id="btn-timeline-next5" title="Tiến 5 frames" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 4px 6px; border-radius: 4px; cursor: pointer;">+5f ▶▶</button>
 
-          <button id="btn-batch-flip-yaw" style="
-            background: #fffbeb;
-            border: 1px solid #fde68a;
-            color: #b45309;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-          ">
-            <span style="display: flex; align-items: center;">${ICONS.rotate}</span>
-            <span>Lật 180° Toàn Track</span>
-          </button>
+              <!-- Slider kéo nhanh frame -->
+              <div style="display: flex; align-items: center; gap: 6px; margin-left: 8px;">
+                <span style="font-size: 11px; color: #64748b; font-family: monospace;">f#${firstF}</span>
+                <input id="timeline-slider" type="range" min="${firstF}" max="${lastF}" value="${this.selectedFrame}" style="width: 180px; cursor: pointer;" />
+                <span style="font-size: 11px; color: #64748b; font-family: monospace;">f#${lastF}</span>
+              </div>
+            </div>
 
-          <button id="btn-batch-median-size" style="
-            background: #faf5ff;
-            border: 1px solid #e9d5ff;
-            color: #7e22ce;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
+            <!-- Tải Toàn Bộ Curpoint & Show All Point Cloud -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <!-- Nút Tải Toàn Bộ Curpoint -->
+              <button id="btn-scan-all-curpoints" style="
+                background: ${this.pointManager.isScanActive ? "#ea580c" : "#0284c7"};
+                border: 1px solid ${this.pointManager.isScanActive ? "#ea580c" : "#0284c7"};
+                color: white;
+                font-size: 11px;
+                font-weight: 600;
+                padding: 4px 10px;
+                border-radius: 5px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                transition: all 0.15s;
+              ">
+                <span>📥</span>
+                <span id="lbl-scan-progress">${this.pointManager.isScanActive ? "Đang quét..." : "Tải Toàn Bộ Curpoint"}</span>
+              </button>
+
+              <!-- Toggle Xem Mây Điểm: Frame Này vs Gộp Toàn Track -->
+              <div style="display: flex; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px;">
+                <button id="btn-point-mode-single" style="
+                  border: none;
+                  background: ${!this.showAllPoints ? "#ffffff" : "transparent"};
+                  color: ${!this.showAllPoints ? "#0284c7" : "#64748b"};
+                  font-weight: ${!this.showAllPoints ? "bold" : "normal"};
+                  padding: 3px 8px;
+                  font-size: 10px;
+                  border-radius: 4px;
+                  cursor: pointer;
+                ">Frame Này</button>
+
+                <button id="btn-point-mode-all" style="
+                  border: none;
+                  background: ${this.showAllPoints ? "#059669" : "transparent"};
+                  color: ${this.showAllPoints ? "white" : "#64748b"};
+                  font-weight: ${this.showAllPoints ? "bold" : "normal"};
+                  padding: 3px 8px;
+                  font-size: 10px;
+                  border-radius: 4px;
+                  cursor: pointer;
+                ">Show All Point Cloud (${this.pointManager.loadedFramesCount}f)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hàng 2: Dải phim cuộn ngang Filmstrip (Hiển thị tất cả các frame của ID đó) -->
+          <div id="filmstrip-scroll-container" style="
             display: flex;
-            align-items: center;
-            gap: 4px;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 4px 2px;
+            scroll-behavior: smooth;
           ">
-            <span style="display: flex; align-items: center;">${ICONS.filter}</span>
-            <span>Làm Mịn Kích Thước (Median)</span>
-          </button>
+            ${filmstripCardsHtml}
+          </div>
         </div>
-      </div>
-
-      <!-- Danh Sách Các Frame -->
-      <div style="flex: 1; overflow: auto; padding: 12px 20px; background: #ffffff;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
-          <thead>
-            <tr style="border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; font-size: 11px; background: #f8fafc;">
-              <th style="padding: 8px 14px;">Frame</th>
-              <th style="padding: 8px 14px; text-align: center;">Loại</th>
-              <th style="padding: 8px 14px;">Hiển Thị</th>
-              <th style="padding: 8px 8px;">Kích Thước (L × W × H)</th>
-              <th style="padding: 8px 8px;">Tọa Độ & Hướng</th>
-              <th style="padding: 8px 14px; text-align: right;">Hành Động</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
-      </div>
-              <th style="padding: 8px 14px; text-align: center;">Loại</th>
-              <th style="padding: 8px 14px;">Hiển Thị</th>
-              <th style="padding: 8px 8px;">Kích Thước (L × W × H)</th>
-              <th style="padding: 8px 8px;">Tọa Độ & Hướng</th>
-              <th style="padding: 8px 14px; text-align: right;">Hành Động</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
       </div>
     `;
     }
-    attachActiveTrackListeners(track) {
-      var _a, _b, _c, _d;
-      if (!this.overlay || !track || !this.store || !((_a = this.currentCtx) == null ? void 0 : _a.jobId)) return;
-      const jobId = this.currentCtx.jobId;
-      this.overlay.querySelectorAll(".studio-frame-row").forEach((row) => {
-        row.addEventListener("click", (e) => {
-          const target = e.target;
-          if (target.tagName === "INPUT" || target.tagName === "BUTTON") return;
-          const f = parseInt(row.dataset.frame || "0", 10);
-          this.selectedFrame = f;
-          this.jumpToCVATFrame(f);
-          this.render();
-        });
-      });
-      this.overlay.querySelectorAll(".btn-jump-frame").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const f = parseInt(btn.dataset.frame || "0", 10);
-          this.selectedFrame = f;
-          this.jumpToCVATFrame(f);
-          this.render();
-        });
-      });
-      this.overlay.querySelectorAll(".btn-toggle-outside").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const f = parseInt(btn.dataset.frame || "0", 10);
-          this.toggleOutsideFrame(f);
-        });
-      });
-      const updateShapeSize = (f, newL, newW, newH) => {
-        var _a2;
-        const sh = track.shapes.find((s) => s.frame === f);
-        if (!sh || !Array.isArray(sh.points)) return;
-        (_a2 = this.store) == null ? void 0 : _a2.snapshot([track.uiId]);
-        sh.points[8];
-        const curL = newL !== void 0 ? newL : sh.points[6];
-        const curW = newW !== void 0 ? newW : sh.points[7];
-        const curH = sh.points[8];
-        sh.points[6] = curL;
-        sh.points[7] = curW;
-        sh.points[8] = curH;
-        track.dirty = true;
-        if (f === CVATBridge.getCurrentFrame()) {
-          CVATBridge.updateLiveBox(jobId, f, track.uiId, track.serverId, sh.points);
+    /**
+     * Lấy dải 5 frames liên tiếp xung quanh frame đang chọn (Sliding Window)
+     */
+    getVisible5Frames(track2) {
+      const sortedShapes = [...track2.shapes].sort((a, b) => a.frame - b.frame);
+      const allFrames = sortedShapes.map((s) => s.frame);
+      if (allFrames.length === 0) return [this.selectedFrame];
+      if (allFrames.length <= 5) return allFrames;
+      const curIdx = allFrames.indexOf(this.selectedFrame);
+      const idx = curIdx >= 0 ? curIdx : 0;
+      let startIdx = idx - 2;
+      if (startIdx < 0) startIdx = 0;
+      if (startIdx + 5 > allFrames.length) startIdx = Math.max(0, allFrames.length - 5);
+      return allFrames.slice(startIdx, startIdx + 5);
+    }
+    /**
+     * Khởi tạo và gắn component 5 Frames x 3 Ortho Viewports vào DOM
+     */
+    mountOrthoEditor(track2) {
+      var _a;
+      const mountEl = (_a = this.overlay) == null ? void 0 : _a.querySelector("#ortho-canvas-mount-point");
+      if (!mountEl || !track2) return;
+      if (this.orthoEditor) {
+        this.orthoEditor.unmount();
+        this.orthoEditor = null;
+      }
+      this.orthoEditor = new OrthoEditorPanel(
+        (newBox, isLiveSync) => {
+          this.handleBoxChangedFromOrtho(track2, newBox, isLiveSync);
+        },
+        (frame) => {
+          this.selectFrame(frame);
         }
-        this.render();
-      };
-      this.overlay.querySelectorAll(".input-shape-l").forEach((inp) => {
-        inp.addEventListener("change", () => {
-          const f = parseInt(inp.dataset.frame || "0", 10);
-          const val = parseFloat(inp.value);
-          if (!isNaN(val) && val > 0) updateShapeSize(f, val, void 0);
-        });
+      );
+      this.orthoEditor.mount(mountEl);
+      this.updateOrthoEditorState(track2);
+      this.preloadPointsForVisibleFrames(track2);
+    }
+    /**
+     * Cập nhật Box và Point Cloud cho 5 Frames của OrthoEditor
+     */
+    updateOrthoEditorState(track2) {
+      if (!this.orthoEditor || !track2) return;
+      const visibleFrames = this.getVisible5Frames(track2);
+      const framesData = visibleFrames.map((f) => {
+        const pos = track2.at(f);
+        const box = pos ? pos.box : { c: [0, 0, 0], s: [4, 1.8, 1.5], r: [0, 0, 0] };
+        const keyframe = pos ? pos.keyframe : false;
+        const outside = pos ? pos.outside : false;
+        let points = null;
+        if (this.showAllPoints) {
+          points = this.pointManager.getAccumulatedPoints(f, box);
+        } else {
+          points = this.pointManager.getFramePoints(f);
+        }
+        return {
+          frame: f,
+          box,
+          keyframe,
+          outside,
+          labelColor: track2.labelColor,
+          points
+        };
       });
-      this.overlay.querySelectorAll(".input-shape-w").forEach((inp) => {
-        inp.addEventListener("change", () => {
-          const f = parseInt(inp.dataset.frame || "0", 10);
-          const val = parseFloat(inp.value);
-          if (!isNaN(val) && val > 0) updateShapeSize(f, void 0, val);
-        });
-      });
-      this.overlay.querySelectorAll(".input-shape-h").forEach((inp) => {
-        inp.addEventListener("change", () => {
-          const f = parseInt(inp.dataset.frame || "0", 10);
-          const val = parseFloat(inp.value);
-          if (!isNaN(val) && val > 0) updateShapeSize(f, void 0, val);
-        });
-      });
-      this.overlay.querySelectorAll(".btn-apply-size-to-all").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const f = parseInt(btn.dataset.frame || "0", 10);
-          const sh = track.shapes.find((s) => s.frame === f);
-          if (!sh || !Array.isArray(sh.points)) return;
-          const size = [sh.points[6], sh.points[7], sh.points[8]];
-          this.applySizeToWholeTrack(track.uiId, size);
-        });
-      });
-      this.overlay.querySelectorAll(".btn-snap-ground-single").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-          await CVATBridge.snapTrackToGround(jobId, track.uiId, track.serverId || track.uiId, "road");
-          await this.loadInitialData();
-        });
-      });
-      (_b = this.overlay.querySelector("#btn-batch-snap-ground")) == null ? void 0 : _b.addEventListener("click", async () => {
-        for (const sh of track.shapes) {
-          if (!sh.outside) {
-            await CVATBridge.snapTrackToGround(jobId, track.uiId, track.serverId || track.uiId, "road");
+      this.orthoEditor.setFrames(framesData, this.selectedFrame);
+    }
+    /**
+     * Tự động tải trước mây điểm cho toàn bộ 5 frames đang hiển thị
+     */
+    async preloadPointsForVisibleFrames(track2) {
+      const visibleFrames = this.getVisible5Frames(track2);
+      let hasNewPoints = false;
+      for (const f of visibleFrames) {
+        if (!this.pointManager.hasFrame(f)) {
+          const pos = track2.at(f);
+          if (pos && !pos.outside) {
+            try {
+              const diag = Math.hypot(pos.box.s[0], pos.box.s[1]);
+              const radius = Math.max(3.5, diag / 2 + 1.2);
+              const pts = await CVATBridge.getRoiLidarPoints(pos.box.c, radius, 15e3);
+              if (pts && pts.length > 0) {
+                this.pointManager.setFramePoints(f, pts, pos.box);
+                hasNewPoints = true;
+              }
+            } catch (e) {
+              console.warn(`[CVAT 3D Studio] Không thể tải điểm frame #${f}:`, e);
+            }
           }
         }
-        await this.loadInitialData();
+      }
+      if (hasNewPoints) {
+        this.updateOrthoEditorState(track2);
+      }
+    }
+    /**
+     * Tự động tải mây điểm cho frame hiện tại nếu chưa có trong cache
+     */
+    async loadPointsForCurrentFrame() {
+      if (!this.store) return;
+      const track2 = this.store.getTrack(this.activeTrackId);
+      if (!track2) return;
+      await this.preloadPointsForVisibleFrames(track2);
+    }
+    /**
+     * Xử lý khi người dùng tương tác kéo chuột chỉnh box trên Ortho Canvas (In-Memory Only)
+     */
+    handleBoxChangedFromOrtho(track2, newBox, isLiveSync) {
+      const f = this.selectedFrame;
+      if (isLiveSync) {
+        track2.setBox(f, newBox);
+        this.updateSidebarInputs(newBox);
+      } else {
+        track2.snapshot();
+        if (this.applyToAllFrames) {
+          this.applySizeToWholeTrack(track2.uiId, [newBox.s[0], newBox.s[1], newBox.s[2]]);
+        } else {
+          track2.setBox(f, newBox);
+        }
+        track2.dirty = true;
+        this.updateHeaderDirtyState();
+        this.updateOrthoEditorState(track2);
+      }
+    }
+    updateSidebarInputs(box) {
+      var _a, _b, _c, _d, _e, _f, _g;
+      const inpX = (_a = this.overlay) == null ? void 0 : _a.querySelector("#input-center-x");
+      const inpY = (_b = this.overlay) == null ? void 0 : _b.querySelector("#input-center-y");
+      const inpZ = (_c = this.overlay) == null ? void 0 : _c.querySelector("#input-center-z");
+      const inpL = (_d = this.overlay) == null ? void 0 : _d.querySelector("#input-dim-l");
+      const inpW = (_e = this.overlay) == null ? void 0 : _e.querySelector("#input-dim-w");
+      const inpH = (_f = this.overlay) == null ? void 0 : _f.querySelector("#input-dim-h");
+      const inpYaw = (_g = this.overlay) == null ? void 0 : _g.querySelector("#input-dim-yaw");
+      if (inpX) inpX.value = box.c[0].toFixed(2);
+      if (inpY) inpY.value = box.c[1].toFixed(2);
+      if (inpZ) inpZ.value = box.c[2].toFixed(2);
+      if (inpL) inpL.value = box.s[0].toFixed(2);
+      if (inpW) inpW.value = box.s[1].toFixed(2);
+      if (inpH) inpH.value = box.s[2].toFixed(2);
+      if (inpYaw) inpYaw.value = String(Math.round(box.r[2] * 180 / Math.PI));
+    }
+    updateHeaderDirtyState() {
+      var _a;
+      if (!this.store) return;
+      const dirtyCount = this.store.getDirtyTracks().length;
+      const btn = (_a = this.overlay) == null ? void 0 : _a.querySelector("#btn-studio-commit-save");
+      if (btn) {
+        btn.style.background = dirtyCount > 0 ? "#ea580c" : "#059669";
+        btn.style.borderColor = dirtyCount > 0 ? "#ea580c" : "#059669";
+        const span = btn.querySelector("span:nth-child(2)");
+        if (span) {
+          span.textContent = dirtyCount > 0 ? `Lưu vào CVAT (${dirtyCount} track)` : "Lưu vào CVAT";
+        }
+      }
+    }
+    attachActiveTrackListeners(track2) {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
+      if (!this.overlay || !track2 || !this.store || !((_a = this.currentCtx) == null ? void 0 : _a.jobId)) return;
+      this.currentCtx.jobId;
+      this.overlay.querySelectorAll(".filmstrip-card").forEach((card) => {
+        card.addEventListener("click", () => {
+          const f = parseInt(card.dataset.frame || "0", 10);
+          this.selectFrame(f);
+        });
       });
-      (_c = this.overlay.querySelector("#btn-batch-flip-yaw")) == null ? void 0 : _c.addEventListener("click", async () => {
-        await CVATBridge.flipTrackYaw(jobId, track.uiId, track.serverId || track.uiId, false);
-        await this.loadInitialData();
+      const slider = this.overlay.querySelector("#timeline-slider");
+      slider == null ? void 0 : slider.addEventListener("input", (e) => {
+        const f = parseInt(e.target.value, 10);
+        this.selectFrame(f, false);
       });
-      (_d = this.overlay.querySelector("#btn-batch-median-size")) == null ? void 0 : _d.addEventListener("click", () => {
-        const sizes = track.shapes.map((s) => s.points.slice(6, 9));
-        const medSize = [
-          this.median(sizes.map((s) => s[0])),
-          this.median(sizes.map((s) => s[1])),
-          this.median(sizes.map((s) => s[2]))
-        ];
-        this.applySizeToWholeTrack(track.uiId, medSize);
+      (_b = this.overlay.querySelector("#btn-timeline-prev5")) == null ? void 0 : _b.addEventListener("click", () => {
+        this.stepFrame(-5);
+      });
+      (_c = this.overlay.querySelector("#btn-timeline-prev")) == null ? void 0 : _c.addEventListener("click", () => {
+        this.stepFrame(-1);
+      });
+      (_d = this.overlay.querySelector("#btn-timeline-next")) == null ? void 0 : _d.addEventListener("click", () => {
+        this.stepFrame(1);
+      });
+      (_e = this.overlay.querySelector("#btn-timeline-next5")) == null ? void 0 : _e.addEventListener("click", () => {
+        this.stepFrame(5);
+      });
+      (_f = this.overlay.querySelector("#btn-timeline-play")) == null ? void 0 : _f.addEventListener("click", () => {
+        this.togglePlayback();
+      });
+      const btnScan = this.overlay.querySelector("#btn-scan-all-curpoints");
+      btnScan == null ? void 0 : btnScan.addEventListener("click", () => {
+        var _a2;
+        if (this.pointManager.isScanActive) {
+          this.pointManager.abortScan();
+          return;
+        }
+        const lbl = (_a2 = this.overlay) == null ? void 0 : _a2.querySelector("#lbl-scan-progress");
+        this.pointManager.scanTrackCurpoints(
+          track2,
+          (cur, total, f) => {
+            if (lbl) lbl.textContent = `Đang tải: f#${f} (${cur}/${total})... [Hủy]`;
+            this.selectedFrame = f;
+            this.updateOrthoEditorState(track2);
+          },
+          (success, count) => {
+            if (lbl) lbl.textContent = success ? `Đã tải ${count} frames!` : "Tải Toàn Bộ Curpoint";
+            if (success) {
+              this.showAllPoints = true;
+              this.updatePointModeButtons();
+              this.updateOrthoEditorState(track2);
+            }
+          }
+        );
+      });
+      (_g = this.overlay.querySelector("#btn-point-mode-single")) == null ? void 0 : _g.addEventListener("click", () => {
+        this.showAllPoints = false;
+        this.updatePointModeButtons();
+        this.updateOrthoEditorState(track2);
+      });
+      (_h = this.overlay.querySelector("#btn-point-mode-all")) == null ? void 0 : _h.addEventListener("click", () => {
+        this.showAllPoints = true;
+        this.updatePointModeButtons();
+        this.updateOrthoEditorState(track2);
+      });
+      const chkAll = this.overlay.querySelector("#chk-apply-all-frames");
+      chkAll == null ? void 0 : chkAll.addEventListener("change", (e) => {
+        this.applyToAllFrames = e.target.checked;
+      });
+      const handleInputBoxChange = () => {
+        var _a2, _b2, _c2, _d2, _e2, _f2, _g2, _h2, _i2, _j2, _k2, _l2, _m2, _n2, _o;
+        const inpX = parseFloat(((_b2 = (_a2 = this.overlay) == null ? void 0 : _a2.querySelector("#input-center-x")) == null ? void 0 : _b2.value) || "0");
+        const inpY = parseFloat(((_d2 = (_c2 = this.overlay) == null ? void 0 : _c2.querySelector("#input-center-y")) == null ? void 0 : _d2.value) || "0");
+        const inpZ = parseFloat(((_f2 = (_e2 = this.overlay) == null ? void 0 : _e2.querySelector("#input-center-z")) == null ? void 0 : _f2.value) || "0");
+        const inpL = parseFloat(((_h2 = (_g2 = this.overlay) == null ? void 0 : _g2.querySelector("#input-dim-l")) == null ? void 0 : _h2.value) || "0");
+        const inpW = parseFloat(((_j2 = (_i2 = this.overlay) == null ? void 0 : _i2.querySelector("#input-dim-w")) == null ? void 0 : _j2.value) || "0");
+        const inpH = parseFloat(((_l2 = (_k2 = this.overlay) == null ? void 0 : _k2.querySelector("#input-dim-h")) == null ? void 0 : _l2.value) || "0");
+        const inpYaw = parseFloat(((_n2 = (_m2 = this.overlay) == null ? void 0 : _m2.querySelector("#input-dim-yaw")) == null ? void 0 : _n2.value) || "0");
+        if (inpL > 0 && inpW > 0 && inpH > 0) {
+          const curBox = (_o = track2.at(this.selectedFrame)) == null ? void 0 : _o.box;
+          const newBox = {
+            c: [inpX, inpY, inpZ],
+            s: [inpL, inpW, inpH],
+            r: curBox ? [curBox.r[0], curBox.r[1], inpYaw * Math.PI / 180] : [0, 0, inpYaw * Math.PI / 180]
+          };
+          this.handleBoxChangedFromOrtho(track2, newBox, false);
+          this.updateOrthoEditorState(track2);
+        }
+      };
+      [
+        "#input-center-x",
+        "#input-center-y",
+        "#input-center-z",
+        "#input-dim-l",
+        "#input-dim-w",
+        "#input-dim-h",
+        "#input-dim-yaw"
+      ].forEach((id) => {
+        var _a2, _b2;
+        (_b2 = (_a2 = this.overlay) == null ? void 0 : _a2.querySelector(id)) == null ? void 0 : _b2.addEventListener("change", handleInputBoxChange);
+      });
+      this.overlay.querySelectorAll(".btn-step-move").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const axis = btn.dataset.axis;
+          const val = parseFloat(btn.dataset.val || "0");
+          const curPos = track2.at(this.selectedFrame);
+          if (!curPos) return;
+          const newBox = cloneBox(curPos.box);
+          if (axis === "x") newBox.c[0] += val;
+          else if (axis === "y") newBox.c[1] += val;
+          else if (axis === "z") newBox.c[2] += val;
+          this.handleBoxChangedFromOrtho(track2, newBox, false);
+          this.updateOrthoEditorState(track2);
+          this.updateSidebarInputs(newBox);
+        });
+      });
+      (_i = this.overlay.querySelector("#btn-fit-top")) == null ? void 0 : _i.addEventListener("click", () => {
+        this.executeInMemoryFit("top");
+      });
+      (_j = this.overlay.querySelector("#btn-fit-side")) == null ? void 0 : _j.addEventListener("click", () => {
+        this.executeInMemoryFit("side");
+      });
+      (_k = this.overlay.querySelector("#btn-fit-front")) == null ? void 0 : _k.addEventListener("click", () => {
+        this.executeInMemoryFit("front");
+      });
+      (_l = this.overlay.querySelector("#btn-fit-ground")) == null ? void 0 : _l.addEventListener("click", () => {
+        this.executeInMemoryGroundSnap();
+      });
+      (_m = this.overlay.querySelector("#btn-fit-flip-180")) == null ? void 0 : _m.addEventListener("click", () => {
+        this.executeInMemoryFlip180();
+      });
+      (_n = this.overlay.querySelector("#btn-toggle-outside-cur")) == null ? void 0 : _n.addEventListener("click", () => {
+        this.toggleOutsideFrame(this.selectedFrame);
       });
     }
+    /**
+     * Chạy thuật toán Auto-Fit (TOP, SIDE, FRONT) trực tiếp In-Memory (Không ghi đè sang CVAT)
+     */
+    executeInMemoryFit(step) {
+      if (!this.store) return;
+      const track2 = this.store.getTrack(this.activeTrackId);
+      if (!track2) return;
+      const curPos = track2.at(this.selectedFrame);
+      if (!curPos) return;
+      const b = curPos.box;
+      const ptsArr = this.showAllPoints ? this.pointManager.getAccumulatedPoints(this.selectedFrame, b) : this.pointManager.getFramePoints(this.selectedFrame);
+      const pts = ptsArr ? float32ToVec3Array(ptsArr) : [];
+      if (pts.length > 0) {
+        track2.snapshot();
+        const fitRes = fitBoxToEgoRayAndGround(
+          pts,
+          b.c[0],
+          b.c[1],
+          b.c[2],
+          b.r[2],
+          b.s[0],
+          b.s[1],
+          b.s[2],
+          { x: 0, y: 0 },
+          { fitStep: step, preserveDimensions: true }
+        );
+        const newBox = {
+          c: [fitRes.newCenterX, fitRes.newCenterY, fitRes.newCenterZ],
+          s: [fitRes.newL, fitRes.newW, fitRes.newH],
+          r: [b.r[0], b.r[1], fitRes.newYaw]
+        };
+        if (this.applyToAllFrames) {
+          this.applySizeToWholeTrack(track2.uiId, [newBox.s[0], newBox.s[1], newBox.s[2]]);
+        } else {
+          track2.setBox(this.selectedFrame, newBox);
+        }
+        track2.dirty = true;
+        this.updateSidebarInputs(newBox);
+        this.updateOrthoEditorState(track2);
+        this.updateHeaderDirtyState();
+      }
+    }
+    /**
+     * Ghim đáy xe bám sát mặt đất In-Memory theo Footprint Ground Snap (Fallback Ego Z 0° nếu ít điểm)
+     */
+    executeInMemoryGroundSnap() {
+      if (!this.store) return;
+      const track2 = this.store.getTrack(this.activeTrackId);
+      if (!track2) return;
+      const curPos = track2.at(this.selectedFrame);
+      if (!curPos) return;
+      const b = curPos.box;
+      const ptsArr = this.pointManager.getFramePoints(this.selectedFrame);
+      const pts = ptsArr ? float32ToVec3Array(ptsArr) : [];
+      track2.snapshot();
+      const groundRes = computeGroundSlopesAndZ(
+        pts,
+        b.c[0],
+        b.c[1],
+        b.c[2],
+        b.r[2],
+        b.s[0] / 2,
+        b.s[1] / 2
+      );
+      const baseZ = groundRes.groundZ !== null ? groundRes.groundZ : -1.75;
+      const newBox = cloneBox(b);
+      newBox.r[0] = groundRes.rollRad;
+      newBox.r[1] = groundRes.pitchRad;
+      newBox.c[2] = Number(
+        (baseZ + b.s[2] / 2 * Math.cos(groundRes.pitchRad) * Math.cos(groundRes.rollRad)).toFixed(3)
+      );
+      track2.setBox(this.selectedFrame, newBox);
+      track2.dirty = true;
+      this.updateSidebarInputs(newBox);
+      this.updateOrthoEditorState(track2);
+      this.updateHeaderDirtyState();
+    }
+    /**
+     * Lật ngược đầu xe 180° In-Memory quanh trục Z
+     */
+    executeInMemoryFlip180() {
+      if (!this.store) return;
+      const track2 = this.store.getTrack(this.activeTrackId);
+      if (!track2) return;
+      const curPos = track2.at(this.selectedFrame);
+      if (!curPos) return;
+      track2.snapshot();
+      const rotated = rotateLocal(curPos.box, 0, 0);
+      track2.setBox(this.selectedFrame, rotated);
+      track2.dirty = true;
+      this.updateSidebarInputs(rotated);
+      this.updateOrthoEditorState(track2);
+      this.updateHeaderDirtyState();
+    }
+    updatePointModeButtons() {
+      var _a, _b;
+      const btnSingle = (_a = this.overlay) == null ? void 0 : _a.querySelector("#btn-point-mode-single");
+      const btnAll = (_b = this.overlay) == null ? void 0 : _b.querySelector("#btn-point-mode-all");
+      if (btnSingle && btnAll) {
+        btnSingle.style.background = !this.showAllPoints ? "#ffffff" : "transparent";
+        btnSingle.style.color = !this.showAllPoints ? "#0284c7" : "#64748b";
+        btnSingle.style.fontWeight = !this.showAllPoints ? "bold" : "normal";
+        btnAll.style.background = this.showAllPoints ? "#059669" : "transparent";
+        btnAll.style.color = this.showAllPoints ? "white" : "#64748b";
+        btnAll.style.fontWeight = this.showAllPoints ? "bold" : "normal";
+        btnAll.textContent = `Show All Point Cloud (${this.pointManager.loadedFramesCount}f)`;
+      }
+    }
+    async selectFrame(f, updateSlider = true) {
+      var _a, _b;
+      if (this.selectedFrame === f) return;
+      this.selectedFrame = f;
+      this.jumpToCVATFrame(f);
+      if (updateSlider) {
+        const slider = (_a = this.overlay) == null ? void 0 : _a.querySelector("#timeline-slider");
+        if (slider) slider.value = String(f);
+      }
+      (_b = this.overlay) == null ? void 0 : _b.querySelectorAll(".filmstrip-card").forEach((c) => {
+        const cardF = parseInt(c.dataset.frame || "-1", 10);
+        if (cardF === f) {
+          c.classList.add("active");
+          c.style.borderColor = "#2563eb";
+          c.style.background = "#eff6ff";
+          c.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+        } else {
+          c.classList.remove("active");
+          c.style.borderColor = "#cbd5e1";
+          c.style.background = "#ffffff";
+        }
+      });
+      if (!this.store) return;
+      const track2 = this.store.getTrack(this.activeTrackId);
+      if (!track2) return;
+      const pos = track2.at(f);
+      if (pos) {
+        this.updateSidebarInputs(pos.box);
+      }
+      this.updateOrthoEditorState(track2);
+      await this.preloadPointsForVisibleFrames(track2);
+    }
+    stepFrame(delta) {
+      if (!this.store) return;
+      const track2 = this.store.getTrack(this.activeTrackId);
+      if (!track2 || track2.shapes.length === 0) return;
+      const frames = track2.shapes.map((s) => s.frame).sort((a, b) => a - b);
+      const curIdx = frames.indexOf(this.selectedFrame);
+      if (curIdx >= 0) {
+        const nextIdx = Math.max(0, Math.min(frames.length - 1, curIdx + delta));
+        this.selectFrame(frames[nextIdx]);
+      } else {
+        this.selectFrame(frames[0]);
+      }
+    }
+    togglePlayback() {
+      if (this.isPlaying) {
+        this.stopPlayback();
+      } else {
+        this.startPlayback();
+      }
+    }
+    startPlayback() {
+      var _a;
+      this.isPlaying = true;
+      const btn = (_a = this.overlay) == null ? void 0 : _a.querySelector("#btn-timeline-play");
+      if (btn) btn.textContent = "❚❚ Pause";
+      this.playInterval = setInterval(() => {
+        if (!this.store) return;
+        const track2 = this.store.getTrack(this.activeTrackId);
+        if (!track2 || track2.shapes.length === 0) return;
+        const frames = track2.shapes.map((s) => s.frame).sort((a, b) => a - b);
+        const curIdx = frames.indexOf(this.selectedFrame);
+        const nextIdx = curIdx + 1 >= frames.length ? 0 : curIdx + 1;
+        this.selectFrame(frames[nextIdx]);
+      }, 250);
+    }
+    stopPlayback() {
+      var _a;
+      this.isPlaying = false;
+      if (this.playInterval) {
+        clearInterval(this.playInterval);
+        this.playInterval = null;
+      }
+      const btn = (_a = this.overlay) == null ? void 0 : _a.querySelector("#btn-timeline-play");
+      if (btn) btn.textContent = "▶ Play";
+    }
+    async refreshCurrentFrameAfterFit() {
+      var _a;
+      if (!((_a = this.currentCtx) == null ? void 0 : _a.jobId)) return;
+      await this.loadInitialData();
+    }
     // =========================================================================
-    // TAB 1: BATCH SIZE MANAGER (Quản lý kích thước toàn Job)
+    // TAB 1: BATCH SIZE MANAGER
     // =========================================================================
     renderBatchAllHtml(allTracks) {
       const rowsHtml = allTracks.map((t) => {
@@ -8810,87 +11668,33 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const medL = this.median(sizes.map((s) => s[0]));
         const medW = this.median(sizes.map((s) => s[1]));
         const medH = this.median(sizes.map((s) => s[2]));
-        const minL = Math.min(...sizes.map((s) => s[0]));
-        const maxL = Math.max(...sizes.map((s) => s[0]));
-        const minW = Math.min(...sizes.map((s) => s[1]));
-        const maxW = Math.max(...sizes.map((s) => s[1]));
-        const minH = Math.min(...sizes.map((s) => s[2]));
-        const maxH = Math.max(...sizes.map((s) => s[2]));
-        const varies = maxL - minL > 0.01 || maxW - minW > 0.01 || maxH - minH > 0.01;
         return `
-          <tr class="batch-track-row" data-track-id="${t.uiId}" style="border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.15s; background: ${t.uiId === this.activeTrackId ? "#eff6ff" : t.dirty ? "#ecfdf5" : "transparent"};">
-            <td style="padding: 10px 14px; font-weight: bold; color: #0284c7; font-family: monospace;">#${t.uiId}</td>
-            <td style="padding: 10px 14px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${t.labelColor}; margin-right: 6px;"></span>
-              <span style="font-weight: 600; color: #09090b;">${t.labelName}</span>
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 14px; font-weight: bold;">
+              <span style="color: ${t.labelColor};">#${t.uiId}</span> · ${t.labelName}
             </td>
-            <td style="padding: 10px 14px; font-family: monospace; color: #64748b;">f${t.firstFrame} ➔ f${t.lastFrame}</td>
-            <td style="padding: 10px 14px; font-family: monospace; text-align: center; color: #334155;">${t.shapes.length}</td>
-            <td style="padding: 10px 14px; font-family: monospace; color: #334155;">
-              ${medL.toFixed(2)} / ${medW.toFixed(2)} / ${medH.toFixed(2)}m
-              ${varies ? '<span style="margin-left: 6px; font-size: 10px; background: #ffedd5; color: #ea580c; border: 1px solid #fed7aa; padding: 1px 4px; border-radius: 3px; font-weight: 600;">không đều</span>' : ""}
-            </td>
-            <td style="padding: 10px 8px;">
-              <input class="batch-inp-l" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medL.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
-            </td>
-            <td style="padding: 10px 8px;">
-              <input class="batch-inp-w" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medW.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
-            </td>
-            <td style="padding: 10px 8px;">
-              <input class="batch-inp-h" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medH.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
-            </td>
-            <td style="padding: 10px 14px;">
-              <button class="btn-batch-apply" data-track-id="${t.uiId}" style="background: #059669; border: none; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Áp dụng</button>
-              <button class="btn-batch-snap" data-track-id="${t.uiId}" style="margin-left: 4px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">⇩ Đất</button>
+            <td style="padding: 10px 14px; font-family: monospace;">${t.firstFrame} ➔ ${t.lastFrame} (${t.shapes.length}f)</td>
+            <td style="padding: 10px 14px; font-family: monospace; font-weight: bold; color: #0284c7;">
+              ${medL.toFixed(2)} × ${medW.toFixed(2)} × ${medH.toFixed(2)}m
             </td>
             <td style="padding: 10px 14px; text-align: right;">
-              <button class="btn-open-studio-track" data-track-id="${t.uiId}" style="background: #2563eb; border: 1px solid #2563eb; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Duyệt Frame ➔</button>
+              <button class="btn-jump-track-studio" data-tid="${t.uiId}" style="
+                background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 4px; cursor: pointer;
+              ">Mở Studio ➔</button>
             </td>
           </tr>
         `;
       }).join("");
       return `
-      <!-- Toolbar Tab 1 (LIGHT) -->
-      <div style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between;">
-        <span style="font-size: 12px; color: #475569;">
-          Áp dụng kích thước mới từ <b>Frame 0 ➔ Frame End</b> với <b>Ground-Lock 3D</b> (Đáy xe cố định tuyệt đối trên mặt đường).
-        </span>
-        <span style="font-size: 11px; color: #64748b; font-family: monospace;">
-          Dữ liệu in-memory, chỉ lưu khi bấm nút "Lưu vào CVAT" (Ctrl+S)
-        </span>
-      </div>
-
-      <!-- Bảng Danh Sách Xe (LIGHT) -->
-      <div style="flex: 1; overflow: auto; padding: 12px 20px; background: #ffffff;">
+      <div style="flex: 1; overflow: auto; padding: 16px 20px; background: #ffffff;">
+        <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #09090b;">Danh Sách Kích Thước Tất Cả Track Trong Job</h3>
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
           <thead>
-            <tr style="border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; font-size: 11px; background: #f8fafc;">
-              <th style="padding: 8px 14px;">ID</th>
-              <th style="padding: 8px 14px;">Label</th>
-              <th style="padding: 8px 14px;">Dải Frame</th>
-              <th style="padding: 8px 14px; text-align: center;">Keyframes</th>
-              <th style="padding: 8px 14px;">L / W / H (Trung vị)</th>
-              <th style="padding: 8px 8px;">L mới</th>
-              <th style="padding: 8px 8px;">W mới</th>
-              <th style="padding: 8px 8px;">H mới</th>
-              <th style="padding: 8px 14px;">Thao Tác</th>
-              <th style="padding: 8px 14px; text-align: right;">Chi Tiết</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
-      </div>
-              <th style="padding: 8px 14px;">Label</th>
-              <th style="padding: 8px 14px;">Dải Frame</th>
-              <th style="padding: 8px 14px; text-align: center;">Keyframes</th>
-              <th style="padding: 8px 14px;">L / W / H (Trung vị)</th>
-              <th style="padding: 8px 8px;">L mới</th>
-              <th style="padding: 8px 8px;">W mới</th>
-              <th style="padding: 8px 8px;">H mới</th>
-              <th style="padding: 8px 14px;">Thao Tác</th>
-              <th style="padding: 8px 14px; text-align: right;">Chi Tiết</th>
+            <tr style="border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 11px; background: #f8fafc;">
+              <th style="padding: 8px 14px;">Track ID & Nhãn</th>
+              <th style="padding: 8px 14px;">Vòng Đời Frames</th>
+              <th style="padding: 8px 14px;">Kích Thước Trung Vị (L × W × H)</th>
+              <th style="padding: 8px 14px; text-align: right;">Hành Động</th>
             </tr>
           </thead>
           <tbody>
@@ -8901,91 +11705,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     `;
     }
     attachBatchAllListeners() {
-      var _a;
-      if (!this.overlay || !this.store || !((_a = this.currentCtx) == null ? void 0 : _a.jobId)) return;
-      const jobId = this.currentCtx.jobId;
-      this.overlay.querySelectorAll(".btn-batch-apply").forEach((btn) => {
+      if (!this.overlay) return;
+      this.overlay.querySelectorAll(".btn-jump-track-studio").forEach((btn) => {
         btn.addEventListener("click", () => {
-          var _a2;
-          const trackId = parseInt(btn.dataset.trackId || "0", 10);
-          const row = btn.closest("tr");
-          if (!row) return;
-          const inpL = row.querySelector(".batch-inp-l");
-          const inpW = row.querySelector(".batch-inp-w");
-          const inpH = row.querySelector(".batch-inp-h");
-          const track = (_a2 = this.store) == null ? void 0 : _a2.getTrack(trackId);
-          if (!track) return;
-          const sizes = track.shapes.map((s) => s.points.slice(6, 9));
-          const medL = this.median(sizes.map((s) => s[0]));
-          const medW = this.median(sizes.map((s) => s[1]));
-          const medH = this.median(sizes.map((s) => s[2]));
-          const newL = parseFloat((inpL == null ? void 0 : inpL.value) || "") || medL;
-          const newW = parseFloat((inpW == null ? void 0 : inpW.value) || "") || medW;
-          const newH = parseFloat((inpH == null ? void 0 : inpH.value) || "") || medH;
-          this.applySizeToWholeTrack(trackId, [newL, newW, newH]);
-        });
-      });
-      this.overlay.querySelectorAll(".btn-batch-snap").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-          var _a2;
-          const trackId = parseInt(btn.dataset.trackId || "0", 10);
-          const track = (_a2 = this.store) == null ? void 0 : _a2.getTrack(trackId);
-          if (!track) return;
-          await CVATBridge.snapTrackToGround(jobId, trackId, track.serverId || trackId, "road");
-          await this.loadInitialData();
-        });
-      });
-      this.overlay.querySelectorAll(".batch-track-row").forEach((row) => {
-        row.addEventListener("click", (e) => {
-          const target = e.target;
-          if (target.tagName === "INPUT" || target.tagName === "BUTTON") return;
-          const trackId = parseInt(row.dataset.trackId || "0", 10);
-          this.switchActiveTrack(trackId);
-        });
-      });
-      this.overlay.querySelectorAll(".btn-open-studio-track").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const trackId = parseInt(btn.dataset.trackId || "0", 10);
-          this.switchActiveTrack(trackId);
+          const tid = parseInt(btn.dataset.tid || "0", 10);
+          if (tid) this.switchActiveTrack(tid);
         });
       });
     }
     // =========================================================================
-    // LOGIC ĐIỀU KHIỂN & TƯƠNG TÁC
+    // CÁC HÀM ĐIỀU HƯỚNG & HỖ TRỢ TOÀN CỤC
     // =========================================================================
-    switchActiveTrack(trackId) {
-      if (!this.store) return;
-      const track = this.store.getTrack(trackId);
-      if (!track) return;
-      this.activeTrackId = trackId;
-      this.currentTab = "active_track";
-      const curF = CVATBridge.getCurrentFrame();
-      if (track.shapes.some((s) => s.frame === curF)) {
-        this.selectedFrame = curF;
-      } else if (track.shapes.length > 0) {
-        this.selectedFrame = track.firstFrame;
-        this.jumpToCVATFrame(track.firstFrame);
-      }
-      this.render();
-    }
-    switchPrevTrack() {
-      if (!this.store) return;
-      const all = this.store.getAllTracks();
-      if (all.length <= 1) return;
-      const idx = all.findIndex((t) => t.uiId === this.activeTrackId);
-      const prevIdx = idx <= 0 ? all.length - 1 : idx - 1;
-      this.switchActiveTrack(all[prevIdx].uiId);
-    }
-    switchNextTrack() {
-      if (!this.store) return;
-      const all = this.store.getAllTracks();
-      if (all.length <= 1) return;
-      const idx = all.findIndex((t) => t.uiId === this.activeTrackId);
-      const nextIdx = idx < 0 || idx >= all.length - 1 ? 0 : idx + 1;
-      this.switchActiveTrack(all[nextIdx].uiId);
-    }
     attachHeaderListeners() {
-      var _a, _b, _c, _d, _e, _f, _g;
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i;
       if (!this.overlay) return;
       (_a = this.overlay.querySelector("#studio-tab-active")) == null ? void 0 : _a.addEventListener("click", () => {
         this.currentTab = "active_track";
@@ -9006,16 +11738,67 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       (_e = this.overlay.querySelector("#btn-quick-next-track")) == null ? void 0 : _e.addEventListener("click", () => {
         this.switchNextTrack();
       });
-      (_f = this.overlay.querySelector("#btn-studio-close")) == null ? void 0 : _f.addEventListener("click", () => {
+      (_f = this.overlay.querySelector("#btn-studio-undo")) == null ? void 0 : _f.addEventListener("click", () => {
+        this.triggerUndo();
+      });
+      (_g = this.overlay.querySelector("#btn-studio-redo")) == null ? void 0 : _g.addEventListener("click", () => {
+        this.triggerRedo();
+      });
+      (_h = this.overlay.querySelector("#btn-studio-close")) == null ? void 0 : _h.addEventListener("click", () => {
         this.close();
       });
-      (_g = this.overlay.querySelector("#btn-studio-commit-save")) == null ? void 0 : _g.addEventListener("click", () => {
+      (_i = this.overlay.querySelector("#btn-studio-commit-save")) == null ? void 0 : _i.addEventListener("click", () => {
         this.triggerCommitSave();
       });
     }
-    /**
-     * Chuyển frame trong timeline CVAT native và Three.js scene
-     */
+    triggerUndo() {
+      if (!this.store) return;
+      const track2 = this.store.getTrack(this.activeTrackId);
+      if (track2 && track2.undo()) {
+        track2.dirty = true;
+        this.render();
+        this.updateHeaderDirtyState();
+      }
+    }
+    triggerRedo() {
+      if (!this.store) return;
+      const track2 = this.store.getTrack(this.activeTrackId);
+      if (track2 && track2.redo()) {
+        track2.dirty = true;
+        this.render();
+        this.updateHeaderDirtyState();
+      }
+    }
+    switchActiveTrack(newTrackId) {
+      this.stopPlayback();
+      this.activeTrackId = newTrackId;
+      this.pointManager.setActiveTrack(newTrackId);
+      this.currentTab = "active_track";
+      if (this.store) {
+        const track2 = this.store.getTrack(newTrackId);
+        if (track2 && track2.shapes.length > 0) {
+          this.selectedFrame = track2.shapes[0].frame;
+        }
+      }
+      this.render();
+      this.loadPointsForCurrentFrame();
+    }
+    switchPrevTrack() {
+      if (!this.store) return;
+      const tracks = this.store.getAllTracks();
+      const idx = tracks.findIndex((t) => t.uiId === this.activeTrackId);
+      if (idx > 0) {
+        this.switchActiveTrack(tracks[idx - 1].uiId);
+      }
+    }
+    switchNextTrack() {
+      if (!this.store) return;
+      const tracks = this.store.getAllTracks();
+      const idx = tracks.findIndex((t) => t.uiId === this.activeTrackId);
+      if (idx >= 0 && idx < tracks.length - 1) {
+        this.switchActiveTrack(tracks[idx + 1].uiId);
+      }
+    }
     jumpToCVATFrame(frame) {
       try {
         const frameInput = document.querySelector("input.cvat-player-frame-selector");
@@ -9029,33 +11812,26 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         console.warn("[CVAT 3D Studio] Chuyển frame:", e);
       }
     }
-    /**
-     * Bật/tắt trạng thái Outside tại một frame
-     */
     toggleOutsideFrame(frame) {
       if (!this.store) return;
-      const track = this.store.getTrack(this.activeTrackId);
-      if (!track) return;
-      const sh = track.shapes.find((s) => s.frame === frame);
+      const track2 = this.store.getTrack(this.activeTrackId);
+      if (!track2) return;
+      const sh = track2.shapes.find((s) => s.frame === frame);
       if (sh) {
-        this.store.snapshot([this.activeTrackId]);
+        track2.snapshot();
         sh.outside = !sh.outside;
-        track.dirty = true;
+        track2.dirty = true;
         this.render();
       }
     }
-    /**
-     * Áp dụng kích thước mới cho toàn bộ các frame của một track (Ground-Lock 3D)
-     */
     applySizeToWholeTrack(trackId, newSize) {
       var _a, _b;
       if (!this.store || !((_a = this.currentCtx) == null ? void 0 : _a.jobId)) return;
-      const track = this.store.getTrack(trackId);
-      if (!track) return;
-      this.store.snapshot([trackId]);
-      for (const sh of track.shapes) {
+      const track2 = this.store.getTrack(trackId);
+      if (!track2) return;
+      for (const sh of track2.shapes) {
         if (!sh.outside) {
-          const curBox = (_b = track.at(sh.frame)) == null ? void 0 : _b.box;
+          const curBox = (_b = track2.at(sh.frame)) == null ? void 0 : _b.box;
           if (curBox) {
             const updatedBox = resizeKeepBottom(curBox, newSize);
             sh.points[0] = updatedBox.c[0];
@@ -9067,23 +11843,31 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           sh.points[8] = newSize[2];
         }
       }
-      track.dirty = true;
-      const curF = CVATBridge.getCurrentFrame();
-      const curSh = track.shapes.find((s) => s.frame === curF);
-      if (curSh) {
-        CVATBridge.updateLiveBox(this.currentCtx.jobId, curF, track.uiId, track.serverId, curSh.points);
-      }
-      this.render();
+      track2.dirty = true;
+      this.updateHeaderDirtyState();
+      this.updateOrthoEditorState(track2);
     }
-    /**
-     * Lưu toàn bộ các thay đổi vào CVAT (Chỉ lưu khi bấm, TUYỆT ĐỐI KHÔNG AUTOSAVE)
-     */
     async triggerCommitSave() {
       var _a;
       if (!((_a = this.currentCtx) == null ? void 0 : _a.jobId) || !this.store || this.isSaving) return;
       this.isSaving = true;
-      this.render();
+      this.updateHeaderDirtyState();
       try {
+        const dirtyTracks = this.store.getDirtyTracks();
+        for (const track2 of dirtyTracks) {
+          for (const sh of track2.shapes) {
+            if (!sh.outside && sh.points) {
+              await CVATBridge.updateLiveBox(
+                this.currentCtx.jobId,
+                sh.frame,
+                track2.uiId,
+                track2.serverId,
+                sh.points,
+                true
+              );
+            }
+          }
+        }
         const res = await CVATBridge.commitSave(this.currentCtx.jobId);
         if (res && res.success) {
           for (const t of this.store.getAllTracks()) {
@@ -9094,6 +11878,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         console.error("[CVAT 3D Studio] Lỗi lưu vào CVAT:", e);
       } finally {
         this.isSaving = false;
+        this.updateHeaderDirtyState();
         this.render();
       }
     }
@@ -9104,6 +11889,1744 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
     }
   }
+  const DEFAULT_VINFAST_ADAS_CAMERAS = [
+    // 0: CAM_FRONT (Trước chính diện)
+    {
+      id: 0,
+      name: "CAM_FRONT",
+      imageWidth: 1920,
+      imageHeight: 1080,
+      distortionModel: "radtan",
+      intrinsics: {
+        fx: 1250,
+        fy: 1250,
+        cx: 960,
+        cy: 540,
+        k1: -0.12,
+        k2: 0.03,
+        p1: 5e-4,
+        p2: -5e-4,
+        k3: 0
+      },
+      extrinsics: {
+        // Camera nhìn thẳng về phía trước X: X_cam = -Y_lidar, Y_cam = -Z_lidar, Z_cam = X_lidar
+        rotation: [
+          0,
+          -1,
+          0,
+          0,
+          0,
+          -1,
+          1,
+          0,
+          0
+        ],
+        translation: [1.8, 0, 1.4]
+        // Đặt tại kính lái trước
+      }
+    },
+    // 1: CAM_FRONT_LEFT (Trước góc chéo trái ~45°)
+    {
+      id: 1,
+      name: "CAM_FRONT_LEFT",
+      imageWidth: 1920,
+      imageHeight: 1080,
+      distortionModel: "radtan",
+      intrinsics: {
+        fx: 1100,
+        fy: 1100,
+        cx: 960,
+        cy: 540,
+        k1: -0.14,
+        k2: 0.04,
+        p1: 8e-4,
+        p2: -8e-4
+      },
+      extrinsics: {
+        // Quay sang trái 45°: cos(45) ~ 0.7071
+        rotation: [
+          0.7071,
+          -0.7071,
+          0,
+          0,
+          0,
+          -1,
+          0.7071,
+          0.7071,
+          0
+        ],
+        translation: [1.6, 0.7, 1.3]
+      }
+    },
+    // 2: CAM_FRONT_RIGHT (Trước góc chéo phải ~45°)
+    {
+      id: 2,
+      name: "CAM_FRONT_RIGHT",
+      imageWidth: 1920,
+      imageHeight: 1080,
+      distortionModel: "radtan",
+      intrinsics: {
+        fx: 1100,
+        fy: 1100,
+        cx: 960,
+        cy: 540,
+        k1: -0.14,
+        k2: 0.04,
+        p1: 8e-4,
+        p2: -8e-4
+      },
+      extrinsics: {
+        // Quay sang phải 45°
+        rotation: [
+          -0.7071,
+          -0.7071,
+          0,
+          0,
+          0,
+          -1,
+          0.7071,
+          -0.7071,
+          0
+        ],
+        translation: [1.6, -0.7, 1.3]
+      }
+    },
+    // 3: CAM_SIDE_LEFT (Gương sườn trái 90° - Mắt cá Fisheye)
+    {
+      id: 3,
+      name: "CAM_SIDE_LEFT",
+      imageWidth: 1920,
+      imageHeight: 1080,
+      distortionModel: "fisheye",
+      intrinsics: {
+        fx: 850,
+        fy: 850,
+        cx: 960,
+        cy: 540,
+        k1: 0.04,
+        k2: -0.015,
+        k3: 3e-3,
+        k4: -5e-4
+      },
+      extrinsics: {
+        // Nhìn ngang sang trái 90°
+        rotation: [
+          1,
+          0,
+          0,
+          0,
+          0,
+          -1,
+          0,
+          1,
+          0
+        ],
+        translation: [0.5, 0.95, 1.1]
+      }
+    },
+    // 4: CAM_SIDE_RIGHT (Gương sườn phải 90° - Mắt cá Fisheye)
+    {
+      id: 4,
+      name: "CAM_SIDE_RIGHT",
+      imageWidth: 1920,
+      imageHeight: 1080,
+      distortionModel: "fisheye",
+      intrinsics: {
+        fx: 850,
+        fy: 850,
+        cx: 960,
+        cy: 540,
+        k1: 0.04,
+        k2: -0.015,
+        k3: 3e-3,
+        k4: -5e-4
+      },
+      extrinsics: {
+        // Nhìn ngang sang phải 90°
+        rotation: [
+          -1,
+          0,
+          0,
+          0,
+          0,
+          -1,
+          0,
+          -1,
+          0
+        ],
+        translation: [0.5, -0.95, 1.1]
+      }
+    },
+    // 5: CAM_BACK_LEFT (Sau góc chéo trái ~135°)
+    {
+      id: 5,
+      name: "CAM_BACK_LEFT",
+      imageWidth: 1920,
+      imageHeight: 1080,
+      distortionModel: "radtan",
+      intrinsics: {
+        fx: 1100,
+        fy: 1100,
+        cx: 960,
+        cy: 540,
+        k1: -0.14,
+        k2: 0.04
+      },
+      extrinsics: {
+        rotation: [
+          0.7071,
+          0.7071,
+          0,
+          0,
+          0,
+          -1,
+          -0.7071,
+          0.7071,
+          0
+        ],
+        translation: [-1.2, 0.7, 1.2]
+      }
+    },
+    // 6: CAM_BACK_RIGHT (Sau góc chéo phải ~135°)
+    {
+      id: 6,
+      name: "CAM_BACK_RIGHT",
+      imageWidth: 1920,
+      imageHeight: 1080,
+      distortionModel: "radtan",
+      intrinsics: {
+        fx: 1100,
+        fy: 1100,
+        cx: 960,
+        cy: 540,
+        k1: -0.14,
+        k2: 0.04
+      },
+      extrinsics: {
+        rotation: [
+          -0.7071,
+          0.7071,
+          0,
+          0,
+          0,
+          -1,
+          -0.7071,
+          -0.7071,
+          0
+        ],
+        translation: [-1.2, -0.7, 1.2]
+      }
+    },
+    // 7: CAM_BACK (Đuôi xe chính diện - Camera lùi)
+    {
+      id: 7,
+      name: "CAM_BACK",
+      imageWidth: 1920,
+      imageHeight: 1080,
+      distortionModel: "fisheye",
+      intrinsics: {
+        fx: 800,
+        fy: 800,
+        cx: 960,
+        cy: 540,
+        k1: 0.05,
+        k2: -0.02,
+        k3: 4e-3,
+        k4: -6e-4
+      },
+      extrinsics: {
+        // Nhìn thẳng về phía sau -X
+        rotation: [
+          0,
+          1,
+          0,
+          0,
+          0,
+          -1,
+          -1,
+          0,
+          0
+        ],
+        translation: [-1.8, 0, 1.2]
+      }
+    }
+  ];
+  function validateCameraConfig(config) {
+    if (!config || typeof config !== "object") {
+      return { isValid: false, error: "Cấu hình camera phải là một đối tượng JSON" };
+    }
+    if (typeof config.id !== "number") {
+      return { isValid: false, error: "Thiếu hoặc sai trường 'id' (phải là số từ 0 đến 7)" };
+    }
+    if (!config.name || typeof config.name !== "string") {
+      return { isValid: false, error: `Camera ${config.id}: Thiếu hoặc sai trường 'name'` };
+    }
+    const intr = config.intrinsics;
+    if (!intr || typeof intr.fx !== "number" || typeof intr.fy !== "number" || typeof intr.cx !== "number" || typeof intr.cy !== "number") {
+      return { isValid: false, error: `Camera ${config.name}: Thiếu hoặc sai thông số Intrinsics (fx, fy, cx, cy)` };
+    }
+    const extr = config.extrinsics;
+    if (!extr || !Array.isArray(extr.rotation) || extr.rotation.length !== 9 && extr.rotation.length !== 16) {
+      return { isValid: false, error: `Camera ${config.name}: Extrinsics.rotation phải là mảng 9 hoặc 16 số` };
+    }
+    if (!Array.isArray(extr.translation) || extr.translation.length !== 3) {
+      return { isValid: false, error: `Camera ${config.name}: Extrinsics.translation phải là mảng 3 số [tx, ty, tz]` };
+    }
+    return { isValid: true };
+  }
+  function parseCalibrationJSON(rawJson) {
+    try {
+      const parsed = JSON.parse(rawJson);
+      const list = Array.isArray(parsed) ? parsed : parsed.cameras || [parsed];
+      if (!Array.isArray(list) || list.length === 0) {
+        return { configs: [], error: "Dữ liệu JSON không chứa danh sách camera hợp lệ" };
+      }
+      const configs = [];
+      for (let i = 0; i < list.length; i++) {
+        const item = list[i];
+        const valid = validateCameraConfig(item);
+        if (!valid.isValid) {
+          return { configs: [], error: `Mục #${i}: ${valid.error}` };
+        }
+        configs.push({
+          id: item.id,
+          name: String(item.name),
+          imageWidth: Number(item.imageWidth || 1920),
+          imageHeight: Number(item.imageHeight || 1080),
+          distortionModel: item.distortionModel === "radtan" || item.distortionModel === "fisheye" ? item.distortionModel : "none",
+          intrinsics: {
+            fx: Number(item.intrinsics.fx),
+            fy: Number(item.intrinsics.fy),
+            cx: Number(item.intrinsics.cx),
+            cy: Number(item.intrinsics.cy),
+            k1: item.intrinsics.k1 !== void 0 ? Number(item.intrinsics.k1) : void 0,
+            k2: item.intrinsics.k2 !== void 0 ? Number(item.intrinsics.k2) : void 0,
+            p1: item.intrinsics.p1 !== void 0 ? Number(item.intrinsics.p1) : void 0,
+            p2: item.intrinsics.p2 !== void 0 ? Number(item.intrinsics.p2) : void 0,
+            k3: item.intrinsics.k3 !== void 0 ? Number(item.intrinsics.k3) : void 0,
+            k4: item.intrinsics.k4 !== void 0 ? Number(item.intrinsics.k4) : void 0
+          },
+          extrinsics: {
+            rotation: item.extrinsics.rotation.map(Number),
+            translation: [
+              Number(item.extrinsics.translation[0]),
+              Number(item.extrinsics.translation[1]),
+              Number(item.extrinsics.translation[2])
+            ]
+          }
+        });
+      }
+      return { configs };
+    } catch (err) {
+      return { configs: [], error: `Lỗi cú pháp JSON: ${err.message}` };
+    }
+  }
+  function getStorageKey(taskId) {
+    return taskId ? `CVAT_3D_SUITE_CALIB_TASK_${taskId}` : "CVAT_3D_SUITE_CALIB_DEFAULT";
+  }
+  function getActiveCameras(taskId) {
+    try {
+      if (typeof localStorage !== "undefined") {
+        const saved = localStorage.getItem(getStorageKey(taskId));
+        if (saved) {
+          const { configs, error } = parseCalibrationJSON(saved);
+          if (!error && configs.length > 0) {
+            return configs;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("[CVAT 3D Suite] Không thể đọc localStorage:", e);
+    }
+    return DEFAULT_VINFAST_ADAS_CAMERAS;
+  }
+  const NEAR_Z = 0.1;
+  const EDGE_STEPS = 16;
+  const D14_UNIT = [
+    [0.5, -0.5, -0.5],
+    [0.5, 0.5, -0.5],
+    [-0.5, 0.5, -0.5],
+    [-0.5, -0.5, -0.5],
+    [0.5, -0.5, 0.5],
+    [0.5, 0.5, 0.5],
+    [-0.5, 0.5, 0.5],
+    [-0.5, -0.5, 0.5]
+  ];
+  const D14_EDGES = [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 0],
+    [4, 5],
+    [5, 6],
+    [6, 7],
+    [7, 4],
+    [0, 4],
+    [1, 5],
+    [2, 6],
+    [3, 7]
+  ];
+  const FRONT_SET = /* @__PURE__ */ new Set(["0-1", "1-5", "5-4", "4-0", "1-0", "5-1", "4-5", "0-4"]);
+  function eulerXYZ(rx, ry, rz) {
+    const [cx, sx, cy, sy, cz, sz] = [
+      Math.cos(rx),
+      Math.sin(rx),
+      Math.cos(ry),
+      Math.sin(ry),
+      Math.cos(rz),
+      Math.sin(rz)
+    ];
+    return [
+      [cy * cz, -cy * sz, sy],
+      [sx * sy * cz + cx * sz, -sx * sy * sz + cx * cz, -sx * cy],
+      [-cx * sy * cz + sx * sz, cx * sy * sz + sx * cz, cx * cy]
+    ];
+  }
+  function d14BoxCorners(position, rotation, scale) {
+    const R = eulerXYZ(rotation[0], rotation[1], rotation[2]);
+    return D14_UNIT.map((u) => {
+      const p = [u[0] * scale[0], u[1] * scale[1], u[2] * scale[2]];
+      return [0, 1, 2].map((r) => R[r][0] * p[0] + R[r][1] * p[1] + R[r][2] * p[2] + position[r]);
+    });
+  }
+  function d14Transform(p, T) {
+    return [0, 1, 2].map((r) => T[r][0] * p[0] + T[r][1] * p[1] + T[r][2] * p[2] + T[r][3]);
+  }
+  function d14DistCoeffs(dist) {
+    const d = [0, 0, 0, 0, 0];
+    (dist || []).slice(0, 5).forEach((v, i) => {
+      d[i] = Number(v);
+    });
+    return d;
+  }
+  function d14RadialFoldR2(dist) {
+    const d = d14DistCoeffs(dist);
+    const c = [1, 3 * d[0], 5 * d[1], 7 * d[4]];
+    let deg = 3;
+    while (deg > 0 && c[deg] === 0) deg -= 1;
+    if (deg === 0) return Infinity;
+    const g = (s) => c[0] + s * (c[1] + s * (c[2] + s * c[3]));
+    let top = 0;
+    for (let i = 0; i < deg; i += 1) top = Math.max(top, Math.abs(c[i]));
+    const bound = 1 + top / Math.abs(c[deg]);
+    let crit = [];
+    const [qa, qb, qc] = [3 * c[3], 2 * c[2], c[1]];
+    if (qa !== 0) {
+      const disc = qb * qb - 4 * qa * qc;
+      if (disc >= 0) {
+        const sq = Math.sqrt(disc);
+        crit = [(-qb - sq) / (2 * qa), (-qb + sq) / (2 * qa)];
+      }
+    } else if (qb !== 0) {
+      crit = [-qc / qb];
+    }
+    const knots = [0, bound, ...crit.filter((s) => s > 0 && s < bound)].sort((x, y) => x - y);
+    for (let k = 0; k + 1 < knots.length; k += 1) {
+      let [lo, hi] = [knots[k], knots[k + 1]];
+      if (g(hi) > 0) continue;
+      for (let it = 0; it < 200; it += 1) {
+        const mid = 0.5 * (lo + hi);
+        if (mid <= lo || mid >= hi) break;
+        if (g(mid) > 0) lo = mid;
+        else hi = mid;
+      }
+      return lo;
+    }
+    return Infinity;
+  }
+  function d14MaxR2(cam) {
+    if (cam._foldR2 === void 0) cam._foldR2 = d14RadialFoldR2(cam.dist || []);
+    return cam._foldR2;
+  }
+  function d14DistortToPixel(xn, yn, cam) {
+    const [k1, k2, p1, p2, k3] = d14DistCoeffs(cam.dist);
+    const r2 = xn * xn + yn * yn;
+    const radial = 1 + k1 * r2 + k2 * r2 * r2 + k3 * r2 * r2 * r2;
+    const xd = xn * radial + 2 * p1 * xn * yn + p2 * (r2 + 2 * xn * xn);
+    const yd = yn * radial + p1 * (r2 + 2 * yn * yn) + 2 * p2 * xn * yn;
+    return [cam.K[0][0] * xd + cam.K[0][2], cam.K[1][1] * yd + cam.K[1][2]];
+  }
+  function d14ClipEdgeView(a, b, m) {
+    if (a[2] <= NEAR_Z && b[2] <= NEAR_Z) return null;
+    let [t0, t1] = [0, 1];
+    if (a[2] <= NEAR_Z || b[2] <= NEAR_Z) {
+      const t = (NEAR_Z - a[2]) / (b[2] - a[2]);
+      if (a[2] > NEAR_Z) t1 = t;
+      else t0 = t;
+    }
+    if (m === Infinity) return [t0, t1];
+    const [dx, dy, dz] = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    const qa = dx * dx + dy * dy - m * dz * dz;
+    const qb = 2 * (a[0] * dx + a[1] * dy - m * a[2] * dz);
+    const qc = a[0] * a[0] + a[1] * a[1] - m * a[2] * a[2];
+    let roots = [];
+    if (qa !== 0) {
+      const disc = qb * qb - 4 * qa * qc;
+      if (disc > 0) {
+        const sq = Math.sqrt(disc);
+        const h = qb >= 0 ? -0.5 * (qb + sq) : -0.5 * (qb - sq);
+        roots = [h / qa, qc / h];
+      }
+    } else if (qb !== 0) {
+      roots = [-qc / qb];
+    }
+    const knots = [t0, t1, ...roots.filter((r) => r > t0 && r < t1)].sort((x, y) => x - y);
+    const inside = [];
+    for (let k = 0; k + 1 < knots.length; k += 1) {
+      const mid = 0.5 * (knots[k] + knots[k + 1]);
+      if ((qa * mid + qb) * mid + qc <= 0) inside.push([knots[k], knots[k + 1]]);
+    }
+    if (!inside.length || inside[inside.length - 1][1] <= inside[0][0]) return null;
+    return [inside[0][0], inside[inside.length - 1][1]];
+  }
+  function d14EdgePolyline(a, b, cam) {
+    const span = d14ClipEdgeView(a, b, d14MaxR2(cam));
+    if (!span) return null;
+    const [t0, t1] = span;
+    const pts = [];
+    for (let k = 0; k <= EDGE_STEPS; k += 1) {
+      const t = t0 + (t1 - t0) * k / EDGE_STEPS;
+      const p = [0, 1, 2].map((i) => a[i] + t * (b[i] - a[i]));
+      pts.push(d14DistortToPixel(p[0] / p[2], p[1] / p[2], cam));
+    }
+    return pts;
+  }
+  let storedVinCalib = null;
+  function setVinCalibForOverlay(calib) {
+    storedVinCalib = calib;
+  }
+  function getStoredVinCalib() {
+    return storedVinCalib;
+  }
+  const VIN_CAMERA_NAME_MAP = {
+    // id=1 (CAM_FRONT_LEFT slot) chứa image_1 = CAM_P_F (đã xác nhận từ Day14 config)
+    "CAM_FRONT_LEFT": "CAM_P_F"
+    // Các camera khác chưa có calibration → KHÔNG map → không vẽ wireframe
+    // Khi có thêm calibration, thêm mapping vào đây:
+    // "CAM_FRONT": "CAM_P_??",         // image_0
+    // "CAM_FRONT_RIGHT": "CAM_P_FR",   // image_2
+    // "CAM_SIDE_LEFT": "CAM_P_SL",     // image_3
+    // "CAM_SIDE_RIGHT": "CAM_P_SR",    // image_4
+    // "CAM_BACK_LEFT": "CAM_P_BL",     // image_5
+    // "CAM_BACK_RIGHT": "CAM_P_BR",    // image_6
+    // "CAM_BACK": "CAM_P_B",           // image_7
+  };
+  function resolveVinCameraName(camName) {
+    if (!storedVinCalib) return null;
+    if (storedVinCalib.cameras[camName]) return camName;
+    const mapped = VIN_CAMERA_NAME_MAP[camName];
+    if (mapped && storedVinCalib.cameras[mapped]) return mapped;
+    return null;
+  }
+  function renderDay14WireframeOnContext(ctx, canvasW, canvasH, box, cameraName) {
+    if (!storedVinCalib) return false;
+    const resolvedName = resolveVinCameraName(cameraName);
+    if (!resolvedName) return false;
+    const camCalib = storedVinCalib.cameras[resolvedName];
+    if (!camCalib) return false;
+    const cornersLidar = d14BoxCorners(box.c, box.r, box.s);
+    console.log(`[Day14 Proj] cam=${cameraName}, pos=[${box.c.map((v) => v.toFixed(2))}], rot=[${box.r.map((v) => v.toFixed(3))}], scale=[${box.s.map((v) => v.toFixed(2))}]`);
+    const cornersCam = cornersLidar.map((p) => {
+      const ego = storedVinCalib.pcd_frame === "ego" ? p : d14Transform(p, storedVinCalib.lidar.sensor2ego);
+      return d14Transform(ego, camCalib.ego2cam);
+    });
+    const [W, H] = camCalib.image_size;
+    const maxR2 = d14MaxR2(camCalib);
+    const projected = cornersCam.map((pc) => {
+      const front = pc[2] > NEAR_Z;
+      const z = front ? pc[2] : 1;
+      const xn = pc[0] / z;
+      const yn = pc[1] / z;
+      const [u, v] = d14DistortToPixel(xn, yn, camCalib);
+      return { u, v, valid: front && xn * xn + yn * yn <= maxR2 };
+    });
+    const inImage = projected.filter((q) => q.valid && q.u >= 0 && q.u < W && q.v >= 0 && q.v < H).length;
+    console.log(`[Day14 Proj] → inImage=${inImage}/8, pixel[0]=(${projected[0].u.toFixed(0)}, ${projected[0].v.toFixed(0)})`);
+    if (inImage === 0) return false;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    const base = Math.max(2, W / 480);
+    for (const [i, j] of D14_EDGES) {
+      const pts = d14EdgePolyline(cornersCam[i], cornersCam[j], camCalib);
+      if (!pts) continue;
+      const isFrontEdge = FRONT_SET.has(`${i}-${j}`);
+      ctx.lineWidth = isFrontEdge ? base * 2.5 : base * 1.5;
+      ctx.strokeStyle = isFrontEdge ? "#ef4444" : "#22c55e";
+      ctx.beginPath();
+      pts.forEach(([u, v], k) => k ? ctx.lineTo(u, v) : ctx.moveTo(u, v));
+      ctx.stroke();
+    }
+    ctx.fillStyle = "#ffffff";
+    for (const q of projected) {
+      if (q.valid && q.u >= 0 && q.u < W && q.v >= 0 && q.v < H) {
+        ctx.beginPath();
+        ctx.arc(q.u, q.v, base * 2, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+    const validPts = projected.filter((q) => q.valid && q.u >= 0 && q.u < W && q.v >= 0 && q.v < H);
+    if (validPts.length >= 2) {
+      const uMin = Math.min(...validPts.map((p) => p.u));
+      const uMax = Math.max(...validPts.map((p) => p.u));
+      const vMin = Math.min(...validPts.map((p) => p.v));
+      const labelX = (uMin + uMax) / 2;
+      const labelY = Math.max(30, vMin - 12);
+      const text = `L:${box.s[0].toFixed(2)}m W:${box.s[1].toFixed(2)}m H:${box.s[2].toFixed(2)}m`;
+      ctx.font = `bold ${Math.max(14, base * 5)}px -apple-system, BlinkMacSystemFont, sans-serif`;
+      const textMetrics = ctx.measureText(text);
+      const pad = 6;
+      ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+      ctx.fillRect(labelX - textMetrics.width / 2 - pad, labelY - 16, textMetrics.width + 2 * pad, 24);
+      ctx.fillStyle = "#facc15";
+      ctx.textAlign = "center";
+      ctx.fillText(text, labelX, labelY);
+    }
+    return true;
+  }
+  const _CameraOverlayManager = class _CameraOverlayManager {
+    constructor() {
+      __publicField(this, "container", null);
+      __publicField(this, "isEnabled", true);
+      __publicField(this, "isCollapsed", false);
+      __publicField(this, "activeBox", null);
+      __publicField(this, "activeCameras", []);
+      __publicField(this, "viewports", /* @__PURE__ */ new Map());
+      // Callback mở modal Focus
+      __publicField(this, "onCameraFocusRequested");
+      this.activeCameras = getActiveCameras();
+    }
+    static getInstance() {
+      if (!_CameraOverlayManager.instance) {
+        _CameraOverlayManager.instance = new _CameraOverlayManager();
+      }
+      return _CameraOverlayManager.instance;
+    }
+    /**
+     * Khởi tạo HUD giao diện 8 Camera Thumbnail tại góc phải dưới màn hình CVAT
+     */
+    mount() {
+      if (document.getElementById("cvat-3d-suite-camera-hud")) {
+        return;
+      }
+      this.container = document.createElement("div");
+      this.container.id = "cvat-3d-suite-camera-hud";
+      this.container.style.cssText = `
+      position: fixed;
+      bottom: 24px;
+      right: 360px;
+      z-index: 9998;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid #e4e4e7;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      width: 480px;
+      max-height: 420px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: all 0.25s ease-in-out;
+    `;
+      this.container.innerHTML = `
+      <!-- Header HUD -->
+      <div style="
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: #f8fafc;
+        border-bottom: 1px solid #f1f5f9;
+        user-select: none;
+      ">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="color: #0284c7; display: flex;">${ICONS.camera}</span>
+          <span style="font-weight: 700; font-size: 12px; color: #0f172a;">Camera 2D Wireframe HUD</span>
+          <span id="cvat-cam-hud-counter" style="
+            font-size: 10px;
+            font-weight: 600;
+            color: #64748b;
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 9999px;
+          ">8 Cams</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button id="cvat-cam-hud-toggle-btn" title="Bật/Tắt Vẽ Khung 2D" style="
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 3px 6px;
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+            color: #334155;
+          ">${ICONS.eye}</button>
+          <button id="cvat-cam-hud-collapse-btn" title="Thu gọn/Mở rộng" style="
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 2px;
+            display: flex;
+            color: #64748b;
+          ">${ICONS.chevronDown}</button>
+        </div>
+      </div>
+
+      <!-- Grid 8 Camera Views -->
+      <div id="cvat-cam-hud-grid" style="
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        padding: 8px;
+        background: #09090b;
+        overflow-y: auto;
+        max-height: 360px;
+      "></div>
+    `;
+      document.body.appendChild(this.container);
+      console.log("[Camera HUD] mount() - HUD container đã append vào document.body, cameras:", this.activeCameras.length);
+      this.buildCameraViewports();
+      const collapseBtn = this.container.querySelector("#cvat-cam-hud-collapse-btn");
+      const gridEl = this.container.querySelector("#cvat-cam-hud-grid");
+      collapseBtn == null ? void 0 : collapseBtn.addEventListener("click", () => {
+        this.isCollapsed = !this.isCollapsed;
+        if (gridEl) {
+          gridEl.style.display = this.isCollapsed ? "none" : "grid";
+        }
+        if (collapseBtn) {
+          collapseBtn.innerHTML = this.isCollapsed ? ICONS.chevronUp : ICONS.chevronDown;
+        }
+      });
+      const toggleBtn = this.container.querySelector("#cvat-cam-hud-toggle-btn");
+      toggleBtn == null ? void 0 : toggleBtn.addEventListener("click", () => {
+        this.isEnabled = !this.isEnabled;
+        if (toggleBtn) {
+          toggleBtn.innerHTML = this.isEnabled ? ICONS.eye : ICONS.eyeOff;
+          toggleBtn.style.color = this.isEnabled ? "#0284c7" : "#94a3b8";
+        }
+        this.clearAllCanvases();
+        if (this.isEnabled && this.activeBox) {
+          this.renderBox(this.activeBox);
+        }
+      });
+    }
+    /**
+     * Tạo 8 khung ảnh kèm canvas overlay
+     */
+    buildCameraViewports() {
+      var _a;
+      const grid = (_a = this.container) == null ? void 0 : _a.querySelector("#cvat-cam-hud-grid");
+      if (!grid) return;
+      grid.innerHTML = "";
+      this.viewports.clear();
+      for (const cam of this.activeCameras) {
+        const card = document.createElement("div");
+        card.className = "cvat-cam-card";
+        card.id = `cvat-cam-card-${cam.id}`;
+        card.title = `Click đúp để xem phóng to ${cam.name}`;
+        card.style.cssText = `
+        position: relative;
+        background: #18181b;
+        border: 2px solid #27272a;
+        border-radius: 6px;
+        overflow: hidden;
+        cursor: pointer;
+        aspect-ratio: 16 / 9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease-in-out;
+      `;
+        const img = document.createElement("img");
+        img.style.cssText = `
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      `;
+        img.alt = cam.name;
+        img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90" viewBox="0 0 160 90"><rect width="100%" height="100%" fill="%2327272a"/><text x="50%" y="50%" fill="%2371717a" font-size="10" font-family="sans-serif" dominant-baseline="middle" text-anchor="middle">${cam.name}</text></svg>`;
+        const canvas = document.createElement("canvas");
+        canvas.width = cam.imageWidth || 1920;
+        canvas.height = cam.imageHeight || 1080;
+        canvas.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      `;
+        const ctx = canvas.getContext("2d");
+        const badge = document.createElement("span");
+        badge.style.cssText = `
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        font-size: 9px;
+        font-weight: 700;
+        padding: 1px 4px;
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.75);
+        color: #f1f5f9;
+        pointer-events: none;
+        letter-spacing: 0.3px;
+      `;
+        badge.innerText = cam.name;
+        card.appendChild(img);
+        card.appendChild(canvas);
+        card.appendChild(badge);
+        grid.appendChild(card);
+        this.viewports.set(cam.id, {
+          container: card,
+          img,
+          canvas,
+          ctx,
+          badge
+        });
+        card.addEventListener("click", () => {
+          if (typeof this.onCameraFocusRequested === "function") {
+            this.onCameraFocusRequested(cam.id, cam.name);
+          }
+        });
+      }
+    }
+    /**
+     * Lấy URL ảnh hiện tại của một camera (dùng để truyền sang FocusModal)
+     */
+    getCameraImageSrc(cameraId) {
+      const vp = this.viewports.get(cameraId);
+      if (vp && vp.img.src && !vp.img.src.startsWith("data:image/svg+xml")) {
+        return vp.img.src;
+      }
+      return null;
+    }
+    /**
+     * Cập nhật nguồn ảnh của Camera từ ImageElement hoặc URL
+     */
+    updateCameraImage(cameraId, imageSrc) {
+      const vp = this.viewports.get(cameraId);
+      if (vp && imageSrc) {
+        vp.img.src = imageSrc;
+        console.log(`[Camera HUD] updateCameraImage() cam=${cameraId}, src=${imageSrc.substring(0, 60)}...`);
+      }
+    }
+    /**
+     * Xóa sạch các nét vẽ trên toàn bộ 8 canvas
+     */
+    clearAllCanvases() {
+      for (const vp of this.viewports.values()) {
+        vp.ctx.clearRect(0, 0, vp.canvas.width, vp.canvas.height);
+        vp.container.style.borderColor = "#27272a";
+        vp.container.style.opacity = "1";
+        vp.badge.style.background = "rgba(0, 0, 0, 0.75)";
+        vp.badge.style.color = "#f1f5f9";
+        vp.badge.innerText = vp.img.alt;
+      }
+    }
+    /**
+     * Vẽ khung dây 3D lên camera dùng CHÍNH XÁC engine Day14 overlay (đã chứng minh đúng với VinFast).
+     * Pipeline: eulerXYZ → boxCorners → sensor2ego → ego2cam → distort+K → pixel
+     */
+    renderBox(box) {
+      this.activeBox = box;
+      if (!this.isEnabled) return;
+      if (storedVinCalib) {
+        this.renderBoxDay14(box);
+        return;
+      }
+      for (const cam of this.activeCameras) {
+        const vp = this.viewports.get(cam.id);
+        if (!vp) continue;
+        vp.ctx.clearRect(0, 0, vp.canvas.width, vp.canvas.height);
+        vp.container.style.borderColor = "#27272a";
+        vp.container.style.opacity = "0.35";
+        vp.badge.innerText = cam.name + " (No calib)";
+      }
+    }
+    /**
+     * Render wireframe dùng chính xác Day14 projection pipeline (port từ d14-projection-overlay.js).
+     * Delegate sang hàm dùng chung renderDay14WireframeOnContext() cho mỗi camera.
+     */
+    renderBoxDay14(box) {
+      if (!storedVinCalib) return;
+      for (const cam of this.activeCameras) {
+        const vp = this.viewports.get(cam.id);
+        if (!vp) continue;
+        vp.ctx.clearRect(0, 0, vp.canvas.width, vp.canvas.height);
+        const resolvedName = resolveVinCameraName(cam.name);
+        if (!resolvedName) {
+          vp.container.style.borderColor = "#27272a";
+          vp.container.style.opacity = "0.35";
+          vp.badge.innerText = cam.name;
+          continue;
+        }
+        const camCalib = storedVinCalib.cameras[resolvedName];
+        const isVisible = renderDay14WireframeOnContext(
+          vp.ctx,
+          vp.canvas.width,
+          vp.canvas.height,
+          box,
+          cam.name
+        );
+        if (!isVisible) {
+          vp.container.style.borderColor = "#27272a";
+          vp.container.style.boxShadow = "none";
+          vp.container.style.opacity = "0.35";
+          vp.badge.style.background = "rgba(0, 0, 0, 0.75)";
+          vp.badge.style.color = "#94a3b8";
+          vp.badge.innerText = cam.name;
+          continue;
+        }
+        const cornersLidar = d14BoxCorners(box.c, box.r, box.s);
+        const [W, H] = camCalib.image_size;
+        const maxR2 = d14MaxR2(camCalib);
+        let inImage = 0;
+        for (const p of cornersLidar) {
+          const ego = storedVinCalib.pcd_frame === "ego" ? p : d14Transform(p, storedVinCalib.lidar.sensor2ego);
+          const pc = d14Transform(ego, camCalib.ego2cam);
+          if (pc[2] > NEAR_Z) {
+            const xn = pc[0] / pc[2];
+            const yn = pc[1] / pc[2];
+            if (xn * xn + yn * yn <= maxR2) {
+              const [u, v] = d14DistortToPixel(xn, yn, camCalib);
+              if (u >= 0 && u < W && v >= 0 && v < H) inImage++;
+            }
+          }
+        }
+        const coverage = Math.round(inImage / 8 * 100);
+        if (coverage >= 50) {
+          vp.container.style.borderColor = "#22c55e";
+          vp.container.style.boxShadow = "0 0 10px rgba(34, 197, 94, 0.4)";
+          vp.container.style.opacity = "1";
+          vp.badge.style.background = "#22c55e";
+          vp.badge.style.color = "#000000";
+          vp.badge.innerText = `${cam.name} (${coverage}% CHÍNH)`;
+        } else {
+          vp.container.style.borderColor = "#eab308";
+          vp.container.style.boxShadow = "0 0 8px rgba(234, 179, 8, 0.3)";
+          vp.container.style.opacity = "1";
+          vp.badge.style.background = "#eab308";
+          vp.badge.style.color = "#000000";
+          vp.badge.innerText = `${cam.name} (${coverage}% MÉP)`;
+        }
+      }
+    }
+    /**
+     * Cập nhật danh sách cấu hình Camera mới
+     */
+    updateCameras(newCameras) {
+      this.activeCameras = newCameras;
+      this.buildCameraViewports();
+      if (this.activeBox) {
+        this.renderBox(this.activeBox);
+      }
+    }
+    /**
+     * Ẩn toàn bộ Camera HUD khi tắt Suite
+     */
+    hide() {
+      if (this.container) {
+        this.container.style.display = "none";
+      }
+    }
+    /**
+     * Hiện lại Camera HUD khi bật Suite
+     */
+    show() {
+      if (this.container) {
+        this.container.style.display = "flex";
+      }
+    }
+    /**
+     * Hủy bỏ HUD khi rời khỏi trang
+     */
+    destroy() {
+      var _a;
+      (_a = this.container) == null ? void 0 : _a.remove();
+      this.container = null;
+      this.viewports.clear();
+    }
+  };
+  __publicField(_CameraOverlayManager, "instance", null);
+  let CameraOverlayManager = _CameraOverlayManager;
+  function lidarToCamera(pointLidar, extrinsics) {
+    const [lx, ly, lz] = pointLidar;
+    const R = extrinsics.rotation;
+    const [tx, ty, tz] = extrinsics.translation;
+    const r00 = R[0], r01 = R[1], r02 = R[2];
+    const r10 = R[3] !== void 0 ? R.length >= 16 ? R[4] : R[3] : 0;
+    const r11 = R[4] !== void 0 ? R.length >= 16 ? R[5] : R[4] : 1;
+    const r12 = R[5] !== void 0 ? R.length >= 16 ? R[6] : R[5] : 0;
+    const r20 = R[6] !== void 0 ? R.length >= 16 ? R[8] : R[6] : 0;
+    const r21 = R[7] !== void 0 ? R.length >= 16 ? R[9] : R[7] : 0;
+    const r22 = R[8] !== void 0 ? R.length >= 16 ? R[10] : R[8] : 1;
+    const cx = r00 * lx + r01 * ly + r02 * lz + tx;
+    const cy = r10 * lx + r11 * ly + r12 * lz + ty;
+    const cz = r20 * lx + r21 * ly + r22 * lz + tz;
+    return [cx, cy, cz];
+  }
+  function projectPointToPixel(pointCam, intrinsics, distortionModel = "none", imageWidth = 1920, imageHeight = 1080) {
+    const [x, y, z] = pointCam;
+    if (z <= 0.05) {
+      return { u: -9999, v: -9999, isValid: false };
+    }
+    const fx = intrinsics.fx;
+    const fy = intrinsics.fy;
+    const cx = intrinsics.cx;
+    const cy = intrinsics.cy;
+    const xn = x / z;
+    const yn = y / z;
+    let u = 0;
+    let v = 0;
+    if (distortionModel === "none") {
+      u = fx * xn + cx;
+      v = fy * yn + cy;
+    } else if (distortionModel === "radtan") {
+      const k1 = intrinsics.k1 || 0;
+      const k2 = intrinsics.k2 || 0;
+      const p1 = intrinsics.p1 || 0;
+      const p2 = intrinsics.p2 || 0;
+      const k3 = intrinsics.k3 || 0;
+      const r2 = xn * xn + yn * yn;
+      const r4 = r2 * r2;
+      const r6 = r4 * r2;
+      const radial = 1 + k1 * r2 + k2 * r4 + k3 * r6;
+      const xDist = xn * radial + 2 * p1 * xn * yn + p2 * (r2 + 2 * xn * xn);
+      const yDist = yn * radial + p1 * (r2 + 2 * yn * yn) + 2 * p2 * xn * yn;
+      u = fx * xDist + cx;
+      v = fy * yDist + cy;
+    } else if (distortionModel === "fisheye") {
+      const k1 = intrinsics.k1 || 0;
+      const k2 = intrinsics.k2 || 0;
+      const k3 = intrinsics.k3 || 0;
+      const k4 = intrinsics.k4 || 0;
+      const r = Math.sqrt(xn * xn + yn * yn);
+      if (r < 1e-8) {
+        u = cx;
+        v = cy;
+      } else {
+        const theta = Math.atan(r);
+        if (theta > Math.PI / 2 + 0.15) {
+          return { u: -9999, v: -9999, isValid: false };
+        }
+        const theta2 = theta * theta;
+        const theta4 = theta2 * theta2;
+        const theta6 = theta4 * theta2;
+        const theta8 = theta4 * theta4;
+        const thetaD = theta * (1 + k1 * theta2 + k2 * theta4 + k3 * theta6 + k4 * theta8);
+        const scale = thetaD / r;
+        const xDist = scale * xn;
+        const yDist = scale * yn;
+        u = fx * xDist + cx;
+        v = fy * yDist + cy;
+      }
+    }
+    const isValid = u >= 0 && u <= imageWidth && v >= 0 && v <= imageHeight;
+    return {
+      u: Number(u.toFixed(2)),
+      v: Number(v.toFixed(2)),
+      isValid
+    };
+  }
+  function clipSegmentNearPlane(p1, p2, nearPlane = 0.1) {
+    const z1 = p1[2];
+    const z2 = p2[2];
+    if (z1 < nearPlane && z2 < nearPlane) {
+      return { p1Clipped: p1, p2Clipped: p2, isVisible: false };
+    }
+    if (z1 >= nearPlane && z2 >= nearPlane) {
+      return { p1Clipped: p1, p2Clipped: p2, isVisible: true };
+    }
+    const t = (nearPlane - z1) / (z2 - z1);
+    const intersectX = p1[0] + t * (p2[0] - p1[0]);
+    const intersectY = p1[1] + t * (p2[1] - p1[1]);
+    const intersectZ = nearPlane;
+    const clipped = [intersectX, intersectY, intersectZ];
+    if (z1 < nearPlane) {
+      return { p1Clipped: clipped, p2Clipped: p2, isVisible: true };
+    } else {
+      return { p1Clipped: p1, p2Clipped: clipped, isVisible: true };
+    }
+  }
+  function getEdgeColorAndFace(idxA, idxB) {
+    const isFront = (idxA === 4 || idxA === 5 || idxA === 6 || idxA === 7) && (idxB === 4 || idxB === 5 || idxB === 6 || idxB === 7);
+    const isRear = (idxA === 0 || idxA === 1 || idxA === 2 || idxA === 3) && (idxB === 0 || idxB === 1 || idxB === 2 || idxB === 3);
+    const isTop = idxA % 2 === 1 && idxB % 2 === 1;
+    const isBottom = idxA % 2 === 0 && idxB % 2 === 0;
+    const isLeft = (idxA === 2 || idxA === 3 || idxA === 6 || idxA === 7) && (idxB === 2 || idxB === 3 || idxB === 6 || idxB === 7);
+    const isRight = (idxA === 0 || idxA === 1 || idxA === 4 || idxA === 5) && (idxB === 0 || idxB === 1 || idxB === 4 || idxB === 5);
+    if (isFront) return { color: "#ef4444", faceType: "front" };
+    if (isRear) return { color: "#3b82f6", faceType: "rear" };
+    if (isLeft) return { color: "#22c55e", faceType: "left" };
+    if (isRight) return { color: "#06b6d4", faceType: "right" };
+    if (isTop) return { color: "#eab308", faceType: "top" };
+    if (isBottom) return { color: "#71717a", faceType: "bottom" };
+    return { color: "#a1a1aa", faceType: "vertical" };
+  }
+  function project3DBoxToCamera(box, cameraConfig, subdivisionSegments = 8) {
+    const cornersLidar = boxCorners(box);
+    const cornersCam = cornersLidar.map(
+      (pt) => lidarToCamera(pt, cameraConfig.extrinsics)
+    );
+    const corners2D = cornersCam.map(
+      (ptCam) => projectPointToPixel(
+        ptCam,
+        cameraConfig.intrinsics,
+        cameraConfig.distortionModel,
+        cameraConfig.imageWidth,
+        cameraConfig.imageHeight
+      )
+    );
+    const edges = [];
+    let minU = Infinity, maxU = -Infinity;
+    let minV = Infinity, maxV = -Infinity;
+    for (let edgeIdx = 0; edgeIdx < BOX_EDGES.length; edgeIdx++) {
+      const [startIdx, endIdx] = BOX_EDGES[edgeIdx];
+      const p1Cam = cornersCam[startIdx];
+      const p2Cam = cornersCam[endIdx];
+      const { p1Clipped, p2Clipped, isVisible } = clipSegmentNearPlane(p1Cam, p2Cam, 0.1);
+      if (!isVisible) {
+        continue;
+      }
+      const { color, faceType } = getEdgeColorAndFace(startIdx, endIdx);
+      const edgePoints = [];
+      const segCount = Math.max(1, subdivisionSegments);
+      for (let step = 0; step <= segCount; step++) {
+        const frac = step / segCount;
+        const interpCam = [
+          p1Clipped[0] + frac * (p2Clipped[0] - p1Clipped[0]),
+          p1Clipped[1] + frac * (p2Clipped[1] - p1Clipped[1]),
+          p1Clipped[2] + frac * (p2Clipped[2] - p1Clipped[2])
+        ];
+        const pt2D = projectPointToPixel(
+          interpCam,
+          cameraConfig.intrinsics,
+          cameraConfig.distortionModel,
+          cameraConfig.imageWidth,
+          cameraConfig.imageHeight
+        );
+        if (pt2D.isValid) {
+          minU = Math.min(minU, pt2D.u);
+          maxU = Math.max(maxU, pt2D.u);
+          minV = Math.min(minV, pt2D.v);
+          maxV = Math.max(maxV, pt2D.v);
+        }
+        edgePoints.push(pt2D);
+      }
+      edges.push({
+        edgeIndex: edgeIdx,
+        startCornerIndex: startIdx,
+        endCornerIndex: endIdx,
+        points: edgePoints,
+        color,
+        faceType,
+        isVisible: edgePoints.some((p) => p.isValid)
+      });
+    }
+    let bbox2D = null;
+    let visibilityCoverage = 0;
+    const visibleCornersCount = corners2D.filter((c) => c.isValid).length;
+    if (minU < maxU && minV < maxV) {
+      const clampedMinU = Math.max(0, minU);
+      const clampedMinV = Math.max(0, minV);
+      const clampedMaxU = Math.min(cameraConfig.imageWidth, maxU);
+      const clampedMaxV = Math.min(cameraConfig.imageHeight, maxV);
+      bbox2D = [clampedMinU, clampedMinV, clampedMaxU, clampedMaxV];
+      const boxArea = Math.max(1, (maxU - minU) * (maxV - minV));
+      const intersectArea = Math.max(0, clampedMaxU - clampedMinU) * Math.max(0, clampedMaxV - clampedMinV);
+      visibilityCoverage = Number((intersectArea / boxArea * 100).toFixed(1));
+    }
+    let role = "out_of_view";
+    if (visibilityCoverage >= 25 || visibleCornersCount >= 4) {
+      role = "primary";
+    } else if (visibilityCoverage > 0 || visibleCornersCount > 0) {
+      role = "secondary";
+    }
+    return {
+      cameraId: cameraConfig.id,
+      cameraName: cameraConfig.name,
+      corners2D,
+      edges,
+      bbox2D,
+      visibilityCoverage,
+      visibleCornersCount,
+      isVisible: visibilityCoverage > 0 || visibleCornersCount > 0,
+      role
+    };
+  }
+  const _CameraFocusModal = class _CameraFocusModal {
+    constructor() {
+      __publicField(this, "overlay", null);
+      __publicField(this, "currentCameraId", 0);
+      __publicField(this, "activeBox", null);
+      __publicField(this, "activeCameras", []);
+      // Thuộc tính Zoom & Pan
+      __publicField(this, "scale", 1);
+      __publicField(this, "panX", 0);
+      __publicField(this, "panY", 0);
+      __publicField(this, "isDragging", false);
+      __publicField(this, "dragStartX", 0);
+      __publicField(this, "dragStartY", 0);
+      // Tham chiếu DOM
+      __publicField(this, "imgEl", null);
+      __publicField(this, "canvasEl", null);
+      __publicField(this, "ctx", null);
+      __publicField(this, "titleEl", null);
+      __publicField(this, "infoBadgeEl", null);
+      __publicField(this, "transformContainer", null);
+      this.activeCameras = getActiveCameras();
+    }
+    static getInstance() {
+      if (!_CameraFocusModal.instance) {
+        _CameraFocusModal.instance = new _CameraFocusModal();
+      }
+      return _CameraFocusModal.instance;
+    }
+    /**
+     * Mở Focus Modal cho một camera cụ thể
+     */
+    open(cameraId, box, imageSrc) {
+      this.currentCameraId = cameraId;
+      if (box) this.activeBox = box;
+      this.activeCameras = getActiveCameras();
+      this.scale = 1;
+      this.panX = 0;
+      this.panY = 0;
+      if (!this.overlay) {
+        this.createModalDOM();
+      }
+      if (this.overlay) {
+        this.overlay.style.display = "flex";
+      }
+      if (imageSrc && this.imgEl) {
+        this.imgEl.src = imageSrc;
+      }
+      this.updateViewport();
+    }
+    /**
+     * Đóng Focus Modal
+     */
+    close() {
+      if (this.overlay) {
+        this.overlay.style.display = "none";
+      }
+    }
+    /**
+     * Cập nhật Box đang chọn và vẽ lại
+     */
+    setBox(box) {
+      this.activeBox = box;
+      this.renderWireframe();
+    }
+    createModalDOM() {
+      var _a, _b, _c, _d;
+      this.overlay = document.createElement("div");
+      this.overlay.id = "cvat-camera-focus-modal";
+      this.overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    `;
+      this.overlay.innerHTML = `
+      <div style="
+        position: relative;
+        width: 90vw;
+        height: 88vh;
+        background: #09090b;
+        border: 1px solid #27272a;
+        border-radius: 12px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      ">
+        <!-- Header -->
+        <div style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 16px;
+          background: #18181b;
+          border-bottom: 1px solid #27272a;
+          color: #f1f5f9;
+        ">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="color: #38bdf8; display: flex;">${ICONS.cameraFocus}</span>
+            <span id="cvat-focus-modal-title" style="font-weight: 700; font-size: 14px;">Camera Focus Viewer</span>
+            <span id="cvat-focus-modal-badge" style="
+              font-size: 11px;
+              font-weight: 600;
+              padding: 2px 8px;
+              border-radius: 9999px;
+              background: #27272a;
+              color: #a1a1aa;
+            ">100% Zoom</span>
+          </div>
+
+          <!-- Controls -->
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button id="cvat-focus-prev-btn" title="Camera trước" style="
+              background: #27272a;
+              border: 1px solid #3f3f46;
+              color: #f1f5f9;
+              border-radius: 6px;
+              cursor: pointer;
+              padding: 4px 8px;
+              display: flex;
+              align-items: center;
+              font-size: 12px;
+            ">${ICONS.chevronLeft} Trước</button>
+
+            <button id="cvat-focus-next-btn" title="Camera tiếp theo" style="
+              background: #27272a;
+              border: 1px solid #3f3f46;
+              color: #f1f5f9;
+              border-radius: 6px;
+              cursor: pointer;
+              padding: 4px 8px;
+              display: flex;
+              align-items: center;
+              font-size: 12px;
+            ">Sau ${ICONS.chevronRight}</button>
+
+            <button id="cvat-focus-reset-zoom-btn" title="Đặt lại Zoom (100%)" style="
+              background: #27272a;
+              border: 1px solid #3f3f46;
+              color: #f1f5f9;
+              border-radius: 6px;
+              cursor: pointer;
+              padding: 4px 8px;
+              font-size: 12px;
+              font-weight: 600;
+            ">1:1</button>
+
+            <button id="cvat-focus-close-btn" title="Đóng (Esc)" style="
+              background: #ef4444;
+              border: none;
+              color: #ffffff;
+              border-radius: 6px;
+              cursor: pointer;
+              padding: 5px 8px;
+              display: flex;
+              align-items: center;
+              margin-left: 8px;
+            ">${ICONS.close}</button>
+          </div>
+        </div>
+
+        <!-- Viewport Canvas Area -->
+        <div id="cvat-focus-viewport-area" style="
+          flex: 1;
+          position: relative;
+          background: #000000;
+          overflow: hidden;
+          cursor: grab;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">
+          <div id="cvat-focus-transform-container" style="
+            position: absolute;
+            transform-origin: center center;
+            transition: transform 0.05s linear;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            <img id="cvat-focus-img" style="
+              max-width: 85vw;
+              max-height: 78vh;
+              object-fit: contain;
+              display: block;
+              user-select: none;
+              pointer-events: none;
+            " />
+            <canvas id="cvat-focus-canvas" style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              pointer-events: none;
+            "></canvas>
+          </div>
+        </div>
+
+        <!-- Footer Guide -->
+        <div style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 6px 16px;
+          background: #18181b;
+          border-top: 1px solid #27272a;
+          color: #71717a;
+          font-size: 11px;
+        ">
+          <span>💡 Lăn chuột để Phóng to/Thu nhỏ (Zoom) • Giữ chuột trái kéo để Di chuyển (Pan)</span>
+          <span style="display: flex; gap: 12px;">
+            <span style="color: #ef4444;">■ Mặt trước</span>
+            <span style="color: #3b82f6;">■ Mặt sau</span>
+            <span style="color: #22c55e;">■ Sườn trái</span>
+            <span style="color: #06b6d4;">■ Sườn phải</span>
+            <span style="color: #eab308;">■ Nóc xe</span>
+          </span>
+        </div>
+      </div>
+    `;
+      document.body.appendChild(this.overlay);
+      this.titleEl = this.overlay.querySelector("#cvat-focus-modal-title");
+      this.infoBadgeEl = this.overlay.querySelector("#cvat-focus-modal-badge");
+      this.imgEl = this.overlay.querySelector("#cvat-focus-img");
+      this.canvasEl = this.overlay.querySelector("#cvat-focus-canvas");
+      this.transformContainer = this.overlay.querySelector("#cvat-focus-transform-container");
+      if (this.canvasEl) {
+        this.ctx = this.canvasEl.getContext("2d");
+      }
+      (_a = this.overlay.querySelector("#cvat-focus-close-btn")) == null ? void 0 : _a.addEventListener("click", () => this.close());
+      window.addEventListener("keydown", (e) => {
+        var _a2;
+        if (e.key === "Escape" && ((_a2 = this.overlay) == null ? void 0 : _a2.style.display) === "flex") {
+          this.close();
+        }
+      });
+      (_b = this.overlay.querySelector("#cvat-focus-prev-btn")) == null ? void 0 : _b.addEventListener("click", () => {
+        this.currentCameraId = (this.currentCameraId - 1 + this.activeCameras.length) % this.activeCameras.length;
+        this.updateViewport();
+      });
+      (_c = this.overlay.querySelector("#cvat-focus-next-btn")) == null ? void 0 : _c.addEventListener("click", () => {
+        this.currentCameraId = (this.currentCameraId + 1) % this.activeCameras.length;
+        this.updateViewport();
+      });
+      (_d = this.overlay.querySelector("#cvat-focus-reset-zoom-btn")) == null ? void 0 : _d.addEventListener("click", () => {
+        this.scale = 1;
+        this.panX = 0;
+        this.panY = 0;
+        this.applyTransform();
+      });
+      const viewArea = this.overlay.querySelector("#cvat-focus-viewport-area");
+      viewArea == null ? void 0 : viewArea.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+        this.scale = Math.max(0.5, Math.min(6, this.scale * zoomFactor));
+        this.applyTransform();
+      });
+      viewArea == null ? void 0 : viewArea.addEventListener("mousedown", (e) => {
+        if (e.button === 0) {
+          this.isDragging = true;
+          this.dragStartX = e.clientX - this.panX;
+          this.dragStartY = e.clientY - this.panY;
+          viewArea.style.cursor = "grabbing";
+        }
+      });
+      window.addEventListener("mousemove", (e) => {
+        if (this.isDragging) {
+          this.panX = e.clientX - this.dragStartX;
+          this.panY = e.clientY - this.dragStartY;
+          this.applyTransform();
+        }
+      });
+      window.addEventListener("mouseup", () => {
+        if (this.isDragging) {
+          this.isDragging = false;
+          if (viewArea) viewArea.style.cursor = "grab";
+        }
+      });
+    }
+    applyTransform() {
+      if (this.transformContainer) {
+        this.transformContainer.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.scale})`;
+      }
+      if (this.infoBadgeEl) {
+        this.infoBadgeEl.innerText = `${Math.round(this.scale * 100)}% Zoom`;
+      }
+    }
+    updateViewport() {
+      const cam = this.activeCameras.find((c) => c.id === this.currentCameraId) || this.activeCameras[0];
+      if (!cam) return;
+      if (this.titleEl) {
+        this.titleEl.innerText = `${cam.name} (Camera #${cam.id}) - ${cam.distortionModel.toUpperCase()}`;
+      }
+      if (this.canvasEl) {
+        this.canvasEl.width = cam.imageWidth || 1920;
+        this.canvasEl.height = cam.imageHeight || 1080;
+      }
+      if (this.imgEl) {
+        const imgSrc = CameraOverlayManager.getInstance().getCameraImageSrc(cam.id);
+        if (imgSrc) {
+          this.imgEl.src = imgSrc;
+        }
+      }
+      this.applyTransform();
+      this.renderWireframe();
+    }
+    renderWireframe() {
+      if (!this.ctx || !this.canvasEl || !this.activeBox) return;
+      const cam = this.activeCameras.find((c) => c.id === this.currentCameraId);
+      if (!cam) return;
+      this.ctx.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height);
+      const vinCalib = getStoredVinCalib();
+      if (vinCalib) {
+        const camNames = Object.keys(vinCalib.cameras);
+        for (const vinCamName of camNames) {
+          const camCalib = vinCalib.cameras[vinCamName];
+          if (camCalib && camCalib.image_size) {
+            this.canvasEl.width = camCalib.image_size[0];
+            this.canvasEl.height = camCalib.image_size[1];
+            break;
+          }
+        }
+        const drawn = renderDay14WireframeOnContext(
+          this.ctx,
+          this.canvasEl.width,
+          this.canvasEl.height,
+          this.activeBox,
+          cam.name
+        );
+        if (drawn) return;
+      }
+      const proj = project3DBoxToCamera(this.activeBox, cam, 12);
+      if (proj.isVisible) {
+        this.ctx.lineWidth = 3.5;
+        this.ctx.lineCap = "round";
+        this.ctx.lineJoin = "round";
+        for (const edge of proj.edges) {
+          if (!edge.isVisible || edge.points.length < 2) continue;
+          this.ctx.beginPath();
+          this.ctx.strokeStyle = edge.color;
+          let isFirst = true;
+          for (const pt of edge.points) {
+            if (pt.isValid) {
+              if (isFirst) {
+                this.ctx.moveTo(pt.u, pt.v);
+                isFirst = false;
+              } else {
+                this.ctx.lineTo(pt.u, pt.v);
+              }
+            }
+          }
+          this.ctx.stroke();
+        }
+        this.ctx.fillStyle = "#ffffff";
+        for (const c of proj.corners2D) {
+          if (c.isValid) {
+            this.ctx.beginPath();
+            this.ctx.arc(c.u, c.v, 5, 0, 2 * Math.PI);
+            this.ctx.fill();
+            this.ctx.strokeStyle = "#000000";
+            this.ctx.lineWidth = 1.5;
+            this.ctx.stroke();
+          }
+        }
+        if (proj.bbox2D) {
+          const [uMin, vMin, uMax] = proj.bbox2D;
+          const labelX = (uMin + uMax) / 2;
+          const labelY = Math.max(30, vMin - 12);
+          const text = `L:${this.activeBox.s[0].toFixed(2)}m W:${this.activeBox.s[1].toFixed(2)}m H:${this.activeBox.s[2].toFixed(2)}m`;
+          this.ctx.font = "bold 18px -apple-system, BlinkMacSystemFont, sans-serif";
+          const textMetrics = this.ctx.measureText(text);
+          const pad = 6;
+          this.ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+          this.ctx.fillRect(labelX - textMetrics.width / 2 - pad, labelY - 16, textMetrics.width + 2 * pad, 24);
+          this.ctx.fillStyle = "#facc15";
+          this.ctx.textAlign = "center";
+          this.ctx.fillText(text, labelX, labelY);
+        }
+      }
+    }
+  };
+  __publicField(_CameraFocusModal, "instance", null);
+  let CameraFocusModal = _CameraFocusModal;
+  const _HeaderSuiteButton = class _HeaderSuiteButton {
+    constructor() {
+      __publicField(this, "observer", null);
+      __publicField(this, "callbacks", /* @__PURE__ */ new Set());
+      __publicField(this, "isMounted", false);
+      this.initObserver();
+    }
+    static getInstance() {
+      if (!_HeaderSuiteButton.instance) {
+        _HeaderSuiteButton.instance = new _HeaderSuiteButton();
+      }
+      return _HeaderSuiteButton.instance;
+    }
+    /**
+     * Kiểm tra trạng thái kích hoạt hiện tại của Suite.
+     * Mặc định là TRUE nếu chưa từng được người dùng bấm tắt (Auto-boot).
+     */
+    static isSuiteEnabled() {
+      const val = localStorage.getItem(_HeaderSuiteButton.STORAGE_KEY);
+      return val !== "false";
+    }
+    /**
+     * Thiết lập trạng thái Bật/Tắt của Suite và lưu vào localStorage.
+     */
+    setSuiteEnabled(enabled) {
+      localStorage.setItem(_HeaderSuiteButton.STORAGE_KEY, String(enabled));
+      this.updateButtonUI(enabled);
+      this.notifyCallbacks(enabled);
+    }
+    /**
+     * Đăng ký lắng nghe sự kiện khi người dùng nhấn chuyển trạng thái Bật/Tắt.
+     */
+    onToggle(callback) {
+      this.callbacks.add(callback);
+      return () => this.callbacks.delete(callback);
+    }
+    notifyCallbacks(enabled) {
+      this.callbacks.forEach((cb) => {
+        try {
+          cb(enabled);
+        } catch (err) {
+          console.error("[CVAT 3D Suite] Lỗi callback Header toggle:", err);
+        }
+      });
+    }
+    /**
+     * Tự động theo dõi DOM để gắn nút vào Header ngay khi Header xuất hiện hoặc re-render.
+     */
+    initObserver() {
+      if (this.observer) return;
+      this.observer = new MutationObserver(() => {
+        this.tryMount();
+      });
+      this.observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      this.tryMount();
+    }
+    /**
+     * Cố gắng mount nút vào Header của CVAT nếu chưa tồn tại.
+     */
+    tryMount() {
+      const existing = document.getElementById(_HeaderSuiteButton.BUTTON_ID);
+      if (existing && existing.isConnected) {
+        this.isMounted = true;
+        return true;
+      }
+      const targetHeader = document.querySelector(".cvat-annotation-header-left-group") || document.querySelector(".cvat-annotation-header") || document.querySelector(".cvat-header") || document.querySelector("header.ant-layout-header");
+      if (!targetHeader) {
+        return false;
+      }
+      const btn = document.createElement("button");
+      btn.id = _HeaderSuiteButton.BUTTON_ID;
+      btn.type = "button";
+      btn.setAttribute("aria-label", "Toggle CVAT 3D Suite");
+      btn.style.display = "inline-flex";
+      btn.style.alignItems = "center";
+      btn.style.gap = "6px";
+      btn.style.height = "28px";
+      btn.style.padding = "0 10px";
+      btn.style.marginLeft = "8px";
+      btn.style.marginRight = "4px";
+      btn.style.background = "#ffffff";
+      btn.style.border = "1px solid #e2e8f0";
+      btn.style.borderRadius = "6px";
+      btn.style.cursor = "pointer";
+      btn.style.fontSize = "11px";
+      btn.style.fontWeight = "600";
+      btn.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      btn.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.05)";
+      btn.style.transition = "all 0.15s ease";
+      btn.style.userSelect = "none";
+      btn.style.verticalAlign = "middle";
+      btn.addEventListener("mouseenter", () => {
+        btn.style.borderColor = "#cbd5e1";
+        btn.style.background = "#f8fafc";
+      });
+      btn.addEventListener("mouseleave", () => {
+        btn.style.borderColor = "#e2e8f0";
+        btn.style.background = "#ffffff";
+      });
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const current = _HeaderSuiteButton.isSuiteEnabled();
+        this.setSuiteEnabled(!current);
+      });
+      targetHeader.appendChild(btn);
+      this.isMounted = true;
+      this.updateButtonUI(_HeaderSuiteButton.isSuiteEnabled());
+      return true;
+    }
+    /**
+     * Cập nhật nội dung hiển thị của nút (Icon, Indicator Dot, Badge ON/OFF, Tooltip)
+     */
+    updateButtonUI(enabled) {
+      const btn = document.getElementById(_HeaderSuiteButton.BUTTON_ID);
+      if (!btn) return;
+      btn.title = `CVAT 3D Suite (Đang ${enabled ? "BẬT" : "TẮT"} - Nhấn để ${enabled ? "TẮT" : "BẬT"})`;
+      const dotColor = enabled ? "#10b981" : "#94a3b8";
+      const dotShadow = enabled ? "box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);" : "";
+      const badgeColor = enabled ? "#047857" : "#64748b";
+      const badgeBg = enabled ? "#ecfdf5" : "#f1f5f9";
+      const badgeBorder = enabled ? "#a7f3d0" : "#e2e8f0";
+      const iconColor = enabled ? "#0f172a" : "#64748b";
+      btn.innerHTML = `
+      <span style="display: flex; align-items: center; color: ${iconColor};">
+        ${ICONS.box3d}
+      </span>
+      <span style="color: #0f172a; font-weight: 600; letter-spacing: -0.2px;">3D Suite</span>
+      <span style="
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 1px 5px;
+        background: ${badgeBg};
+        border: 1px solid ${badgeBorder};
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        color: ${badgeColor};
+        font-family: ui-monospace, monospace;
+      ">
+        <span style="
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: ${dotColor};
+          ${dotShadow}
+          display: inline-block;
+        "></span>
+        ${enabled ? "ON" : "OFF"}
+      </span>
+    `;
+    }
+    destroy() {
+      if (this.observer) {
+        this.observer.disconnect();
+        this.observer = null;
+      }
+      const btn = document.getElementById(_HeaderSuiteButton.BUTTON_ID);
+      if (btn && btn.parentNode) {
+        btn.parentNode.removeChild(btn);
+      }
+      this.isMounted = false;
+    }
+  };
+  __publicField(_HeaderSuiteButton, "instance", null);
+  __publicField(_HeaderSuiteButton, "STORAGE_KEY", "CVAT_3D_SUITE_AUTO_ENABLED");
+  __publicField(_HeaderSuiteButton, "BUTTON_ID", "cvat-3d-suite-header-btn");
+  let HeaderSuiteButton = _HeaderSuiteButton;
   class FloatingPanel {
     constructor() {
       __publicField(this, "container", null);
@@ -9141,11 +13664,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       __publicField(this, "editH", 0);
       // Danh sách các xe ĐANG CÓ MẶT TẠI FRAME HIỆN TẠI
       __publicField(this, "currentFrameNumber", 0);
+      __publicField(this, "lastContextImageFrame", -1);
       __publicField(this, "frameTracks", []);
       // Trạng thái Dropdown Select & Tìm kiếm
       __publicField(this, "isDropdownOpen", false);
       __publicField(this, "searchKeyword", "");
       __publicField(this, "autoSelectListenerAttached", false);
+      __publicField(this, "autoCenterOnFrame", localStorage.getItem("CVAT_3D_SUITE_AUTO_CENTER_FRAME") !== "false");
+      // Thống kê vòng đời của Track ID đang chọn
+      __publicField(this, "trackStats", null);
+      __publicField(this, "trackStatsLoading", false);
       // Trạng thái xử lý
       __publicField(this, "isProcessing", false);
       __publicField(this, "isHelpModalOpen", false);
@@ -9154,10 +13682,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       __publicField(this, "isDragging", false);
       __publicField(this, "startX", 0);
       __publicField(this, "startY", 0);
+      // Khung nhìn đang active (Top, Side, Front, hoặc Perspective 3D) để điều khiển WASD
+      __publicField(this, "currentActiveView", "top");
       __publicField(this, "currentCtx", null);
       __publicField(this, "pollInterval", null);
       __publicField(this, "updatePending", false);
       __publicField(this, "lastRenderedHash", "");
+    }
+    /**
+     * Cập nhật khung nhìn đang focus (được gọi từ trình theo dõi chuột trên Canvas)
+     */
+    setActiveView(view) {
+      if (this.currentActiveView !== view) {
+        this.currentActiveView = view;
+        this.scheduleUpdate();
+      }
     }
     /**
      * Lên lịch cập nhật giao diện bằng requestAnimationFrame (gộp nhiều lần gọi dồn dập, chống nháy DOM).
@@ -9183,8 +13722,83 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.setupDraggable();
         this.setupCanvasAutoSelectListener();
         this.startPollingLoop();
+        const camOverlay = CameraOverlayManager.getInstance();
+        camOverlay.mount();
+        camOverlay.onCameraFocusRequested = (camId) => {
+          const box = this.getCurrentBox3D();
+          const imgSrc = CameraOverlayManager.getInstance().getCameraImageSrc(camId);
+          CameraFocusModal.getInstance().open(camId, box, imgSrc || void 0);
+        };
+        this.loadVinCalibration();
+        CVATBridge.setAutoCenterOnFrameChange(this.autoCenterOnFrame);
       }
       this.scheduleUpdate();
+      if (!HeaderSuiteButton.isSuiteEnabled()) {
+        this.setSuiteVisible(false);
+      }
+    }
+    /**
+     * Bật hoặc Tắt hiển thị Suite Panel và Camera Overlay (Được kích hoạt từ nút Header hoặc API)
+     */
+    setSuiteVisible(visible) {
+      if (!visible) {
+        if (this.container) {
+          this.container.style.display = "none";
+        }
+        try {
+          CameraOverlayManager.getInstance().hide();
+        } catch (_) {
+        }
+      } else {
+        if (this.container) {
+          this.container.style.display = "flex";
+        }
+        try {
+          CameraOverlayManager.getInstance().show();
+        } catch (_) {
+        }
+        this.scheduleUpdate();
+      }
+    }
+    /**
+     * Trích xuất đối tượng Box3D hiện thời của đối tượng đang chọn
+     */
+    /**
+     * Trích xuất đối tượng Box3D hiện thời của đối tượng đang chọn.
+     * Ưu tiên dùng rawPoints gốc (chính xác nhất) để chiếu 2D chuẩn.
+     */
+    getCurrentBox3D() {
+      if (this.selectedUiId === null || this.currentL <= 0) return null;
+      if (this.currentRawPoints && this.currentRawPoints.length >= 9) {
+        return {
+          c: [this.currentRawPoints[0], this.currentRawPoints[1], this.currentRawPoints[2]],
+          s: [this.currentRawPoints[6], this.currentRawPoints[7], this.currentRawPoints[8]],
+          r: [this.currentRawPoints[3], this.currentRawPoints[4], this.currentRawPoints[5]]
+        };
+      }
+      const rx = 0;
+      const ry = 0;
+      const rz = this.currentYawDeg * Math.PI / 180;
+      return {
+        c: [this.currentX, this.currentY, this.currentZ],
+        s: [this.currentL, this.currentW, this.currentH],
+        r: [rx, ry, rz]
+      };
+    }
+    /**
+     * Tự động tải calibration VinFast từ CVAT Day14 overlay hoặc hardcoded fallback.
+     * Chỉ truyền raw VinCalib cho Day14 engine, KHÔNG thay thế grid 8 camera mặc định.
+     */
+    async loadVinCalibration() {
+      try {
+        const vinCalib = await CVATBridge.fetchVinCalibration();
+        if (!vinCalib || !vinCalib.cameras) return;
+        setVinCalibForOverlay(vinCalib);
+        const camNames = Object.keys(vinCalib.cameras);
+        console.log(`[VinCalib] Đã load VinFast calibration: ${camNames.length} cameras [${camNames.join(", ")}] (Day14 engine active)`);
+      } catch (e) {
+        console.warn("[VinCalib] Lỗi load calibration:", e);
+      }
     }
     createContainer() {
       this.container = document.createElement("div");
@@ -9192,17 +13806,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.container.setAttribute("translate", "no");
       this.container.classList.add("notranslate");
       this.container.style.position = "fixed";
-      this.container.style.top = "20px";
-      this.container.style.right = "20px";
-      this.container.style.width = "370px";
-      this.container.style.maxHeight = "calc(100vh - 40px)";
+      this.container.style.top = "70px";
+      this.container.style.right = "24px";
+      this.container.style.width = "360px";
+      this.container.style.maxHeight = "calc(100vh - 90px)";
       this.container.style.zIndex = "999995";
       this.container.style.fontFamily = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
       this.container.style.backgroundColor = "rgba(255, 255, 255, 0.98)";
       this.container.style.backdropFilter = "blur(16px)";
-      this.container.style.border = "1px solid #e4e4e7";
-      this.container.style.borderRadius = "16px";
-      this.container.style.boxShadow = "0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 0 1px 1px rgba(0, 0, 0, 0.04)";
+      this.container.style.border = "1px solid #e2e8f0";
+      this.container.style.borderRadius = "12px";
+      this.container.style.boxShadow = "0 10px 30px -5px rgba(0, 0, 0, 0.1), 0 0 1px 1px rgba(0, 0, 0, 0.05)";
       this.container.style.color = "#09090b";
       this.container.style.display = "flex";
       this.container.style.flexDirection = "column";
@@ -9331,9 +13945,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (this.isMinimized) {
           this.container.style.display = "none";
           this.miniPill.style.display = "flex";
+          if (this.isDocked && this.cvatOrigChildrenEl) {
+            this.cvatOrigChildrenEl.style.visibility = "visible";
+            this.cvatOrigChildrenEl.style.pointerEvents = "auto";
+          }
         } else {
           this.container.style.display = "flex";
           this.miniPill.style.display = "none";
+          if (this.isDocked && this.cvatOrigChildrenEl && !this.isShowingCVATOrigSidebar) {
+            this.cvatOrigChildrenEl.style.visibility = "hidden";
+            this.cvatOrigChildrenEl.style.pointerEvents = "none";
+          }
         }
       }
     }
@@ -9343,6 +13965,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     setupDraggable() {
       if (!this.container) return;
       const onMouseDown = (e) => {
+        if (this.isDocked) return;
         const target = e.target;
         if (target.closest("button") || target.closest("input") || target.closest("select")) return;
         if (!target.closest("#floating-drag-header")) return;
@@ -9414,6 +14037,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           } else {
             this.frameTracks.push(item);
           }
+          if (!this.trackStats || this.trackStats.uiId !== details.clientId) {
+            this.loadTrackStats(details.clientId);
+          }
           this.scheduleUpdate();
         } else if (clientId && clientId !== this.selectedUiId) {
           console.log(`[CVAT 3D Suite] Tự động chọn xe #${clientId} từ click Canvas 3D`);
@@ -9422,6 +14048,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       });
       window.addEventListener("CVAT_EXT_RES_FRAME_TRACKS_DIRTY", () => {
         this.syncFrameTracks();
+      });
+      window.addEventListener("CVAT_EXT_RES_FRAME_CHANGED", (e) => {
+        const { frame } = e.detail || {};
+        if (typeof frame === "number" && frame !== this.currentFrameNumber) {
+          this.currentFrameNumber = frame;
+          this.syncFrameTracks();
+        }
       });
     }
     /**
@@ -9438,10 +14071,81 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         const active = CVATBridge.getActiveTrackId();
         if (active.id !== null && active.id !== this.selectedUiId) {
-          await this.selectTrackByUiId(active.id, void 0, false);
+          const isTrackInCurrentFrame = this.frameTracks.some((t) => t.uiId === active.id);
+          if (isTrackInCurrentFrame) {
+            await this.selectTrackByUiId(active.id, void 0, false);
+          }
         }
       }, 800);
-      setTimeout(() => this.syncFrameTracks(), 250);
+      setTimeout(() => this.syncFrameTracks(), 1200);
+    }
+    /**
+     * Vi chỉnh nhanh Box 3D bằng tổ hợp phím Shift + WASD theo Screen Space trực quan (độc lập với góc xoay của xe)
+     * - Phím Shift + A: Luôn luôn dịch sang TRÁI màn hình (Chỉ Frame Hiện Tại)
+     * - Phím Shift + D: Luôn luôn dịch sang PHẢI màn hình (Chỉ Frame Hiện Tại)
+     * - Phím Shift + W: Luôn luôn dịch LÊN TRÊN màn hình (Chỉ Frame Hiện Tại)
+     * - Phím Shift + S: Luôn luôn dịch XUỐNG DƯỚI màn hình (Chỉ Frame Hiện Tại)
+     * 🚨 QUY TẮC BẮT BUỘC: TUYỆT ĐỐI KHÔNG ÁP DỤNG TOÀN BỘ TRACK KHI DÙNG SHIFT+WASD (Chỉ tác động Frame này).
+     * @param key Phím bấm ('w', 'a', 's', 'd')
+     */
+    async handleNudgeByView(key) {
+      var _a;
+      const activeId = await this.ensureActiveTrackSelected();
+      if (!activeId || !((_a = this.currentCtx) == null ? void 0 : _a.jobId)) {
+        this.showToast("Chưa chọn đối tượng để vi chỉnh!", "warning");
+        return;
+      }
+      const step = 0.02;
+      let deltaXWorld = 0;
+      let deltaYWorld = 0;
+      let deltaZWorld = 0;
+      const view = this.currentActiveView;
+      switch (view) {
+        case "side":
+          if (key === "w") deltaZWorld = step;
+          if (key === "s") deltaZWorld = -step;
+          if (key === "a") deltaXWorld = -step;
+          if (key === "d") deltaXWorld = step;
+          break;
+        case "front":
+          if (key === "w") deltaZWorld = step;
+          if (key === "s") deltaZWorld = -step;
+          if (key === "a") deltaYWorld = step;
+          if (key === "d") deltaYWorld = -step;
+          break;
+        case "top":
+        case "perspective":
+        default:
+          if (key === "w") deltaXWorld = step;
+          if (key === "s") deltaXWorld = -step;
+          if (key === "a") deltaYWorld = step;
+          if (key === "d") deltaYWorld = -step;
+          break;
+      }
+      try {
+        await this.pushUndoSnapshot(
+          `Shift+WASD Nudge [${view.toUpperCase()}]: ${key.toUpperCase()}`,
+          false
+        );
+        const res = await CVATBridge.shiftTrackCenter(
+          this.currentCtx.jobId,
+          activeId,
+          this.selectedServerId,
+          deltaXWorld,
+          deltaYWorld,
+          deltaZWorld,
+          false,
+          true
+        );
+        if (res.success) {
+          if (res.newX !== void 0) this.currentX = res.newX;
+          if (res.newY !== void 0) this.currentY = res.newY;
+          if (res.newZ !== void 0) this.currentZ = res.newZ;
+          this.scheduleUpdate();
+        }
+      } catch (err) {
+        console.warn("[CVAT 3D Suite] Lỗi vi chỉnh WASD:", err);
+      }
     }
     /**
      * Đảm bảo luôn có đối tượng được chọn trước khi thực hiện thao tác phím tắt hoặc nút bấm.
@@ -9479,6 +14183,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.currentFrameNumber = CVATBridge.getCurrentFrame();
       const tracks = await CVATBridge.getTracksInCurrentFrame(this.currentCtx.jobId, this.currentFrameNumber);
       this.frameTracks = tracks;
+      if (this.currentFrameNumber !== this.lastContextImageFrame) {
+        this.lastContextImageFrame = this.currentFrameNumber;
+        CVATBridge.fetchContextImages(this.currentCtx.jobId, this.currentFrameNumber).then((images) => {
+          if (images.size > 0) {
+            images.forEach((blobUrl, camIdx) => {
+              CameraOverlayManager.getInstance().updateCameraImage(camIdx, blobUrl);
+            });
+          }
+        }).catch(() => {
+        });
+      }
       const isCurrentTrackInFrame = tracks.some((t) => t.uiId === this.selectedUiId);
       if (!isCurrentTrackInFrame && tracks.length > 0) {
         await this.selectTrackByUiId(tracks[0].uiId, void 0, false);
@@ -9498,8 +14213,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           this.editW = cur.w;
           this.editH = cur.h;
         }
+        if (this.selectedUiId && (!this.trackStats || this.trackStats.uiId !== this.selectedUiId)) {
+          this.loadTrackStats(this.selectedUiId);
+        }
         this.scheduleUpdate();
-      } else {
+      } else if (tracks.length === 0 && this.selectedUiId !== null) {
+        this.selectedUiId = null;
+        this.selectedServerId = null;
+        this.currentLabel = "Chưa chọn đối tượng";
         this.scheduleUpdate();
       }
     }
@@ -9519,8 +14240,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
      */
     async selectTrackByUiId(uiId, details, activateCanvas = true) {
       this.selectedUiId = uiId;
+      CVATBridge.setActiveTrackIdInMainWorld(uiId);
+      if (!this.trackStats || this.trackStats.uiId !== uiId) {
+        this.loadTrackStats(uiId);
+      }
+      let targetPos;
+      if (details) {
+        targetPos = { x: details.x, y: details.y, z: details.z };
+      } else {
+        const foundInFrame2 = this.frameTracks.find((t) => t.uiId === uiId);
+        if (foundInFrame2) {
+          targetPos = { x: foundInFrame2.x, y: foundInFrame2.y, z: foundInFrame2.z };
+        }
+      }
       if (activateCanvas) {
-        CVATBridge.activateCanvasTrack(uiId);
+        CVATBridge.activateCanvasTrack(uiId, targetPos);
+        CVATBridge.centerCanvas3DOnTrack(uiId, targetPos);
       }
       if (details) {
         this.selectedServerId = details.serverId || null;
@@ -9537,6 +14272,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.editW = details.w;
         this.editH = details.h;
         this.currentRawPoints = Array.isArray(details.points) ? [...details.points] : null;
+        if (activateCanvas && targetPos) {
+          CVATBridge.centerCanvas3DOnTrack(uiId, targetPos);
+        }
         this.scheduleUpdate();
         return;
       }
@@ -9555,6 +14293,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.editL = foundInFrame.l;
         this.editW = foundInFrame.w;
         this.editH = foundInFrame.h;
+        if (activateCanvas) {
+          CVATBridge.centerCanvas3DOnTrack(uiId, { x: foundInFrame.x, y: foundInFrame.y, z: foundInFrame.z });
+        }
         this.scheduleUpdate();
         return;
       }
@@ -9576,6 +14317,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.selectTrackByUiId(this.frameTracks[idx + 1].uiId, void 0, true);
       } else {
         this.selectTrackByUiId(this.frameTracks[0].uiId, void 0, true);
+      }
+    }
+    /**
+     * Căn giữa tức thì View 3D vào xe đang chọn
+     */
+    handleCenterCurrentTrack() {
+      if (this.selectedUiId !== null) {
+        CVATBridge.centerCanvas3DOnTrack(this.selectedUiId);
+        this.showToast(`Đã căn giữa xe #${this.selectedUiId}`, "info");
+      } else {
+        this.showToast("Chưa chọn đối tượng để căn giữa!", "warning");
       }
     }
     /**
@@ -9703,7 +14455,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return;
       }
       if (this.isProcessing) return;
-      await this.pushUndoSnapshot(`Outside Toàn Track #${this.selectedUiId}`, true);
+      await this.pushUndoSnapshot(`${outside ? "Outside (Ẩn)" : "Inside (Hiện)"} Toàn Track #${this.selectedUiId}`, true);
       this.isProcessing = true;
       this.showToast(`Đang đánh dấu ${outside ? "Outside" : "Inside"} cho toàn bộ Track #${this.selectedUiId}...`, "info");
       try {
@@ -9717,10 +14469,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         );
         if (res.success) {
           this.showToast(
-            `Đã đánh dấu ${outside ? "Outside" : "Inside"} cho ${res.count || "toàn bộ"} frame của Track #${this.selectedUiId}! Bấm Pre để hoàn tác.`,
+            `Đã đánh dấu ${outside ? "Outside (Ẩn)" : "Inside (Hiện)"} cho ${res.count || "toàn bộ"} frame của Track #${this.selectedUiId}! Bấm Pre để hoàn tác.`,
             "success"
           );
           await this.syncFrameTracks();
+          await this.loadTrackStats(this.selectedUiId);
         } else {
           this.showToast(res.message || "Không thể đổi trạng thái Outside!", "error");
         }
@@ -9730,6 +14483,175 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.isProcessing = false;
         this.updateContent();
       }
+    }
+    /**
+     * Tải ngầm thống kê toàn bộ vòng đời của Track ID (Total frames, Active, Outside, Dải frame)
+     */
+    async loadTrackStats(uiId) {
+      var _a, _b;
+      if (uiId === null || !((_a = this.currentCtx) == null ? void 0 : _a.jobId)) {
+        this.trackStats = null;
+        this.updateContent();
+        return;
+      }
+      try {
+        this.trackStatsLoading = true;
+        const serverId = this.selectedServerId || uiId;
+        const allFrames = await CVATBridge.getTrackAllFrames(this.currentCtx.jobId, uiId, serverId);
+        if (this.selectedUiId !== uiId) return;
+        if (Array.isArray(allFrames) && allFrames.length > 0) {
+          const totalFrames = allFrames.length;
+          const startFrame = allFrames[0].frame;
+          const endFrame = allFrames[allFrames.length - 1].frame;
+          const outsideCount = allFrames.filter((f) => !!f.outside).length;
+          const activeCount = totalFrames - outsideCount;
+          const isFullyOutside = outsideCount === totalFrames;
+          const isFullyActive = outsideCount === 0;
+          this.trackStats = {
+            uiId,
+            totalFrames,
+            startFrame,
+            endFrame,
+            activeCount,
+            outsideCount,
+            isFullyOutside,
+            isFullyActive,
+            label: ((_b = allFrames[0]) == null ? void 0 : _b.label) || this.currentLabel
+          };
+        } else {
+          this.trackStats = null;
+        }
+      } catch (err) {
+        console.warn("[CVAT 3D Suite] Lỗi loadTrackStats:", err);
+        this.trackStats = null;
+      } finally {
+        this.trackStatsLoading = false;
+        this.updateContent();
+      }
+    }
+    /**
+     * Hiển thị dải Sub-Header thống kê Track ID ngay tại cụm tiêu đề Floating Panel
+     */
+    renderTrackStatsSubHeader() {
+      if (this.selectedUiId === null) {
+        return "";
+      }
+      const stats = this.trackStats;
+      const isLoading = this.trackStatsLoading && !stats;
+      if (isLoading) {
+        return `
+        <div style="
+          background: #f8fafc;
+          border-bottom: 1px solid #e2e8f0;
+          padding: 4px 10px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 10px;
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          color: #64748b;
+        ">
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-weight: 700; color: #0284c7;">Track #${this.selectedUiId}</span>
+            <span style="font-size: 9px; color: #94a3b8;">Đang tải thống kê track...</span>
+          </div>
+        </div>
+      `;
+      }
+      if (!stats) {
+        return `
+        <div style="
+          background: #f8fafc;
+          border-bottom: 1px solid #e2e8f0;
+          padding: 4px 10px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 10px;
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          color: #64748b;
+        ">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-weight: 700; color: #0284c7;">Track #${this.selectedUiId}</span>
+            <span style="color: #64748b; font-size: 9.5px;">${this.currentLabel}</span>
+          </div>
+          <span style="font-size: 9px; color: #94a3b8;">F#${this.currentFrameNumber}</span>
+        </div>
+      `;
+      }
+      const { totalFrames, startFrame, endFrame, activeCount, outsideCount, isFullyOutside, isFullyActive } = stats;
+      let badgeHtml = "";
+      if (isFullyOutside) {
+        badgeHtml = `
+        <span style="
+          background: #fee2e2;
+          border: 1px solid #fecdd3;
+          color: #e11d48;
+          padding: 1px 6px;
+          border-radius: 4px;
+          font-weight: 700;
+          font-size: 9.5px;
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+        ">
+          ${ICONS.eyeOff}
+          <span>Ẩn Toàn Bộ (${totalFrames}f)</span>
+        </span>
+      `;
+      } else if (isFullyActive) {
+        badgeHtml = `
+        <span style="
+          background: #ecfdf5;
+          border: 1px solid #a7f3d0;
+          color: #059669;
+          padding: 1px 6px;
+          border-radius: 4px;
+          font-weight: 600;
+          font-size: 9.5px;
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+        ">
+          ${ICONS.eye}
+          <span>Hiện Toàn Bộ (${totalFrames}f)</span>
+        </span>
+      `;
+      } else {
+        badgeHtml = `
+        <div style="display: flex; align-items: center; gap: 4px; font-size: 9.5px; font-weight: 600;">
+          <span style="color: #059669; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 1px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px;">
+            ${ICONS.eye} ${activeCount} Hiện
+          </span>
+          <span style="color: #e11d48; background: #fee2e2; border: 1px solid #fecdd3; padding: 1px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px;">
+            ${ICONS.eyeOff} ${outsideCount} Ẩn
+          </span>
+        </div>
+      `;
+      }
+      return `
+      <div style="
+        background: ${isFullyOutside ? "#fff5f5" : "#f8fafc"};
+        border-bottom: 1px solid ${isFullyOutside ? "#fed7aa" : "#e2e8f0"};
+        padding: 4px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 10px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        transition: background 0.15s;
+      ">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-weight: 700; color: ${isFullyOutside ? "#e11d48" : "#0284c7"};">Track #${this.selectedUiId}</span>
+          <span style="color: #64748b; font-size: 9.5px;">
+            ${totalFrames} frames (F#${startFrame} ➔ F#${endFrame})
+          </span>
+        </div>
+        <div>
+          ${badgeHtml}
+        </div>
+      </div>
+    `;
     }
     /**
      * Xử lý Lật đầu xe 180° (REALTIME 100%, ZERO-F5)
@@ -9757,6 +14679,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
         if (targetItem) {
           targetItem.yawDeg = res.newYawDeg;
+        }
+        if (this.selectedUiId !== null) {
+          CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
         }
         this.showToast(res.message, "success");
       } catch (err) {
@@ -9812,6 +14737,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           targetItem.h = h;
           targetItem.z = res.newZ;
         }
+        if (this.selectedUiId !== null) {
+          CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
+        }
         this.showToast(res.message, "success");
       } catch (err) {
         this.showToast(`Lỗi: ${err.message || err}`, "error");
@@ -9864,6 +14792,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         })
       );
       const sign = deg > 0 ? "+" : "";
+      if (this.selectedUiId !== null) {
+        CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
+      }
       this.showToast(`Xoay Yaw ${sign}${deg}° ➔ ${newDeg}°`, "info");
       this.updateContent();
     }
@@ -9997,6 +14928,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             if (res.newX !== void 0) targetItem.x = res.newX;
             if (res.newY !== void 0) targetItem.y = res.newY;
           }
+          if (this.selectedUiId !== null) {
+            CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
+          }
           this.showToast(res.message, "success");
         } else {
           this.showToast(res.message || "Lỗi khi vi chỉnh Center!", "error");
@@ -10041,6 +14975,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (targetItem) {
           targetItem.z = res.newZ;
         }
+        if (this.selectedUiId !== null) {
+          CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
+        }
         this.showToast(res.message, "success");
       } catch (err) {
         this.showToast(`Lỗi: ${err.message || err}`, "error");
@@ -10084,6 +15021,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         );
         if (res.success && res.newYawDeg !== void 0) {
           this.currentYawDeg = res.newYawDeg;
+          if (this.selectedUiId !== null) {
+            CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
+          }
           this.showToast(res.message, "success");
         } else {
           this.showToast(res.message || "Không tìm thấy vạch sơn rõ nét!", "warning");
@@ -10138,6 +15078,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             if (res.newZ !== void 0) targetItem.z = res.newZ;
             if (res.newYawDeg !== void 0) targetItem.yawDeg = res.newYawDeg;
           }
+          if (this.selectedUiId !== null) {
+            CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
+          }
           this.showToast(res.message, "success");
         } else {
           this.showToast(res.message, "error");
@@ -10174,6 +15117,103 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         await this.handleFitPedestrian("front");
       } else {
         await this.handleEgoRayFit("front");
+      }
+    }
+    /**
+     * Fit riêng Chiều Rộng W (Phím 4):
+     * Tự động điều hướng theo loại đối tượng:
+     * - Pedestrian: Fit vai/ngực người
+     * - Cyclist: Fit tay lái / gương xe (+5cm pad)
+     * - Car: Fit riêng bề rộng W (+8cm pad)
+     */
+    async handleFitWidth() {
+      if (this.selectedCategory === "pedestrian") {
+        await this.handleFitPedestrian("w");
+      } else if (this.selectedCategory === "cyclist") {
+        await this.handleFitCyclist("w");
+      } else {
+        await this.handleFitCarDimension("w");
+      }
+    }
+    /**
+     * Fit riêng Chiều Cao H (Phím 5) - CHUẨN GROUND-LOCK:
+     * Mặt đáy tiếp đất bám sàn cố định tại groundZ, chiều cao nở lên nóc xe.
+     * Tự động điều hướng theo loại đối tượng:
+     * - Pedestrian: Fit đỉnh đầu (+12cm đệm)
+     * - Cyclist: Fit nón bảo hiểm (+12cm đệm)
+     * - Car: Fit nóc xe (+5cm đệm)
+     */
+    async handleFitHeight() {
+      if (this.selectedCategory === "pedestrian") {
+        await this.handleFitPedestrian("h");
+      } else if (this.selectedCategory === "cyclist") {
+        await this.handleFitCyclist("h");
+      } else {
+        await this.handleFitCarDimension("h");
+      }
+    }
+    /**
+     * Fit riêng Chiều Rộng (W) hoặc Chiều Cao (H Ground-Lock) cho Xe Ô tô (Car) hoặc đối tượng chung
+     */
+    async handleFitCarDimension(dimension) {
+      var _a, _b;
+      if (!this.currentCtx || !this.currentCtx.jobId) {
+        this.showToast("Chưa kết nối Job CVAT!", "warning");
+        return;
+      }
+      const activeId = await this.ensureActiveTrackSelected();
+      if (!activeId) {
+        this.showToast("Chưa chọn đối tượng để fit kích thước!", "warning");
+        return;
+      }
+      if (this.isProcessing) return;
+      const dimLabel = dimension === "w" ? "Rộng (W) [Phím 4]" : "Cao (H) [Phím 5 - Ground-Lock]";
+      await this.pushUndoSnapshot(`Fit ${dimLabel}`, this.applyToTrack);
+      this.isProcessing = true;
+      this.showToast(`Đang đo mây điểm & Fit ${dimLabel}...`, "info");
+      try {
+        const serverId = this.selectedServerId || activeId;
+        const res = await CVATBridge.fitDimension(
+          this.currentCtx.jobId,
+          activeId,
+          serverId,
+          dimension,
+          this.applyToTrack
+        );
+        if (res.success) {
+          if (res.newW !== void 0) {
+            this.currentW = res.newW;
+            this.editW = res.newW;
+          }
+          if (res.newH !== void 0) {
+            this.currentH = res.newH;
+            this.editH = res.newH;
+          }
+          if (res.newX !== void 0) this.currentX = res.newX;
+          if (res.newY !== void 0) this.currentY = res.newY;
+          if (res.newZ !== void 0) this.currentZ = res.newZ;
+          const targetItem = this.frameTracks.find((t) => t.uiId === activeId);
+          if (targetItem) {
+            if (res.newW !== void 0) targetItem.w = res.newW;
+            if (res.newH !== void 0) targetItem.h = res.newH;
+            if (res.newX !== void 0) targetItem.x = res.newX;
+            if (res.newY !== void 0) targetItem.y = res.newY;
+            if (res.newZ !== void 0) targetItem.z = res.newZ;
+          }
+          const inputW = (_a = this.container) == null ? void 0 : _a.querySelector("#input-dim-w");
+          const inputH = (_b = this.container) == null ? void 0 : _b.querySelector("#input-dim-h");
+          if (inputW && res.newW !== void 0) inputW.value = String(res.newW);
+          if (inputH && res.newH !== void 0) inputH.value = String(res.newH);
+          this.showToast(res.message, "success");
+          this.scheduleUpdate();
+        } else {
+          this.showToast(res.message, "error");
+        }
+      } catch (err) {
+        this.showToast(`Lỗi fit ${dimLabel}: ${err.message || String(err)}`, "error");
+      } finally {
+        this.isProcessing = false;
+        this.updateContent();
       }
     }
     /**
@@ -10538,13 +15578,34 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.searchKeyword,
         this.selectedCategory,
         this.isAdvancedOpen,
-        this.applyToTrack
+        this.applyToTrack,
+        this.currentActiveView
       ].join("|");
       if (stateHash === this.lastRenderedHash && this.container.children.length > 0) {
         return;
       }
       this.lastRenderedHash = stateHash;
       const jobText = this.currentCtx.jobId ? `#${this.currentCtx.jobId}` : "OFFLINE";
+      let viewText = "VIEW: TOP";
+      let viewBg = "#f0fdfa";
+      let viewBorder = "#99f6e4";
+      let viewColor = "#0f766e";
+      if (this.currentActiveView === "side") {
+        viewText = "VIEW: SIDE";
+        viewBg = "#eff6ff";
+        viewBorder = "#bfdbfe";
+        viewColor = "#1d4ed8";
+      } else if (this.currentActiveView === "front") {
+        viewText = "VIEW: FRONT";
+        viewBg = "#faf5ff";
+        viewBorder = "#e9d5ff";
+        viewColor = "#7e22ce";
+      } else if (this.currentActiveView === "perspective") {
+        viewText = "VIEW: 3D";
+        viewBg = "#f8fafc";
+        viewBorder = "#cbd5e1";
+        viewColor = "#475569";
+      }
       const filteredTracks = this.frameTracks.filter((t) => {
         if (!this.searchKeyword.trim()) return true;
         const kw = this.searchKeyword.trim().toLowerCase().replace("#", "");
@@ -10554,6 +15615,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (filteredTracks.length > 0) {
         dropdownItemsHtml = filteredTracks.map((t) => {
           const isSelected = t.uiId === this.selectedUiId;
+          const badgeColor = t.color || "#3b82f6";
           return `
             <div class="dropdown-track-item" data-uiid="${t.uiId}" style="
               padding: 6px 10px;
@@ -10570,8 +15632,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               transition: background 0.12s;
             ">
               <span style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-weight: 700; color: ${isSelected ? "#059669" : "#64748b"};">#${t.uiId}</span>
-                <span style="color: ${isSelected ? "#047857" : "#0f172a"}; font-weight: 500;">${t.label}</span>
+                <span style="font-weight: 700; color: ${isSelected ? "#059669" : "#64748b"}; font-size: 11px;">#${t.uiId}</span>
+                <span style="
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 4px;
+                  padding: 1px 6px;
+                  border-radius: 4px;
+                  background: ${badgeColor}18;
+                  border: 1px solid ${badgeColor}40;
+                  color: ${badgeColor};
+                  font-weight: 600;
+                  font-size: 10px;
+                ">
+                  <span style="width: 5px; height: 5px; border-radius: 50%; background: ${badgeColor}; display: inline-block;"></span>
+                  ${t.label}
+                </span>
               </span>
               <span style="font-size: 10px; color: #64748b;">
                 Z: ${t.z}m • ${t.yawDeg}°
@@ -10727,6 +15803,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             border: 1px solid #e2e8f0;
             font-weight: 600;
           ">${jobText}</span>
+          <span id="floating-badge-view" title="Khung nhìn đang active. Giữ Shift + WASD để vi chỉnh 2cm theo màn hình (Chỉ Frame Hiện Tại)" style="
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9.5px;
+            font-weight: 700;
+            font-family: ui-monospace, monospace;
+            background: ${viewBg};
+            border: 1px solid ${viewBorder};
+            color: ${viewColor};
+            cursor: pointer;
+            transition: all 0.12s;
+          ">${viewText}</span>
         </div>
 
         <div style="display: flex; align-items: center; gap: 3px;">
@@ -10803,6 +15894,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         </div>
       </div>
 
+      <!-- DẢI SUB-HEADER THỐNG KÊ TRACK ID (CỤM TIÊU ĐỀ) -->
+      ${this.renderTrackStatsSubHeader()}
+
       <!-- MAIN CONTAINER BODY (LIGHT) -->
       <div style="
         padding: 10px;
@@ -10810,6 +15904,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         display: flex;
         flex-direction: column;
         gap: 8px;
+        flex: 1;
         max-height: calc(100vh - 120px);
       ">
         <!-- KHỐI 1: CHỌN XE & THÔNG SỐ TÓM TẮT -->
@@ -10872,6 +15967,29 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               align-items: center;
             ">
               ${ICONS.chevronRight}
+            </button>
+
+            <!-- NÚT GHIM TÂM KHI TUA FRAME (LOCK-ON CAMERA TRACKING) -->
+            <button id="btn-toggle-auto-center" title="Tự động ghim đối tượng đang chọn ở chính giữa màn hình khi tua frame. Nhấn để Bật/Tắt." style="
+              background: ${this.autoCenterOnFrame ? "#ecfdf5" : "#ffffff"};
+              border: 1px solid ${this.autoCenterOnFrame ? "#a7f3d0" : "#e2e8f0"};
+              color: ${this.autoCenterOnFrame ? "#047857" : "#64748b"};
+              padding: 6px 8px;
+              border-radius: 6px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              font-size: 11px;
+              font-weight: 600;
+              transition: all 0.12s;
+              box-shadow: ${this.autoCenterOnFrame ? "0 1px 2px rgba(16, 185, 129, 0.12)" : "none"};
+              white-space: nowrap;
+            ">
+              <span style="display: flex; align-items: center; color: ${this.autoCenterOnFrame ? "#10b981" : "#94a3b8"};">
+                ${ICONS.target}
+              </span>
+              <span>${this.autoCenterOnFrame ? "Ghim" : "Tự do"}</span>
             </button>
           </div>
 
@@ -11090,6 +16208,65 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Sườn xe W</span>
               </button>
             </div>
+
+            <!-- THANH 2 NÚT TÁCH BIỆT CHO CAR: FIT RỘNG (W) & FIT CAO (H GROUND-LOCK) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+              <!-- 1. NÚT FIT RỘNG W -->
+              <button id="btn-fit-car-w" title="Tự động đo mây điểm và fit riêng chiều rộng W (bám khít 2 sườn xe +8cm đệm), giữ nguyên L, H và Z (Phím 4)" style="
+                background: #faf5ff;
+                border: 1px solid #d8b4fe;
+                color: #7e22ce;
+                padding: 6px 8px;
+                border-radius: 7px;
+                font-size: 10px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2px;
+                transition: all 0.12s;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="display: flex; align-items: center; gap: 4px; font-weight: 700;">
+                    ${ICONS.sparkles}
+                    <span>Fit Rộng (W)</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #e9d5ff; color: #7e22ce;">4</kbd>
+                </div>
+                <span style="font-size: 8.5px; opacity: 0.85;">+8cm đệm vỏ</span>
+              </button>
+
+              <!-- 2. NÚT FIT CAO H -->
+              <button id="btn-fit-car-h" title="Tự động đo mây điểm nóc xe và fit riêng chiều cao H (Mặt đáy tiếp đất bám sàn cố định tại groundZ, nở lên nóc xe +5cm), giữ nguyên L, W và XY (Phím 5)" style="
+                background: #fff7ed;
+                border: 1px solid #fdba74;
+                color: #c2410c;
+                padding: 6px 8px;
+                border-radius: 7px;
+                font-size: 10px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2px;
+                transition: all 0.12s;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span style="display: flex; align-items: center; gap: 4px; font-weight: 700;">
+                    ${ICONS.arrowUpDown}
+                    <span>Fit Cao (H)</span>
+                  </span>
+                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #fed7aa; color: #c2410c;">5</kbd>
+                </div>
+                <span style="font-size: 8.5px; opacity: 0.85;">Ground-Lock nở nóc</span>
+              </button>
+            </div>
           ` : this.selectedCategory === "cyclist" ? `
             <!-- THANH 3 NÚT FIT ĐỘC LẬP CHO XE 2 BÁNH (TOP - SIDE - FRONT) -->
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
@@ -11172,7 +16349,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             <!-- THANH 2 NÚT TÁCH BIỆT: FIT RỘNG (W) & FIT CAO (H) CHO XE 2 BÁNH -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
               <!-- 1. NÚT FIT RỘNG W -->
-              <button id="btn-fit-cyclist-w" title="Tự động đo mây điểm và fit riêng chiều rộng W (bắt trọn gương chiếu hậu, tay lái, đệm +5cm mỗi bên), giữ nguyên L, H và Z" style="
+              <button id="btn-fit-cyclist-w" title="Tự động đo mây điểm và fit riêng chiều rộng W (bắt trọn gương chiếu hậu, tay lái, đệm +5cm mỗi bên), giữ nguyên L, H và Z (Phím 4)" style="
                 background: #fffbeb;
                 border: 1px solid #fcd34d;
                 color: #b45309;
@@ -11183,17 +16360,20 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 cursor: pointer;
                 display: flex;
                 align-items: center;
-                justify-content: center;
+                justify-content: space-between;
                 gap: 4px;
                 transition: all 0.12s;
                 box-shadow: 0 1px 2px rgba(0,0,0,0.03);
               ">
-                <span style="display: flex; align-items: center; color: #d97706;">${ICONS.sparkles}</span>
-                <span>Fit Rộng (W) [+5cm Pad]</span>
+                <span style="display: flex; align-items: center; gap: 4px;">
+                  <span style="display: flex; align-items: center; color: #d97706;">${ICONS.sparkles}</span>
+                  <span>Fit Rộng (W)</span>
+                </span>
+                <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #fde68a; color: #b45309;">4</kbd>
               </button>
 
               <!-- 2. NÚT FIT CAO H -->
-              <button id="btn-fit-cyclist-h" title="Tự động đo đỉnh nón bảo hiểm và fit riêng chiều cao H (Mặt đáy tiếp đất giữ nguyên cố định 100%, nở lên nóc +12cm), giữ nguyên L, W và XY" style="
+              <button id="btn-fit-cyclist-h" title="Tự động đo đỉnh nón bảo hiểm và fit riêng chiều cao H (Mặt đáy tiếp đất giữ nguyên cố định 100%, nở lên nóc +12cm), giữ nguyên L, W và XY (Phím 5)" style="
                 background: #fff7ed;
                 border: 1px solid #fdba74;
                 color: #c2410c;
@@ -11204,13 +16384,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 cursor: pointer;
                 display: flex;
                 align-items: center;
-                justify-content: center;
+                justify-content: space-between;
                 gap: 4px;
                 transition: all 0.12s;
                 box-shadow: 0 1px 2px rgba(0,0,0,0.03);
               ">
-                <span style="display: flex; align-items: center; color: #ea580c;">${ICONS.arrowUpDown}</span>
-                <span>Fit Cao (H) [Nở Nóc]</span>
+                <span style="display: flex; align-items: center; gap: 4px;">
+                  <span style="display: flex; align-items: center; color: #ea580c;">${ICONS.arrowUpDown}</span>
+                  <span>Fit Cao (H)</span>
+                </span>
+                <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #fed7aa; color: #c2410c;">5</kbd>
               </button>
             </div>
 
@@ -11339,7 +16522,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               </button>
 
               <!-- 2. NÚT FIX RỘNG W -->
-              <button id="btn-fit-ped-w" title="Tự động đo và co giãn riêng Chiều Rộng W ôm vai/ngực (giữ nguyên L, H & Z)" style="
+              <button id="btn-fit-ped-w" title="Tự động đo và co giãn riêng Chiều Rộng W ôm vai/ngực (giữ nguyên L, H & Z) (Phím 4)" style="
                 background: #faf5ff;
                 border: 1px solid #d8b4fe;
                 color: #7e22ce;
@@ -11350,17 +16533,20 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 cursor: pointer;
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                gap: 3px;
+                justify-content: space-between;
+                gap: 2px;
                 transition: all 0.12s;
                 box-shadow: 0 1px 2px rgba(0,0,0,0.03);
               ">
-                <span style="display: flex; align-items: center; color: #9333ea;">${ICONS.sparkles}</span>
-                <span>Fit Rộng (W)</span>
+                <span style="display: flex; align-items: center; gap: 2px;">
+                  <span style="display: flex; align-items: center; color: #9333ea;">${ICONS.sparkles}</span>
+                  <span>Fit Rộng</span>
+                </span>
+                <kbd style="font-size: 8px; font-family: monospace; background: #ffffff; padding: 1px 3px; border-radius: 3px; border: 1px solid #e9d5ff; color: #7e22ce;">4</kbd>
               </button>
 
               <!-- 3. NÚT FIX CAO H -->
-              <button id="btn-fit-ped-h" title="Tự động đo đỉnh đầu và fit riêng Chiều Cao H (Đáy tiếp đất giữ nguyên cố định, đỉnh đầu nở lên +12cm), giữ nguyên L, W và XY" style="
+              <button id="btn-fit-ped-h" title="Tự động đo đỉnh đầu và fit riêng Chiều Cao H (Đáy tiếp đất giữ nguyên cố định, đỉnh đầu nở lên +12cm), giữ nguyên L, W và XY (Phím 5)" style="
                 background: #fff7ed;
                 border: 1px solid #fdba74;
                 color: #c2410c;
@@ -11371,11 +16557,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 cursor: pointer;
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                gap: 3px;
+                justify-content: space-between;
+                gap: 2px;
                 transition: all 0.12s;
                 box-shadow: 0 1px 2px rgba(0,0,0,0.03);
               ">
+                <span style="display: flex; align-items: center; gap: 2px;">
+                  <span style="display: flex; align-items: center; color: #ea580c;">${ICONS.arrowUpDown}</span>
+                  <span>Fit Cao</span>
+                </span>
+                <kbd style="font-size: 8px; font-family: monospace; background: #ffffff; padding: 1px 3px; border-radius: 3px; border: 1px solid #fed7aa; color: #c2410c;">5</kbd>
+              </button>
                 <span style="display: flex; align-items: center; color: #ea580c;">${ICONS.arrowUpDown}</span>
                 <span>Fit Cao (H)</span>
               </button>
@@ -11586,8 +16778,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             </div>
           </div>
 
-          <!-- NÚT ĐÁNH DẤU OUTSIDE TOÀN TRACK -->
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 5px;">
+          <!-- CẶP NÚT ẨN / HIỆN TOÀN TRACK -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <!-- NÚT ẨN TOÀN TRACK (OUTSIDE) -->
             <button id="btn-outside-entire-track" title="Đánh dấu Outside (ẩn) cho toàn bộ frame của Track này (Shift+O)" style="
               width: 100%;
               background: #fff1f2;
@@ -11604,11 +16797,35 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               transition: all 0.12s;
               box-shadow: 0 1px 2px rgba(0,0,0,0.02);
             ">
-              <span style="display: flex; align-items: center; gap: 5px;">
+              <span style="display: flex; align-items: center; gap: 4px;">
                 <span style="display: flex; align-items: center;">${ICONS.eyeOff}</span>
-                <span>Outside Toàn Track</span>
+                <span>Ẩn Toàn Track</span>
               </span>
               <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; border: 1px solid #fecdd3; padding: 1px 4px; border-radius: 3px; color: #e11d48;">⇧O</kbd>
+            </button>
+
+            <!-- NÚT HIỆN TOÀN TRACK (INSIDE) -->
+            <button id="btn-inside-entire-track" title="Đánh dấu Inside (hiện lại) cho toàn bộ frame của Track này (Shift+I)" style="
+              width: 100%;
+              background: #ecfdf5;
+              border: 1px solid #a7f3d0;
+              color: #059669;
+              padding: 5px 8px;
+              border-radius: 6px;
+              font-size: 10px;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              transition: all 0.12s;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            ">
+              <span style="display: flex; align-items: center; gap: 4px;">
+                <span style="display: flex; align-items: center;">${ICONS.eye}</span>
+                <span>Hiện Toàn Track</span>
+              </span>
+              <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; border: 1px solid #a7f3d0; padding: 1px 4px; border-radius: 3px; color: #059669;">⇧I</kbd>
             </button>
           </div>
 
@@ -11805,6 +17022,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (fitSideBtn) fitSideBtn.addEventListener("click", () => this.handleFitSide());
       const fitFrontBtn = this.container.querySelector("#btn-fit-front");
       if (fitFrontBtn) fitFrontBtn.addEventListener("click", () => this.handleFitFront());
+      const fitCarWBtn = this.container.querySelector("#btn-fit-car-w");
+      if (fitCarWBtn) fitCarWBtn.addEventListener("click", () => this.handleFitWidth());
+      const fitCarHBtn = this.container.querySelector("#btn-fit-car-h");
+      if (fitCarHBtn) fitCarHBtn.addEventListener("click", () => this.handleFitHeight());
       const heroBtn = this.container.querySelector("#btn-hero-smart-fit");
       if (heroBtn) {
         heroBtn.addEventListener("click", () => {
@@ -11860,6 +17081,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (undoBtn) undoBtn.addEventListener("click", () => this.handleUndo());
       const minBtn = this.container.querySelector("#floating-btn-minimize");
       if (minBtn) minBtn.addEventListener("click", () => this.toggleMinimize());
+      const badgeView = this.container.querySelector("#floating-badge-view");
+      if (badgeView) {
+        badgeView.addEventListener("click", () => {
+          const views = ["top", "side", "front", "perspective"];
+          const nextIdx = (views.indexOf(this.currentActiveView) + 1) % views.length;
+          this.setActiveView(views[nextIdx]);
+          this.showToast(`Khung nhìn WASD: ${views[nextIdx].toUpperCase()}`, "info");
+        });
+      }
       const helpBtn = this.container.querySelector("#floating-btn-help");
       if (helpBtn) helpBtn.addEventListener("click", () => this.toggleHotkeysHelpModal());
       const syncBtn = this.container.querySelector("#floating-btn-sync-frame");
@@ -11899,6 +17129,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             if (itemsContainer) {
               itemsContainer.innerHTML = filtered.map((t) => {
                 const isSelected = t.uiId === this.selectedUiId;
+                const badgeColor = t.color || "#3b82f6";
                 return `
                   <div class="dropdown-track-item" data-uiid="${t.uiId}" style="
                     padding: 6px 10px;
@@ -11915,8 +17146,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                     transition: background 0.12s;
                   ">
                     <span style="display: flex; align-items: center; gap: 8px;">
-                      <span style="font-weight: 700; color: ${isSelected ? "#10b981" : "#a1a1aa"};">#${t.uiId}</span>
-                      <span style="color: #fafafa; font-weight: 500;">${t.label}</span>
+                      <span style="font-weight: 700; color: ${isSelected ? "#10b981" : "#a1a1aa"}; font-size: 11px;">#${t.uiId}</span>
+                      <span style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 4px;
+                        padding: 1px 6px;
+                        border-radius: 4px;
+                        background: ${badgeColor}25;
+                        border: 1px solid ${badgeColor}60;
+                        color: ${badgeColor};
+                        font-weight: 600;
+                        font-size: 10px;
+                      ">
+                        <span style="width: 5px; height: 5px; border-radius: 50%; background: ${badgeColor}; display: inline-block;"></span>
+                        ${t.label}
+                      </span>
                     </span>
                     <span style="font-size: 10px; color: #71717a;">
                       Z: ${t.z}m • ${t.yawDeg}°
@@ -11953,6 +17198,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (prevBtn) prevBtn.addEventListener("click", () => this.selectPrevTrack());
       const nextBtn = this.container.querySelector("#btn-next-frame-track");
       if (nextBtn) nextBtn.addEventListener("click", () => this.selectNextTrack());
+      const autoCenterBtn = this.container.querySelector("#btn-toggle-auto-center");
+      if (autoCenterBtn) {
+        autoCenterBtn.addEventListener("click", () => {
+          this.autoCenterOnFrame = !this.autoCenterOnFrame;
+          localStorage.setItem("CVAT_3D_SUITE_AUTO_CENTER_FRAME", String(this.autoCenterOnFrame));
+          CVATBridge.setAutoCenterOnFrameChange(this.autoCenterOnFrame);
+          this.showToast(
+            `Đã ${this.autoCenterOnFrame ? "BẬT Ghim Tâm (Lock-On)" : "TẮT Ghim Tâm (Tự do)"} khi tua frame`,
+            this.autoCenterOnFrame ? "success" : "info"
+          );
+          if (this.autoCenterOnFrame && this.selectedUiId !== null) {
+            CVATBridge.centerCanvas3DOnTrack(this.selectedUiId);
+          }
+          this.updateContent();
+        });
+      }
       const scopeToggle = this.container.querySelector("#btn-toggle-scope");
       if (scopeToggle) {
         scopeToggle.addEventListener("click", () => {
@@ -12003,6 +17264,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const outsideTrackBtn = this.container.querySelector("#btn-outside-entire-track");
       if (outsideTrackBtn) {
         outsideTrackBtn.addEventListener("click", () => this.handleSetTrackOutside(true));
+      }
+      const insideTrackBtn = this.container.querySelector("#btn-inside-entire-track");
+      if (insideTrackBtn) {
+        insideTrackBtn.addEventListener("click", () => this.handleSetTrackOutside(false));
       }
       const shiftCenterBtns = this.container.querySelectorAll(".btn-shift-center");
       shiftCenterBtns.forEach((btn) => {
@@ -12102,6 +17367,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (fullscreenBannerBtn) {
         fullscreenBannerBtn.addEventListener("click", () => this.openFullscreenEditor());
       }
+      const activeBox = this.getCurrentBox3D();
+      if (activeBox) {
+        CameraOverlayManager.getInstance().renderBox(activeBox);
+        CameraFocusModal.getInstance().setBox(activeBox);
+      } else {
+        CameraOverlayManager.getInstance().clearAllCanvases();
+        CameraFocusModal.getInstance().setBox(null);
+      }
     }
     /**
      * Mở giao diện toàn màn hình duyệt và chỉnh sửa toàn bộ track của xe (Label Helper Style)
@@ -12197,7 +17470,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <!-- CỘT 1 -->
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
-              <div style="font-weight: 700; color: #0f766e; font-size: 11px; margin-bottom: 2px;">🎯 CĂN CHỈNH 3 CHIỀU ĐỘC LẬP</div>
+              <div style="font-weight: 700; color: #0f766e; font-size: 11px; margin-bottom: 2px;">🎯 CĂN CHỈNH 3 CHIỀU & FIT SIZE</div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Căn TOP (Yaw & Nóc quanh tâm)</span>
                 <div><kbd style="background: #f0fdfa; border: 1px solid #99f6e4; color: #0f766e; padding: 1px 5px; border-radius: 4px; font-weight: 700;">1</kbd> / <kbd style="background: #f0fdfa; border: 1px solid #99f6e4; color: #0f766e; padding: 1px 5px; border-radius: 4px; font-weight: 700;">T</kbd></div>
@@ -12210,9 +17483,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 <span>Căn FRONT (Sườn ngang W, giữ Z)</span>
                 <kbd style="background: #faf5ff; border: 1px solid #e9d5ff; color: #7e22ce; padding: 1px 5px; border-radius: 4px; font-weight: 700;">3</kbd>
               </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Fit Rộng (W) [Mọi đối tượng]</span>
+                <kbd style="background: #faf5ff; border: 1px solid #d8b4fe; color: #7e22ce; padding: 1px 5px; border-radius: 4px; font-weight: 700;">4</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Fit Cao (H) [Ground-Lock nở nóc]</span>
+                <kbd style="background: #fff7ed; border: 1px solid #fdba74; color: #c2410c; padding: 1px 5px; border-radius: 4px; font-weight: 700;">5</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Căn giữa (Center / Focus) xe đang chọn</span>
+                <kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; padding: 1px 6px; border-radius: 4px; font-weight: 700;">Z</kbd>
+              </div>
               <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 2px;">
-                <span style="font-weight: 600; color: #64748b; font-size: 10px;">Nguyên tắc Front/Side</span>
-                <span style="font-size: 9.5px; color: #059669; font-weight: 600;">Khóa Z & Giữ Kích Thước</span>
+                <span style="font-weight: 600; color: #64748b; font-size: 10px;">Nguyên tắc Front/Side/Fit H</span>
+                <span style="font-size: 9.5px; color: #059669; font-weight: 600;">Khóa Z & Đáy Bám Sàn</span>
               </div>
             </div>
 
@@ -12267,10 +17552,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
 
             <!-- CỘT 4 -->
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px;">
-              <div style="font-weight: 700; color: #4338ca; font-size: 11px; margin-bottom: 2px;">⚡ ĐIỀU HƯỚNG & KÍCH THƯỚC</div>
+              <div style="font-weight: 700; color: #4338ca; font-size: 11px; margin-bottom: 2px;">⚡ VI CHỈNH SHIFT + WASD (SCREEN SPACE)</div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Shift + A: Trái | Shift + D: Phải</span>
+                <div><kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Shift</kbd> + <kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; padding: 1px 4px; border-radius: 4px; font-weight: 700;">A/D</kbd></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Shift + W: Lên | Shift + S: Xuống</span>
+                <div><kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Shift</kbd> + <kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; padding: 1px 4px; border-radius: 4px; font-weight: 700;">W/S</kbd></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 9.5px; color: #64748b;">Bước nhảy: 2cm / lần bấm</span>
+                <span style="font-size: 9px; color: #059669; font-weight: 600;">Chỉ Frame này (Không đổi cả Track)</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 2px;">
                 <span>Xe Liền Trước / Xe Kế Tiếp</span>
-                <div><kbd style="background: #e0e7ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 1px 5px; border-radius: 4px; font-weight: 700;">A</kbd> / <kbd style="background: #e0e7ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 1px 5px; border-radius: 4px; font-weight: 700;">D</kbd></div>
+                <div><kbd style="background: #e0e7ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 1px 5px; border-radius: 4px; font-weight: 700;">[</kbd> / <kbd style="background: #e0e7ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 1px 5px; border-radius: 4px; font-weight: 700;">]</kbd></div>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Đổi Phạm Vi: Frame Này ⟷ Toàn Track</span>
@@ -12279,6 +17576,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Hoàn Tác Thao Tác Vừa Làm (Pre)</span>
                 <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Ctrl+Z</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Ẩn / Hiện Toàn Bộ Track</span>
+                <div><kbd style="background: #fff1f2; border: 1px solid #fecdd3; color: #e11d48; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Shift+O</kbd> / <kbd style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #059669; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Shift+I</kbd></div>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Fit Người Đi Bộ / Xe 2 Bánh</span>
@@ -12357,11 +17658,28 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       panel.render(ctx);
     }, setupGlobalHotkeys = function() {
+      const isInputElement = (target) => {
+        if (!target) return false;
+        const tagName = target.tagName || "";
+        return ["INPUT", "TEXTAREA", "SELECT"].includes(tagName) || !!target.isContentEditable;
+      };
+      const blockCvatKeyLeak = (e) => {
+        if (isInputElement(e.target)) return;
+        const key = (e.key || "").toLowerCase();
+        const code = e.code || "";
+        if (key === "w" || code === "KeyW" || key === "ư" || key === "a" || code === "KeyA" || key === "á" || key === "à" || key === "â" || key === "s" || code === "KeyS" || key === "d" || code === "KeyD" || key === "đ" || key === "backspace" || code === "Backspace" || key === "delete" || code === "Delete" || key === "1" || code === "Digit1" || code === "Numpad1" || key === "2" || code === "Digit2" || code === "Numpad2" || key === "3" || code === "Digit3" || code === "Numpad3" || key === "4" || code === "Digit4" || code === "Numpad4" || key === "5" || code === "Digit5" || code === "Numpad5") {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+        }
+      };
+      window.addEventListener("keyup", blockCvatKeyLeak, { capture: true, passive: false });
+      window.addEventListener("keypress", blockCvatKeyLeak, { capture: true, passive: false });
       window.addEventListener(
         "keydown",
         (e) => {
           const target = e.target;
-          if (target && (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) || target.isContentEditable)) {
+          if (isInputElement(target)) {
             return;
           }
           const key = (e.key || "").toLowerCase();
@@ -12371,6 +17689,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             e.stopPropagation();
             e.stopImmediatePropagation();
           };
+          if (key === "backspace" || code === "Backspace" || key === "delete" || code === "Delete") {
+            consume();
+            return;
+          }
           if (key === "`" || key === "~" || code === "Backquote") {
             consume();
             panel.toggleMinimize();
@@ -12392,6 +17714,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             panel.handleUndo();
             return;
           }
+          if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && (key === "z" || code === "KeyZ")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Z: Căn giữa View 3D vào xe đang chọn");
+            panel.handleCenterCurrentTrack();
+            return;
+          }
           if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "tab" || code === "Tab" || key === "x" || code === "KeyX")) {
             consume();
             panel.toggleScope();
@@ -12401,6 +17729,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             consume();
             console.log("[CVAT 3D Suite] Phím tắt Shift+O: Đánh dấu Outside toàn bộ Track");
             panel.handleSetTrackOutside(true);
+            return;
+          }
+          if (e.shiftKey && (key === "i" || code === "KeyI")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Shift+I: Đánh dấu Inside (Hiện lại) toàn bộ Track");
+            panel.handleSetTrackOutside(false);
             return;
           }
           if (e.shiftKey && (key === "m" || code === "KeyM")) {
@@ -12421,12 +17755,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             panel.handleFlipYaw(true);
             return;
           }
-          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "a" || code === "KeyA" || key === "[" || code === "BracketLeft")) {
+          const isKeyW = key === "w" || code === "KeyW" || key === "ư";
+          const isKeyA = key === "a" || code === "KeyA" || ["á", "à", "ả", "ã", "ạ", "â", "ă"].includes(key);
+          const isKeyS = key === "s" || code === "KeyS";
+          const isKeyD = key === "d" || code === "KeyD" || key === "đ";
+          if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (isKeyW || isKeyA || isKeyS || isKeyD)) {
+            consume();
+            const nudgeKey = isKeyW ? "w" : isKeyA ? "a" : isKeyS ? "s" : "d";
+            panel.handleNudgeByView(nudgeKey);
+            return;
+          }
+          if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "[" || code === "BracketLeft")) {
             consume();
             panel.selectPrevTrack();
             return;
           }
-          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "d" || code === "KeyD" || key === "]" || code === "BracketRight")) {
+          if (!e.ctrlKey && !e.metaKey && !e.altKey && (key === "]" || code === "BracketRight")) {
             consume();
             panel.selectNextTrack();
             return;
@@ -12485,6 +17829,18 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             consume();
             console.log("[CVAT 3D Suite] Phím tắt 3: Căn FRONT");
             panel.handleFitFront();
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "4" || code === "Digit4" || code === "Numpad4")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt 4: Fit Rộng (W)");
+            panel.handleFitWidth();
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "5" || code === "Digit5" || code === "Numpad5")) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt 5: Fit Cao (H) [Ground-Lock]");
+            panel.handleFitHeight();
             return;
           }
           if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "p" || code === "KeyP")) {
@@ -12566,9 +17922,36 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         },
         { capture: true, passive: false }
       );
+    }, setupViewTracker = function() {
+      let lastCheck = 0;
+      window.addEventListener(
+        "pointermove",
+        (e) => {
+          const now = Date.now();
+          if (now - lastCheck < 60) return;
+          lastCheck = now;
+          const target = e.target;
+          if (!target) return;
+          if (target.closest(".cvat-canvas3d-topview, [id*='topview']")) {
+            panel.setActiveView("top");
+          } else if (target.closest(".cvat-canvas3d-sideview, [id*='sideview']")) {
+            panel.setActiveView("side");
+          } else if (target.closest(".cvat-canvas3d-frontview, [id*='frontview']")) {
+            panel.setActiveView("front");
+          } else if (target.closest(".cvat-canvas3d-perspective, [id*='perspective']")) {
+            panel.setActiveView("perspective");
+          }
+        },
+        { capture: true, passive: true }
+      );
     }, bootstrap = function() {
       updateContext();
       setupGlobalHotkeys();
+      setupViewTracker();
+      const headerBtn = HeaderSuiteButton.getInstance();
+      headerBtn.onToggle((enabled) => {
+        panel.setSuiteVisible(enabled);
+      });
       let lastPathname = window.location.pathname;
       let navDebounceTimer = null;
       function handleUrlChange() {
@@ -12580,6 +17963,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (navDebounceTimer) clearTimeout(navDebounceTimer);
         navDebounceTimer = setTimeout(() => {
           navDebounceTimer = null;
+          headerBtn.tryMount();
           updateContext();
         }, 250);
       }

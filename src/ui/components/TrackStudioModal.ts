@@ -1,19 +1,41 @@
 import { CVATContext } from "../../core/types";
 import { CVATBridge, FrameTrackItem } from "../../cvat/bridge";
 import { JobAnnotationStore, TrackState, TrackData } from "../../core/track_store";
-import { resizeKeepBottom } from "../../core/geometry";
+import {
+  Box3D,
+  pointsToBox,
+  boxToPoints,
+  resizeKeepBottom,
+  cloneBox,
+  rotateLocal,
+  computeGroundSlopesAndZ,
+  fitBoxToEgoRayAndGround,
+} from "../../core/geometry";
 import { ICONS } from "../icons";
+import { OrthoEditorPanel, FrameColumnData } from "./OrthoEditorPanel";
+import { TrackPointManager } from "../../core/track_point_manager";
 
 export type StudioTab = "batch_all" | "active_track";
 
+function float32ToVec3Array(arr: Float32Array): Array<{ x: number; y: number; z: number }> {
+  const count = Math.floor(arr.length / 3);
+  const res: Array<{ x: number; y: number; z: number }> = [];
+  for (let i = 0; i < count; i++) {
+    res.push({ x: arr[i * 3], y: arr[i * 3 + 1], z: arr[i * 3 + 2] });
+  }
+  return res;
+}
+
 /**
- * Giao diện Active Track Retime Studio (Full-Screen Studio):
- * - Thay thế hoàn toàn Canvas 2D cũ, triệt tiêu 100% lỗi runtime (boxCorners, memory leak).
- * - Tích hợp sâu vào CVAT native Three.js WebGL: Click frame nào CVAT nhảy frame đó.
- * - Tab 1: Quản lý kích thước hàng loạt toàn bộ xe trong Job (Batch Size Manager).
- * - Tab 2: Studio duyệt toàn bộ dải frame của xe đang active từ Frame đầu -> Frame cuối.
- * - Retime từ frame 0 -> frame end với Ground-Lock 3D vector ez cố định đáy xe phẳng mặt đường.
- * - TUYỆT ĐỐI KHÔNG AUTOSAVE NGẦM: Chỉ lưu khi người dùng bấm nút [Lưu vào CVAT] hoặc Ctrl+S.
+ * Giao diện Active Track Retime Studio (Full-Screen Orthographic Studio):
+ * - Tái hiện 100% trình edit trực quan của CVAT 3D với 3 góc chiếu 2D trực giao (TOP, SIDE, FRONT).
+ * - Hiển thị đám mây điểm LiDAR xung quanh xe tại từng frame hoặc gộp toàn bộ các frame (Show All Point Cloud).
+ * - Cơ chế Tải Toàn Bộ Curpoint: Tự động duyệt qua toàn bộ dải frame của Track ID để gom mây điểm đa frame dày đặc.
+ * - Thanh Timeline Filmstrip hiển thị đầy đủ tất cả các frame từ đầu tới cuối của chiếc xe.
+ * - Tương tác chuột trực tiếp: kéo thân Move, kéo 4 góc + 4 cạnh Resize, kéo chấm vàng xoay góc Yaw.
+ * - Two-Way Live Sync tức thì sang WebGL Canvas của CVAT (Realtime 60fps).
+ * - Bộ nút Auto-Fit TOP, SIDE, FRONT, Ghim Đất, Lật 180° chuẩn GEMINI.md.
+ * - TUYỆT ĐỐI KHÔNG AUTOSAVE NGẦM: Chỉ lưu chính thức khi người dùng bấm nút [Lưu vào CVAT] hoặc Ctrl+S.
  */
 export class TrackStudioModal {
   private overlay: HTMLDivElement | null = null;
@@ -24,6 +46,14 @@ export class TrackStudioModal {
   private allJobTracks: FrameTrackItem[] = [];
   private selectedFrame: number = 0;
   private isSaving: boolean = false;
+
+  // Thành phần 3D Ortho Editor và Mây Điểm
+  private orthoEditor: OrthoEditorPanel | null = null;
+  private pointManager: TrackPointManager = new TrackPointManager();
+  private showAllPoints: boolean = false;
+  private applyToAllFrames: boolean = false;
+  private isPlaying: boolean = false;
+  private playInterval: any = null;
 
   constructor() {
     this.createOverlay();
@@ -41,6 +71,7 @@ export class TrackStudioModal {
     this.allJobTracks = allJobTracks;
     this.selectedFrame = CVATBridge.getCurrentFrame();
     this.currentTab = "active_track";
+    this.pointManager.setActiveTrack(activeTrackId);
 
     if (this.overlay) {
       this.overlay.style.display = "flex";
@@ -50,6 +81,12 @@ export class TrackStudioModal {
   }
 
   public close(): void {
+    this.stopPlayback();
+    this.pointManager.abortScan();
+    if (this.orthoEditor) {
+      this.orthoEditor.unmount();
+      this.orthoEditor = null;
+    }
     if (this.overlay) {
       this.overlay.style.display = "none";
     }
@@ -69,8 +106,7 @@ export class TrackStudioModal {
     this.overlay.style.position = "fixed";
     this.overlay.style.inset = "0";
     this.overlay.style.zIndex = "999999";
-    this.overlay.style.background = "rgba(255, 255, 255, 0.98)";
-    this.overlay.style.backdropFilter = "blur(12px)";
+    this.overlay.style.background = "#ffffff";
     this.overlay.style.color = "#09090b";
     this.overlay.style.display = "none";
     this.overlay.style.flexDirection = "column";
@@ -101,10 +137,49 @@ export class TrackStudioModal {
           return;
         }
 
-        // Phím O: Toggle outside tại frame đang chọn trong Tab 2
+        // Ctrl+Z: Undo in-memory
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
+          e.preventDefault();
+          this.triggerUndo();
+          return;
+        }
+
+        // Ctrl+Y / Ctrl+Shift+Z: Redo in-memory
+        if (
+          ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") ||
+          ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z")
+        ) {
+          e.preventDefault();
+          this.triggerRedo();
+          return;
+        }
+
+        const target = e.target as HTMLElement;
+        if (target && (target.tagName === "INPUT" || target.tagName === "SELECT")) return;
+
+        // Space: Play / Pause dải frame
+        if (e.code === "Space" && this.currentTab === "active_track") {
+          e.preventDefault();
+          this.togglePlayback();
+          return;
+        }
+
+        // Phím Mũi tên Trái hoặc A: Frame trước
+        if ((e.key === "ArrowLeft" || e.key.toLowerCase() === "a") && this.currentTab === "active_track") {
+          e.preventDefault();
+          this.stepFrame(-1);
+          return;
+        }
+
+        // Phím Mũi tên Phải hoặc D: Frame sau
+        if ((e.key === "ArrowRight" || e.key.toLowerCase() === "d") && this.currentTab === "active_track") {
+          e.preventDefault();
+          this.stepFrame(1);
+          return;
+        }
+
+        // Phím O: Toggle outside tại frame đang chọn
         if (e.key.toLowerCase() === "o" && this.currentTab === "active_track") {
-          const target = e.target as HTMLElement;
-          if (target && (target.tagName === "INPUT" || target.tagName === "SELECT")) return;
           e.preventDefault();
           this.toggleOutsideFrame(this.selectedFrame);
           return;
@@ -112,8 +187,6 @@ export class TrackStudioModal {
 
         // Phím [ : Chuyển sang xe trước
         if (e.key === "[" && this.currentTab === "active_track") {
-          const target = e.target as HTMLElement;
-          if (target && (target.tagName === "INPUT" || target.tagName === "SELECT")) return;
           e.preventDefault();
           this.switchPrevTrack();
           return;
@@ -121,8 +194,6 @@ export class TrackStudioModal {
 
         // Phím ] : Chuyển sang xe tiếp theo
         if (e.key === "]" && this.currentTab === "active_track") {
-          const target = e.target as HTMLElement;
-          if (target && (target.tagName === "INPUT" || target.tagName === "SELECT")) return;
           e.preventDefault();
           this.switchNextTrack();
           return;
@@ -169,6 +240,10 @@ export class TrackStudioModal {
       }
 
       this.render();
+      if (this.currentTab === "active_track") {
+        this.updateOrthoEditorState(track);
+    await this.preloadPointsForVisibleFrames(track);
+      }
     } catch (err: any) {
       if (this.overlay) {
         this.overlay.innerHTML = `
@@ -204,22 +279,23 @@ export class TrackStudioModal {
     const dirtyCount = this.store.getDirtyTracks().length;
 
     this.overlay.innerHTML = `
-      <!-- 1. HEADER BAR CHUYÊN NGHIỆP (LIGHT) -->
+      <!-- 1. HEADER BAR CHUYÊN NGHIỆP -->
       <div style="
         background: #ffffff;
         border-bottom: 1px solid #e2e8f0;
-        padding: 10px 20px;
+        padding: 8px 16px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 16px;
-        min-height: 52px;
+        gap: 12px;
+        min-height: 48px;
+        box-sizing: border-box;
       ">
-        <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
           <!-- Badge Studio -->
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="background: #2563eb; color: white; padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;">RETIME STUDIO</span>
-            <span style="font-size: 14px; font-weight: bold; color: #09090b;">Job #${this.currentCtx.jobId}</span>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="background: #2563eb; color: white; padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;">ORTHO 3D STUDIO</span>
+            <span style="font-size: 13px; font-weight: bold; color: #09090b;">Job #${this.currentCtx.jobId}</span>
           </div>
 
           <!-- Tab Switcher -->
@@ -229,21 +305,21 @@ export class TrackStudioModal {
               background: ${this.currentTab === "active_track" ? "#ffffff" : "transparent"};
               color: ${this.currentTab === "active_track" ? "#09090b" : "#64748b"};
               box-shadow: ${this.currentTab === "active_track" ? "0 1px 3px rgba(0,0,0,0.08)" : "none"};
-              padding: 5px 14px;
-              font-size: 12px;
+              padding: 4px 12px;
+              font-size: 11px;
               font-weight: 600;
               cursor: pointer;
               border-radius: 4px;
               transition: all 0.15s;
-            ">Duyệt Frame (Xe #${this.activeTrackId})</button>
+            ">Duyệt Track (Xe #${this.activeTrackId})</button>
 
             <button id="studio-tab-batch" style="
               border: none;
               background: ${this.currentTab === "batch_all" ? "#ffffff" : "transparent"};
               color: ${this.currentTab === "batch_all" ? "#09090b" : "#64748b"};
               box-shadow: ${this.currentTab === "batch_all" ? "0 1px 3px rgba(0,0,0,0.08)" : "none"};
-              padding: 5px 14px;
-              font-size: 12px;
+              padding: 4px 12px;
+              font-size: 11px;
               font-weight: 600;
               cursor: pointer;
               border-radius: 4px;
@@ -251,19 +327,19 @@ export class TrackStudioModal {
             ">Tất Cả Track ID (${allTracks.length})</button>
           </div>
 
-          <!-- Quick Track Selector Dropdown & Switcher -->
+          <!-- Quick Track Selector Dropdown -->
           <div style="display: flex; align-items: center; gap: 4px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 6px;">
             <span style="font-size: 11px; color: #64748b; font-weight: 600;">Track:</span>
             <select id="studio-quick-track-select" style="
               background: transparent;
               border: none;
               color: #0284c7;
-              font-size: 12px;
+              font-size: 11px;
               font-weight: bold;
               cursor: pointer;
               outline: none;
-              padding: 3px 4px;
-              max-width: 200px;
+              padding: 2px 4px;
+              max-width: 180px;
             ">
               ${allTracks
                 .map(
@@ -276,52 +352,45 @@ export class TrackStudioModal {
                 .join("")}
             </select>
             <button id="btn-quick-prev-track" title="Xe trước (phím [)" style="
-              background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 4px; cursor: pointer;
+              background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 10px; padding: 2px 6px; border-radius: 4px; cursor: pointer;
             ">◀</button>
             <button id="btn-quick-next-track" title="Xe sau (phím ])" style="
-              background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 4px; cursor: pointer;
+              background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 10px; padding: 2px 6px; border-radius: 4px; cursor: pointer;
             ">▶</button>
           </div>
 
-          <!-- Status Indicator -->
-          <span style="
-            font-size: 11px;
-            font-family: ui-monospace, monospace;
-            background: #ecfdf5;
-            color: #059669;
-            border: 1px solid #a7f3d0;
-            padding: 2px 8px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-          ">
-            <span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%;"></span>
-            <span>THREE.JS NATIVE CONNECTED</span>
-          </span>
+          <!-- Undo / Redo Buttons -->
+          <div style="display: flex; align-items: center; gap: 3px;">
+            <button id="btn-studio-undo" title="Hoàn tác (Ctrl+Z)" style="
+              background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer;
+            ">↶ Undo</button>
+            <button id="btn-studio-redo" title="Làm lại (Ctrl+Y)" style="
+              background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer;
+            ">↷ Redo</button>
+          </div>
         </div>
 
         <!-- Right Action Controls -->
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <!-- Nút Lưu vào CVAT (TUYỆT ĐỐI KHÔNG TỰ ĐỘNG AUTOSAVE NGẦM) -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <!-- Nút Lưu vào CVAT -->
           <button id="btn-studio-commit-save" style="
             background: ${dirtyCount > 0 ? "#ea580c" : "#059669"};
             border: 1px solid ${dirtyCount > 0 ? "#ea580c" : "#059669"};
             color: white;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            padding: 6px 16px;
-            border-radius: 6px;
+            padding: 5px 14px;
+            border-radius: 5px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
-            box-shadow: 0 2px 8px ${dirtyCount > 0 ? "rgba(234, 88, 12, 0.25)" : "rgba(5, 150, 105, 0.25)"};
+            gap: 5px;
+            box-shadow: 0 1px 4px ${dirtyCount > 0 ? "rgba(234, 88, 12, 0.2)" : "rgba(5, 150, 105, 0.2)"};
             transition: all 0.2s;
           ">
             <span style="display: flex; align-items: center;">${ICONS.save}</span>
             <span>${this.isSaving ? "Đang lưu..." : dirtyCount > 0 ? `Lưu vào CVAT (${dirtyCount} track)` : "Lưu vào CVAT"}</span>
-            <span style="font-size: 10px; opacity: 0.85; font-family: monospace;">(Ctrl+S)</span>
+            <span style="font-size: 9px; opacity: 0.85; font-family: monospace;">(Ctrl+S)</span>
           </button>
 
           <!-- Nút Đóng -->
@@ -329,10 +398,10 @@ export class TrackStudioModal {
             background: #f1f5f9;
             border: 1px solid #e2e8f0;
             color: #334155;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 5px 10px;
+            border-radius: 5px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -345,7 +414,7 @@ export class TrackStudioModal {
       </div>
 
       <!-- 2. NỘI DUNG CHÍNH (TAB 1 HOẶC TAB 2) -->
-      <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden;">
+      <div id="studio-main-content-area" style="flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden;">
         ${this.currentTab === "active_track" ? this.renderActiveTrackHtml(activeTrack) : this.renderBatchAllHtml(allTracks)}
       </div>
     `;
@@ -353,13 +422,14 @@ export class TrackStudioModal {
     this.attachHeaderListeners();
     if (this.currentTab === "active_track") {
       this.attachActiveTrackListeners(activeTrack);
+      this.mountOrthoEditor(activeTrack);
     } else {
       this.attachBatchAllListeners();
     }
   }
 
   // =========================================================================
-  // TAB 2: ACTIVE TRACK RETIME STUDIO (Duyệt toàn bộ frame của xe)
+  // TAB 2: ACTIVE TRACK ORTHOGRAPHIC STUDIO (TOP / SIDE / FRONT)
   // =========================================================================
 
   private renderActiveTrackHtml(track: TrackState | undefined): string {
@@ -371,368 +441,825 @@ export class TrackStudioModal {
       `;
     }
 
-    const sizes = track.shapes.map((s) => s.points.slice(6, 9));
-    const medL = this.median(sizes.map((s) => s[0]));
-    const medW = this.median(sizes.map((s) => s[1]));
-    const medH = this.median(sizes.map((s) => s[2]));
+    const pos = track.at(this.selectedFrame);
+    const box = pos ? pos.box : { c: [0, 0, 0], s: [4, 1.8, 1.5], r: [0, 0, 0] };
+    const yawDeg = Math.round((box.r[2] * 180) / Math.PI);
 
-    // Sắp xếp các shapes theo thứ tự frame tăng dần
     const sortedShapes = [...track.shapes].sort((a, b) => a.frame - b.frame);
+    const firstF = sortedShapes.length > 0 ? sortedShapes[0].frame : 0;
+    const lastF = sortedShapes.length > 0 ? sortedShapes[sortedShapes.length - 1].frame : 0;
 
-    const rowsHtml = sortedShapes
+    // Danh sách các thẻ frame trong filmstrip
+    const filmstripCardsHtml = sortedShapes
       .map((sh) => {
         const f = sh.frame;
+        const isSel = f === this.selectedFrame;
         const pts = sh.points;
-        const curL = pts[6] || 0;
-        const curW = pts[7] || 0;
-        const curH = pts[8] || 0;
-        const curZ = pts[2] || 0;
-        const curYawDeg = Number((((pts[5] || 0) * 180) / Math.PI).toFixed(1));
-        const isSelected = f === this.selectedFrame;
+        const l = (pts[6] || 0).toFixed(2);
+        const w = (pts[7] || 0).toFixed(2);
+        const h = (pts[8] || 0).toFixed(2);
 
         return `
-          <tr class="studio-frame-row ${isSelected ? "selected-row" : ""}" data-frame="${f}" style="
-            border-bottom: 1px solid #f1f5f9;
-            background: ${isSelected ? "#eff6ff" : sh.outside ? "#f8fafc" : "transparent"};
+          <div class="filmstrip-card ${isSel ? "active" : ""}" data-frame="${f}" style="
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: ${isSel ? "#eff6ff" : sh.outside ? "#f8fafc" : "#ffffff"};
+            border: 1.5px solid ${isSel ? "#2563eb" : sh.outside ? "#e2e8f0" : "#cbd5e1"};
+            border-radius: 6px;
+            padding: 4px 8px;
+            min-width: 68px;
             cursor: pointer;
-            transition: background 0.12s;
+            transition: all 0.12s;
+            box-shadow: ${isSel ? "0 2px 6px rgba(37, 99, 235, 0.2)" : "none"};
           ">
-            <!-- Cột 1: Frame Number -->
-            <td style="padding: 10px 14px; font-weight: bold; font-family: monospace;">
-              <span class="btn-jump-frame" data-frame="${f}" style="
-                background: ${isSelected ? "#2563eb" : "#f1f5f9"};
-                color: ${isSelected ? "white" : "#0284c7"};
-                border: 1px solid ${isSelected ? "#2563eb" : "#cbd5e1"};
-                padding: 3px 8px;
-                border-radius: 4px;
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-              ">
-                <span>f#${f}</span>
-                ${isSelected ? '<span style="font-size: 9px;">●</span>' : ""}
-              </span>
-            </td>
-
-            <!-- Cột 2: Keyframe Status -->
-            <td style="padding: 10px 14px; text-align: center;">
-              <span style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px;">KF</span>
-            </td>
-
-            <!-- Cột 3: Outside Toggle -->
-            <td style="padding: 10px 14px;">
-              <button class="btn-toggle-outside" data-frame="${f}" style="
-                border: 1px solid ${sh.outside ? "#fca5a5" : "#a7f3d0"};
+            <div style="display: flex; align-items: center; gap: 4px; width: 100%; justify-content: space-between;">
+              <span style="font-size: 11px; font-weight: bold; font-family: monospace; color: ${isSel ? "#1d4ed8" : "#0f172a"};">#${f}</span>
+              <span style="
+                font-size: 9px;
+                font-weight: bold;
+                padding: 1px 4px;
+                border-radius: 3px;
                 background: ${sh.outside ? "#fee2e2" : "#ecfdf5"};
                 color: ${sh.outside ? "#dc2626" : "#059669"};
-                font-size: 10px;
-                font-weight: 600;
-                padding: 3px 8px;
-                border-radius: 4px;
-                cursor: pointer;
-              ">${sh.outside ? "Outside (Ẩn)" : "Visible (Hiện)"}</button>
-            </td>
-
-            <!-- Cột 4: Kích Thước L / W / H (Nhập trực tiếp) -->
-            <td style="padding: 10px 8px; font-family: monospace;">
-              <div style="display: flex; align-items: center; gap: 4px;">
-                <input class="input-shape-l" data-frame="${f}" type="number" step="0.02" value="${curL.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
-                <span style="color: #94a3b8;">×</span>
-                <input class="input-shape-w" data-frame="${f}" type="number" step="0.02" value="${curW.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
-                <span style="color: #94a3b8;">×</span>
-                <input class="input-shape-h" data-frame="${f}" type="number" step="0.02" value="${curH.toFixed(2)}" title="Đổi H giữ nguyên mặt đáy" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
-                <span style="color: #64748b; font-size: 10px;">m</span>
-              </div>
-            </td>
-
-            <!-- Cột 5: Cao độ Z & Góc Yaw -->
-            <td style="padding: 10px 8px; font-family: monospace;">
-              <div style="display: flex; align-items: center; gap: 6px; font-size: 11px;">
-                <span style="color: #64748b;">Z:</span>
-                <input class="input-shape-z" data-frame="${f}" type="number" step="0.02" value="${curZ.toFixed(2)}" style="width: 54px; background: #f8fafc; border: 1px solid #cbd5e1; color: #09090b; padding: 3px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
-                <span style="color: #64748b;">Yaw:</span>
-                <span style="color: #059669; font-weight: bold;">${curYawDeg}°</span>
-              </div>
-            </td>
-
-            <!-- Cột 6: Thao tác từng frame -->
-            <td style="padding: 10px 14px; text-align: right;">
-              <button class="btn-snap-ground-single" data-frame="${f}" title="Hút đáy xe bám sát mặt đất tại frame này" style="
-                background: #f0fdf4;
-                border: 1px solid #bbf7d0;
-                color: #15803d;
-                font-size: 11px;
-                font-weight: 600;
-                padding: 4px 8px;
-                border-radius: 4px;
-                cursor: pointer;
-              ">⇩ Đất</button>
-
-              <button class="btn-apply-size-to-all" data-frame="${f}" title="Lấy kích thước L, W, H của frame này ép cho toàn bộ các frame khác" style="
-                background: #ecfdf5;
-                border: 1px solid #a7f3d0;
-                color: #059669;
-                font-size: 11px;
-                font-weight: 600;
-                padding: 4px 8px;
-                border-radius: 4px;
-                cursor: pointer;
-                margin-left: 4px;
-              ">L/W/H ➔ Toàn Track</button>
-            </td>
-          </tr>
+              ">${sh.outside ? "OUT" : "KF"}</span>
+            </div>
+            <span style="font-size: 10px; color: #64748b; font-family: monospace; margin-top: 2px;">${l}×${w}×${h}</span>
+          </div>
         `;
       })
       .join("");
 
     return `
-      <!-- Studio Toolbar (LIGHT) -->
-      <div style="
-        background: #f8fafc;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 10px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        flex-wrap: wrap;
-      ">
-        <!-- Info Active Track -->
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="width: 10px; height: 10px; border-radius: 50%; background: ${track.labelColor};"></span>
-            <span style="font-size: 14px; font-weight: bold; color: #09090b;">${track.labelName} #${track.uiId}</span>
-            <span style="font-size: 11px; color: #64748b; font-family: monospace;">(${track.firstFrame} ➔ ${track.lastFrame}, ${track.shapes.length} frames)</span>
-          </div>
+      <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #f8fafc;">
+        <!-- KHU VỰC TRÊN: 3 ORTHO VIEWS (75%) + SIDEBAR ĐIỀU KHIỂN & VI CHỈNH (25%) -->
+        <div style="flex: 1; min-height: 0; display: flex; gap: 8px; padding: 8px;">
+          <!-- Khung chứa 3 Canvas Trực Giao TOP / SIDE / FRONT -->
+          <div id="ortho-canvas-mount-point" style="flex: 1; min-width: 0; min-height: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);"></div>
 
-          <div style="font-size: 12px; color: #334155; font-family: monospace; background: #ffffff; padding: 4px 10px; border-radius: 5px; border: 1px solid #e2e8f0;">
-            Trung vị: <b style="color: #0284c7;">${medL.toFixed(2)} × ${medW.toFixed(2)} × ${medH.toFixed(2)}m</b>
+          <!-- Sidebar Điều Khiển Nhanh & Vi Chỉnh Số Liệu -->
+          <div style="
+            width: 280px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            box-sizing: border-box;
+          ">
+            <!-- Thông tin Track & Frame Hiện Tại -->
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${track.labelColor};"></span>
+                <span style="font-size: 13px; font-weight: bold; color: #09090b;">${track.labelName} #${track.uiId}</span>
+              </div>
+              <span style="font-size: 12px; font-weight: bold; font-family: monospace; color: #2563eb; background: #eff6ff; padding: 2px 6px; border-radius: 4px;">Frame #${this.selectedFrame}</span>
+            </div>
+
+            <!-- Tọa độ Tâm X, Y, Z -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px;">
+              <span style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">Tọa Độ Tâm (Center)</span>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 4px;">
+                <div>
+                  <span style="font-size: 10px; color: #64748b;">X (dọc)</span>
+                  <input id="input-center-x" type="number" step="0.01" value="${box.c[0].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
+                </div>
+                <div>
+                  <span style="font-size: 10px; color: #64748b;">Y (ngang)</span>
+                  <input id="input-center-y" type="number" step="0.01" value="${box.c[1].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
+                </div>
+                <div>
+                  <span style="font-size: 10px; color: #64748b;">Z (cao)</span>
+                  <input id="input-center-z" type="number" step="0.01" value="${box.c[2].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
+                </div>
+              </div>
+
+              <!-- Nút Stepper vi chỉnh nhanh X/Y/Z -->
+              <div style="display: flex; gap: 4px; margin-top: 6px; justify-content: space-between;">
+                <button class="btn-step-move" data-axis="x" data-val="-0.02" style="font-size: 10px; padding: 2px 4px; background: white; border: 1px solid #cbd5e1; border-radius: 3px; cursor: pointer;">-2cm X</button>
+                <button class="btn-step-move" data-axis="x" data-val="0.02" style="font-size: 10px; padding: 2px 4px; background: white; border: 1px solid #cbd5e1; border-radius: 3px; cursor: pointer;">+2cm X</button>
+                <button class="btn-step-move" data-axis="y" data-val="-0.02" style="font-size: 10px; padding: 2px 4px; background: white; border: 1px solid #cbd5e1; border-radius: 3px; cursor: pointer;">-2cm Y</button>
+                <button class="btn-step-move" data-axis="y" data-val="0.02" style="font-size: 10px; padding: 2px 4px; background: white; border: 1px solid #cbd5e1; border-radius: 3px; cursor: pointer;">+2cm Y</button>
+              </div>
+            </div>
+
+            <!-- Kích thước L, W, H & Góc Yaw -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px;">
+              <span style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">Kích Thước & Hướng</span>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 4px;">
+                <div>
+                  <span style="font-size: 10px; color: #64748b;">Dài L</span>
+                  <input id="input-dim-l" type="number" step="0.02" value="${box.s[0].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
+                </div>
+                <div>
+                  <span style="font-size: 10px; color: #64748b;">Rộng W</span>
+                  <input id="input-dim-w" type="number" step="0.02" value="${box.s[1].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
+                </div>
+                <div>
+                  <span style="font-size: 10px; color: #64748b;">Cao H</span>
+                  <input id="input-dim-h" type="number" step="0.02" value="${box.s[2].toFixed(2)}" title="Ground-Lock nở lên trên" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
+                </div>
+                <div>
+                  <span style="font-size: 10px; color: #64748b;">Yaw°</span>
+                  <input id="input-dim-yaw" type="number" step="1" value="${yawDeg}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
+                </div>
+              </div>
+
+              <!-- Checkbox Áp dụng cho Toàn Track -->
+              <div style="margin-top: 8px; display: flex; align-items: center; gap: 6px;">
+                <input id="chk-apply-all-frames" type="checkbox" ${this.applyToAllFrames ? "checked" : ""} style="cursor: pointer;" />
+                <label for="chk-apply-all-frames" style="font-size: 11px; font-weight: 600; color: #0f172a; cursor: pointer;">Áp dụng cho Toàn Track</label>
+              </div>
+            </div>
+
+            <!-- Bộ Nút Auto-Fit Nhanh (GEMINI.md Standard) -->
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <span style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">Căn Chỉnh Nhanh (Auto-Fit)</span>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+                <button id="btn-fit-top" title="Căn góc xoay Yaw ôm viền đón tia" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-size: 11px; font-weight: bold; padding: 5px; border-radius: 4px; cursor: pointer;">TOP</button>
+                <button id="btn-fit-side" title="Căn cản trước/sau trục X (giữ nguyên Z)" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-size: 11px; font-weight: bold; padding: 5px; border-radius: 4px; cursor: pointer;">SIDE</button>
+                <button id="btn-fit-front" title="Áp sát sườn đón tia laser trục Y (giữ nguyên Z)" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-size: 11px; font-weight: bold; padding: 5px; border-radius: 4px; cursor: pointer;">FRONT</button>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 2px;">
+                <button id="btn-fit-ground" title="Ghim đáy xe bám sát mặt đất (Ground-Lock)" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 11px; font-weight: 600; padding: 5px; border-radius: 4px; cursor: pointer;">⇩ Ghim Đất</button>
+                <button id="btn-fit-flip-180" title="Lật ngược đầu xe 180°" style="background: #fffbeb; border: 1px solid #fde68a; color: #b45309; font-size: 11px; font-weight: 600; padding: 5px; border-radius: 4px; cursor: pointer;">🔄 Lật 180°</button>
+              </div>
+            </div>
+
+            <!-- Nút Toggle Outside tại Frame hiện tại -->
+            <button id="btn-toggle-outside-cur" style="
+              background: ${pos?.outside ? "#fee2e2" : "#f1f5f9"};
+              border: 1px solid ${pos?.outside ? "#fca5a5" : "#cbd5e1"};
+              color: ${pos?.outside ? "#dc2626" : "#334155"};
+              font-size: 11px;
+              font-weight: 600;
+              padding: 6px;
+              border-radius: 4px;
+              cursor: pointer;
+              margin-top: auto;
+            ">${pos?.outside ? "Đang Ẩn (Outside) - Bấm để Hiện" : "Đang Hiện - Bấm để Ẩn (Phím O)"}</button>
           </div>
         </div>
 
-        <!-- Batch Action Buttons For Active Track (FLAT ICONS) -->
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <button id="btn-batch-snap-ground" style="
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #15803d;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-          ">⇩ Ghim Đất Toàn Track</button>
+        <!-- KHU VỰC DƯỚI: TIMELINE CONTROLS & DẢI PHIM FILMSTRIP TOÀN BỘ CÁC FRAME -->
+        <div style="
+          background: #ffffff;
+          border-top: 1px solid #e2e8f0;
+          padding: 8px 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        ">
+          <!-- Hàng 1: Bộ điều khiển Timeline & Mây điểm -->
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <!-- Bộ điều khiển phát & chuyển frame -->
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <button id="btn-timeline-prev5" title="Lùi 5 frames" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 4px 6px; border-radius: 4px; cursor: pointer;">◀◀ -5f</button>
+              <button id="btn-timeline-prev" title="Frame trước (phím A hoặc ◀)" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer;">◀ Prev</button>
+              <button id="btn-timeline-play" title="Phát lướt tự động (Space)" style="background: #2563eb; border: none; color: white; font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 4px; cursor: pointer;">${this.isPlaying ? "❚❚ Pause" : "▶ Play"}</button>
+              <button id="btn-timeline-next" title="Frame sau (phím D hoặc ▶)" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Next ▶</button>
+              <button id="btn-timeline-next5" title="Tiến 5 frames" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 4px 6px; border-radius: 4px; cursor: pointer;">+5f ▶▶</button>
 
-          <button id="btn-batch-flip-yaw" style="
-            background: #fffbeb;
-            border: 1px solid #fde68a;
-            color: #b45309;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-          ">
-            <span style="display: flex; align-items: center;">${ICONS.rotate}</span>
-            <span>Lật 180° Toàn Track</span>
-          </button>
+              <!-- Slider kéo nhanh frame -->
+              <div style="display: flex; align-items: center; gap: 6px; margin-left: 8px;">
+                <span style="font-size: 11px; color: #64748b; font-family: monospace;">f#${firstF}</span>
+                <input id="timeline-slider" type="range" min="${firstF}" max="${lastF}" value="${this.selectedFrame}" style="width: 180px; cursor: pointer;" />
+                <span style="font-size: 11px; color: #64748b; font-family: monospace;">f#${lastF}</span>
+              </div>
+            </div>
 
-          <button id="btn-batch-median-size" style="
-            background: #faf5ff;
-            border: 1px solid #e9d5ff;
-            color: #7e22ce;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
+            <!-- Tải Toàn Bộ Curpoint & Show All Point Cloud -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <!-- Nút Tải Toàn Bộ Curpoint -->
+              <button id="btn-scan-all-curpoints" style="
+                background: ${this.pointManager.isScanActive ? "#ea580c" : "#0284c7"};
+                border: 1px solid ${this.pointManager.isScanActive ? "#ea580c" : "#0284c7"};
+                color: white;
+                font-size: 11px;
+                font-weight: 600;
+                padding: 4px 10px;
+                border-radius: 5px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                transition: all 0.15s;
+              ">
+                <span>📥</span>
+                <span id="lbl-scan-progress">${this.pointManager.isScanActive ? "Đang quét..." : "Tải Toàn Bộ Curpoint"}</span>
+              </button>
+
+              <!-- Toggle Xem Mây Điểm: Frame Này vs Gộp Toàn Track -->
+              <div style="display: flex; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px;">
+                <button id="btn-point-mode-single" style="
+                  border: none;
+                  background: ${!this.showAllPoints ? "#ffffff" : "transparent"};
+                  color: ${!this.showAllPoints ? "#0284c7" : "#64748b"};
+                  font-weight: ${!this.showAllPoints ? "bold" : "normal"};
+                  padding: 3px 8px;
+                  font-size: 10px;
+                  border-radius: 4px;
+                  cursor: pointer;
+                ">Frame Này</button>
+
+                <button id="btn-point-mode-all" style="
+                  border: none;
+                  background: ${this.showAllPoints ? "#059669" : "transparent"};
+                  color: ${this.showAllPoints ? "white" : "#64748b"};
+                  font-weight: ${this.showAllPoints ? "bold" : "normal"};
+                  padding: 3px 8px;
+                  font-size: 10px;
+                  border-radius: 4px;
+                  cursor: pointer;
+                ">Show All Point Cloud (${this.pointManager.loadedFramesCount}f)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hàng 2: Dải phim cuộn ngang Filmstrip (Hiển thị tất cả các frame của ID đó) -->
+          <div id="filmstrip-scroll-container" style="
             display: flex;
-            align-items: center;
-            gap: 4px;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 4px 2px;
+            scroll-behavior: smooth;
           ">
-            <span style="display: flex; align-items: center;">${ICONS.filter}</span>
-            <span>Làm Mịn Kích Thước (Median)</span>
-          </button>
+            ${filmstripCardsHtml}
+          </div>
         </div>
-      </div>
-
-      <!-- Danh Sách Các Frame -->
-      <div style="flex: 1; overflow: auto; padding: 12px 20px; background: #ffffff;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
-          <thead>
-            <tr style="border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; font-size: 11px; background: #f8fafc;">
-              <th style="padding: 8px 14px;">Frame</th>
-              <th style="padding: 8px 14px; text-align: center;">Loại</th>
-              <th style="padding: 8px 14px;">Hiển Thị</th>
-              <th style="padding: 8px 8px;">Kích Thước (L × W × H)</th>
-              <th style="padding: 8px 8px;">Tọa Độ & Hướng</th>
-              <th style="padding: 8px 14px; text-align: right;">Hành Động</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
-      </div>
-              <th style="padding: 8px 14px; text-align: center;">Loại</th>
-              <th style="padding: 8px 14px;">Hiển Thị</th>
-              <th style="padding: 8px 8px;">Kích Thước (L × W × H)</th>
-              <th style="padding: 8px 8px;">Tọa Độ & Hướng</th>
-              <th style="padding: 8px 14px; text-align: right;">Hành Động</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
       </div>
     `;
+  }
+
+  /**
+   * Lấy dải 5 frames liên tiếp xung quanh frame đang chọn (Sliding Window)
+   */
+  private getVisible5Frames(track: TrackState): number[] {
+    const sortedShapes = [...track.shapes].sort((a, b) => a.frame - b.frame);
+    const allFrames = sortedShapes.map((s) => s.frame);
+    if (allFrames.length === 0) return [this.selectedFrame];
+    if (allFrames.length <= 5) return allFrames;
+
+    const curIdx = allFrames.indexOf(this.selectedFrame);
+    const idx = curIdx >= 0 ? curIdx : 0;
+
+    let startIdx = idx - 2;
+    if (startIdx < 0) startIdx = 0;
+    if (startIdx + 5 > allFrames.length) startIdx = Math.max(0, allFrames.length - 5);
+
+    return allFrames.slice(startIdx, startIdx + 5);
+  }
+
+  /**
+   * Khởi tạo và gắn component 5 Frames x 3 Ortho Viewports vào DOM
+   */
+  private mountOrthoEditor(track: TrackState | undefined): void {
+    const mountEl = this.overlay?.querySelector<HTMLElement>("#ortho-canvas-mount-point");
+    if (!mountEl || !track) return;
+
+    if (this.orthoEditor) {
+      this.orthoEditor.unmount();
+      this.orthoEditor = null;
+    }
+
+    this.orthoEditor = new OrthoEditorPanel(
+      (newBox: Box3D, isLiveSync: boolean) => {
+        this.handleBoxChangedFromOrtho(track, newBox, isLiveSync);
+      },
+      (frame: number) => {
+        this.selectFrame(frame);
+      }
+    );
+
+    this.orthoEditor.mount(mountEl);
+    this.updateOrthoEditorState(track);
+    this.preloadPointsForVisibleFrames(track);
+  }
+
+  /**
+   * Cập nhật Box và Point Cloud cho 5 Frames của OrthoEditor
+   */
+  private updateOrthoEditorState(track: TrackState | undefined): void {
+    if (!this.orthoEditor || !track) return;
+
+    const visibleFrames = this.getVisible5Frames(track);
+    const framesData: FrameColumnData[] = visibleFrames.map((f) => {
+      const pos = track.at(f);
+      const box = pos ? pos.box : { c: [0, 0, 0], s: [4, 1.8, 1.5], r: [0, 0, 0] };
+      const keyframe = pos ? pos.keyframe : false;
+      const outside = pos ? pos.outside : false;
+
+      let points: Float32Array | null = null;
+      if (this.showAllPoints) {
+        points = this.pointManager.getAccumulatedPoints(f, box);
+      } else {
+        points = this.pointManager.getFramePoints(f);
+      }
+
+      return {
+        frame: f,
+        box,
+        keyframe,
+        outside,
+        labelColor: track.labelColor,
+        points,
+      };
+    });
+
+    this.orthoEditor.setFrames(framesData, this.selectedFrame);
+  }
+
+  /**
+   * Tự động tải trước mây điểm cho toàn bộ 5 frames đang hiển thị
+   */
+  private async preloadPointsForVisibleFrames(track: TrackState): Promise<void> {
+    const visibleFrames = this.getVisible5Frames(track);
+    let hasNewPoints = false;
+
+    for (const f of visibleFrames) {
+      if (!this.pointManager.hasFrame(f)) {
+        const pos = track.at(f);
+        if (pos && !pos.outside) {
+          try {
+            const diag = Math.hypot(pos.box.s[0], pos.box.s[1]);
+            const radius = Math.max(3.5, diag / 2 + 1.2);
+            const pts = await CVATBridge.getRoiLidarPoints(pos.box.c, radius, 15000);
+            if (pts && pts.length > 0) {
+              this.pointManager.setFramePoints(f, pts, pos.box);
+              hasNewPoints = true;
+            }
+          } catch (e) {
+            console.warn(`[CVAT 3D Studio] Không thể tải điểm frame #${f}:`, e);
+          }
+        }
+      }
+    }
+
+    if (hasNewPoints) {
+      this.updateOrthoEditorState(track);
+    }
+  }
+
+  /**
+   * Tự động tải mây điểm cho frame hiện tại nếu chưa có trong cache
+   */
+  private async loadPointsForCurrentFrame(): Promise<void> {
+    if (!this.store) return;
+    const track = this.store.getTrack(this.activeTrackId);
+    if (!track) return;
+    await this.preloadPointsForVisibleFrames(track);
+  }
+
+  /**
+   * Xử lý khi người dùng tương tác kéo chuột chỉnh box trên Ortho Canvas (In-Memory Only)
+   */
+  private handleBoxChangedFromOrtho(track: TrackState, newBox: Box3D, isLiveSync: boolean): void {
+    const f = this.selectedFrame;
+
+    if (isLiveSync) {
+      // 1. Kéo chuột: Chỉ cập nhật in-memory box để giao diện mượt mà 60fps (TUYỆT ĐỐI KHÔNG GỌI CVATBridge.updateLiveBox)
+      track.setBox(f, newBox);
+      this.updateSidebarInputs(newBox);
+    } else {
+      // 2. Nhả chuột chốt thay đổi: Lưu snapshot vào Undo stack in-memory
+      track.snapshot();
+
+      if (this.applyToAllFrames) {
+        this.applySizeToWholeTrack(track.uiId, [newBox.s[0], newBox.s[1], newBox.s[2]]);
+      } else {
+        track.setBox(f, newBox);
+      }
+      track.dirty = true;
+
+      this.updateHeaderDirtyState();
+      this.updateOrthoEditorState(track);
+      // TUYỆT ĐỐI KHÔNG GỌI CVATBridge.updateLiveBox - CHỈ ĐỒNG BỘ KHI BẤM NÚT SAVE!
+    }
+  }
+
+  private updateSidebarInputs(box: Box3D): void {
+    const inpX = this.overlay?.querySelector<HTMLInputElement>("#input-center-x");
+    const inpY = this.overlay?.querySelector<HTMLInputElement>("#input-center-y");
+    const inpZ = this.overlay?.querySelector<HTMLInputElement>("#input-center-z");
+    const inpL = this.overlay?.querySelector<HTMLInputElement>("#input-dim-l");
+    const inpW = this.overlay?.querySelector<HTMLInputElement>("#input-dim-w");
+    const inpH = this.overlay?.querySelector<HTMLInputElement>("#input-dim-h");
+    const inpYaw = this.overlay?.querySelector<HTMLInputElement>("#input-dim-yaw");
+
+    if (inpX) inpX.value = box.c[0].toFixed(2);
+    if (inpY) inpY.value = box.c[1].toFixed(2);
+    if (inpZ) inpZ.value = box.c[2].toFixed(2);
+    if (inpL) inpL.value = box.s[0].toFixed(2);
+    if (inpW) inpW.value = box.s[1].toFixed(2);
+    if (inpH) inpH.value = box.s[2].toFixed(2);
+    if (inpYaw) inpYaw.value = String(Math.round((box.r[2] * 180) / Math.PI));
+  }
+
+  private updateHeaderDirtyState(): void {
+    if (!this.store) return;
+    const dirtyCount = this.store.getDirtyTracks().length;
+    const btn = this.overlay?.querySelector<HTMLButtonElement>("#btn-studio-commit-save");
+    if (btn) {
+      btn.style.background = dirtyCount > 0 ? "#ea580c" : "#059669";
+      btn.style.borderColor = dirtyCount > 0 ? "#ea580c" : "#059669";
+      const span = btn.querySelector("span:nth-child(2)");
+      if (span) {
+        span.textContent = dirtyCount > 0 ? `Lưu vào CVAT (${dirtyCount} track)` : "Lưu vào CVAT";
+      }
+    }
   }
 
   private attachActiveTrackListeners(track: TrackState | undefined): void {
     if (!this.overlay || !track || !this.store || !this.currentCtx?.jobId) return;
     const jobId = this.currentCtx.jobId;
 
-    // 1. Click vào bất kỳ hàng nào -> CVAT native nhảy tới frame đó
-    this.overlay.querySelectorAll<HTMLTableRowElement>(".studio-frame-row").forEach((row) => {
-      row.addEventListener("click", (e) => {
-        const target = e.target as HTMLElement;
-        if (target.tagName === "INPUT" || target.tagName === "BUTTON") return;
-        const f = parseInt(row.dataset.frame || "0", 10);
-        this.selectedFrame = f;
-        this.jumpToCVATFrame(f);
-        this.render();
+    // 1. Click vào bất kỳ thẻ card nào trên dải phim Filmstrip
+    this.overlay.querySelectorAll<HTMLElement>(".filmstrip-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        const f = parseInt(card.dataset.frame || "0", 10);
+        this.selectFrame(f);
       });
     });
 
-    // Nút jump frame
-    this.overlay.querySelectorAll<HTMLElement>(".btn-jump-frame").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const f = parseInt(btn.dataset.frame || "0", 10);
-        this.selectedFrame = f;
-        this.jumpToCVATFrame(f);
-        this.render();
-      });
+    // 2. Kéo Slider Timeline
+    const slider = this.overlay.querySelector<HTMLInputElement>("#timeline-slider");
+    slider?.addEventListener("input", (e) => {
+      const f = parseInt((e.target as HTMLInputElement).value, 10);
+      this.selectFrame(f, false);
     });
 
-    // 2. Toggle Outside (Hiện / Ẩn)
-    this.overlay.querySelectorAll<HTMLButtonElement>(".btn-toggle-outside").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const f = parseInt(btn.dataset.frame || "0", 10);
-        this.toggleOutsideFrame(f);
-      });
+    // 3. Nút Prev / Next / Play
+    this.overlay.querySelector("#btn-timeline-prev5")?.addEventListener("click", () => {
+      this.stepFrame(-5);
     });
 
-    // 3. Sửa kích thước L, W, H trên từng frame (Đổi H giữ nguyên đáy)
-    const updateShapeSize = (f: number, newL?: number, newW?: number, newH?: number) => {
-      const sh = track.shapes.find((s) => s.frame === f);
-      if (!sh || !Array.isArray(sh.points)) return;
-      this.store?.snapshot([track.uiId]);
+    this.overlay.querySelector("#btn-timeline-prev")?.addEventListener("click", () => {
+      this.stepFrame(-1);
+    });
 
-      const oldH = sh.points[8];
-      const curL = newL !== undefined ? newL : sh.points[6];
-      const curW = newW !== undefined ? newW : sh.points[7];
-      const curH = newH !== undefined ? newH : sh.points[8];
+    this.overlay.querySelector("#btn-timeline-next")?.addEventListener("click", () => {
+      this.stepFrame(1);
+    });
 
-      if (newH !== undefined && newH !== oldH) {
-        // Ground-Lock 3D: Giữ nguyên đáy xe
-        const curBox = track.at(f)?.box;
-        if (curBox) {
-          const updatedBox = resizeKeepBottom(curBox, [curL, curW, curH]);
-          sh.points[0] = updatedBox.c[0];
-          sh.points[1] = updatedBox.c[1];
-          sh.points[2] = updatedBox.c[2];
+    this.overlay.querySelector("#btn-timeline-next5")?.addEventListener("click", () => {
+      this.stepFrame(5);
+    });
+
+    this.overlay.querySelector("#btn-timeline-play")?.addEventListener("click", () => {
+      this.togglePlayback();
+    });
+
+    // 4. Nút Tải Toàn Bộ Curpoint
+    const btnScan = this.overlay.querySelector<HTMLButtonElement>("#btn-scan-all-curpoints");
+    btnScan?.addEventListener("click", () => {
+      if (this.pointManager.isScanActive) {
+        this.pointManager.abortScan();
+        return;
+      }
+
+      const lbl = this.overlay?.querySelector("#lbl-scan-progress");
+      this.pointManager.scanTrackCurpoints(
+        track,
+        (cur, total, f) => {
+          if (lbl) lbl.textContent = `Đang tải: f#${f} (${cur}/${total})... [Hủy]`;
+          this.selectedFrame = f;
+          this.updateOrthoEditorState(track);
+        },
+        (success, count) => {
+          if (lbl) lbl.textContent = success ? `Đã tải ${count} frames!` : "Tải Toàn Bộ Curpoint";
+          if (success) {
+            this.showAllPoints = true;
+            this.updatePointModeButtons();
+            this.updateOrthoEditorState(track);
+          }
         }
-      }
+      );
+    });
 
-      sh.points[6] = curL;
-      sh.points[7] = curW;
-      sh.points[8] = curH;
-      track.dirty = true;
+    // 5. Toggle Chế Độ Điểm: Frame Này vs Show All Point Cloud
+    this.overlay.querySelector("#btn-point-mode-single")?.addEventListener("click", () => {
+      this.showAllPoints = false;
+      this.updatePointModeButtons();
+      this.updateOrthoEditorState(track);
+    });
 
-      // Realtime Three.js nếu đang xem frame này
-      if (f === CVATBridge.getCurrentFrame()) {
-        CVATBridge.updateLiveBox(jobId, f, track.uiId, track.serverId, sh.points);
+    this.overlay.querySelector("#btn-point-mode-all")?.addEventListener("click", () => {
+      this.showAllPoints = true;
+      this.updatePointModeButtons();
+      this.updateOrthoEditorState(track);
+    });
+
+    // 6. Checkbox Toàn Track
+    const chkAll = this.overlay.querySelector<HTMLInputElement>("#chk-apply-all-frames");
+    chkAll?.addEventListener("change", (e) => {
+      this.applyToAllFrames = (e.target as HTMLInputElement).checked;
+    });
+
+    // 7. Nhập trực tiếp các thông số từ Sidebar
+    const handleInputBoxChange = () => {
+      const inpX = parseFloat(this.overlay?.querySelector<HTMLInputElement>("#input-center-x")?.value || "0");
+      const inpY = parseFloat(this.overlay?.querySelector<HTMLInputElement>("#input-center-y")?.value || "0");
+      const inpZ = parseFloat(this.overlay?.querySelector<HTMLInputElement>("#input-center-z")?.value || "0");
+      const inpL = parseFloat(this.overlay?.querySelector<HTMLInputElement>("#input-dim-l")?.value || "0");
+      const inpW = parseFloat(this.overlay?.querySelector<HTMLInputElement>("#input-dim-w")?.value || "0");
+      const inpH = parseFloat(this.overlay?.querySelector<HTMLInputElement>("#input-dim-h")?.value || "0");
+      const inpYaw = parseFloat(this.overlay?.querySelector<HTMLInputElement>("#input-dim-yaw")?.value || "0");
+
+      if (inpL > 0 && inpW > 0 && inpH > 0) {
+        const curBox = track.at(this.selectedFrame)?.box;
+        const newBox: Box3D = {
+          c: [inpX, inpY, inpZ],
+          s: [inpL, inpW, inpH],
+          r: curBox ? [curBox.r[0], curBox.r[1], (inpYaw * Math.PI) / 180] : [0, 0, (inpYaw * Math.PI) / 180],
+        };
+        this.handleBoxChangedFromOrtho(track, newBox, false);
+        this.updateOrthoEditorState(track);
       }
-      this.render();
     };
 
-    this.overlay.querySelectorAll<HTMLInputElement>(".input-shape-l").forEach((inp) => {
-      inp.addEventListener("change", () => {
-        const f = parseInt(inp.dataset.frame || "0", 10);
-        const val = parseFloat(inp.value);
-        if (!isNaN(val) && val > 0) updateShapeSize(f, val, undefined, undefined);
-      });
+    [
+      "#input-center-x",
+      "#input-center-y",
+      "#input-center-z",
+      "#input-dim-l",
+      "#input-dim-w",
+      "#input-dim-h",
+      "#input-dim-yaw",
+    ].forEach((id) => {
+      this.overlay?.querySelector(id)?.addEventListener("change", handleInputBoxChange);
     });
 
-    this.overlay.querySelectorAll<HTMLInputElement>(".input-shape-w").forEach((inp) => {
-      inp.addEventListener("change", () => {
-        const f = parseInt(inp.dataset.frame || "0", 10);
-        const val = parseFloat(inp.value);
-        if (!isNaN(val) && val > 0) updateShapeSize(f, undefined, val, undefined);
-      });
-    });
-
-    this.overlay.querySelectorAll<HTMLInputElement>(".input-shape-h").forEach((inp) => {
-      inp.addEventListener("change", () => {
-        const f = parseInt(inp.dataset.frame || "0", 10);
-        const val = parseFloat(inp.value);
-        if (!isNaN(val) && val > 0) updateShapeSize(f, undefined, val, undefined);
-      });
-    });
-
-    // 4. Nút L/W/H -> Toàn Track
-    this.overlay.querySelectorAll<HTMLButtonElement>(".btn-apply-size-to-all").forEach((btn) => {
+    // 8. Các nút vi chỉnh nhanh Stepper Move
+    this.overlay.querySelectorAll<HTMLButtonElement>(".btn-step-move").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const f = parseInt(btn.dataset.frame || "0", 10);
-        const sh = track.shapes.find((s) => s.frame === f);
-        if (!sh || !Array.isArray(sh.points)) return;
-        const size: [number, number, number] = [sh.points[6], sh.points[7], sh.points[8]];
-        this.applySizeToWholeTrack(track.uiId, size);
+        const axis = btn.dataset.axis;
+        const val = parseFloat(btn.dataset.val || "0");
+        const curPos = track.at(this.selectedFrame);
+        if (!curPos) return;
+
+        const newBox = cloneBox(curPos.box);
+        if (axis === "x") newBox.c[0] += val;
+        else if (axis === "y") newBox.c[1] += val;
+        else if (axis === "z") newBox.c[2] += val;
+
+        this.handleBoxChangedFromOrtho(track, newBox, false);
+        this.updateOrthoEditorState(track);
+        this.updateSidebarInputs(newBox);
       });
     });
 
-    // 5. Nút Ghim Đất frame này
-    this.overlay.querySelectorAll<HTMLButtonElement>(".btn-snap-ground-single").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        await CVATBridge.snapTrackToGround(jobId, track.uiId, track.serverId || track.uiId, "road");
-        await this.loadInitialData();
-      });
+    // 9. Bộ nút Auto-Fit nhanh (Thực thi In-Memory - Tuyệt đối không auto-sync ngầm vào CVAT)
+    this.overlay.querySelector("#btn-fit-top")?.addEventListener("click", () => {
+      this.executeInMemoryFit("top");
     });
 
-    // 6. Thanh công cụ: Ghim đất toàn track
-    this.overlay.querySelector("#btn-batch-snap-ground")?.addEventListener("click", async () => {
-      for (const sh of track.shapes) {
-        if (!sh.outside) {
-          await CVATBridge.snapTrackToGround(jobId, track.uiId, track.serverId || track.uiId, "road");
-        }
-      }
-      await this.loadInitialData();
+    this.overlay.querySelector("#btn-fit-side")?.addEventListener("click", () => {
+      this.executeInMemoryFit("side");
     });
 
-    // 7. Thanh công cụ: Lật 180° toàn track
-    this.overlay.querySelector("#btn-batch-flip-yaw")?.addEventListener("click", async () => {
-      await CVATBridge.flipTrackYaw(jobId, track.uiId, track.serverId || track.uiId, false);
-      await this.loadInitialData();
+    this.overlay.querySelector("#btn-fit-front")?.addEventListener("click", () => {
+      this.executeInMemoryFit("front");
     });
 
-    // 8. Thanh công cụ: Median làm mịn kích thước
-    this.overlay.querySelector("#btn-batch-median-size")?.addEventListener("click", () => {
-      const sizes = track.shapes.map((s) => s.points.slice(6, 9));
-      const medSize: [number, number, number] = [
-        this.median(sizes.map((s) => s[0])),
-        this.median(sizes.map((s) => s[1])),
-        this.median(sizes.map((s) => s[2])),
-      ];
-      this.applySizeToWholeTrack(track.uiId, medSize);
+    this.overlay.querySelector("#btn-fit-ground")?.addEventListener("click", () => {
+      this.executeInMemoryGroundSnap();
+    });
+
+    this.overlay.querySelector("#btn-fit-flip-180")?.addEventListener("click", () => {
+      this.executeInMemoryFlip180();
+    });
+
+    // 10. Nút Toggle Outside tại frame hiện tại
+    this.overlay.querySelector("#btn-toggle-outside-cur")?.addEventListener("click", () => {
+      this.toggleOutsideFrame(this.selectedFrame);
     });
   }
 
+  /**
+   * Chạy thuật toán Auto-Fit (TOP, SIDE, FRONT) trực tiếp In-Memory (Không ghi đè sang CVAT)
+   */
+  private executeInMemoryFit(step: "top" | "side" | "front"): void {
+    if (!this.store) return;
+    const track = this.store.getTrack(this.activeTrackId);
+    if (!track) return;
+
+    const curPos = track.at(this.selectedFrame);
+    if (!curPos) return;
+
+    const b = curPos.box;
+    const ptsArr = this.showAllPoints
+      ? this.pointManager.getAccumulatedPoints(this.selectedFrame, b)
+      : this.pointManager.getFramePoints(this.selectedFrame);
+    const pts = ptsArr ? float32ToVec3Array(ptsArr) : [];
+
+    if (pts.length > 0) {
+      track.snapshot();
+      const fitRes = fitBoxToEgoRayAndGround(
+        pts,
+        b.c[0],
+        b.c[1],
+        b.c[2],
+        b.r[2],
+        b.s[0],
+        b.s[1],
+        b.s[2],
+        { x: 0, y: 0, z: 0 },
+        { fitStep: step, preserveDimensions: true }
+      );
+
+      const newBox: Box3D = {
+        c: [fitRes.newCenterX, fitRes.newCenterY, fitRes.newCenterZ],
+        s: [fitRes.newL, fitRes.newW, fitRes.newH],
+        r: [b.r[0], b.r[1], fitRes.newYaw],
+      };
+
+      if (this.applyToAllFrames) {
+        this.applySizeToWholeTrack(track.uiId, [newBox.s[0], newBox.s[1], newBox.s[2]]);
+      } else {
+        track.setBox(this.selectedFrame, newBox);
+      }
+      track.dirty = true;
+      this.updateSidebarInputs(newBox);
+      this.updateOrthoEditorState(track);
+      this.updateHeaderDirtyState();
+    }
+  }
+
+  /**
+   * Ghim đáy xe bám sát mặt đất In-Memory theo Footprint Ground Snap (Fallback Ego Z 0° nếu ít điểm)
+   */
+  private executeInMemoryGroundSnap(): void {
+    if (!this.store) return;
+    const track = this.store.getTrack(this.activeTrackId);
+    if (!track) return;
+
+    const curPos = track.at(this.selectedFrame);
+    if (!curPos) return;
+
+    const b = curPos.box;
+    const ptsArr = this.pointManager.getFramePoints(this.selectedFrame);
+    const pts = ptsArr ? float32ToVec3Array(ptsArr) : [];
+
+    track.snapshot();
+    const groundRes = computeGroundSlopesAndZ(
+      pts,
+      b.c[0],
+      b.c[1],
+      b.c[2],
+      b.r[2],
+      b.s[0] / 2,
+      b.s[1] / 2
+    );
+
+    const baseZ = groundRes.groundZ !== null ? groundRes.groundZ : -1.75;
+    const newBox = cloneBox(b);
+    newBox.r[0] = groundRes.rollRad;
+    newBox.r[1] = groundRes.pitchRad;
+    newBox.c[2] = Number(
+      (baseZ + (b.s[2] / 2) * Math.cos(groundRes.pitchRad) * Math.cos(groundRes.rollRad)).toFixed(3)
+    );
+
+    track.setBox(this.selectedFrame, newBox);
+    track.dirty = true;
+    this.updateSidebarInputs(newBox);
+    this.updateOrthoEditorState(track);
+    this.updateHeaderDirtyState();
+  }
+
+  /**
+   * Lật ngược đầu xe 180° In-Memory quanh trục Z
+   */
+  private executeInMemoryFlip180(): void {
+    if (!this.store) return;
+    const track = this.store.getTrack(this.activeTrackId);
+    if (!track) return;
+
+    const curPos = track.at(this.selectedFrame);
+    if (!curPos) return;
+
+    track.snapshot();
+    const rotated = rotateLocal(curPos.box, 0, 0, Math.PI);
+    track.setBox(this.selectedFrame, rotated);
+    track.dirty = true;
+    this.updateSidebarInputs(rotated);
+    this.updateOrthoEditorState(track);
+    this.updateHeaderDirtyState();
+  }
+
+  private updatePointModeButtons(): void {
+    const btnSingle = this.overlay?.querySelector<HTMLButtonElement>("#btn-point-mode-single");
+    const btnAll = this.overlay?.querySelector<HTMLButtonElement>("#btn-point-mode-all");
+    if (btnSingle && btnAll) {
+      btnSingle.style.background = !this.showAllPoints ? "#ffffff" : "transparent";
+      btnSingle.style.color = !this.showAllPoints ? "#0284c7" : "#64748b";
+      btnSingle.style.fontWeight = !this.showAllPoints ? "bold" : "normal";
+
+      btnAll.style.background = this.showAllPoints ? "#059669" : "transparent";
+      btnAll.style.color = this.showAllPoints ? "white" : "#64748b";
+      btnAll.style.fontWeight = this.showAllPoints ? "bold" : "normal";
+      btnAll.textContent = `Show All Point Cloud (${this.pointManager.loadedFramesCount}f)`;
+    }
+  }
+
+  private async selectFrame(f: number, updateSlider: boolean = true): Promise<void> {
+    if (this.selectedFrame === f) return;
+    this.selectedFrame = f;
+    this.jumpToCVATFrame(f);
+
+    if (updateSlider) {
+      const slider = this.overlay?.querySelector<HTMLInputElement>("#timeline-slider");
+      if (slider) slider.value = String(f);
+    }
+
+    // Highlight thẻ card trong Filmstrip
+    this.overlay?.querySelectorAll(".filmstrip-card").forEach((c) => {
+      const cardF = parseInt((c as HTMLElement).dataset.frame || "-1", 10);
+      if (cardF === f) {
+        c.classList.add("active");
+        (c as HTMLElement).style.borderColor = "#2563eb";
+        (c as HTMLElement).style.background = "#eff6ff";
+        c.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      } else {
+        c.classList.remove("active");
+        (c as HTMLElement).style.borderColor = "#cbd5e1";
+        (c as HTMLElement).style.background = "#ffffff";
+      }
+    });
+
+    if (!this.store) return;
+    const track = this.store.getTrack(this.activeTrackId);
+    if (!track) return;
+
+    const pos = track.at(f);
+    if (pos) {
+      this.updateSidebarInputs(pos.box);
+    }
+
+    this.updateOrthoEditorState(track);
+    await this.preloadPointsForVisibleFrames(track);
+  }
+
+  private stepFrame(delta: number): void {
+    if (!this.store) return;
+    const track = this.store.getTrack(this.activeTrackId);
+    if (!track || track.shapes.length === 0) return;
+
+    const frames = track.shapes.map((s) => s.frame).sort((a, b) => a - b);
+    const curIdx = frames.indexOf(this.selectedFrame);
+    if (curIdx >= 0) {
+      const nextIdx = Math.max(0, Math.min(frames.length - 1, curIdx + delta));
+      this.selectFrame(frames[nextIdx]);
+    } else {
+      this.selectFrame(frames[0]);
+    }
+  }
+
+  private togglePlayback(): void {
+    if (this.isPlaying) {
+      this.stopPlayback();
+    } else {
+      this.startPlayback();
+    }
+  }
+
+  private startPlayback(): void {
+    this.isPlaying = true;
+    const btn = this.overlay?.querySelector("#btn-timeline-play");
+    if (btn) btn.textContent = "❚❚ Pause";
+
+    this.playInterval = setInterval(() => {
+      if (!this.store) return;
+      const track = this.store.getTrack(this.activeTrackId);
+      if (!track || track.shapes.length === 0) return;
+
+      const frames = track.shapes.map((s) => s.frame).sort((a, b) => a - b);
+      const curIdx = frames.indexOf(this.selectedFrame);
+      const nextIdx = curIdx + 1 >= frames.length ? 0 : curIdx + 1;
+      this.selectFrame(frames[nextIdx]);
+    }, 250);
+  }
+
+  private stopPlayback(): void {
+    this.isPlaying = false;
+    if (this.playInterval) {
+      clearInterval(this.playInterval);
+      this.playInterval = null;
+    }
+    const btn = this.overlay?.querySelector("#btn-timeline-play");
+    if (btn) btn.textContent = "▶ Play";
+  }
+
+  private async refreshCurrentFrameAfterFit(): Promise<void> {
+    if (!this.currentCtx?.jobId) return;
+    await this.loadInitialData();
+  }
+
   // =========================================================================
-  // TAB 1: BATCH SIZE MANAGER (Quản lý kích thước toàn Job)
+  // TAB 1: BATCH SIZE MANAGER
   // =========================================================================
 
   private renderBatchAllHtml(allTracks: TrackState[]): string {
@@ -743,42 +1270,19 @@ export class TrackStudioModal {
         const medW = this.median(sizes.map((s) => s[1]));
         const medH = this.median(sizes.map((s) => s[2]));
 
-        const minL = Math.min(...sizes.map((s) => s[0]));
-        const maxL = Math.max(...sizes.map((s) => s[0]));
-        const minW = Math.min(...sizes.map((s) => s[1]));
-        const maxW = Math.max(...sizes.map((s) => s[1]));
-        const minH = Math.min(...sizes.map((s) => s[2]));
-        const maxH = Math.max(...sizes.map((s) => s[2]));
-        const varies = maxL - minL > 0.01 || maxW - minW > 0.01 || maxH - minH > 0.01;
-
         return `
-          <tr class="batch-track-row" data-track-id="${t.uiId}" style="border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.15s; background: ${t.uiId === this.activeTrackId ? "#eff6ff" : t.dirty ? "#ecfdf5" : "transparent"};">
-            <td style="padding: 10px 14px; font-weight: bold; color: #0284c7; font-family: monospace;">#${t.uiId}</td>
-            <td style="padding: 10px 14px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${t.labelColor}; margin-right: 6px;"></span>
-              <span style="font-weight: 600; color: #09090b;">${t.labelName}</span>
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 10px 14px; font-weight: bold;">
+              <span style="color: ${t.labelColor};">#${t.uiId}</span> · ${t.labelName}
             </td>
-            <td style="padding: 10px 14px; font-family: monospace; color: #64748b;">f${t.firstFrame} ➔ f${t.lastFrame}</td>
-            <td style="padding: 10px 14px; font-family: monospace; text-align: center; color: #334155;">${t.shapes.length}</td>
-            <td style="padding: 10px 14px; font-family: monospace; color: #334155;">
-              ${medL.toFixed(2)} / ${medW.toFixed(2)} / ${medH.toFixed(2)}m
-              ${varies ? '<span style="margin-left: 6px; font-size: 10px; background: #ffedd5; color: #ea580c; border: 1px solid #fed7aa; padding: 1px 4px; border-radius: 3px; font-weight: 600;">không đều</span>' : ""}
-            </td>
-            <td style="padding: 10px 8px;">
-              <input class="batch-inp-l" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medL.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
-            </td>
-            <td style="padding: 10px 8px;">
-              <input class="batch-inp-w" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medW.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
-            </td>
-            <td style="padding: 10px 8px;">
-              <input class="batch-inp-h" data-track-id="${t.uiId}" type="number" step="0.02" placeholder="${medH.toFixed(2)}" style="width: 58px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0284c7; padding: 4px; border-radius: 4px; font-size: 11px; text-align: center; font-weight: 600;" />
-            </td>
-            <td style="padding: 10px 14px;">
-              <button class="btn-batch-apply" data-track-id="${t.uiId}" style="background: #059669; border: none; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Áp dụng</button>
-              <button class="btn-batch-snap" data-track-id="${t.uiId}" style="margin-left: 4px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">⇩ Đất</button>
+            <td style="padding: 10px 14px; font-family: monospace;">${t.firstFrame} ➔ ${t.lastFrame} (${t.shapes.length}f)</td>
+            <td style="padding: 10px 14px; font-family: monospace; font-weight: bold; color: #0284c7;">
+              ${medL.toFixed(2)} × ${medW.toFixed(2)} × ${medH.toFixed(2)}m
             </td>
             <td style="padding: 10px 14px; text-align: right;">
-              <button class="btn-open-studio-track" data-track-id="${t.uiId}" style="background: #2563eb; border: 1px solid #2563eb; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Duyệt Frame ➔</button>
+              <button class="btn-jump-track-studio" data-tid="${t.uiId}" style="
+                background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 4px; cursor: pointer;
+              ">Mở Studio ➔</button>
             </td>
           </tr>
         `;
@@ -786,47 +1290,15 @@ export class TrackStudioModal {
       .join("");
 
     return `
-      <!-- Toolbar Tab 1 (LIGHT) -->
-      <div style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between;">
-        <span style="font-size: 12px; color: #475569;">
-          Áp dụng kích thước mới từ <b>Frame 0 ➔ Frame End</b> với <b>Ground-Lock 3D</b> (Đáy xe cố định tuyệt đối trên mặt đường).
-        </span>
-        <span style="font-size: 11px; color: #64748b; font-family: monospace;">
-          Dữ liệu in-memory, chỉ lưu khi bấm nút "Lưu vào CVAT" (Ctrl+S)
-        </span>
-      </div>
-
-      <!-- Bảng Danh Sách Xe (LIGHT) -->
-      <div style="flex: 1; overflow: auto; padding: 12px 20px; background: #ffffff;">
+      <div style="flex: 1; overflow: auto; padding: 16px 20px; background: #ffffff;">
+        <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #09090b;">Danh Sách Kích Thước Tất Cả Track Trong Job</h3>
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
           <thead>
-            <tr style="border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600; font-size: 11px; background: #f8fafc;">
-              <th style="padding: 8px 14px;">ID</th>
-              <th style="padding: 8px 14px;">Label</th>
-              <th style="padding: 8px 14px;">Dải Frame</th>
-              <th style="padding: 8px 14px; text-align: center;">Keyframes</th>
-              <th style="padding: 8px 14px;">L / W / H (Trung vị)</th>
-              <th style="padding: 8px 8px;">L mới</th>
-              <th style="padding: 8px 8px;">W mới</th>
-              <th style="padding: 8px 8px;">H mới</th>
-              <th style="padding: 8px 14px;">Thao Tác</th>
-              <th style="padding: 8px 14px; text-align: right;">Chi Tiết</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
-      </div>
-              <th style="padding: 8px 14px;">Label</th>
-              <th style="padding: 8px 14px;">Dải Frame</th>
-              <th style="padding: 8px 14px; text-align: center;">Keyframes</th>
-              <th style="padding: 8px 14px;">L / W / H (Trung vị)</th>
-              <th style="padding: 8px 8px;">L mới</th>
-              <th style="padding: 8px 8px;">W mới</th>
-              <th style="padding: 8px 8px;">H mới</th>
-              <th style="padding: 8px 14px;">Thao Tác</th>
-              <th style="padding: 8px 14px; text-align: right;">Chi Tiết</th>
+            <tr style="border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 11px; background: #f8fafc;">
+              <th style="padding: 8px 14px;">Track ID & Nhãn</th>
+              <th style="padding: 8px 14px;">Vòng Đời Frames</th>
+              <th style="padding: 8px 14px;">Kích Thước Trung Vị (L × W × H)</th>
+              <th style="padding: 8px 14px; text-align: right;">Hành Động</th>
             </tr>
           </thead>
           <tbody>
@@ -838,113 +1310,22 @@ export class TrackStudioModal {
   }
 
   private attachBatchAllListeners(): void {
-    if (!this.overlay || !this.store || !this.currentCtx?.jobId) return;
-    const jobId = this.currentCtx.jobId;
-
-    // Nút Áp dụng kích thước cho 1 xe trong Tab 1
-    this.overlay.querySelectorAll<HTMLButtonElement>(".btn-batch-apply").forEach((btn) => {
+    if (!this.overlay) return;
+    this.overlay.querySelectorAll<HTMLButtonElement>(".btn-jump-track-studio").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const trackId = parseInt(btn.dataset.trackId || "0", 10);
-        const row = btn.closest("tr");
-        if (!row) return;
-
-        const inpL = row.querySelector<HTMLInputElement>(".batch-inp-l");
-        const inpW = row.querySelector<HTMLInputElement>(".batch-inp-w");
-        const inpH = row.querySelector<HTMLInputElement>(".batch-inp-h");
-
-        const track = this.store?.getTrack(trackId);
-        if (!track) return;
-
-        const sizes = track.shapes.map((s) => s.points.slice(6, 9));
-        const medL = this.median(sizes.map((s) => s[0]));
-        const medW = this.median(sizes.map((s) => s[1]));
-        const medH = this.median(sizes.map((s) => s[2]));
-
-        const newL = parseFloat(inpL?.value || "") || medL;
-        const newW = parseFloat(inpW?.value || "") || medW;
-        const newH = parseFloat(inpH?.value || "") || medH;
-
-        this.applySizeToWholeTrack(trackId, [newL, newW, newH]);
-      });
-    });
-
-    // Nút Ghim đất trong Tab 1
-    this.overlay.querySelectorAll<HTMLButtonElement>(".btn-batch-snap").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const trackId = parseInt(btn.dataset.trackId || "0", 10);
-        const track = this.store?.getTrack(trackId);
-        if (!track) return;
-
-        await CVATBridge.snapTrackToGround(jobId, trackId, track.serverId || trackId, "road");
-        await this.loadInitialData();
-      });
-    });
-
-    // Click vào bất kỳ hàng nào của bảng xe -> Chuyển sang duyệt frame xe đó
-    this.overlay.querySelectorAll<HTMLTableRowElement>(".batch-track-row").forEach((row) => {
-      row.addEventListener("click", (e) => {
-        const target = e.target as HTMLElement;
-        if (target.tagName === "INPUT" || target.tagName === "BUTTON") return;
-        const trackId = parseInt(row.dataset.trackId || "0", 10);
-        this.switchActiveTrack(trackId);
-      });
-    });
-
-    // Nút Mở Studio xe (Duyệt Frame)
-    this.overlay.querySelectorAll<HTMLButtonElement>(".btn-open-studio-track").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const trackId = parseInt(btn.dataset.trackId || "0", 10);
-        this.switchActiveTrack(trackId);
+        const tid = parseInt(btn.dataset.tid || "0", 10);
+        if (tid) this.switchActiveTrack(tid);
       });
     });
   }
 
   // =========================================================================
-  // LOGIC ĐIỀU KHIỂN & TƯƠNG TÁC
+  // CÁC HÀM ĐIỀU HƯỚNG & HỖ TRỢ TOÀN CỤC
   // =========================================================================
-
-  public switchActiveTrack(trackId: number): void {
-    if (!this.store) return;
-    const track = this.store.getTrack(trackId);
-    if (!track) return;
-
-    this.activeTrackId = trackId;
-    this.currentTab = "active_track";
-
-    // Đồng bộ frame: giữ frame hiện tại nếu nằm trong dải của xe, ngược lại nhảy tới firstFrame
-    const curF = CVATBridge.getCurrentFrame();
-    if (track.shapes.some((s) => s.frame === curF)) {
-      this.selectedFrame = curF;
-    } else if (track.shapes.length > 0) {
-      this.selectedFrame = track.firstFrame;
-      this.jumpToCVATFrame(track.firstFrame);
-    }
-
-    this.render();
-  }
-
-  public switchPrevTrack(): void {
-    if (!this.store) return;
-    const all = this.store.getAllTracks();
-    if (all.length <= 1) return;
-    const idx = all.findIndex((t) => t.uiId === this.activeTrackId);
-    const prevIdx = idx <= 0 ? all.length - 1 : idx - 1;
-    this.switchActiveTrack(all[prevIdx].uiId);
-  }
-
-  public switchNextTrack(): void {
-    if (!this.store) return;
-    const all = this.store.getAllTracks();
-    if (all.length <= 1) return;
-    const idx = all.findIndex((t) => t.uiId === this.activeTrackId);
-    const nextIdx = idx < 0 || idx >= all.length - 1 ? 0 : idx + 1;
-    this.switchActiveTrack(all[nextIdx].uiId);
-  }
 
   private attachHeaderListeners(): void {
     if (!this.overlay) return;
 
-    // Chuyển Tab
     this.overlay.querySelector("#studio-tab-active")?.addEventListener("click", () => {
       this.currentTab = "active_track";
       this.render();
@@ -955,14 +1336,12 @@ export class TrackStudioModal {
       this.render();
     });
 
-    // Quick Track Selector Dropdown
     this.overlay.querySelector<HTMLSelectElement>("#studio-quick-track-select")?.addEventListener("change", (e) => {
       const select = e.target as HTMLSelectElement;
       const tid = parseInt(select.value, 10);
       if (!isNaN(tid)) this.switchActiveTrack(tid);
     });
 
-    // Nút Xe trước / Xe sau
     this.overlay.querySelector("#btn-quick-prev-track")?.addEventListener("click", () => {
       this.switchPrevTrack();
     });
@@ -971,20 +1350,76 @@ export class TrackStudioModal {
       this.switchNextTrack();
     });
 
-    // Nút Đóng
+    this.overlay.querySelector("#btn-studio-undo")?.addEventListener("click", () => {
+      this.triggerUndo();
+    });
+
+    this.overlay.querySelector("#btn-studio-redo")?.addEventListener("click", () => {
+      this.triggerRedo();
+    });
+
     this.overlay.querySelector("#btn-studio-close")?.addEventListener("click", () => {
       this.close();
     });
 
-    // Nút Lưu vào CVAT
     this.overlay.querySelector("#btn-studio-commit-save")?.addEventListener("click", () => {
       this.triggerCommitSave();
     });
   }
 
-  /**
-   * Chuyển frame trong timeline CVAT native và Three.js scene
-   */
+  private triggerUndo(): void {
+    if (!this.store) return;
+    const track = this.store.getTrack(this.activeTrackId);
+    if (track && track.undo()) {
+      track.dirty = true;
+      this.render();
+      this.updateHeaderDirtyState();
+    }
+  }
+
+  private triggerRedo(): void {
+    if (!this.store) return;
+    const track = this.store.getTrack(this.activeTrackId);
+    if (track && track.redo()) {
+      track.dirty = true;
+      this.render();
+      this.updateHeaderDirtyState();
+    }
+  }
+
+  private switchActiveTrack(newTrackId: number): void {
+    this.stopPlayback();
+    this.activeTrackId = newTrackId;
+    this.pointManager.setActiveTrack(newTrackId);
+    this.currentTab = "active_track";
+    if (this.store) {
+      const track = this.store.getTrack(newTrackId);
+      if (track && track.shapes.length > 0) {
+        this.selectedFrame = track.shapes[0].frame;
+      }
+    }
+    this.render();
+    this.loadPointsForCurrentFrame();
+  }
+
+  private switchPrevTrack(): void {
+    if (!this.store) return;
+    const tracks = this.store.getAllTracks();
+    const idx = tracks.findIndex((t) => t.uiId === this.activeTrackId);
+    if (idx > 0) {
+      this.switchActiveTrack(tracks[idx - 1].uiId);
+    }
+  }
+
+  private switchNextTrack(): void {
+    if (!this.store) return;
+    const tracks = this.store.getAllTracks();
+    const idx = tracks.findIndex((t) => t.uiId === this.activeTrackId);
+    if (idx >= 0 && idx < tracks.length - 1) {
+      this.switchActiveTrack(tracks[idx + 1].uiId);
+    }
+  }
+
   private jumpToCVATFrame(frame: number): void {
     try {
       const frameInput = document.querySelector<HTMLInputElement>("input.cvat-player-frame-selector");
@@ -999,9 +1434,6 @@ export class TrackStudioModal {
     }
   }
 
-  /**
-   * Bật/tắt trạng thái Outside tại một frame
-   */
   private toggleOutsideFrame(frame: number): void {
     if (!this.store) return;
     const track = this.store.getTrack(this.activeTrackId);
@@ -1009,28 +1441,22 @@ export class TrackStudioModal {
 
     const sh = track.shapes.find((s) => s.frame === frame);
     if (sh) {
-      this.store.snapshot([this.activeTrackId]);
+      track.snapshot();
       sh.outside = !sh.outside;
       track.dirty = true;
       this.render();
     }
   }
 
-  /**
-   * Áp dụng kích thước mới cho toàn bộ các frame của một track (Ground-Lock 3D)
-   */
   private applySizeToWholeTrack(trackId: number, newSize: [number, number, number]): void {
     if (!this.store || !this.currentCtx?.jobId) return;
     const track = this.store.getTrack(trackId);
     if (!track) return;
 
-    this.store.snapshot([trackId]);
-
     for (const sh of track.shapes) {
       if (!sh.outside) {
         const curBox = track.at(sh.frame)?.box;
         if (curBox) {
-          // Bù trừ cao độ Ground-Lock theo vector ez: Đáy xe cố định tuyệt đối
           const updatedBox = resizeKeepBottom(curBox, newSize);
           sh.points[0] = updatedBox.c[0];
           sh.points[1] = updatedBox.c[1];
@@ -1043,27 +1469,35 @@ export class TrackStudioModal {
     }
 
     track.dirty = true;
-
-    // Realtime Two-Way Sync sang Three.js nếu đang ở cùng frame
-    const curF = CVATBridge.getCurrentFrame();
-    const curSh = track.shapes.find((s) => s.frame === curF);
-    if (curSh) {
-      CVATBridge.updateLiveBox(this.currentCtx.jobId, curF, track.uiId, track.serverId, curSh.points);
-    }
-
-    this.render();
+    this.updateHeaderDirtyState();
+    this.updateOrthoEditorState(track);
   }
 
-  /**
-   * Lưu toàn bộ các thay đổi vào CVAT (Chỉ lưu khi bấm, TUYỆT ĐỐI KHÔNG AUTOSAVE)
-   */
   private async triggerCommitSave(): Promise<void> {
     if (!this.currentCtx?.jobId || !this.store || this.isSaving) return;
 
     this.isSaving = true;
-    this.render();
+    this.updateHeaderDirtyState();
 
     try {
+      const dirtyTracks = this.store.getDirtyTracks();
+      // 1. Đồng bộ toàn bộ các frame đã chỉnh sửa sang CVAT WebGL Canvas
+      for (const track of dirtyTracks) {
+        for (const sh of track.shapes) {
+          if (!sh.outside && sh.points) {
+            await CVATBridge.updateLiveBox(
+              this.currentCtx.jobId,
+              sh.frame,
+              track.uiId,
+              track.serverId,
+              sh.points,
+              true
+            );
+          }
+        }
+      }
+
+      // 2. Lưu chính thức vào cơ sở dữ liệu CVAT
       const res = await CVATBridge.commitSave(this.currentCtx.jobId);
       if (res && res.success) {
         for (const t of this.store.getAllTracks()) {
@@ -1074,6 +1508,7 @@ export class TrackStudioModal {
       console.error("[CVAT 3D Studio] Lỗi lưu vào CVAT:", e);
     } finally {
       this.isSaving = false;
+      this.updateHeaderDirtyState();
       this.render();
     }
   }
