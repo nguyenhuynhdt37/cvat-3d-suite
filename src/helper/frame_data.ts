@@ -184,7 +184,6 @@ export class FrameData {
     const worker = async (): Promise<void> => {
       while (queue.length) {
         const c = queue.shift()!;
-        let isFromDisk = false;
         await this.loadChunk(
           c,
           (loaded: number, total: number) => {
@@ -195,7 +194,6 @@ export class FrameData {
           },
           (fromDisk: boolean) => {
             if (fromDisk) {
-              isFromDisk = true;
               diskCount += 1;
             }
           },

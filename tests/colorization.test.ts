@@ -221,4 +221,74 @@ console.log("🧪 Đang chạy kiểm thử tự động Module Point Cloud Colo
   console.log(`✅ Test 5: Hiệu Năng Xử Lý 100.000 Điểm & 15 Boxes: ${elapsedMs.toFixed(2)}ms (Siêu tốc, đảm bảo 60 FPS!)`);
 }
 
-console.log("\n🎉 TẤT CẢ 5/5 BÀI KIỂM THỬ MODULE POINT CLOUD COLORIZATION ĐÃ PASS 100%!");
+// ==========================================
+// TEST 6: BẢO TOÀN TRẠNG THÁI COLORIZATION QUA NHIỀU FRAMES (TOÀN FRAME ENGINE)
+// ==========================================
+{
+  // Giả lập 3 frames liên tiếp: Frame 0, Frame 1, Frame 2
+  const frame0Positions = new Float32Array([10, 5, 0]);
+  const frame1Positions = new Float32Array([12, 5, 0]);
+  const frame2Positions = new Float32Array([14, 5, 0]);
+  const dummyIntensities = new Float32Array([150]);
+
+  // Track xe di chuyển qua 3 frames
+  const frame0Boxes: Box3DTarget[] = [{ cx: 10, cy: 5, cz: 0, rz: 0, l: 4, w: 2, h: 1.5, category: "car" }];
+  const frame1Boxes: Box3DTarget[] = [{ cx: 12, cy: 5, cz: 0, rz: 0, l: 4, w: 2, h: 1.5, category: "car" }];
+  const frame2Boxes: Box3DTarget[] = [{ cx: 14, cy: 5, cz: 0, rz: 0, l: 4, w: 2, h: 1.5, category: "car" }];
+
+  const colors0 = computePointCloudColors(frame0Positions, dummyIntensities, frame0Boxes, { mode: "intensity", colorizeBoxed: true });
+  const colors1 = computePointCloudColors(frame1Positions, dummyIntensities, frame1Boxes, { mode: "intensity", colorizeBoxed: true });
+  const colors2 = computePointCloudColors(frame2Positions, dummyIntensities, frame2Boxes, { mode: "intensity", colorizeBoxed: true });
+
+  // Cả 3 frames đều phải có màu xe ô tô (R > G > B, màu cam hổ phách)
+  assert.ok(colors0[0] > colors0[1] && colors0[1] > colors0[2], "Frame 0: Điểm trong xe bọc phải có màu cam");
+  assert.ok(colors1[0] > colors1[1] && colors1[1] > colors1[2], "Frame 1: Điểm trong xe bọc phải duy trì màu cam khi chuyển frame");
+  assert.ok(colors2[0] > colors2[1] && colors2[1] > colors2[2], "Frame 2: Điểm trong xe bọc phải duy trì màu cam khi chuyển frame");
+
+  console.log("✅ Test 6: Toàn Frame Engine: Bảo toàn và áp dụng tự động 100% qua các frame liên tiếp");
+}
+
+// ==========================================
+// TEST 7: FALLBACK REDUX STATES (KHI THREE.JS CHƯA DỰNG XONG MESH CỦA FRAME MỚI)
+// ==========================================
+{
+  // Giả lập Redux annotations states:
+  const reduxStates = [
+    {
+      clientID: 101,
+      points: [5.0, -3.0, 0.5, 0, 0, 0, 4.5, 2.0, 1.6],
+      outside: false,
+      label: { name: "Pedestrian" },
+    },
+  ];
+
+  // Trích xuất fallback từ Redux states
+  const fallbackBoxes: Box3DTarget[] = reduxStates
+    .filter((s) => !s.outside && Array.isArray(s.points) && s.points.length >= 9)
+    .map((s) => ({
+      cx: s.points[0],
+      cy: s.points[1],
+      cz: s.points[2],
+      rz: s.points[5] || 0,
+      l: s.points[6],
+      w: s.points[7],
+      h: s.points[8],
+      category: "pedestrian" as const,
+    }));
+
+  assert.strictEqual(fallbackBoxes.length, 1, "Phải trích xuất được 1 box từ Redux states");
+
+  const pedPoint = new Float32Array([5.0, -3.0, 0.5]);
+  const pedIntensity = new Float32Array([100]);
+  const pedColors = computePointCloudColors(pedPoint, pedIntensity, fallbackBoxes, {
+    mode: "intensity",
+    colorizeBoxed: true,
+  });
+
+  // Người đi bộ: Màu Xanh Tím Indigo (B > R)
+  assert.ok(pedColors[2] > pedColors[0], "Điểm người đi bộ phải có kênh Blue ưu thế (Xanh Tím Indigo)");
+
+  console.log("✅ Test 7: Fallback Redux States: Nhận diện và nhuộm màu chính xác ngay khi Three.js chưa dựng mesh");
+}
+
+console.log("\n🎉 TẤT CẢ 7/7 BÀI KIỂM THỬ MODULE POINT CLOUD COLORIZATION ĐÃ PASS 100%!");

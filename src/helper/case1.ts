@@ -168,7 +168,8 @@ export function mountCase1(app: HelperApp, root: HTMLElement): CaseMount {
       await app.getFrames().preload(
         keyframes.map((s: any) => s.frame),
         (p: any) => {
-          progress.textContent = `Tải point cloud ${Math.round(p.fraction * 100)}% (${p.done}/${p.total} chunk)…`;
+          const disk = p.diskCount ? ` (💾 ${p.diskCount} từ ổ cứng)` : '';
+          progress.textContent = `Nạp point cloud ${Math.round(p.fraction * 100)}% (${p.done}/${p.total} chunk)${disk}…`;
         },
       );
     }
@@ -195,7 +196,8 @@ export function mountCase1(app: HelperApp, root: HTMLElement): CaseMount {
     await app.getFrames().preload(
       keyframes.map((s: any) => s.frame),
       (p: any) => {
-        progress.textContent = `Tải point cloud ${Math.round(p.fraction * 100)}% (${p.done}/${p.total} chunk)…`;
+        const disk = p.diskCount ? ` (💾 ${p.diskCount} từ ổ cứng)` : '';
+        progress.textContent = `Nạp point cloud ${Math.round(p.fraction * 100)}% (${p.done}/${p.total} chunk)${disk}…`;
       },
     );
     app.snapshot([track.id]);

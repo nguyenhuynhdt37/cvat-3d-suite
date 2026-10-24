@@ -134,6 +134,8 @@ class PointCloudDiskStorageManager {
   ): Promise<void> {
     try {
       const db = await this.getDb();
+      // Clone dữ liệu phòng thủ để tránh race condition/detach buffer trong đa luồng
+      const bufferToSave = data.slice(0);
       await new Promise<void>((resolve, reject) => {
         const tx = db.transaction(CHUNK_STORE, 'readwrite');
         const store = tx.objectStore(CHUNK_STORE);
@@ -143,8 +145,8 @@ class PointCloudDiskStorageManager {
           jid,
           chunkIndex,
           quality,
-          data,
-          byteSize: data.byteLength,
+          data: bufferToSave,
+          byteSize: bufferToSave.byteLength,
           savedAt: Date.now(),
         };
 

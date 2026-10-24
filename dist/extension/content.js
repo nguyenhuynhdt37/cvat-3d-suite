@@ -3011,8 +3011,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return null;
       }
     }
-    let currentPointColorMode = "intensity";
-    let currentColorizeBoxed = true;
+    let currentPointColorMode = typeof localStorage !== "undefined" && localStorage.getItem("cvat_3d_point_color_mode") === "plain" ? "plain" : "intensity";
+    let currentColorizeBoxed = typeof localStorage !== "undefined" ? localStorage.getItem("cvat_3d_colorize_boxed") !== "false" : true;
+    let isColorizingRunning = false;
     function getAllScenePointsObjects() {
       var _a, _b, _c;
       try {
@@ -3038,8 +3039,34 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return [];
       }
     }
+    function isPointCloudColorizedForCurrentFrame() {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
+      try {
+        const store = getReduxStore();
+        const curFrame = ((_d = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.player) == null ? void 0 : _c.frame) == null ? void 0 : _d.number) ?? ((_h = (_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.job) == null ? void 0 : _g.instance) == null ? void 0 : _h.frame);
+        if (curFrame === void 0 || curFrame === null) return true;
+        const canvas = (_k = (_j = (_i = store == null ? void 0 : store.getState()) == null ? void 0 : _i.annotation) == null ? void 0 : _j.canvas) == null ? void 0 : _k.instance;
+        if (!(canvas == null ? void 0 : canvas.view)) return true;
+        const ptsObjs = getAllScenePointsObjects();
+        if (ptsObjs.length === 0) return false;
+        const drawnObjects = ((_l = canvas.view) == null ? void 0 : _l.drawnObjects) || {};
+        const drawnCount = Object.keys(drawnObjects).length;
+        const activeClientId = ((_m = canvas.view) == null ? void 0 : _m.activatedElementID) || ((_p = (_o = (_n = store == null ? void 0 : store.getState()) == null ? void 0 : _n.annotation) == null ? void 0 : _o.annotations) == null ? void 0 : _p.activatedStateClientID);
+        for (const obj of ptsObjs) {
+          const g = obj.geometry;
+          if (!g) continue;
+          if (g.__cvat_suite_colored_frame !== curFrame || g.__cvat_suite_colored_mode !== currentPointColorMode || g.__cvat_suite_colored_boxed !== currentColorizeBoxed || currentColorizeBoxed && drawnCount > 0 && g.__cvat_suite_box_count !== drawnCount || currentColorizeBoxed && g.__cvat_suite_active_id !== activeClientId) {
+            return false;
+          }
+        }
+        return true;
+      } catch (_) {
+        return true;
+      }
+    }
     function applyPointCloudColorizationInMainWorld(options) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+      if (isColorizingRunning) return false;
       try {
         if (options == null ? void 0 : options.mode) currentPointColorMode = options.mode;
         if ((options == null ? void 0 : options.colorizeBoxed) !== void 0) currentColorizeBoxed = !!options.colorizeBoxed;
@@ -3048,6 +3075,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (!canvas) return false;
         const ptsObjs = getAllScenePointsObjects();
         if (ptsObjs.length === 0) return false;
+        const curFrame = ((_g = (_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.player) == null ? void 0 : _f.frame) == null ? void 0 : _g.number) ?? ((_k = (_j = (_i = (_h = store == null ? void 0 : store.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.job) == null ? void 0 : _j.instance) == null ? void 0 : _k.frame) ?? 0;
         const defaultColors = {
           car: { r: 0.96, g: 0.62, b: 0.04 },
           // Cam hổ phách (#f59e0b)
@@ -3063,51 +3091,98 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           // Vàng chanh Neon (#facc15)
         };
         const fastBoxes = [];
+        const activeClientId = ((_l = canvas.view) == null ? void 0 : _l.activatedElementID) || ((_o = (_n = (_m = store == null ? void 0 : store.getState()) == null ? void 0 : _m.annotation) == null ? void 0 : _n.annotations) == null ? void 0 : _o.activatedStateClientID);
         if (currentColorizeBoxed) {
-          const drawnObjects = ((_d = canvas.view) == null ? void 0 : _d.drawnObjects) || {};
-          const activeClientId = ((_e = canvas.view) == null ? void 0 : _e.activatedElementID) || ((_h = (_g = (_f = store == null ? void 0 : store.getState()) == null ? void 0 : _f.annotation) == null ? void 0 : _g.annotations) == null ? void 0 : _h.activatedStateClientID);
-          for (const idStr of Object.keys(drawnObjects)) {
-            const drawnItem = drawnObjects[idStr];
-            const data = drawnItem == null ? void 0 : drawnItem.data;
-            if (data && Array.isArray(data.points) && data.points.length >= 9 && !data.outside) {
-              const pts = data.points;
-              const l = pts[6];
-              const w = pts[7];
-              const h2 = pts[8];
-              if (l <= 0 || w <= 0 || h2 <= 0) continue;
-              const clientId = Number(idStr);
-              const isActive = clientId === Number(activeClientId);
-              const labelName = (((_i = data.label) == null ? void 0 : _i.name) || "").toLowerCase();
-              let c = defaultColors.car;
-              if (isActive) {
-                c = defaultColors.active;
-              } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
-                c = defaultColors.pedestrian;
-              } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
-                c = defaultColors.cyclist;
-              } else if (labelName.includes("truck")) {
-                c = defaultColors.truck;
-              } else if (labelName.includes("bus")) {
-                c = defaultColors.bus;
+          const drawnObjects = ((_p = canvas.view) == null ? void 0 : _p.drawnObjects) || {};
+          const drawnKeys = Object.keys(drawnObjects);
+          if (drawnKeys.length > 0) {
+            for (const idStr of drawnKeys) {
+              const drawnItem = drawnObjects[idStr];
+              const data = drawnItem == null ? void 0 : drawnItem.data;
+              if (data && Array.isArray(data.points) && data.points.length >= 9 && !data.outside) {
+                const pts = data.points;
+                const l = pts[6];
+                const w = pts[7];
+                const h2 = pts[8];
+                if (l <= 0 || w <= 0 || h2 <= 0) continue;
+                const clientId = Number(idStr);
+                const isActive = clientId === Number(activeClientId);
+                const labelName = (((_q = data.label) == null ? void 0 : _q.name) || "").toLowerCase();
+                let c = defaultColors.car;
+                if (isActive) {
+                  c = defaultColors.active;
+                } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
+                  c = defaultColors.pedestrian;
+                } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
+                  c = defaultColors.cyclist;
+                } else if (labelName.includes("truck")) {
+                  c = defaultColors.truck;
+                } else if (labelName.includes("bus")) {
+                  c = defaultColors.bus;
+                }
+                const yaw = pts[5] || 0;
+                fastBoxes.push({
+                  cx: pts[0],
+                  cy: pts[1],
+                  cz: pts[2],
+                  rx: pts[3] || 0,
+                  ry: pts[4] || 0,
+                  rz: yaw,
+                  cosY: Math.cos(-yaw),
+                  sinY: Math.sin(-yaw),
+                  halfL: l / 2,
+                  halfW: w / 2,
+                  halfH: h2 / 2,
+                  maxR: Math.max(l, w, h2) * 0.75,
+                  colorR: c.r,
+                  colorG: c.g,
+                  colorB: c.b
+                });
               }
-              const yaw = pts[5] || 0;
-              fastBoxes.push({
-                cx: pts[0],
-                cy: pts[1],
-                cz: pts[2],
-                rx: pts[3] || 0,
-                ry: pts[4] || 0,
-                rz: yaw,
-                cosY: Math.cos(-yaw),
-                sinY: Math.sin(-yaw),
-                halfL: l / 2,
-                halfW: w / 2,
-                halfH: h2 / 2,
-                maxR: Math.max(l, w, h2) * 0.75,
-                colorR: c.r,
-                colorG: c.g,
-                colorB: c.b
-              });
+            }
+          } else {
+            const states = ((_t = (_s = (_r = store == null ? void 0 : store.getState()) == null ? void 0 : _r.annotation) == null ? void 0 : _s.annotations) == null ? void 0 : _t.states) || [];
+            for (const s of states) {
+              if (s && Array.isArray(s.points) && s.points.length >= 9 && !s.outside) {
+                const pts = s.points;
+                const l = pts[6];
+                const w = pts[7];
+                const h2 = pts[8];
+                if (l <= 0 || w <= 0 || h2 <= 0) continue;
+                const clientId = Number(s.clientID ?? s.id);
+                const isActive = clientId === Number(activeClientId);
+                const labelName = (((_u = s.label) == null ? void 0 : _u.name) || "").toLowerCase();
+                let c = defaultColors.car;
+                if (isActive) {
+                  c = defaultColors.active;
+                } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
+                  c = defaultColors.pedestrian;
+                } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
+                  c = defaultColors.cyclist;
+                } else if (labelName.includes("truck")) {
+                  c = defaultColors.truck;
+                } else if (labelName.includes("bus")) {
+                  c = defaultColors.bus;
+                }
+                const yaw = pts[5] || 0;
+                fastBoxes.push({
+                  cx: pts[0],
+                  cy: pts[1],
+                  cz: pts[2],
+                  rx: pts[3] || 0,
+                  ry: pts[4] || 0,
+                  rz: yaw,
+                  cosY: Math.cos(-yaw),
+                  sinY: Math.sin(-yaw),
+                  halfL: l / 2,
+                  halfW: w / 2,
+                  halfH: h2 / 2,
+                  maxR: Math.max(l, w, h2) * 0.75,
+                  colorR: c.r,
+                  colorG: c.g,
+                  colorB: c.b
+                });
+              }
             }
           }
         }
@@ -3119,11 +3194,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         let anyUpdated = false;
         for (const obj of ptsObjs) {
           const geom = obj.geometry;
-          const posAttr = (_j = geom == null ? void 0 : geom.attributes) == null ? void 0 : _j.position;
+          const posAttr = (_v = geom == null ? void 0 : geom.attributes) == null ? void 0 : _v.position;
           if (!posAttr || !posAttr.array) continue;
           const count = posAttr.count;
           const posArray = posAttr.array;
-          const intensityAttr = (_k = geom.attributes.intensity || geom.attributes.intensities) == null ? void 0 : _k.array;
+          const intensityAttr = (_w = geom.attributes.intensity || geom.attributes.intensities) == null ? void 0 : _w.array;
           let colorAttr = geom.attributes.color;
           let colorArray;
           const winThree = window.THREE;
@@ -3215,15 +3290,93 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             obj.material.vertexColors = true;
             obj.material.needsUpdate = true;
           }
+          geom.__cvat_suite_colored_frame = curFrame;
+          geom.__cvat_suite_colored_mode = currentPointColorMode;
+          geom.__cvat_suite_colored_boxed = currentColorizeBoxed;
+          geom.__cvat_suite_box_count = numBoxes;
+          geom.__cvat_suite_active_id = activeClientId;
           anyUpdated = true;
         }
         if (anyUpdated && typeof canvas.render === "function") {
-          canvas.render();
+          isColorizingRunning = true;
+          try {
+            canvas.render();
+          } finally {
+            isColorizingRunning = false;
+          }
         }
         return anyUpdated;
       } catch (err) {
         console.warn("[CVAT 3D Suite] Lỗi applyPointCloudColorizationInMainWorld:", err);
         return false;
+      }
+    }
+    function triggerFullFrameColorizationSequence(targetFrame) {
+      const delays = [20, 80, 180, 350, 600, 1e3, 1800];
+      delays.forEach((delay) => {
+        setTimeout(() => {
+          var _a, _b, _c, _d, _e, _f, _g, _h;
+          try {
+            const store = getReduxStore();
+            const curF = ((_d = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.player) == null ? void 0 : _c.frame) == null ? void 0 : _d.number) ?? ((_h = (_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.job) == null ? void 0 : _g.instance) == null ? void 0 : _h.frame);
+            if (curF === targetFrame) {
+              if (!isPointCloudColorizedForCurrentFrame()) {
+                applyPointCloudColorizationInMainWorld();
+              }
+            }
+          } catch (_) {
+          }
+        }, delay);
+      });
+    }
+    function setupFullFrameColorizationHooks() {
+      var _a, _b, _c, _d, _e;
+      try {
+        const store = getReduxStore();
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (!canvas) return;
+        if (typeof canvas.render === "function" && !canvas.__cvat_suite_color_hooked) {
+          canvas.__cvat_suite_color_hooked = true;
+          const origRender = canvas.render.bind(canvas);
+          canvas.render = function(...args) {
+            const res = origRender(...args);
+            if (!isColorizingRunning) {
+              if (!isPointCloudColorizedForCurrentFrame()) {
+                applyPointCloudColorizationInMainWorld();
+              }
+            }
+            return res;
+          };
+        }
+        const views = (_d = canvas.view) == null ? void 0 : _d.views;
+        if (views) {
+          const viewKeys = ["perspective", "top", "side", "front"];
+          for (const k of viewKeys) {
+            const s = (_e = views[k]) == null ? void 0 : _e.scene;
+            if (s && !s.__cvat_suite_color_hooked) {
+              s.__cvat_suite_color_hooked = true;
+              const origAdd = s.add.bind(s);
+              s.add = function(...objects) {
+                const res = origAdd(...objects);
+                let hasPoints = false;
+                for (const o of objects) {
+                  if (o && (o.isPoints || o.type === "Points")) {
+                    hasPoints = true;
+                    break;
+                  }
+                }
+                if (hasPoints && !isColorizingRunning) {
+                  setTimeout(() => {
+                    applyPointCloudColorizationInMainWorld();
+                  }, 10);
+                }
+                return res;
+              };
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[CVAT 3D Suite] Lỗi setupFullFrameColorizationHooks:", err);
       }
     }
     function getEgoRoadGroundZInMainWorld(egoPos = { x: 0, y: 0, z: 0 }) {
@@ -6198,6 +6351,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               if (curFrame !== void 0 && curFrame !== null && curFrame !== prevFrame) {
                 const oldFrame = prevFrame;
                 prevFrame = curFrame;
+                setupFullFrameColorizationHooks();
+                triggerFullFrameColorizationSequence(curFrame);
                 if (oldFrame !== null) {
                   window.dispatchEvent(
                     new CustomEvent("CVAT_EXT_RES_FRAME_CHANGED", {
@@ -6208,9 +6363,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                   if (activeIdToLock !== null && !isNaN(activeIdToLock)) {
                     lockOnActiveObjectAtFrame(activeIdToLock, curFrame);
                   }
-                  setTimeout(() => {
-                    applyPointCloudColorizationInMainWorld();
-                  }, 150);
                 }
               }
               if (curActiveId !== prevActiveId) {
@@ -8380,6 +8532,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (colorizeBoxed !== void 0) {
         currentColorizeBoxed = !!colorizeBoxed;
       }
+      if (typeof localStorage !== "undefined") {
+        try {
+          localStorage.setItem("cvat_3d_point_color_mode", currentPointColorMode);
+          localStorage.setItem("cvat_3d_colorize_boxed", String(currentColorizeBoxed));
+        } catch (_) {
+        }
+      }
+      setupFullFrameColorizationHooks();
       applyPointCloudColorizationInMainWorld({
         mode: currentPointColorMode,
         colorizeBoxed: currentColorizeBoxed
@@ -8409,9 +8569,24 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         })
       );
     });
-    setTimeout(() => {
-      applyPointCloudColorizationInMainWorld();
-    }, 1500);
+    setupFullFrameColorizationHooks();
+    [300, 800, 1500, 2500].forEach((ms) => {
+      setTimeout(() => {
+        setupFullFrameColorizationHooks();
+        if (!isPointCloudColorizedForCurrentFrame()) {
+          applyPointCloudColorizationInMainWorld();
+        }
+      }, ms);
+    });
+    setInterval(() => {
+      try {
+        setupFullFrameColorizationHooks();
+        if (!isPointCloudColorizedForCurrentFrame()) {
+          applyPointCloudColorizationInMainWorld();
+        }
+      } catch (_) {
+      }
+    }, 500);
   }
   class CVATBridge {
     /**
@@ -15308,6 +15483,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     async saveDiskChunk(jid, chunkIndex, quality, data) {
       try {
         const db = await this.getDb();
+        const bufferToSave = data.slice(0);
         await new Promise((resolve, reject) => {
           const tx = db.transaction(CHUNK_STORE, "readwrite");
           const store = tx.objectStore(CHUNK_STORE);
@@ -15316,8 +15492,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             jid,
             chunkIndex,
             quality,
-            data,
-            byteSize: data.byteLength,
+            data: bufferToSave,
+            byteSize: bufferToSave.byteLength,
             savedAt: Date.now()
           };
           const req = store.put(record);
@@ -15705,7 +15881,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         await app.getFrames().preload(
           keyframes.map((s) => s.frame),
           (p) => {
-            progress.textContent = `Tải point cloud ${Math.round(p.fraction * 100)}% (${p.done}/${p.total} chunk)…`;
+            const disk = p.diskCount ? ` (💾 ${p.diskCount} từ ổ cứng)` : "";
+            progress.textContent = `Nạp point cloud ${Math.round(p.fraction * 100)}% (${p.done}/${p.total} chunk)${disk}…`;
           }
         );
       }
@@ -15730,7 +15907,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       await app.getFrames().preload(
         keyframes.map((s) => s.frame),
         (p) => {
-          progress.textContent = `Tải point cloud ${Math.round(p.fraction * 100)}% (${p.done}/${p.total} chunk)…`;
+          const disk = p.diskCount ? ` (💾 ${p.diskCount} từ ổ cứng)` : "";
+          progress.textContent = `Nạp point cloud ${Math.round(p.fraction * 100)}% (${p.done}/${p.total} chunk)${disk}…`;
         }
       );
       app.snapshot([track2.id]);
@@ -17000,6 +17178,27 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
         check("showImage", "Ảnh", "Hiện cột ảnh camera", applyLayout),
         num("rowH", "Cao dòng", 10, 120, 600, applyLayout),
         h$2("button", { class: "small", onclick: fitZoom, title: "Đặt lại zoom mọi ô cho vừa box" }, "Fit"),
+        h$2(
+          "button",
+          {
+            class: "small",
+            title: "Xem dung lượng cache point cloud trên ổ cứng của Job này",
+            onclick: async () => {
+              const stats = await PointCloudDiskStorage.getCacheStats(store.jid);
+              const mb = (stats.totalBytes / (1024 * 1024)).toFixed(1);
+              const msg = `💾 Bộ nhớ đệm Ổ cứng (Job #${store.jid}):
+• Đã lưu: ${stats.count} chunks (~${mb} MB) trên ổ cứng.
+• Lần sau mở Job này sẽ nạp tức thì trong vài ms, không tải qua mạng.
+
+Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
+              if (confirm(msg)) {
+                await PointCloudDiskStorage.clearCache(store.jid);
+                app.setStatus(`Đã xóa cache ổ cứng của Job #${store.jid}`, "ok");
+              }
+            }
+          },
+          "💾 Ổ cứng"
+        ),
         pbar
       ),
       h$2(
@@ -17552,18 +17751,19 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
     }
     function showProgress(p) {
       const pct = Math.round(p.fraction * 100);
+      const diskInfo = p.diskCount && p.diskCount > 0 ? ` · 💾 ${p.diskCount} chunk từ ổ cứng` : "";
       if (p.done >= p.total) {
         pfill.style.width = "100%";
-        ptext.textContent = "Point cloud: đã tải xong";
+        ptext.textContent = p.diskCount === p.total ? `Point cloud: 100% nạp từ ổ cứng (${p.total} chunk)` : `Point cloud: đã tải xong${diskInfo}`;
         setTimeout(() => {
           if (p.done >= p.total) pbar.hidden = true;
-        }, 800);
+        }, 1e3);
         return;
       }
       pbar.hidden = false;
       pfill.style.width = `${pct}%`;
       const mb = p.loadedBytes / 1048576;
-      ptext.textContent = `Point cloud ${pct}% · ${p.done}/${p.total} chunk${mb >= 0.1 ? ` · ${mb.toFixed(1)} MB` : ""}`;
+      ptext.textContent = `Point cloud ${pct}% · ${p.done}/${p.total} chunk${diskInfo}${mb >= 0.1 ? ` · ${mb.toFixed(1)} MB` : ""}`;
     }
     function buildRows() {
       const from = Number(fromIn.value);
@@ -20648,7 +20848,7 @@ Cancel = hủy`
               </button>
 
               <!-- NÚT TOGGLE NHUỘM MÀU XE BỌC -->
-              <button id="btn-toggle-colorize-boxed" title="Bật/Tắt nhuộm màu riêng cho các điểm LiDAR nằm trong 3D Box của xe" style="
+              <button id="btn-toggle-colorize-boxed" title="Bật/Tắt nhuộm màu riêng cho các điểm LiDAR nằm trong 3D Box (Tự động áp dụng bền vững cho TOÀN BỘ FRAME)" style="
                 background: ${this.colorizeBoxedPoints ? "#ecfdf5" : "#ffffff"};
                 border: 1px solid ${this.colorizeBoxedPoints ? "#a7f3d0" : "#cbd5e1"};
                 color: ${this.colorizeBoxedPoints ? "#047857" : "#64748b"};
@@ -21908,7 +22108,7 @@ Cancel = hủy`
           localStorage.setItem("cvat_3d_colorize_boxed", String(this.colorizeBoxedPoints));
           await CVATBridge.setPointCloudColorMode(this.pointColorMode, this.colorizeBoxedPoints);
           this.showToast(
-            `Đã ${this.colorizeBoxedPoints ? "BẬT" : "TẮT"} nhuộm màu điểm trong xe bọc`,
+            `Đã ${this.colorizeBoxedPoints ? "BẬT" : "TẮT"} nhuộm màu điểm xe bọc (Toàn Bộ Frame)`,
             this.colorizeBoxedPoints ? "success" : "info"
           );
           this.updateContent();

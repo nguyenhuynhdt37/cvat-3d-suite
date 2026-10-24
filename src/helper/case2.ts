@@ -19,6 +19,7 @@ import {
   type Box3D,
 } from '../core/geometry';
 import { CASE2_CSS } from './styles';
+import { PointCloudDiskStorage } from './point_cloud_cache';
 
 export interface Case2Mount {
   refresh(): void;
@@ -214,6 +215,27 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
       check('showImage', 'Ảnh', 'Hiện cột ảnh camera', applyLayout),
       num('rowH', 'Cao dòng', 10, 120, 600, applyLayout),
       h('button', { class: 'small', onclick: fitZoom, title: 'Đặt lại zoom mọi ô cho vừa box' }, 'Fit'),
+      h(
+        'button',
+        {
+          class: 'small',
+          title: 'Xem dung lượng cache point cloud trên ổ cứng của Job này',
+          onclick: async () => {
+            const stats = await PointCloudDiskStorage.getCacheStats(store.jid);
+            const mb = (stats.totalBytes / (1024 * 1024)).toFixed(1);
+            const msg =
+              `💾 Bộ nhớ đệm Ổ cứng (Job #${store.jid}):\n` +
+              `• Đã lưu: ${stats.count} chunks (~${mb} MB) trên ổ cứng.\n` +
+              `• Lần sau mở Job này sẽ nạp tức thì trong vài ms, không tải qua mạng.\n\n` +
+              `Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
+            if (confirm(msg)) {
+              await PointCloudDiskStorage.clearCache(store.jid);
+              app.setStatus(`Đã xóa cache ổ cứng của Job #${store.jid}`, 'ok');
+            }
+          },
+        },
+        '💾 Ổ cứng'
+      ),
       pbar
     ),
     h(
@@ -808,20 +830,30 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
     renderAll();
   }
 
-  function showProgress(p: { done: number; total: number; fraction: number; loadedBytes: number }): void {
+  function showProgress(p: {
+    done: number;
+    total: number;
+    fraction: number;
+    loadedBytes: number;
+    diskCount?: number;
+  }): void {
     const pct = Math.round(p.fraction * 100);
+    const diskInfo = p.diskCount && p.diskCount > 0 ? ` · 💾 ${p.diskCount} chunk từ ổ cứng` : '';
     if (p.done >= p.total) {
       pfill.style.width = '100%';
-      ptext.textContent = 'Point cloud: đã tải xong';
+      ptext.textContent =
+        p.diskCount === p.total
+          ? `Point cloud: 100% nạp từ ổ cứng (${p.total} chunk)`
+          : `Point cloud: đã tải xong${diskInfo}`;
       setTimeout(() => {
         if (p.done >= p.total) pbar.hidden = true;
-      }, 800);
+      }, 1000);
       return;
     }
     pbar.hidden = false;
     pfill.style.width = `${pct}%`;
     const mb = p.loadedBytes / 1048576;
-    ptext.textContent = `Point cloud ${pct}% · ${p.done}/${p.total} chunk${mb >= 0.1 ? ` · ${mb.toFixed(1)} MB` : ''}`;
+    ptext.textContent = `Point cloud ${pct}% · ${p.done}/${p.total} chunk${diskInfo}${mb >= 0.1 ? ` · ${mb.toFixed(1)} MB` : ''}`;
   }
 
   function buildRows(): void {

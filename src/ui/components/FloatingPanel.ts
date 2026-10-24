@@ -2853,7 +2853,7 @@ export class FloatingPanel {
               </button>
 
               <!-- NÚT TOGGLE NHUỘM MÀU XE BỌC -->
-              <button id="btn-toggle-colorize-boxed" title="Bật/Tắt nhuộm màu riêng cho các điểm LiDAR nằm trong 3D Box của xe" style="
+              <button id="btn-toggle-colorize-boxed" title="Bật/Tắt nhuộm màu riêng cho các điểm LiDAR nằm trong 3D Box (Tự động áp dụng bền vững cho TOÀN BỘ FRAME)" style="
                 background: ${this.colorizeBoxedPoints ? "#ecfdf5" : "#ffffff"};
                 border: 1px solid ${this.colorizeBoxedPoints ? "#a7f3d0" : "#cbd5e1"};
                 color: ${this.colorizeBoxedPoints ? "#047857" : "#64748b"};
@@ -4190,7 +4190,7 @@ export class FloatingPanel {
         localStorage.setItem("cvat_3d_colorize_boxed", String(this.colorizeBoxedPoints));
         await CVATBridge.setPointCloudColorMode(this.pointColorMode, this.colorizeBoxedPoints);
         this.showToast(
-          `Đã ${this.colorizeBoxedPoints ? "BẬT" : "TẮT"} nhuộm màu điểm trong xe bọc`,
+          `Đã ${this.colorizeBoxedPoints ? "BẬT" : "TẮT"} nhuộm màu điểm xe bọc (Toàn Bộ Frame)`,
           this.colorizeBoxedPoints ? "success" : "info"
         );
         this.updateContent();

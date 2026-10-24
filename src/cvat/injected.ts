@@ -119,9 +119,17 @@ export function mainWorldScript(): void {
   // 1. Hiển thị mặc định theo độ phản xạ (LiDAR Intensity)
   // 2. Nhuộm màu mây điểm nằm trong xe bọc (Boxed Points Colorization)
   // 3. Chế độ xem không xét độ phản xạ (Plain / Uniform Color Mode)
+  // 4. Cơ chế Toàn Frame (Full-Frame Engine): Tự động duy trì 100% trên mọi frame
   // =============================================================================
-  let currentPointColorMode: "intensity" | "plain" = "intensity";
-  let currentColorizeBoxed: boolean = true;
+  let currentPointColorMode: "intensity" | "plain" =
+    typeof localStorage !== "undefined" && localStorage.getItem("cvat_3d_point_color_mode") === "plain"
+      ? "plain"
+      : "intensity";
+  let currentColorizeBoxed: boolean =
+    typeof localStorage !== "undefined"
+      ? localStorage.getItem("cvat_3d_colorize_boxed") !== "false"
+      : true;
+  let isColorizingRunning: boolean = false;
 
   // Lấy danh sách tất cả các đối tượng THREE.Points từ mọi view của Canvas3D
   function getAllScenePointsObjects(): any[] {
@@ -155,10 +163,52 @@ export function mainWorldScript(): void {
     }
   }
 
+  // Kiểm tra xem mây điểm Three.js hiện tại đã được tô màu chuẩn xác cho frame này chưa
+  function isPointCloudColorizedForCurrentFrame(): boolean {
+    try {
+      const store = getReduxStore();
+      const curFrame =
+        store?.getState()?.annotation?.player?.frame?.number ??
+        store?.getState()?.annotation?.job?.instance?.frame;
+      if (curFrame === undefined || curFrame === null) return true;
+
+      const canvas = store?.getState()?.annotation?.canvas?.instance;
+      if (!canvas?.view) return true;
+
+      const ptsObjs = getAllScenePointsObjects();
+      if (ptsObjs.length === 0) return false;
+
+      const drawnObjects = canvas.view?.drawnObjects || {};
+      const drawnCount = Object.keys(drawnObjects).length;
+      const activeClientId =
+        canvas.view?.activatedElementID ||
+        store?.getState()?.annotation?.annotations?.activatedStateClientID;
+
+      for (const obj of ptsObjs) {
+        const g = obj.geometry;
+        if (!g) continue;
+        if (
+          (g as any).__cvat_suite_colored_frame !== curFrame ||
+          (g as any).__cvat_suite_colored_mode !== currentPointColorMode ||
+          (g as any).__cvat_suite_colored_boxed !== currentColorizeBoxed ||
+          (currentColorizeBoxed && drawnCount > 0 && (g as any).__cvat_suite_box_count !== drawnCount) ||
+          (currentColorizeBoxed && (g as any).__cvat_suite_active_id !== activeClientId)
+        ) {
+          return false;
+        }
+      }
+      return true;
+    } catch (_) {
+      return true;
+    }
+  }
+
   // Thuật toán gán màu cho mây điểm Three.js: Intensity / Plain & Tô màu trong xe bọc
   function applyPointCloudColorizationInMainWorld(
     options?: { mode?: "intensity" | "plain"; colorizeBoxed?: boolean }
   ): boolean {
+    if (isColorizingRunning) return false;
+
     try {
       if (options?.mode) currentPointColorMode = options.mode;
       if (options?.colorizeBoxed !== undefined) currentColorizeBoxed = !!options.colorizeBoxed;
@@ -169,6 +219,11 @@ export function mainWorldScript(): void {
 
       const ptsObjs = getAllScenePointsObjects();
       if (ptsObjs.length === 0) return false;
+
+      const curFrame =
+        store?.getState()?.annotation?.player?.frame?.number ??
+        store?.getState()?.annotation?.job?.instance?.frame ??
+        0;
 
       // 1. Trích xuất danh sách tất cả các 3D Cuboids hiện hữu trên frame
       interface FastBoxTarget {
@@ -199,57 +254,110 @@ export function mainWorldScript(): void {
       };
 
       const fastBoxes: FastBoxTarget[] = [];
+      const activeClientId =
+        canvas.view?.activatedElementID ||
+        store?.getState()?.annotation?.annotations?.activatedStateClientID;
+
       if (currentColorizeBoxed) {
         const drawnObjects = canvas.view?.drawnObjects || {};
-        const activeClientId =
-          canvas.view?.activatedElementID ||
-          store?.getState()?.annotation?.annotations?.activatedStateClientID;
+        const drawnKeys = Object.keys(drawnObjects);
 
-        for (const idStr of Object.keys(drawnObjects)) {
-          const drawnItem = drawnObjects[idStr];
-          const data = drawnItem?.data;
-          if (data && Array.isArray(data.points) && data.points.length >= 9 && !data.outside) {
-            const pts = data.points;
-            const l = pts[6];
-            const w = pts[7];
-            const h = pts[8];
-            if (l <= 0 || w <= 0 || h <= 0) continue;
+        if (drawnKeys.length > 0) {
+          // A. Trích xuất từ Three.js drawnObjects
+          for (const idStr of drawnKeys) {
+            const drawnItem = drawnObjects[idStr];
+            const data = drawnItem?.data;
+            if (data && Array.isArray(data.points) && data.points.length >= 9 && !data.outside) {
+              const pts = data.points;
+              const l = pts[6];
+              const w = pts[7];
+              const h = pts[8];
+              if (l <= 0 || w <= 0 || h <= 0) continue;
 
-            const clientId = Number(idStr);
-            const isActive = clientId === Number(activeClientId);
-            const labelName = (data.label?.name || "").toLowerCase();
+              const clientId = Number(idStr);
+              const isActive = clientId === Number(activeClientId);
+              const labelName = (data.label?.name || "").toLowerCase();
 
-            let c = defaultColors.car;
-            if (isActive) {
-              c = defaultColors.active;
-            } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
-              c = defaultColors.pedestrian;
-            } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
-              c = defaultColors.cyclist;
-            } else if (labelName.includes("truck")) {
-              c = defaultColors.truck;
-            } else if (labelName.includes("bus")) {
-              c = defaultColors.bus;
+              let c = defaultColors.car;
+              if (isActive) {
+                c = defaultColors.active;
+              } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
+                c = defaultColors.pedestrian;
+              } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
+                c = defaultColors.cyclist;
+              } else if (labelName.includes("truck")) {
+                c = defaultColors.truck;
+              } else if (labelName.includes("bus")) {
+                c = defaultColors.bus;
+              }
+
+              const yaw = pts[5] || 0;
+              fastBoxes.push({
+                cx: pts[0],
+                cy: pts[1],
+                cz: pts[2],
+                rx: pts[3] || 0,
+                ry: pts[4] || 0,
+                rz: yaw,
+                cosY: Math.cos(-yaw),
+                sinY: Math.sin(-yaw),
+                halfL: l / 2,
+                halfW: w / 2,
+                halfH: h / 2,
+                maxR: Math.max(l, w, h) * 0.75,
+                colorR: c.r,
+                colorG: c.g,
+                colorB: c.b,
+              });
             }
+          }
+        } else {
+          // B. FALLBACK TỨC THÌ: Trích xuất từ Redux annotations states khi Three.js chưa dựng mesh
+          const states = store?.getState()?.annotation?.annotations?.states || [];
+          for (const s of states) {
+            if (s && Array.isArray(s.points) && s.points.length >= 9 && !s.outside) {
+              const pts = s.points;
+              const l = pts[6];
+              const w = pts[7];
+              const h = pts[8];
+              if (l <= 0 || w <= 0 || h <= 0) continue;
 
-            const yaw = pts[5] || 0;
-            fastBoxes.push({
-              cx: pts[0],
-              cy: pts[1],
-              cz: pts[2],
-              rx: pts[3] || 0,
-              ry: pts[4] || 0,
-              rz: yaw,
-              cosY: Math.cos(-yaw),
-              sinY: Math.sin(-yaw),
-              halfL: l / 2,
-              halfW: w / 2,
-              halfH: h / 2,
-              maxR: Math.max(l, w, h) * 0.75,
-              colorR: c.r,
-              colorG: c.g,
-              colorB: c.b,
-            });
+              const clientId = Number(s.clientID ?? s.id);
+              const isActive = clientId === Number(activeClientId);
+              const labelName = (s.label?.name || "").toLowerCase();
+
+              let c = defaultColors.car;
+              if (isActive) {
+                c = defaultColors.active;
+              } else if (labelName.includes("pedestrian") || labelName.includes("walker") || labelName.includes("person")) {
+                c = defaultColors.pedestrian;
+              } else if (labelName.includes("cyclist") || labelName.includes("bicycle") || labelName.includes("motorcycle") || labelName.includes("bike")) {
+                c = defaultColors.cyclist;
+              } else if (labelName.includes("truck")) {
+                c = defaultColors.truck;
+              } else if (labelName.includes("bus")) {
+                c = defaultColors.bus;
+              }
+
+              const yaw = pts[5] || 0;
+              fastBoxes.push({
+                cx: pts[0],
+                cy: pts[1],
+                cz: pts[2],
+                rx: pts[3] || 0,
+                ry: pts[4] || 0,
+                rz: yaw,
+                cosY: Math.cos(-yaw),
+                sinY: Math.sin(-yaw),
+                halfL: l / 2,
+                halfW: w / 2,
+                halfH: h / 2,
+                maxR: Math.max(l, w, h) * 0.75,
+                colorR: c.r,
+                colorG: c.g,
+                colorB: c.b,
+              });
+            }
           }
         }
       }
@@ -383,17 +491,104 @@ export function mainWorldScript(): void {
           obj.material.needsUpdate = true;
         }
 
+        // Đánh dấu metadata frame và trạng thái màu lên geometry
+        (geom as any).__cvat_suite_colored_frame = curFrame;
+        (geom as any).__cvat_suite_colored_mode = currentPointColorMode;
+        (geom as any).__cvat_suite_colored_boxed = currentColorizeBoxed;
+        (geom as any).__cvat_suite_box_count = numBoxes;
+        (geom as any).__cvat_suite_active_id = activeClientId;
+
         anyUpdated = true;
       }
 
       if (anyUpdated && typeof canvas.render === "function") {
-        canvas.render();
+        isColorizingRunning = true;
+        try {
+          canvas.render();
+        } finally {
+          isColorizingRunning = false;
+        }
       }
 
       return anyUpdated;
     } catch (err) {
       console.warn("[CVAT 3D Suite] Lỗi applyPointCloudColorizationInMainWorld:", err);
       return false;
+    }
+  }
+
+  // Kích hoạt chuỗi Adaptive Progressive Colorization khi chuyển frame
+  function triggerFullFrameColorizationSequence(targetFrame: number): void {
+    const delays = [20, 80, 180, 350, 600, 1000, 1800];
+    delays.forEach((delay) => {
+      setTimeout(() => {
+        try {
+          const store = getReduxStore();
+          const curF =
+            store?.getState()?.annotation?.player?.frame?.number ??
+            store?.getState()?.annotation?.job?.instance?.frame;
+          if (curF === targetFrame) {
+            if (!isPointCloudColorizedForCurrentFrame()) {
+              applyPointCloudColorizationInMainWorld();
+            }
+          }
+        } catch (_) {}
+      }, delay);
+    });
+  }
+
+  // Hook Three.js Canvas Render và Scene.add để tự động tô màu toàn frame tức thì
+  function setupFullFrameColorizationHooks(): void {
+    try {
+      const store = getReduxStore();
+      const canvas = store?.getState()?.annotation?.canvas?.instance;
+      if (!canvas) return;
+
+      // 1. Hook vào canvas.render()
+      if (typeof canvas.render === "function" && !(canvas as any).__cvat_suite_color_hooked) {
+        (canvas as any).__cvat_suite_color_hooked = true;
+        const origRender = canvas.render.bind(canvas);
+        canvas.render = function (...args: any[]) {
+          const res = origRender(...args);
+          if (!isColorizingRunning) {
+            if (!isPointCloudColorizedForCurrentFrame()) {
+              applyPointCloudColorizationInMainWorld();
+            }
+          }
+          return res;
+        };
+      }
+
+      // 2. Hook vào scene.add() của tất cả các views (Perspective, Top, Side, Front)
+      const views = canvas.view?.views;
+      if (views) {
+        const viewKeys = ["perspective", "top", "side", "front"];
+        for (const k of viewKeys) {
+          const s = views[k]?.scene;
+          if (s && !(s as any).__cvat_suite_color_hooked) {
+            (s as any).__cvat_suite_color_hooked = true;
+            const origAdd = s.add.bind(s);
+            s.add = function (...objects: any[]) {
+              const res = origAdd(...objects);
+              let hasPoints = false;
+              for (const o of objects) {
+                if (o && (o.isPoints || o.type === "Points")) {
+                  hasPoints = true;
+                  break;
+                }
+              }
+              if (hasPoints && !isColorizingRunning) {
+                setTimeout(() => {
+                  applyPointCloudColorizationInMainWorld();
+                }, 10);
+              }
+              return res;
+            };
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("[CVAT 3D Suite] Lỗi setupFullFrameColorizationHooks:", err);
     }
   }
 
@@ -4339,10 +4534,14 @@ export function mainWorldScript(): void {
             const curStatesLen = anno?.annotations?.states?.length || 0;
             const curFrame = anno?.player?.frame?.number ?? anno?.job?.instance?.frame;
 
-            // 1. PHÁT HIỆN CHUYỂN FRAME (Tua Frame F/D/Timeline/Play)
+            // 1. PHÁT HIỆN CHUYỂN FRAME HOẶC NẠP FRAME ĐẦU TIÊN (Tua Frame F/D/Timeline/Play)
             if (curFrame !== undefined && curFrame !== null && curFrame !== prevFrame) {
               const oldFrame = prevFrame;
               prevFrame = curFrame;
+
+              // Luôn kích hoạt Full-Frame Colorization cho frame này (kể cả frame đầu tiên)
+              setupFullFrameColorizationHooks();
+              triggerFullFrameColorizationSequence(curFrame);
 
               if (oldFrame !== null) {
                 // Bắn event tức thì thông báo cho Extension
@@ -4361,11 +4560,6 @@ export function mainWorldScript(): void {
                 if (activeIdToLock !== null && !isNaN(activeIdToLock)) {
                   lockOnActiveObjectAtFrame(activeIdToLock, curFrame);
                 }
-
-                // Tự động tô màu mây điểm LiDAR cho frame mới
-                setTimeout(() => {
-                  applyPointCloudColorizationInMainWorld();
-                }, 150);
               }
             }
 
@@ -6895,6 +7089,14 @@ export function mainWorldScript(): void {
       currentColorizeBoxed = !!colorizeBoxed;
     }
 
+    if (typeof localStorage !== "undefined") {
+      try {
+        localStorage.setItem("cvat_3d_point_color_mode", currentPointColorMode);
+        localStorage.setItem("cvat_3d_colorize_boxed", String(currentColorizeBoxed));
+      } catch (_) {}
+    }
+
+    setupFullFrameColorizationHooks();
     const ok = applyPointCloudColorizationInMainWorld({
       mode: currentPointColorMode,
       colorizeBoxed: currentColorizeBoxed,
@@ -6928,8 +7130,24 @@ export function mainWorldScript(): void {
     );
   });
 
-  // Tự động kích hoạt colorization lần đầu sau khi canvas sẵn sàng
-  setTimeout(() => {
-    applyPointCloudColorizationInMainWorld();
-  }, 1500);
+  // Tự động khởi tạo Full-Frame Colorization Hooks & Khởi động ban đầu
+  setupFullFrameColorizationHooks();
+  [300, 800, 1500, 2500].forEach((ms) => {
+    setTimeout(() => {
+      setupFullFrameColorizationHooks();
+      if (!isPointCloudColorizedForCurrentFrame()) {
+        applyPointCloudColorizationInMainWorld();
+      }
+    }, ms);
+  });
+
+  // Safety Heartbeat Watcher (500ms): Duy trì tự động 100% trên TOÀN BỘ CÁC FRAME
+  setInterval(() => {
+    try {
+      setupFullFrameColorizationHooks();
+      if (!isPointCloudColorizedForCurrentFrame()) {
+        applyPointCloudColorizationInMainWorld();
+      }
+    } catch (_) {}
+  }, 500);
 }
