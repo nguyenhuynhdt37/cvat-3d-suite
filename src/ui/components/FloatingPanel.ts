@@ -10,6 +10,9 @@ import {
   VehicleCatalogItem,
 } from "../../core/catalog";
 import { TrackStudioModal } from "./TrackStudioModal";
+import { QCStudioModal } from "./QCStudioModal";
+import { QCEngine, classifyLabelGroup } from "../../core/qc/qc_engine.ts";
+import type { QCObjectInstance } from "../../core/qc/types.ts";
 import { CameraOverlayManager, setVinCalibForOverlay } from "./CameraOverlay";
 import { CameraFocusModal } from "./CameraFocusModal";
 import { CalibrationModal } from "./CalibrationModal";
@@ -56,6 +59,11 @@ export class FloatingPanel {
   private toastTimer: any = null;
   private isMinimized: boolean = false;
   private trackStudioModal: TrackStudioModal = new TrackStudioModal();
+  private qcStudioModal: QCStudioModal = new QCStudioModal();
+  private qcEngine: QCEngine = new QCEngine();
+
+  // Tab chính của Floating Panel: "edit" (Chỉnh sửa) hoặc "qc" (Kiểm tra QC tức thì)
+  public activeMainTab: "edit" | "qc" = "edit";
 
   // Ngăn xếp hoàn tác thao tác (Undo / Pre Stack)
   private undoStack: UndoSnapshot[] = [];
@@ -595,16 +603,15 @@ export class FloatingPanel {
         await this.syncFrameTracks();
       }
 
-      // 2. Quét xem có active item nào trên sidebar không (quét ngầm: không ép Three.js canvas activate)
-      // CHỐNG NHÁY & CHỐNG XUNG ĐỘT: Chỉ chấp nhận ID nếu xe đó THỰC SỰ CÓ MẶT tại frame hiện tại!
+      // 2. Quét xem có active item nào trên sidebar không (Tự động FOCUS vào xe khi đổi đối tượng)
       const active = CVATBridge.getActiveTrackId();
       if (active.id !== null && active.id !== this.selectedUiId) {
-        const isTrackInCurrentFrame = this.frameTracks.some((t) => t.uiId === active.id);
+        const isTrackInCurrentFrame = this.frameTracks.length === 0 || this.frameTracks.some((t) => t.uiId === active.id);
         if (isTrackInCurrentFrame) {
-          await this.selectTrackByUiId(active.id, undefined, false);
+          await this.selectTrackByUiId(active.id, undefined, true);
         }
       }
-    }, 800);
+    }, 150);
 
     // Chờ CVAT ổn định 1.2s sau khi F5 rồi mới quét lần đầu để chống bão khởi tạo
     setTimeout(() => this.syncFrameTracks(), 1200);
@@ -2369,11 +2376,245 @@ export class FloatingPanel {
     }
   }
 
+  /**
+   * Render nội dung Tab QC (Quick Focus Mode) trên Floating Panel
+   */
+  private renderQCTabContent(): string {
+    const openModalBtnHtml = `
+      <button id="btn-open-qc-studio-modal" style="
+        width: 100%;
+        padding: 9px 12px;
+        background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+        border: 1px solid #bfdbfe;
+        border-radius: 8px;
+        color: #1d4ed8;
+        font-size: 11.5px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        transition: all 0.15s ease;
+      ">
+        <span style="display: flex; align-items: center;">${ICONS.matrix}</span>
+        <span>Mở QC Studio Toàn Màn Hình</span>
+        <span style="display: flex; align-items: center; opacity: 0.7;">${ICONS.externalLink}</span>
+      </button>
+    `;
+
+    if (this.selectedUiId === null) {
+      return `
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          ${openModalBtnHtml}
+
+          <div style="
+            background: #ffffff;
+            border: 1px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 24px 16px;
+            text-align: center;
+            color: #64748b;
+          ">
+            <div style="margin-bottom: 8px; color: #94a3b8; display: flex; justify-content: center;">
+              ${ICONS.target}
+            </div>
+            <div style="font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px;">
+              Chưa chọn đối tượng để kiểm định
+            </div>
+            <div style="font-size: 11px; line-height: 1.5;">
+              Vui lòng nhấp chọn bất kỳ box 3D nào trên Canvas hoặc chọn từ Dropdown để xem báo cáo sức khỏe tức thì.
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Tạo đối tượng hiện tại
+    const curObj: QCObjectInstance = {
+      frame: this.currentFrameNumber,
+      trackId: this.selectedUiId,
+      label: this.currentLabel,
+      group: classifyLabelGroup(this.currentLabel, this.qcEngine.getConfig()),
+      x: this.currentX,
+      y: this.currentY,
+      z: this.currentZ,
+      yaw: (this.currentYawDeg * Math.PI) / 180,
+      yawDeg: this.currentYawDeg,
+      l: this.currentL,
+      w: this.currentW,
+      h: this.currentH,
+    };
+
+    // Danh sách các đối tượng khác trong cùng frame
+    const currentFrameObjects: QCObjectInstance[] = this.frameTracks.map((t) => ({
+      frame: this.currentFrameNumber,
+      trackId: t.uiId,
+      label: t.label,
+      group: classifyLabelGroup(t.label, this.qcEngine.getConfig()),
+      x: t.x,
+      y: t.y,
+      z: t.z,
+      yaw: (t.yawDeg * Math.PI) / 180,
+      yawDeg: t.yawDeg,
+      l: t.l,
+      w: t.w,
+      h: t.h,
+    }));
+
+    // Chạy bộ kiểm tra tức thì
+    const summary = this.qcEngine.checkSingleObject(curObj, [curObj], currentFrameObjects);
+
+    const isClean = summary.overallStatus === "clean";
+    const isError = summary.overallStatus === "error";
+
+    const statusBg = isClean ? "#ecfdf5" : isError ? "#fef2f2" : "#fffbeb";
+    const statusBorder = isClean ? "#a7f3d0" : isError ? "#fecaca" : "#fef08a";
+    const statusText = isClean ? "#059669" : isError ? "#dc2626" : "#d97706";
+    const statusTitle = isClean
+      ? "✓ ĐẠT CHUẨN KIỂM ĐỊNH"
+      : isError
+      ? `✖ CÓ ${summary.issues.length} LỖI CẦN SỬA`
+      : `⚠ CÓ ${summary.issues.length} CẢNH BÁO`;
+
+    // Render danh sách tiêu chí kiểm tra
+    const renderCheckItem = (code: string, name: string, chk: any) => {
+      const ok = chk.passed;
+      const color = ok ? "#059669" : chk.severity === "error" ? "#dc2626" : "#d97706";
+      const bg = ok ? "#f0fdf4" : chk.severity === "error" ? "#fef2f2" : "#fffbeb";
+      const icon = ok ? "✓" : chk.severity === "error" ? "✖" : "⚠";
+
+      return `
+        <div style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 5px 8px;
+          border-radius: 6px;
+          background: ${bg};
+          border: 1px solid ${color}20;
+          font-size: 11px;
+        ">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-weight: 700; color: ${color}; font-family: monospace;">[${code}]</span>
+            <span style="color: #334155; font-weight: 500;">${name}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 4px; color: ${color}; font-weight: 600; font-size: 10px;">
+            <span>${icon}</span>
+            <span>${ok ? "Đạt" : "Chưa đạt"}</span>
+          </div>
+        </div>
+      `;
+    };
+
+    // Render chi tiết lỗi nếu có
+    let issuesDetailHtml = "";
+    if (summary.issues.length > 0) {
+      issuesDetailHtml = `
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+          <div style="font-size: 11px; font-weight: 700; color: #475569;">Chi tiết cảnh báo & lỗi:</div>
+          ${summary.issues
+            .map(
+              (iss) => `
+            <div style="
+              padding: 6px 8px;
+              border-radius: 6px;
+              background: ${iss.severity === "error" ? "#fef2f2" : "#fffbeb"};
+              border: 1px solid ${iss.severity === "error" ? "#fca5a5" : "#fde047"};
+              font-size: 10.5px;
+              color: #0f172a;
+              display: flex;
+              flex-direction: column;
+              gap: 2px;
+            ">
+              <div style="display: flex; justify-content: space-between; font-weight: 700; color: ${iss.severity === "error" ? "#dc2626" : "#b45309"};">
+                <span>[${iss.symbol}] ${iss.name}</span>
+                <span style="font-family: monospace;">${iss.value}</span>
+              </div>
+              <div style="color: #475569; font-size: 10px;">${iss.detail}</div>
+              <div style="color: #64748b; font-size: 9.5px; font-family: monospace;">Chuẩn: ${iss.ref}</div>
+            </div>
+          `
+            )
+            .join("")}
+        </div>
+      `;
+    }
+
+    return `
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- NÚT MỞ TOÀN MÀN HÌNH -->
+        ${openModalBtnHtml}
+
+        <!-- THẺ TỔNG HỢP SỨC KHỎE OBJECT ĐANG CHỌN -->
+        <div style="
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        ">
+          <!-- HEADER THẺ: ID & TRẠNG THÁI TỔNG THỂ -->
+          <div style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: ${statusBg};
+            border: 1px solid ${statusBorder};
+          ">
+            <div style="font-weight: 700; font-size: 12px; color: ${statusText};">
+              #${this.selectedUiId} · ${this.currentLabel}
+            </div>
+            <div style="font-size: 10.5px; font-weight: 700; color: ${statusText};">
+              ${statusTitle}
+            </div>
+          </div>
+
+          <!-- THÔNG SỐ HIỆN TẠI -->
+          <div style="
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 6px;
+            background: #f8fafc;
+            border-radius: 6px;
+            font-size: 10px;
+            font-family: monospace;
+            color: #64748b;
+          ">
+            <span>Size: ${this.currentL.toFixed(2)}x${this.currentW.toFixed(2)}x${this.currentH.toFixed(2)}m</span>
+            <span>Z: ${this.currentZ.toFixed(2)}m</span>
+            <span>Yaw: ${this.currentYawDeg.toFixed(0)}°</span>
+          </div>
+
+          <!-- BẢNG TIÊU CHÍ KIỂM TRA -->
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            ${renderCheckItem("S", "Scale Toàn Track", summary.checks.scale)}
+            ${renderCheckItem("K", "Kích Thước Catalog", summary.checks.size)}
+            ${renderCheckItem("Z", "Cao Độ Mặt Đường", summary.checks.z)}
+            ${renderCheckItem("H", "Hướng Đầu Xe (Yaw)", summary.checks.rot)}
+            ${renderCheckItem("O", "Chồng Lấn BEV", summary.checks.overlap)}
+            ${renderCheckItem("D", "Khoảng Cách LiDAR", summary.checks.dist)}
+            ${renderCheckItem("L", "Mây Điểm LiDAR Thực", summary.checks.empty_box)}
+          </div>
+
+          <!-- CHI TIẾT CẢNH BÁO / LỖI NẾU CÓ -->
+          ${issuesDetailHtml}
+        </div>
+      </div>
+    `;
+  }
+
   private updateContent(): void {
     if (!this.container || !this.currentCtx) return;
 
     // Snapshot trạng thái hiển thị (State Memoization chống nháy DOM):
     const stateHash = [
+      this.activeMainTab,
       this.selectedUiId,
       this.currentFrameNumber,
       this.currentX,
@@ -2765,6 +3006,58 @@ export class FloatingPanel {
       <!-- DẢI SUB-HEADER THỐNG KÊ TRACK ID (CỤM TIÊU ĐỀ) -->
       ${this.renderTrackStatsSubHeader()}
 
+      <!-- MAIN TABS SWITCHER: EDIT vs QC -->
+      <div style="
+        display: flex;
+        gap: 4px;
+        background: #f1f5f9;
+        padding: 3px;
+        border-radius: 8px;
+        margin: 6px 10px 0 10px;
+        border: 1px solid #e2e8f0;
+      ">
+        <button id="main-tab-edit" style="
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 5px 0;
+          border-radius: 6px;
+          border: none;
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.12s;
+          background: ${this.activeMainTab === "edit" ? "#ffffff" : "transparent"};
+          color: ${this.activeMainTab === "edit" ? "#0f172a" : "#64748b"};
+          box-shadow: ${this.activeMainTab === "edit" ? "0 1px 2px rgba(0,0,0,0.06)" : "none"};
+        ">
+          <span style="display: flex;">${ICONS.box}</span>
+          <span>Chỉnh Sửa</span>
+        </button>
+        <button id="main-tab-qc" style="
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 5px 0;
+          border-radius: 6px;
+          border: none;
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.12s;
+          background: ${this.activeMainTab === "qc" ? "#ffffff" : "transparent"};
+          color: ${this.activeMainTab === "qc" ? "#dc2626" : "#64748b"};
+          box-shadow: ${this.activeMainTab === "qc" ? "0 1px 2px rgba(0,0,0,0.06)" : "none"};
+        ">
+          <span style="display: flex;">${ICONS.shieldCheck}</span>
+          <span>Kiểm Tra QC</span>
+        </button>
+      </div>
+
       <!-- MAIN CONTAINER BODY (LIGHT) -->
       <div style="
         padding: 10px;
@@ -2775,6 +3068,7 @@ export class FloatingPanel {
         flex: 1;
         max-height: calc(100vh - 120px);
       ">
+        ${this.activeMainTab === "qc" ? this.renderQCTabContent() : `
         <!-- KHỐI 1: CHỌN XE & THÔNG SỐ TÓM TẮT -->
         <div style="
           background: #ffffff;
@@ -3972,6 +4266,7 @@ export class FloatingPanel {
           </span>
           <kbd style="font-size: 9px; font-family: monospace; background: #ffffff; border: 1px solid #bfdbfe; padding: 1px 4px; border-radius: 3px; color: #1d4ed8;">⇧M</kbd>
         </button>
+        `}
       </div>
 
       <!-- CARD FOOTER (LIGHT) -->
@@ -4002,6 +4297,37 @@ export class FloatingPanel {
     // ==========================================
     // GẮN SỰ KIỆN TƯƠNG TÁC
     // ==========================================
+
+    // 0. Gắn sự kiện chuyển đổi Main Suite Tabs (Edit vs QC)
+    const tabEditBtn = this.container.querySelector("#main-tab-edit");
+    if (tabEditBtn) {
+      tabEditBtn.addEventListener("click", () => {
+        if (this.activeMainTab !== "edit") {
+          this.activeMainTab = "edit";
+          this.updateContent();
+        }
+      });
+    }
+
+    const tabQcBtn = this.container.querySelector("#main-tab-qc");
+    if (tabQcBtn) {
+      tabQcBtn.addEventListener("click", () => {
+        if (this.activeMainTab !== "qc") {
+          this.activeMainTab = "qc";
+          this.updateContent();
+        }
+      });
+    }
+
+    // Nút mở toàn màn hình QC Studio Modal
+    const openQcModalBtn = this.container.querySelector("#btn-open-qc-studio-modal");
+    if (openQcModalBtn) {
+      openQcModalBtn.addEventListener("click", () => {
+        if (this.currentCtx) {
+          this.qcStudioModal.open(this.currentCtx);
+        }
+      });
+    }
 
     // 1. Gắn sự kiện chọn nhanh Loại đối tượng (Category Chips)
     const catChips = this.container.querySelectorAll<HTMLButtonElement>(".btn-category-chip");

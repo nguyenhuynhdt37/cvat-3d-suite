@@ -4241,9 +4241,10 @@ export function mainWorldScript(): void {
         }
       } catch (_) {}
 
-      // 2. Tìm tọa độ tâm box (x, y, z)
+      // 2. Tìm tọa độ tâm box (x, y, z) đa tầng (Robust Multi-Layer Pos Resolver)
       let pos = targetPos;
       if (!pos) {
+        // Tầng 1: Tìm trực tiếp theo key string trong drawnObjects
         const drawn = canvas.view?.drawnObjects?.[String(uiId)];
         if (drawn?.data?.points && Array.isArray(drawn.data.points)) {
           pos = {
@@ -4251,6 +4252,41 @@ export function mainWorldScript(): void {
             y: drawn.data.points[1],
             z: drawn.data.points[2],
           };
+        } else {
+          // Tầng 2: Quét toàn bộ drawnObjects so khớp clientID, parentID, trackID, serverID
+          const drawnObjects = canvas.view?.drawnObjects || {};
+          for (const k of Object.keys(drawnObjects)) {
+            const item = drawnObjects[k];
+            const d = item?.data;
+            if (d && Array.isArray(d.points)) {
+              if (
+                Number(k) === uiId ||
+                Number(d.clientID) === uiId ||
+                Number(d.parentID) === uiId ||
+                Number(d.trackID) === uiId ||
+                Number(d.serverID) === uiId
+              ) {
+                pos = { x: d.points[0], y: d.points[1], z: d.points[2] };
+                break;
+              }
+            }
+          }
+        }
+
+        // Tầng 3: Fallback tìm trong Redux annotations states
+        if (!pos) {
+          const states = store?.getState()?.annotation?.annotations?.states || [];
+          const matched = states.find(
+            (s: any) =>
+              Number(s.clientID) === uiId ||
+              Number(s.id) === uiId ||
+              Number(s.parentID) === uiId ||
+              Number(s.trackID) === uiId ||
+              Number(s.serverID) === uiId
+          );
+          if (matched && Array.isArray(matched.points)) {
+            pos = { x: matched.points[0], y: matched.points[1], z: matched.points[2] };
+          }
         }
       }
 
@@ -5144,6 +5180,10 @@ export function mainWorldScript(): void {
             sidebarObserverDebounce = null;
             try {
               const activeItem = document.querySelector<HTMLElement>(
+                ".cvat-objects-sidebar-state-active-element, " +
+                "[class*='cvat-objects-sidebar-state-active-element'], " +
+                "[class*='state-active-element'], " +
+                "[id*='cvat-objects-sidebar-state-item-'][class*='active'], " +
                 ".cvat-objects-sidebar-state-item-active, " +
                 ".cvat-objects-sidebar-state-item.selected, " +
                 "[class*='sidebar-state-item-active'], " +
@@ -5158,12 +5198,18 @@ export function mainWorldScript(): void {
 
               if (activeItem) {
                 let id: number | null = null;
-                const dataId = activeItem.getAttribute("data-cvat-state-item-id") || activeItem.getAttribute("data-item-id");
-                if (dataId && /^\d+$/.test(dataId)) {
-                  id = parseInt(dataId, 10);
+                const idAttr = activeItem.id || activeItem.closest("[id*='cvat-objects-sidebar-state-item-']")?.id || "";
+                const directMatch = idAttr.match(/cvat-objects-sidebar-state-item-(\d+)/) || idAttr.match(/#?(\d+)/);
+                if (directMatch) {
+                  id = parseInt(directMatch[1], 10);
                 } else {
-                  const match = (activeItem.id || activeItem.innerText || activeItem.textContent || "").match(/#?(\d+)/);
-                  if (match) id = parseInt(match[1], 10);
+                  const dataId = activeItem.getAttribute("data-cvat-state-item-id") || activeItem.getAttribute("data-item-id");
+                  if (dataId && /^\d+$/.test(dataId)) {
+                    id = parseInt(dataId, 10);
+                  } else {
+                    const match = (activeItem.innerText || activeItem.textContent || "").match(/#(\d+)/);
+                    if (match) id = parseInt(match[1], 10);
+                  }
                 }
 
                 if (id && id > 0 && id !== lastObservedSidebarId && id !== lastActiveTrackId) {
@@ -5173,7 +5219,7 @@ export function mainWorldScript(): void {
                 }
               }
             } catch (_) {}
-          }, 30);
+          }, 25);
         });
 
         observer.observe(sidebarEl, {
@@ -5186,6 +5232,48 @@ export function mainWorldScript(): void {
 
     attachSidebarActiveObserver();
     setInterval(attachSidebarActiveObserver, 2000);
+
+    // 3. Theo dõi pointermove trên toàn bộ màn hình để phát hiện tức thì khi CVAT đổi đối tượng
+    let windowPointerThrottle: any = null;
+    window.addEventListener(
+      "pointermove",
+      () => {
+        if (windowPointerThrottle) return;
+        windowPointerThrottle = setTimeout(() => {
+          windowPointerThrottle = null;
+          try {
+            const store = getReduxStore();
+            const canvas = store?.getState()?.annotation?.canvas?.instance;
+            const view = canvas?.view;
+            const activeId =
+              view?.activatedElementID ??
+              view?.hoveredElementID ??
+              store?.getState()?.annotation?.annotations?.activatedStateClientID ??
+              store?.getState()?.annotation?.annotations?.highlightedClientID;
+
+            if (activeId !== null && activeId !== undefined && Number(activeId) > 0 && Number(activeId) !== lastActiveTrackId) {
+              triggerFocusOnObject(Number(activeId), true);
+              return;
+            }
+
+            const activeEl = document.querySelector<HTMLElement>(
+              ".cvat-objects-sidebar-state-active-element, [class*='state-active-element'], [class*='sidebar-state-item-active']"
+            );
+            if (activeEl) {
+              const idAttr = activeEl.id || activeEl.closest("[id*='cvat-objects-sidebar-state-item-']")?.id || "";
+              const match = idAttr.match(/cvat-objects-sidebar-state-item-(\d+)/) || idAttr.match(/#?(\d+)/);
+              if (match) {
+                const idNum = parseInt(match[1], 10);
+                if (idNum > 0 && idNum !== lastActiveTrackId) {
+                  triggerFocusOnObject(idNum, true);
+                }
+              }
+            }
+          } catch (_) {}
+        }, 35);
+      },
+      { passive: true }
+    );
 
     // LẮNG NGHE REDUX STORE SUBSCRIBE ĐỂ PHÁT HIỆN TỨC THÌ KHI VỪA VẼ XONG BOX MỚI VÀ KHI TUA FRAME
     try {

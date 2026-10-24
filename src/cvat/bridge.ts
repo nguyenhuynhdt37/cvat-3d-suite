@@ -1176,6 +1176,10 @@ export class CVATBridge {
    */
   public static getActiveTrackId(): { id: number | null; label: string | null } {
     const activeSelectors = [
+      ".cvat-objects-sidebar-state-active-element",
+      "[class*='cvat-objects-sidebar-state-active-element']",
+      "[class*='state-active-element']",
+      "[id*='cvat-objects-sidebar-state-item-'][class*='active']",
       ".cvat-objects-sidebar-state-item-active",
       "[class*='sidebar-state-item-active']",
       "[class*='sidebar-state-item--active']",
@@ -1200,6 +1204,22 @@ export class CVATBridge {
   }
 
   public static extractIdFromElement(el: HTMLElement): number | null {
+    // 1. Kiểm tra trực tiếp id của element hoặc id của thẻ cha/con gần nhất
+    const idAttr = el.id || el.getAttribute("id") || "";
+    const directMatch = idAttr.match(/cvat-objects-sidebar-state-item-(\d+)/);
+    if (directMatch) {
+      return parseInt(directMatch[1], 10);
+    }
+
+    const parentItem = el.closest<HTMLElement>("[id*='cvat-objects-sidebar-state-item-']");
+    if (parentItem && parentItem.id) {
+      const parentMatch = parentItem.id.match(/cvat-objects-sidebar-state-item-(\d+)/);
+      if (parentMatch) {
+        return parseInt(parentMatch[1], 10);
+      }
+    }
+
+    // 2. Kiểm tra data-id
     const dataId = el.getAttribute("data-cvat-state-item-id") || el.getAttribute("data-item-id");
     if (dataId && /^\d+$/.test(dataId)) {
       return parseInt(dataId, 10);
