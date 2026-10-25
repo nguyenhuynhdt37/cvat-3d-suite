@@ -1,8 +1,13 @@
-import { flipYaw, radToDeg } from "../core/geometry";
-import { mainWorldScript } from "./injected";
+import { flipYaw, radToDeg } from "../core/geometry.ts";
+import type { BoxEdgeContactsResult, EdgeContactSide } from "../core/geometry.ts";
+export type { BoxEdgeContactsResult, EdgeContactSide };
+import type { OrthoSlicingConfig } from "../core/types.ts";
+export type { OrthoSlicingConfig };
+import { mainWorldScript } from "./injected.ts";
 
 export interface FrameTrackItem {
-  uiId: number;       // Số 1, 2 hiển thị chuẩn trên giao diện người dùng
+  uiId: number;       // Số instance clientID tại frame này (dùng để activate Three.js)
+  trackId?: number;   // Số Track ID toàn cục bền vững xuyên suốt các frame (parentID ?? trackID ?? clientID)
   serverId: number;   // Số 31, 32 lưu trên database server
   label: string;
   color?: string;     // Mã màu của nhãn để hiển thị badge
@@ -73,7 +78,16 @@ export class CVATBridge {
    * Khởi tạo cầu nối vào Main World của CVAT
    */
   public static ensureMainWorldBridge(): void {
-    if (this.isBridgeInjected || (window as any).__CVAT_3D_SUITE_INJECTED__ || document.getElementById("cvat-3d-suite-main-bridge")) {
+    if (
+      this.isBridgeInjected ||
+      (typeof window !== "undefined" && (window as any).__CVAT_3D_SUITE_INJECTED__) ||
+      (typeof document !== "undefined" && document.getElementById("cvat-3d-suite-main-bridge"))
+    ) {
+      this.isBridgeInjected = true;
+      return;
+    }
+
+    if (typeof document === "undefined") {
       this.isBridgeInjected = true;
       return;
     }
@@ -141,19 +155,25 @@ export class CVATBridge {
    * Tuyệt đối không quét mù quáng các input số khác (như frame step = 5) làm nhảy frame!
    */
   public static getCurrentFrame(): number {
-    const frameInput = document.querySelector<HTMLInputElement>(
-      ".cvat-player-frame-selector input, input.cvat-player-frame-selector, input[aria-label='Frame selector']"
-    );
-    if (frameInput && frameInput.value !== undefined && frameInput.value !== "") {
-      const val = parseInt(frameInput.value, 10);
-      if (!isNaN(val) && val >= 0) return val;
-    }
+    try {
+      if (typeof document !== "undefined") {
+        const frameInput = document.querySelector<HTMLInputElement>(
+          ".cvat-player-frame-selector input, input.cvat-player-frame-selector, input[aria-label='Frame selector']"
+        );
+        if (frameInput && frameInput.value !== undefined && frameInput.value !== "") {
+          const val = parseInt(frameInput.value, 10);
+          if (!isNaN(val) && val >= 0) return val;
+        }
+      }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const frameParam = urlParams.get("frame");
-    if (frameParam && !isNaN(parseInt(frameParam, 10))) {
-      return parseInt(frameParam, 10);
-    }
+      if (typeof window !== "undefined" && window.location && window.location.search) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const frameParam = urlParams.get("frame");
+        if (frameParam && !isNaN(parseInt(frameParam, 10))) {
+          return parseInt(frameParam, 10);
+        }
+      }
+    } catch (_) {}
 
     return 0;
   }
@@ -198,6 +218,13 @@ export class CVATBridge {
   }
 
   /**
+   * Alias tương thích ngược cho fetchJobAnnotations.
+   */
+  public static async getJobAnnotations(jobId: number, forceRefresh: boolean = false): Promise<any> {
+    return this.fetchJobAnnotations(jobId, forceRefresh);
+  }
+
+  /**
    * Lấy danh sách TẤT CẢ các Track ID CÓ MẶT TẠI FRAME HIỆN TẠI.
    * Ưu tiên 1: Main World Bridge (được phản hồi là trả về ngay, dù rỗng [] hay có xe).
    * Ưu tiên 2: window.cvat SDK nội bộ của trang web.
@@ -206,15 +233,7 @@ export class CVATBridge {
   public static async getTracksInCurrentFrame(jobId: number, frame: number): Promise<FrameTrackItem[]> {
     this.ensureMainWorldBridge();
 
-    // Lấy trước từ điển labels nếu có taskId trong URL
-    const taskMatch = window.location.pathname.match(/\/tasks\/(\d+)/);
-    const taskId = taskMatch ? parseInt(taskMatch[1], 10) : null;
-    let taskLabels: Map<number, { name: string; color: string }> = new Map();
-    if (taskId) {
-      taskLabels = await this.fetchTaskLabels(taskId);
-    }
-
-    // 1. Thử gọi Main-World Bridge qua CustomEvent
+    // 1. Thử gọi Main-World Bridge qua CustomEvent (labels đã được resolve chuẩn xác 100% trong Main World từ Job)
     const promise = new Promise<FrameTrackItem[] | null>((resolve) => {
       const timeout = setTimeout(() => resolve(null), 600);
 
@@ -427,7 +446,15 @@ export class CVATBridge {
     uiId: number,
     serverId: number,
     mode: "road" | "curb" | "half_curb" | "micro_adjust" | "micro_adjust_pitch" | "micro_adjust_roll" | "reset_slope",
-    params?: { deltaCm?: number; deltaDeg?: number; curbHeight?: number; targetGroundZ?: number; applyToTrack?: boolean }
+    params?: {
+      deltaCm?: number;
+      deltaDeg?: number;
+      curbHeight?: number;
+      targetGroundZ?: number;
+      applyToTrack?: boolean;
+      category?: "car" | "pedestrian" | "cyclist";
+      attributes?: Record<string, any>;
+    }
   ): Promise<{ success: boolean; newZ: number; message: string }> {
     this.ensureMainWorldBridge();
     const currentFrame = this.getCurrentFrame();
@@ -460,6 +487,8 @@ export class CVATBridge {
             curbHeight: params?.curbHeight,
             targetGroundZ: params?.targetGroundZ,
             applyToTrack: params?.applyToTrack ?? false,
+            category: params?.category,
+            attributes: params?.attributes,
           },
         })
       );
@@ -928,7 +957,8 @@ export class CVATBridge {
     jobId: number,
     uiId: number,
     serverId: number | null,
-    applyToTrack: boolean = false
+    applyToTrack: boolean = false,
+    attributes?: Record<string, any>
   ): Promise<{
     success: boolean;
     newL?: number;
@@ -958,7 +988,7 @@ export class CVATBridge {
       window.addEventListener("CVAT_EXT_RES_FIT_CURRENT_BOX", onResponse);
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_REQ_FIT_CURRENT_BOX", {
-          detail: { jobId, frame: currentFrame, uiId, serverId, applyToTrack },
+          detail: { jobId, frame: currentFrame, uiId, serverId, applyToTrack, attributes },
         })
       );
     });
@@ -1133,6 +1163,14 @@ export class CVATBridge {
         detail: { clientId: uiId, pos },
       })
     );
+  }
+
+  /**
+   * Kích hoạt đối tượng trên Three.js Canvas3D và đồng bộ Active Track ID
+   */
+  public static activateObject(uiId: number, pos?: { x: number; y: number; z: number }): void {
+    this.activateCanvasTrack(uiId, pos);
+    this.setActiveTrackIdInMainWorld(uiId);
   }
 
   /**
@@ -1322,7 +1360,7 @@ export class CVATBridge {
     this.ensureMainWorldBridge();
 
     const promise = new Promise<any[]>((resolve) => {
-      const timeout = setTimeout(() => resolve([]), 3000);
+      const timeout = setTimeout(() => resolve([]), 5000);
 
       const onResponse = (e: any) => {
         clearTimeout(timeout);
@@ -1337,6 +1375,36 @@ export class CVATBridge {
       window.addEventListener("CVAT_EXT_RES_GET_ALL_JOB_TRACKS_WITH_SHAPES", onResponse);
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_REQ_GET_ALL_JOB_TRACKS_WITH_SHAPES", {
+          detail: { jobId },
+        })
+      );
+    });
+
+    return await promise;
+  }
+
+  /**
+   * Trích xuất toàn bộ Job kèm đầy đủ các frame nội suy theo định dạng chuẩn Datumaro 1.0 JSON
+   */
+  public static async exportJobDatumaroData(jobId: number): Promise<any | null> {
+    this.ensureMainWorldBridge();
+
+    const promise = new Promise<any | null>((resolve) => {
+      const timeout = setTimeout(() => resolve(null), 60000);
+
+      const onResponse = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_EXPORT_JOB_DATUMARO_DATA", onResponse);
+        if (e.detail && e.detail.success && e.detail.dataset) {
+          resolve(e.detail.dataset);
+        } else {
+          resolve(null);
+        }
+      };
+
+      window.addEventListener("CVAT_EXT_RES_EXPORT_JOB_DATUMARO_DATA", onResponse);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_EXPORT_JOB_DATUMARO_DATA", {
           detail: { jobId },
         })
       );
@@ -1439,9 +1507,12 @@ export class CVATBridge {
   }
 
   /**
-   * Yêu cầu CVAT native nhảy timeline tới frame chỉ định
+   * Yêu cầu CVAT native nhảy timeline tới frame chỉ định (Kèm Same-Frame Guard)
    */
   public static jumpToFrame(frame: number): void {
+    if (typeof frame !== "number" || isNaN(frame) || frame < 0) return;
+    const current = this.getCurrentFrame();
+    if (current === frame) return;
     window.dispatchEvent(
       new CustomEvent("CVAT_EXT_REQ_JUMP_FRAME", {
         detail: { frame },
@@ -1848,24 +1919,130 @@ export class CVATBridge {
     });
   }
 
+
   /**
-   * Bật/Tắt hiển thị Mặt Sàn Polygon 3D Mờ (Mặt đường & Vỉa hè).
+   * Cấu hình Theme Giao diện Canvas 3D (Light: Nền Trắng + Điểm Đen ⇄ Dark: Nền Tối + Điểm Sáng).
    */
-  public static async setGroundPlaneVisible(visible: boolean): Promise<boolean> {
+  public static async setCanvasTheme(theme: "light" | "dark"): Promise<{ success: boolean; theme: "light" | "dark" }> {
     this.ensureMainWorldBridge();
     return new Promise((resolve) => {
-      const timeout = setTimeout(() => resolve(visible), 500);
+      const timeout = setTimeout(() => resolve({ success: true, theme }), 600);
       const onRes = (e: any) => {
         clearTimeout(timeout);
-        window.removeEventListener("CVAT_EXT_RES_SET_GROUND_PLANE_VISIBLE", onRes);
-        resolve(e.detail?.visible ?? visible);
+        window.removeEventListener("CVAT_EXT_RES_SET_CANVAS_THEME", onRes);
+        resolve(e.detail || { success: true, theme });
       };
-      window.addEventListener("CVAT_EXT_RES_SET_GROUND_PLANE_VISIBLE", onRes);
+      window.addEventListener("CVAT_EXT_RES_SET_CANVAS_THEME", onRes);
       window.dispatchEvent(
-        new CustomEvent("CVAT_EXT_REQ_SET_GROUND_PLANE_VISIBLE", {
-          detail: { visible },
+        new CustomEvent("CVAT_EXT_REQ_SET_CANVAS_THEME", {
+          detail: { theme },
         })
       );
     });
   }
+
+  /**
+   * Truy vấn Theme Giao diện Canvas 3D hiện tại từ Main World ("light" | "dark").
+   */
+  public static async getCanvasTheme(): Promise<"light" | "dark"> {
+    this.ensureMainWorldBridge();
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => resolve("light"), 500);
+      const onRes = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_GET_CANVAS_THEME", onRes);
+        resolve(e.detail?.theme || "light");
+      };
+      window.addEventListener("CVAT_EXT_RES_GET_CANVAS_THEME", onRes);
+      window.dispatchEvent(new CustomEvent("CVAT_EXT_REQ_GET_CANVAS_THEME"));
+    });
+  }
+
+  /**
+   * Cấu hình Kích thước Hạt Điểm Mây LiDAR trên 3 Khung Nhìn 2D Trực Giao (Top, Side, Front).
+   * Mặc định: 3.5px (Nét rõ), Hỗ trợ xoay vòng: 2.0px / 3.5px / 5.0px.
+   */
+  public static async setOrthoPointSize(size: number): Promise<{ success: boolean; size: number }> {
+    this.ensureMainWorldBridge();
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => resolve({ success: true, size }), 500);
+      const onRes = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_SET_ORTHO_POINT_SIZE", onRes);
+        resolve(e.detail || { success: true, size });
+      };
+      window.addEventListener("CVAT_EXT_RES_SET_ORTHO_POINT_SIZE", onRes);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_SET_ORTHO_POINT_SIZE", {
+          detail: { size },
+        })
+      );
+    });
+  }
+
+  /**
+   * Truy vấn kích thước hạt điểm mây Ortho 2D hiện tại.
+   */
+  public static async getOrthoPointSize(): Promise<number> {
+    this.ensureMainWorldBridge();
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => resolve(3.5), 500);
+      const onRes = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_GET_ORTHO_POINT_SIZE", onRes);
+        resolve(e.detail?.size ?? 3.5);
+      };
+      window.addEventListener("CVAT_EXT_RES_GET_ORTHO_POINT_SIZE", onRes);
+      window.dispatchEvent(new CustomEvent("CVAT_EXT_REQ_GET_ORTHO_POINT_SIZE"));
+    });
+  }
+
+  /**
+   * Yêu cầu Main World tính toán và phát lại Cảnh Báo Viền Chạm Point (Edge Contact HUD) cho Active Box.
+   */
+  public static requestEdgeContactsCalculation(): void {
+    this.ensureMainWorldBridge();
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("CVAT_EXT_REQ_CALCULATE_EDGE_CONTACTS"));
+    }
+  }
+
+  /**
+   * Cập nhật cấu hình tính năng Lát cắt (Depth Slicing) & Lọc mặt đất/ROI trực tiếp lên Three.js Views.
+   */
+  public static setOrthoSlicing(config: Partial<OrthoSlicingConfig>): void {
+    this.ensureMainWorldBridge();
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_REQ_SET_ORTHO_SLICING", { detail: config })
+      );
+    }
+  }
+
+  /**
+   * Lấy cấu hình Lát cắt hiện tại từ Main World.
+   */
+  public static async getOrthoSlicing(): Promise<OrthoSlicingConfig> {
+    this.ensureMainWorldBridge();
+    return new Promise((resolve) => {
+      if (typeof window === "undefined") {
+        resolve({ enabled: false, slab: 0.5, hideGround: true, isolateROI: false });
+        return;
+      }
+      const timeout = setTimeout(() => {
+        resolve({ enabled: false, slab: 0.5, hideGround: true, isolateROI: false });
+      }, 500);
+
+      const onRes = (e: any) => {
+        clearTimeout(timeout);
+        window.removeEventListener("CVAT_EXT_RES_ORTHO_SLICING", onRes);
+        resolve(
+          e.detail?.config || { enabled: false, slab: 0.5, hideGround: true, isolateROI: false }
+        );
+      };
+      window.addEventListener("CVAT_EXT_RES_ORTHO_SLICING", onRes);
+      window.dispatchEvent(new CustomEvent("CVAT_EXT_REQ_GET_ORTHO_SLICING"));
+    });
+  }
 }
+

@@ -25,6 +25,7 @@ import {
   type Box3D,
 } from '../core/geometry';
 import { findBestFitCatalog } from '../core/catalog';
+import { detectObjectCategory } from '../core/qc/qc_engine';
 import { CASE2_CSS } from './styles';
 import { PointCloudDiskStorage } from './point_cloud_cache';
 
@@ -524,9 +525,10 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
       return;
     }
 
-    const labelLower = store.labelName(track.labelId).toLowerCase();
-    const isPed = labelLower.includes('pedestrian') || labelLower.includes('person') || labelLower.includes('người');
-    const isCyclist = labelLower.includes('cyclist') || labelLower.includes('bicycle') || labelLower.includes('bike') || labelLower.includes('moto');
+    const rawLabel = store.labelName(track.labelId);
+    const cat = detectObjectCategory(rawLabel);
+    const isPed = cat === 'pedestrian';
+    const isCyclist = cat === 'cyclist';
     const pts = float32ToPointObjects(cloud);
     const curBox = cloneBox(pos.box);
 
@@ -583,6 +585,12 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
     }
 
     // 6. Phép Fit Car / Ô tô: Dùng chung hàm fitBoxToEgoRayAndGround từ geometry.ts
+    // Bảo vệ kích thước chuẩn Catalog xe: Ô tô không có fit W hoặc H tự do
+    if (op === 'w' || op === 'h') {
+      app.setStatus(`f${frame}: Ô tô tuân thủ kích thước chuẩn Catalog (Phím B), không có Fit ${op.toUpperCase()}`, 'err');
+      return;
+    }
+
     const fitStepParam = (op === 'top' || op === 'side' || op === 'front') ? op : 'all';
     const res = fitBoxToEgoRayAndGround(
       pts,

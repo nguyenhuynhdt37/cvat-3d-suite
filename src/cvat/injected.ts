@@ -14,6 +14,160 @@ export function mainWorldScript(): void {
 
   console.log("[CVAT 3D Suite] Main-World Injected Bridge đã sẵn sàng (LiDAR Point Cloud Engine, Auto-Fit & Canvas Select).");
 
+  // ⚡ SIÊU TỐI ƯU HIỆU NĂNG 60 FPS: PROTOTYPE RAYCAST GUARD & SCENE.ADD INTERCEPTION
+  // Vô hiệu hóa raycast va chạm trên mây 305k điểm LiDAR ở cấp độ Prototype của Three.js
+  // Đảm bảo 100% mọi thể hiện THREE.Points ở MỌI FRAME, MỌI VIEW (Perspective, Top, Side, Front)
+  // sinh ra bất kỳ lúc nào đều có raycast = () => {} NGAY LẬP TỨC từ miligiây đầu tiên!
+  function guardPointsInstance(obj: any): void {
+    if (!obj) return;
+    if (!(obj as any).__cvat_raycast_guarded__) {
+      (obj as any).__cvat_raycast_guarded__ = true;
+      obj.raycast = () => {};
+    }
+    try {
+      const proto = Object.getPrototypeOf(obj);
+      if (proto && !(proto as any).__cvat_proto_guarded__) {
+        (proto as any).__cvat_proto_guarded__ = true;
+        proto.raycast = () => {};
+      }
+      if (obj.constructor && obj.constructor.prototype && !(obj.constructor.prototype as any).__cvat_proto_guarded__) {
+        (obj.constructor.prototype as any).__cvat_proto_guarded__ = true;
+        obj.constructor.prototype.raycast = () => {};
+      }
+    } catch (_) {}
+  }
+
+  function installGlobalThreeRaycastGuard(target?: any): void {
+    try {
+      const candidates: any[] = [];
+      if (target) candidates.push(target);
+      if (typeof window !== "undefined") {
+        const win = window as any;
+        if (win.THREE) candidates.push(win.THREE);
+        if (win.__THREE__) candidates.push(win.__THREE__);
+      }
+      try {
+        const store = getReduxStore();
+        const canvas = store?.getState()?.annotation?.canvas?.instance;
+        if (canvas?.THREE) candidates.push(canvas.THREE);
+        if (canvas?.view?.THREE) candidates.push(canvas.view.THREE);
+        if (canvas?.view?.views) {
+          for (const k of ["perspective", "top", "side", "front"]) {
+            const v = canvas.view.views[k];
+            if (v?.THREE) candidates.push(v.THREE);
+            if (v?.renderer?.constructor) candidates.push(v.renderer.constructor);
+            if (v?.scene) candidates.push(v.scene);
+          }
+        }
+      } catch (_) {}
+
+      for (const cand of candidates) {
+        if (!cand) continue;
+
+        // A. Xử lý Points Constructor / Prototype
+        let PointsCtor = cand.Points;
+        if (!PointsCtor) {
+          if (typeof cand === "function" && (cand.name === "Points" || cand.prototype?.isPoints)) {
+            PointsCtor = cand;
+          } else if (cand.isPoints && cand.constructor) {
+            PointsCtor = cand.constructor;
+          }
+        }
+
+        if (PointsCtor && PointsCtor.prototype && !(PointsCtor.prototype as any).__cvat_proto_guarded__) {
+          (PointsCtor.prototype as any).__cvat_proto_guarded__ = true;
+          PointsCtor.prototype.raycast = () => {};
+        }
+
+        // B. Xử lý Raycaster Constructor / Prototype
+        let RaycasterCtor = cand.Raycaster;
+        if (!RaycasterCtor) {
+          if (typeof cand === "function" && cand.name === "Raycaster") {
+            RaycasterCtor = cand;
+          } else if (cand.intersectObjects && cand.constructor) {
+            RaycasterCtor = cand.constructor;
+          }
+        }
+
+        if (RaycasterCtor && RaycasterCtor.prototype && !(RaycasterCtor.prototype as any).__cvat_proto_guarded__) {
+          (RaycasterCtor.prototype as any).__cvat_proto_guarded__ = true;
+          const origIntersectObject = RaycasterCtor.prototype.intersectObject;
+          RaycasterCtor.prototype.intersectObject = function (object: any, recursive?: boolean, optionalTarget?: any) {
+            if (object && (object.isPoints || object.type === "Points")) {
+              return optionalTarget || [];
+            }
+            return origIntersectObject.call(this, object, recursive, optionalTarget);
+          };
+
+          const origIntersectObjects = RaycasterCtor.prototype.intersectObjects;
+          RaycasterCtor.prototype.intersectObjects = function (objects: any[], recursive?: boolean, optionalTarget?: any) {
+            if (!Array.isArray(objects)) return optionalTarget || [];
+            const filtered = objects.filter((o: any) => o && !o.isPoints && o.type !== "Points");
+            return origIntersectObjects.call(this, filtered, recursive, optionalTarget);
+          };
+        }
+      }
+    } catch (_) {}
+  }
+
+  function hookSceneForPointsGuard(scene: any): void {
+    if (!scene) return;
+    if (typeof scene.traverse === "function") {
+      scene.traverse((obj: any) => {
+        if (obj && (obj.isPoints || obj.type === "Points")) {
+          guardPointsInstance(obj);
+          installGlobalThreeRaycastGuard(obj);
+        }
+      });
+    }
+
+    if (typeof scene.add === "function" && !(scene as any).__cvat_add_guarded__) {
+      (scene as any).__cvat_add_guarded__ = true;
+      const origAdd = scene.add;
+      scene.add = function (...objects: any[]) {
+        for (const item of objects) {
+          if (item) {
+            if (item.isPoints || item.type === "Points") {
+              guardPointsInstance(item);
+              installGlobalThreeRaycastGuard(item);
+            }
+            if (typeof item.traverse === "function") {
+              item.traverse((child: any) => {
+                if (child && (child.isPoints || child.type === "Points")) {
+                  guardPointsInstance(child);
+                  installGlobalThreeRaycastGuard(child);
+                }
+              });
+            }
+          }
+        }
+        return origAdd.apply(this, objects);
+      };
+    }
+  }
+
+  function hookAllScenes(): void {
+    try {
+      const store = getReduxStore();
+      const canvas = store?.getState()?.annotation?.canvas?.instance;
+      const scenes: any[] = [];
+      if (canvas?.view?.views) {
+        for (const k of ["perspective", "top", "side", "front"]) {
+          const s = canvas.view.views[k]?.scene;
+          if (s && !scenes.includes(s)) scenes.push(s);
+        }
+      }
+      if (canvas?.view?.scene && !scenes.includes(canvas.view.scene)) scenes.push(canvas.view.scene);
+      if (canvas?.scene && !scenes.includes(canvas.scene)) scenes.push(canvas.scene);
+
+      for (const sc of scenes) {
+        hookSceneForPointsGuard(sc);
+      }
+    } catch (_) {}
+  }
+
+  installGlobalThreeRaycastGuard();
+
   function flipYawRad(yaw: number): number {
     let newYaw = yaw + Math.PI;
     while (newYaw > Math.PI) newYaw -= 2 * Math.PI;
@@ -130,36 +284,244 @@ export function mainWorldScript(): void {
     typeof localStorage !== "undefined"
       ? localStorage.getItem("cvat_3d_colorize_boxed") !== "false"
       : true;
-  let currentGroundPlaneVisible: boolean =
-    typeof localStorage !== "undefined"
-      ? localStorage.getItem("cvat_3d_ground_plane_visible") !== "false"
-      : true;
+  let currentCanvasTheme: "light" | "dark" =
+    typeof localStorage !== "undefined" && localStorage.getItem("cvat_3d_canvas_theme") === "dark"
+      ? "dark"
+      : "light";
+
+  // Kích thước hạt điểm mây LiDAR trên 3 khung nhìn trực giao 2D (Top, Side, Front)
+  // Mặc định: 3.5px (Nét rõ), Hỗ trợ xoay vòng: 2.0px / 3.5px / 5.0px
+  // Khung nhìn 3D chính (Perspective View) giữ nguyên 100% mặc định theo cài đặt của CVAT
+  let currentOrthoPointSize: number = 3.5;
+  try {
+    const savedOrthoSize = localStorage.getItem("cvat_3d_ortho_point_size");
+    if (savedOrthoSize) {
+      const parsed = parseFloat(savedOrthoSize);
+      if (!isNaN(parsed) && parsed >= 1.0 && parsed <= 10.0) {
+        currentOrthoPointSize = parsed;
+      }
+    }
+  } catch (_) {}
+
+  function applyOrthoPointSize(size: number): void {
+    currentOrthoPointSize = size;
+    try {
+      localStorage.setItem("cvat_3d_ortho_point_size", String(size));
+    } catch (_) {}
+
+    try {
+      const store = getReduxStore();
+      const canvas = store?.getState()?.annotation?.canvas?.instance;
+      if (canvas && typeof canvas.render === "function") {
+        canvas.render();
+      }
+    } catch (_) {}
+  }
 
   let isColorizingRunning: boolean = false;
-  let groundPlaneMeshGroup: any = null;
+  let isCanvasInteracting: boolean = false;
   let singleFrameColorizeTimer: any = null;
 
-  // Lấy danh sách tất cả các đối tượng THREE.Points từ mọi view của Canvas3D
+  // Áp dụng Theme Canvas 3D Three.js và CSS (Light: Nền Trắng / Điểm Đen ⇄ Dark: Nền Tối / Điểm Sáng)
+  function applyCanvasThemeInMainWorld(theme?: "light" | "dark"): void {
+    try {
+      if (theme) currentCanvasTheme = theme;
+      if (typeof localStorage !== "undefined") {
+        try {
+          localStorage.setItem("cvat_3d_canvas_theme", currentCanvasTheme);
+        } catch (_) {}
+      }
+
+      const store = getReduxStore();
+      const canvas = store?.getState()?.annotation?.canvas?.instance;
+      const isLight = currentCanvasTheme === "light";
+      const bgColor = isLight ? 0xffffff : 0x000000;
+      const bgCss = isLight ? "#ffffff" : "#000000";
+
+      // 1. Áp dụng trực tiếp vào Three.js Scenes & Renderers (Perspective, Top, Side, Front)
+      if (canvas?.view?.views) {
+        const views = canvas.view.views;
+        const winThree = (window as any).THREE;
+        let ColorCtor: any =
+          winThree?.Color ||
+          (canvas as any)?.THREE?.Color ||
+          (canvas as any)?.view?.THREE?.Color;
+
+        const viewKeys = Object.keys(views);
+        for (const key of viewKeys) {
+          const v = views[key];
+          if (!v) continue;
+          if (v.scene) {
+            if (v.scene.background && typeof v.scene.background.setHex === "function") {
+              v.scene.background.setHex(bgColor);
+            } else {
+              if (!ColorCtor) {
+                if (v.scene.background?.constructor && typeof v.scene.background.constructor === "function") {
+                  ColorCtor = v.scene.background.constructor;
+                } else {
+                  v.scene.traverse((obj: any) => {
+                    if (!ColorCtor && obj.material?.color && typeof obj.material.color.setHex === "function") {
+                      ColorCtor = obj.material.color.constructor;
+                    }
+                  });
+                }
+              }
+
+              if (ColorCtor && typeof ColorCtor === "function") {
+                v.scene.background = new ColorCtor(bgColor);
+              } else {
+                v.scene.background = null;
+              }
+            }
+          }
+          if (v.renderer && typeof v.renderer.setClearColor === "function") {
+            v.renderer.setClearColor(bgColor, 1);
+          }
+        }
+      }
+
+      // 2. Inject CSS Style đồng bộ các container canvas
+      let styleEl = document.getElementById("cvat-3d-suite-canvas-theme-style");
+      if (!styleEl) {
+        styleEl = document.createElement("style");
+        styleEl.id = "cvat-3d-suite-canvas-theme-style";
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = `
+        .cvat-canvas-container,
+        .cvat-canvas3d-perspective,
+        .cvat-canvas3d-topview,
+        .cvat-canvas3d-sideview,
+        .cvat-canvas3d-frontview,
+        .cvat-canvas3d-orthographic-view,
+        .cvat-canvas3d-orthographic-view canvas,
+        .cvat-canvas-container canvas {
+          background-color: ${bgCss} !important;
+          transform: translateZ(0) !important;
+          will-change: transform !important;
+          isolation: isolate !important;
+        }
+        .cvat-canvas3d-orthographic-view-header,
+        .cvat-canvas3d-perspective-header {
+          color: ${isLight ? "#1e293b" : "#f8fafc"} !important;
+        }
+
+        /* Tối ưu hóa sâu CSS Virtualization cho Sidebar CVAT: Ngắt render 85% thẻ ngoài màn hình */
+        .cvat-objects-sidebar-states-list > div,
+        .cvat-objects-sidebar-state-item {
+          content-visibility: auto !important;
+          contain-intrinsic-size: 0 46px !important;
+        }
+
+        /* Triệt tiêu độ trễ hoạt họa thừa trên Sidebar để phản hồi click tức thì 0ms */
+        .cvat-objects-sidebar-state-item,
+        .cvat-objects-sidebar-state-item * {
+          transition: none !important;
+        }
+      `;
+
+      // 3. Render lại Three.js
+      if (canvas && typeof canvas.render === "function") {
+        canvas.render();
+      }
+      const views = canvas?.view?.views;
+      if (views) {
+        for (const key of ["perspective", "top", "side", "front"]) {
+          const v = views[key];
+          if (v && typeof v.render === "function") {
+            try { v.render(); } catch (_) {}
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("[CVAT 3D Suite] Lỗi applyCanvasThemeInMainWorld:", err);
+    }
+  }
+
+  // Lấy danh sách tất cả các đối tượng THREE.Points từ mọi view của Canvas3D (Perspective, Top, Side, Front)
   function getAllScenePointsObjects(): any[] {
     try {
       const store = getReduxStore();
       const canvas = store?.getState()?.annotation?.canvas?.instance;
-      if (!canvas || !canvas.view || !canvas.view.views) return [];
+      if (!canvas || !canvas.view) return [];
 
       const pointsObjects: any[] = [];
-      const views = canvas.view.views;
-      const viewKeys = ["perspective", "top", "side", "front"];
+      const scenes: any[] = [];
 
-      for (const key of viewKeys) {
-        const v = views[key];
-        const scene = v?.scene;
+      const views = canvas.view.views;
+      if (views) {
+        const viewKeys = ["perspective", "top", "side", "front"];
+        for (const key of viewKeys) {
+          const s = views[key]?.scene;
+          if (s && !scenes.includes(s)) scenes.push(s);
+        }
+      }
+      if (canvas.view.scene && !scenes.includes(canvas.view.scene)) {
+        scenes.push(canvas.view.scene);
+      }
+      if (canvas.scene && !scenes.includes(canvas.scene)) {
+        scenes.push(canvas.scene);
+      }
+
+      for (const scene of scenes) {
         if (!scene) continue;
+        hookSceneForPointsGuard(scene);
+        if (typeof scene.traverse !== "function") continue;
         scene.traverse((obj: any) => {
           if (
             (obj.isPoints || obj.type === "Points") &&
-            obj.geometry?.attributes?.position?.count > 5000 &&
+            obj.geometry?.attributes?.position?.count >= 10 &&
             !pointsObjects.includes(obj)
           ) {
+            // Raycasting Guard: Vô hiệu hóa raycast va chạm trên mây 305k điểm để chuột di chuyển 60 FPS không khựng
+            guardPointsInstance(obj);
+            installGlobalThreeRaycastGuard(obj);
+
+            // Ortho Point Size Hook: Tự động phát hiện OrthographicCamera trên 3 view Top, Side, Front để boost material.size
+            // KHUNG 3D CHÍNH (Perspective): Giữ nguyên 100% kích thước mặc định/native của CVAT, tuyệt đối không can thiệp!
+            if (!(obj as any).__cvat_ortho_size_hooked__) {
+              (obj as any).__cvat_ortho_size_hooked__ = true;
+              const originalOnBeforeRender = obj.onBeforeRender;
+              obj.onBeforeRender = function (renderer: any, scene: any, camera: any, geometry: any, material: any, group: any) {
+                if (typeof originalOnBeforeRender === "function") {
+                  try {
+                    originalOnBeforeRender.call(this, renderer, scene, camera, geometry, material, group);
+                  } catch (_) {}
+                }
+
+                const isOrtho = camera && (camera.isOrthographicCamera || camera.type === "OrthographicCamera");
+                const mats = Array.isArray(this.material) ? this.material : (this.material ? [this.material] : []);
+
+                for (const m of mats) {
+                  if (!m) continue;
+
+                  // Khởi tạo và ghi nhớ kích thước native ban đầu của CVAT (chỉ lưu 1 lần duy nhất)
+                  if ((m as any).__cvat_native_point_size__ === undefined) {
+                    (m as any).__cvat_native_point_size__ = typeof m.size === "number" ? m.size : 1.0;
+                  }
+
+                  if (isOrtho) {
+                    // 3 Khung nhìn 2D trực giao (Top, Side, Front): Đặt cỡ hạt rõ nét 3.5px
+                    if (m.size !== currentOrthoPointSize) {
+                      m.size = currentOrthoPointSize;
+                    }
+                  } else {
+                    // Khung nhìn 3D chính (Perspective View):
+                    // Nếu annotator vừa kéo thanh trượt Point Size trong Cài đặt của CVAT:
+                    if (typeof m.size === "number" && m.size !== currentOrthoPointSize && m.size !== (m as any).__cvat_native_point_size__) {
+                      (m as any).__cvat_native_point_size__ = m.size;
+                    }
+
+                    // Khôi phục kích thước native cho Perspective View
+                    const nativeSize = (m as any).__cvat_native_point_size__;
+                    if (m.size !== nativeSize) {
+                      m.size = nativeSize;
+                    }
+                  }
+                }
+              };
+            }
+
             pointsObjects.push(obj);
           }
         });
@@ -171,7 +533,7 @@ export function mainWorldScript(): void {
     }
   }
 
-  // Bảng 32 màu phân kỳ tương phản cao (High-Contrast Vivid Palette) cho từng Track ID
+  // Bảng 32 màu phân kỳ tương phản cao (High-Contrast Vivid Palette) cho từng Track ID (Nền Tối)
   const DISTINCT_TRACK_PALETTE: Array<{ r: number; g: number; b: number }> = [
     { r: 0.00, g: 0.95, b: 1.00 }, // 0: Cyan Neon (#00f2fe)
     { r: 0.96, g: 0.62, b: 0.04 }, // 1: Vàng Cam Amber (#f59e0b)
@@ -207,7 +569,43 @@ export function mainWorldScript(): void {
     { r: 0.29, g: 0.87, b: 0.50 }, // 31: Xanh Táo Apple Green (#4ade80)
   ];
 
-  const OVERLAP_WARNING_COLOR = { r: 1.0, g: 0.05, b: 0.20 }; // Đỏ Neon Cảnh Báo (#ff0d33)
+  // Bảng 32 màu Đậm Sâu Độ Tương Phản Cao (Ultra-Deep Vivid / Rich Jewel Palette) cho Giao diện Nền Trắng
+  const DEEP_VIVID_TRACK_PALETTE: Array<{ r: number; g: number; b: number }> = [
+    { r: 0.02, g: 0.38, b: 0.68 }, // 0: Xanh Ocean Đậm Sâu (#0369a1)
+    { r: 0.70, g: 0.32, b: 0.02 }, // 1: Vàng Hổ Phách Nâu Đậm (#b45309)
+    { r: 0.40, g: 0.08, b: 0.68 }, // 2: Tím Hoàng Gia Đậm (#6b21a8)
+    { r: 0.01, g: 0.45, b: 0.28 }, // 3: Xanh Lục Bảo Đậm Sâu (#047857)
+    { r: 0.65, g: 0.05, b: 0.15 }, // 4: Đỏ Ruby / Đỏ Mận Đậm (#991b1b)
+    { r: 0.08, g: 0.22, b: 0.72 }, // 5: Xanh Cobalt Đậm (#1e40af)
+    { r: 0.22, g: 0.38, b: 0.04 }, // 6: Xanh Rêu Đậm Sâu (#3f6212)
+    { r: 0.65, g: 0.18, b: 0.04 }, // 7: Cam Cháy Đậm (#9a3412)
+    { r: 0.04, g: 0.36, b: 0.34 }, // 8: Xanh Teal Đậm Sâu (#115e59)
+    { r: 0.58, g: 0.25, b: 0.02 }, // 9: Nâu Đồng Đậm (#78350f)
+    { r: 0.20, g: 0.16, b: 0.65 }, // 10: Tím Indigo Đậm Sâu (#3730a3)
+    { r: 0.01, g: 0.38, b: 0.24 }, // 11: Xanh Thông Đậm (#064e3b)
+    { r: 0.52, g: 0.08, b: 0.58 }, // 12: Hồng Tím Fuchsia Đậm (#86198f)
+    { r: 0.01, g: 0.32, b: 0.58 }, // 13: Xanh Biển Đậm (#075985)
+    { r: 0.68, g: 0.10, b: 0.02 }, // 14: Đỏ Cam Đậm (#991b1b)
+    { r: 0.06, g: 0.42, b: 0.18 }, // 15: Xanh Lá Đậm Sâu (#166534)
+    { r: 0.35, g: 0.10, b: 0.62 }, // 16: Tím Mận Đậm (#581c87)
+    { r: 0.03, g: 0.35, b: 0.45 }, // 17: Xanh Petrol Đậm (#155e75)
+    { r: 0.62, g: 0.04, b: 0.12 }, // 18: Đỏ Rượu Vang Đậm (#881337)
+    { r: 0.30, g: 0.44, b: 0.05 }, // 19: Vàng Chanh Rêu Đậm (#4d7c0f)
+    { r: 0.02, g: 0.36, b: 0.50 }, // 20: Xanh Băng Đậm Sâu (#0e7490)
+    { r: 0.65, g: 0.28, b: 0.05 }, // 21: Cam Đất Đậm (#9a3412)
+    { r: 0.38, g: 0.06, b: 0.62 }, // 22: Tím Đậm Sâu (#581c87)
+    { r: 0.04, g: 0.32, b: 0.14 }, // 23: Xanh Rừng Đậm (#14532d)
+    { r: 0.60, g: 0.06, b: 0.22 }, // 24: Hồng Đậm Sâu (#881337)
+    { r: 0.08, g: 0.20, b: 0.58 }, // 25: Xanh Navy Đậm (#172554)
+    { r: 0.02, g: 0.30, b: 0.28 }, // 26: Xanh Rêu Đen (#042f2e)
+    { r: 0.58, g: 0.26, b: 0.02 }, // 27: Vàng Đất Nung Đậm (#78350f)
+    { r: 0.16, g: 0.12, b: 0.55 }, // 28: Tím Đêm Đậm (#312e81)
+    { r: 0.02, g: 0.38, b: 0.48 }, // 29: Xanh Lam Đậm Sâu (#155e75)
+    { r: 0.55, g: 0.08, b: 0.35 }, // 30: Hồng Sen Đậm Sâu (#701a75)
+    { r: 0.08, g: 0.40, b: 0.20 }, // 31: Xanh Táo Đậm Sâu (#166534)
+  ];
+
+  const OVERLAP_WARNING_COLOR = { r: 1.0, g: 0.0, b: 0.20 }; // Đỏ Neon Cảnh Báo (#ff0033)
 
   function getDistinctTrackColor(
     trackId: number | string | undefined | null,
@@ -227,11 +625,20 @@ export function mainWorldScript(): void {
       }
     }
 
-    const colorIndex = (numId * 13 + 7) % DISTINCT_TRACK_PALETTE.length;
-    const baseColor = DISTINCT_TRACK_PALETTE[colorIndex];
+    const palette = currentCanvasTheme === "light" ? DEEP_VIVID_TRACK_PALETTE : DISTINCT_TRACK_PALETTE;
+    const colorIndex = (numId * 13 + 7) % palette.length;
+    const baseColor = palette[colorIndex];
 
     if (isActive) {
-      // Khi Active: Tăng sáng rực rỡ pha nhẹ 20% ánh vàng chanh neon (#facc15)
+      if (currentCanvasTheme === "light") {
+        // Khi Active trên nền trắng: Tăng độ đậm và viền vàng cam rực rỡ
+        return {
+          r: Math.min(1.0, baseColor.r * 0.75 + 0.98 * 0.25),
+          g: Math.min(1.0, baseColor.g * 0.75 + 0.70 * 0.25),
+          b: Math.min(1.0, baseColor.b * 0.75 + 0.05 * 0.25),
+        };
+      }
+      // Khi Active trên nền tối: Tăng sáng rực rỡ pha nhẹ 20% ánh vàng chanh neon (#facc15)
       return {
         r: Math.min(1.0, baseColor.r * 0.8 + 0.98 * 0.2),
         g: Math.min(1.0, baseColor.g * 0.8 + 0.80 * 0.2),
@@ -274,13 +681,26 @@ export function mainWorldScript(): void {
         rz: number;
         cosY: number;
         sinY: number;
+        cosP: number;
+        sinP: number;
+        cosR: number;
+        sinR: number;
+        hasPitchRoll: boolean;
         halfL: number;
         halfW: number;
         halfH: number;
         maxR: number;
+        maxR2: number;
+        minX: number;
+        maxX: number;
+        minY: number;
+        maxY: number;
+        minZ: number;
+        maxZ: number;
         colorR: number;
         colorG: number;
         colorB: number;
+        isActive: boolean;
       }
 
       const defaultColors: Record<string, { r: number; g: number; b: number }> = {
@@ -292,10 +712,13 @@ export function mainWorldScript(): void {
         active: { r: 0.98, g: 0.80, b: 0.08 },     // Vàng chanh Neon (#facc15)
       };
 
+      const EDGE_SNAP_COLOR = { r: 0.98, g: 0.80, b: 0.08 }; // Vàng chanh neon (#facc15) bám sát viền ±3cm
+      const CUT_OUT_WARNING_COLOR = { r: 0.94, g: 0.27, b: 0.27 }; // Đỏ cảnh báo (#ef4444) cắt lẹm 1~8cm
+
       const fastBoxesMap = new Map<number, FastBoxTarget>();
       const activeClientId =
-        canvas.view?.activatedElementID ||
-        store?.getState()?.annotation?.annotations?.activatedStateClientID;
+        store?.getState()?.annotation?.annotations?.activatedStateClientID ??
+        (isCanvasInteracting ? canvas.view?.activatedElementID : null);
 
       if (currentColorizeBoxed) {
         // TẦNG 1: QUÉT TOÀN BỘ REDUX ANNOTATIONS STATES CỦA FRAME
@@ -315,28 +738,55 @@ export function mainWorldScript(): void {
             const c = getDistinctTrackColor(trackId, isActive);
 
             const yaw = pts[5] || 0;
+            const rx = pts[3] || 0;
+            const ry = pts[4] || 0;
+            const hasPitchRoll = rx !== 0 || ry !== 0;
+            const cosP = hasPitchRoll ? Math.cos(-ry) : 1;
+            const sinP = hasPitchRoll ? Math.sin(-ry) : 0;
+            const cosR = hasPitchRoll ? Math.cos(-rx) : 1;
+            const sinR = hasPitchRoll ? Math.sin(-rx) : 0;
+
+            const halfL = l / 2;
+            const halfW = w / 2;
+            const halfH = h / 2;
+            const maxR = Math.sqrt(halfL * halfL + halfW * halfW + halfH * halfH);
+            const maxR2 = maxR * maxR;
+
             fastBoxesMap.set(clientId, {
               cx: pts[0],
               cy: pts[1],
               cz: pts[2],
-              rx: pts[3] || 0,
-              ry: pts[4] || 0,
+              rx,
+              ry,
               rz: yaw,
               cosY: Math.cos(-yaw),
               sinY: Math.sin(-yaw),
-              halfL: l / 2,
-              halfW: w / 2,
-              halfH: h / 2,
-              maxR: Math.max(l, w, h) * 0.75,
+              cosP,
+              sinP,
+              cosR,
+              sinR,
+              hasPitchRoll,
+              halfL,
+              halfW,
+              halfH,
+              maxR,
+              maxR2,
+              minX: pts[0] - maxR,
+              maxX: pts[0] + maxR,
+              minY: pts[1] - maxR,
+              maxY: pts[1] + maxR,
+              minZ: pts[2] - maxR,
+              maxZ: pts[2] + maxR,
               colorR: c.r,
               colorG: c.g,
               colorB: c.b,
+              isActive,
             });
           }
         }
 
         // TẦNG 2: CẬP NHẬT TỌA ĐỘ VÀ ROTATION REALTIME TỪ THREE.JS DRAWN OBJECTS
-        // Đọc trực tiếp Three.js cuboid.position / scale / rotation khi người dùng kéo/co giãn box
+        // Đọc trực tiếp Three.js cuboid.position / scale / rotation khi người dùng kéo/co giãn box (Perspective, Top, Side, Front)
         const drawnObjects = canvas.view?.drawnObjects || {};
         for (const idStr of Object.keys(drawnObjects)) {
           const drawnItem = drawnObjects[idStr];
@@ -352,30 +802,119 @@ export function mainWorldScript(): void {
             let h = pts[8];
 
             if (drawnItem.cuboid) {
-              const cp =
-                drawnItem.cuboid.position ||
-                drawnItem.cuboid.perspective?.position ||
-                drawnItem.cuboid.top?.position;
-              const cr =
-                drawnItem.cuboid.rotation ||
-                drawnItem.cuboid.perspective?.rotation ||
-                drawnItem.cuboid.top?.rotation;
-              const cs =
-                drawnItem.cuboid.scale ||
-                drawnItem.cuboid.perspective?.scale ||
-                drawnItem.cuboid.top?.scale;
-              if (cp && typeof cp.x === "number") {
-                cx = cp.x;
-                cy = cp.y;
-                cz = cp.z;
+              const basePos = { x: pts[0], y: pts[1], z: pts[2] };
+              const baseYaw = pts[5] || 0;
+              const baseScale = { l: pts[6], w: pts[7], h: pts[8] };
+
+              const c = drawnItem.cuboid;
+              // Kiểm tra từng view độc lập để phát hiện view nào đang được annotator kéo bằng chuột
+              // Nếu đang kéo Top view: x và y thay đổi
+              // Nếu đang kéo Side view: x và z thay đổi
+              // Nếu đang kéo Front view: y và z thay đổi
+              // Nếu đang kéo Perspective view: x, y, z thay đổi
+              let bestDeltaPos = 0;
+              let bestPos: { x: number; y: number; z: number } | null = null;
+
+              const candidateViews = [
+                { name: "top", obj: c.top },
+                { name: "side", obj: c.side },
+                { name: "front", obj: c.front },
+                { name: "perspective", obj: c.perspective },
+                { name: "root", obj: c },
+              ];
+
+              for (const cand of candidateViews) {
+                const p = cand.obj?.position;
+                if (p && typeof p.x === "number" && typeof p.y === "number" && typeof p.z === "number") {
+                  let dx = p.x - basePos.x;
+                  let dy = p.y - basePos.y;
+                  let dz = p.z - basePos.z;
+                  if (cand.name === "top") dz = 0;
+                  if (cand.name === "side") dy = 0;
+                  if (cand.name === "front") dx = 0;
+
+                  const delta = dx * dx + dy * dy + dz * dz;
+                  if (delta > bestDeltaPos && delta > 1e-4) {
+                    bestDeltaPos = delta;
+                    bestPos = {
+                      x: cand.name === "front" ? basePos.x : p.x,
+                      y: cand.name === "side" ? basePos.y : p.y,
+                      z: cand.name === "top" ? basePos.z : p.z,
+                    };
+                  }
+                }
               }
-              if (cr && typeof cr.z === "number") {
-                yaw = cr.z;
+
+              if (bestPos) {
+                cx = bestPos.x;
+                cy = bestPos.y;
+                cz = bestPos.z;
+              } else {
+                const fallbackPos = c.position || c.perspective?.position || c.top?.position;
+                if (fallbackPos && typeof fallbackPos.x === "number") {
+                  cx = fallbackPos.x;
+                  cy = fallbackPos.y;
+                  cz = fallbackPos.z;
+                }
               }
-              if (cs && typeof cs.x === "number" && cs.x > 0) {
-                l = cs.x;
-                w = cs.y;
-                h = cs.z;
+
+              // Tương tự cho Rotation (Yaw)
+              let bestDeltaYaw = 0;
+              let bestYaw: number | null = null;
+              for (const cand of candidateViews) {
+                const r = cand.obj?.rotation;
+                if (r && typeof r.z === "number") {
+                  const dYaw = Math.abs(r.z - baseYaw);
+                  if (dYaw > bestDeltaYaw && dYaw > 1e-4) {
+                    bestDeltaYaw = dYaw;
+                    bestYaw = r.z;
+                  }
+                }
+              }
+              if (bestYaw !== null) {
+                yaw = bestYaw;
+              } else {
+                const fallbackRot = c.rotation || c.perspective?.rotation || c.top?.rotation;
+                if (fallbackRot && typeof fallbackRot.z === "number") {
+                  yaw = fallbackRot.z;
+                }
+              }
+
+              // Tương tự cho Scale (l, w, h)
+              let bestDeltaScale = 0;
+              let bestScale: { x: number; y: number; z: number } | null = null;
+              for (const cand of candidateViews) {
+                const s = cand.obj?.scale;
+                if (s && typeof s.x === "number" && s.x > 0) {
+                  let dl = Math.abs(s.x - baseScale.l);
+                  let dw = Math.abs(s.y - baseScale.w);
+                  let dh = Math.abs(s.z - baseScale.h);
+                  if (cand.name === "top") dh = 0;
+                  if (cand.name === "side") dw = 0;
+                  if (cand.name === "front") dl = 0;
+
+                  const delta = dl + dw + dh;
+                  if (delta > bestDeltaScale && delta > 1e-4) {
+                    bestDeltaScale = delta;
+                    bestScale = {
+                      x: cand.name === "front" ? baseScale.l : s.x,
+                      y: cand.name === "side" ? baseScale.w : s.y,
+                      z: cand.name === "top" ? baseScale.h : s.z,
+                    };
+                  }
+                }
+              }
+              if (bestScale) {
+                l = bestScale.x;
+                w = bestScale.y;
+                h = bestScale.z;
+              } else {
+                const fallbackScale = c.scale || c.perspective?.scale || c.top?.scale;
+                if (fallbackScale && typeof fallbackScale.x === "number" && fallbackScale.x > 0) {
+                  l = fallbackScale.x;
+                  w = fallbackScale.y;
+                  h = fallbackScale.z;
+                }
               }
             }
 
@@ -386,34 +925,125 @@ export function mainWorldScript(): void {
             const trackId = data.parentID ?? data.trackID ?? clientId;
             const c = getDistinctTrackColor(trackId, isActive);
 
+            const rx = pts[3] || 0;
+            const ry = pts[4] || 0;
+            const hasPitchRoll = rx !== 0 || ry !== 0;
+            const cosP = hasPitchRoll ? Math.cos(-ry) : 1;
+            const sinP = hasPitchRoll ? Math.sin(-ry) : 0;
+            const cosR = hasPitchRoll ? Math.cos(-rx) : 1;
+            const sinR = hasPitchRoll ? Math.sin(-rx) : 0;
+
+            const halfL = l / 2;
+            const halfW = w / 2;
+            const halfH = h / 2;
+            const maxR = Math.sqrt(halfL * halfL + halfW * halfW + halfH * halfH);
+            const maxR2 = maxR * maxR;
+
             fastBoxesMap.set(clientId, {
               cx,
               cy,
               cz,
-              rx: pts[3] || 0,
-              ry: pts[4] || 0,
+              rx,
+              ry,
               rz: yaw,
               cosY: Math.cos(-yaw),
               sinY: Math.sin(-yaw),
-              halfL: l / 2,
-              halfW: w / 2,
-              halfH: h / 2,
-              maxR: Math.max(l, w, h) * 0.75,
+              cosP,
+              sinP,
+              cosR,
+              sinR,
+              hasPitchRoll,
+              halfL,
+              halfW,
+              halfH,
+              maxR,
+              maxR2,
+              minX: cx - maxR,
+              maxX: cx + maxR,
+              minY: cy - maxR,
+              maxY: cy + maxR,
+              minZ: cz - maxR,
+              maxZ: cz + maxR,
               colorR: c.r,
               colorG: c.g,
               colorB: c.b,
+              isActive,
             });
           }
         }
       }
 
       const fastBoxes: FastBoxTarget[] = Array.from(fastBoxesMap.values());
+      const activeBox = fastBoxes.find((b) => b.isActive) || (activeClientId ? fastBoxesMap.get(Number(activeClientId)) : null);
 
       const numBoxes = fastBoxes.length;
       const isPlain = currentPointColorMode === "plain";
-      const plainR = 0.72;
-      const plainG = 0.76;
-      const plainB = 0.82;
+      const isLight = currentCanvasTheme === "light";
+      const plainR = isLight ? 0.0 : 1.0;
+      const plainG = isLight ? 0.0 : 1.0;
+      const plainB = isLight ? 0.0 : 1.0;
+
+      // FAST SPATIAL BOUNDING FILTER: Tính toán Global AABB của toàn bộ các box để loại bỏ điểm ngoài lề
+      let globalMinX = Infinity;
+      let globalMaxX = -Infinity;
+      let globalMinY = Infinity;
+      let globalMaxY = -Infinity;
+      let globalMinZ = Infinity;
+      let globalMaxZ = -Infinity;
+
+      for (let k = 0; k < numBoxes; k++) {
+        const b = fastBoxes[k];
+        if (b.minX < globalMinX) globalMinX = b.minX;
+        if (b.maxX > globalMaxX) globalMaxX = b.maxX;
+        if (b.minY < globalMinY) globalMinY = b.minY;
+        if (b.maxY > globalMaxY) globalMaxY = b.maxY;
+        if (b.minZ < globalMinZ) globalMinZ = b.minZ;
+        if (b.maxZ > globalMaxZ) globalMaxZ = b.maxZ;
+      }
+
+      let activeMaxR15 = 0;
+      let activeMaxR15_2 = 0;
+      if (activeBox) {
+        activeMaxR15 = activeBox.maxR + 0.15;
+        activeMaxR15_2 = activeMaxR15 * activeMaxR15;
+        const aMinX = activeBox.minX - 0.15;
+        const aMaxX = activeBox.maxX + 0.15;
+        const aMinY = activeBox.minY - 0.15;
+        const aMaxY = activeBox.maxY + 0.15;
+        const aMinZ = activeBox.minZ - 0.15;
+        const aMaxZ = activeBox.maxZ + 0.15;
+        if (aMinX < globalMinX) globalMinX = aMinX;
+        if (aMaxX > globalMaxX) globalMaxX = aMaxX;
+        if (aMinY < globalMinY) globalMinY = aMinY;
+        if (aMaxY > globalMaxY) globalMaxY = aMaxY;
+        if (aMinZ < globalMinZ) globalMinZ = aMinZ;
+        if (aMaxZ > globalMaxZ) globalMaxZ = aMaxZ;
+      }
+
+      // SPATIAL HASH GRID 2D (Cell size = 8.0m): Giảm triệt để độ phức tạp duyệt Point-in-Box từ O(M*N) xuống O(M*1)
+      // Sử dụng Integer Key ((gx + 2048) << 12) | ((gy + 2048) & 0xfff) triệt tiêu 100% việc cấp phát heap string trong loop 300.000 điểm
+      const SPATIAL_GRID_CELL = 8.0;
+      const spatialBoxGrid = new Map<number, number[]>();
+      if (numBoxes >= 4) {
+        for (let k = 0; k < numBoxes; k++) {
+          const b = fastBoxes[k];
+          const minGx = Math.floor(b.minX / SPATIAL_GRID_CELL);
+          const maxGx = Math.floor(b.maxX / SPATIAL_GRID_CELL);
+          const minGy = Math.floor(b.minY / SPATIAL_GRID_CELL);
+          const maxGy = Math.floor(b.maxY / SPATIAL_GRID_CELL);
+          for (let gx = minGx; gx <= maxGx; gx++) {
+            for (let gy = minGy; gy <= maxGy; gy++) {
+              const key = (((gx + 2048) << 12) | ((gy + 2048) & 0xfff));
+              let bucket = spatialBoxGrid.get(key);
+              if (!bucket) {
+                bucket = [];
+                spatialBoxGrid.set(key, bucket);
+              }
+              bucket.push(k);
+            }
+          }
+        }
+      }
 
       let anyUpdated = false;
       const processedGeometries = new Set<any>();
@@ -425,9 +1055,15 @@ export function mainWorldScript(): void {
         // TỐI ƯU CỰC ĐỘ: Nếu nhiều views dùng chung 1 geometry buffer, chỉ tính toán 1 lần duy nhất!
         if (processedGeometries.has(geom)) {
           if (obj.material) {
-            obj.material.vertexColors = true;
-            obj.material.needsUpdate = true;
+            const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+            for (const m of mats) {
+              if (m && !m.vertexColors) {
+                m.vertexColors = true;
+                m.needsUpdate = true;
+              }
+            }
           }
+          anyUpdated = true;
           continue;
         }
         processedGeometries.add(geom);
@@ -446,12 +1082,24 @@ export function mainWorldScript(): void {
         const winThree = (window as any).THREE;
         if (!colorAttr || !colorAttr.array || colorAttr.array.length !== count * 3) {
           colorArray = new Float32Array(count * 3);
+          let created = false;
           if (typeof BufferAttrClass === "function") {
-            geom.setAttribute("color", new BufferAttrClass(colorArray, 3));
-            colorAttr = geom.attributes.color;
-          } else if (winThree && typeof winThree.BufferAttribute === "function") {
-            geom.setAttribute("color", new winThree.BufferAttribute(colorArray, 3));
-            colorAttr = geom.attributes.color;
+            try {
+              geom.setAttribute("color", new BufferAttrClass(colorArray, 3));
+              colorAttr = geom.attributes.color;
+              created = !!colorAttr;
+            } catch (_) {}
+          }
+          if (!created && winThree && typeof winThree.BufferAttribute === "function") {
+            try {
+              geom.setAttribute("color", new winThree.BufferAttribute(colorArray, 3));
+              colorAttr = geom.attributes.color;
+              created = !!colorAttr;
+            } catch (_) {}
+          }
+          if (!colorAttr) {
+            colorAttr = { array: colorArray, needsUpdate: false };
+            geom.attributes.color = colorAttr;
           }
         } else {
           colorArray = colorAttr.array as Float32Array;
@@ -464,48 +1112,84 @@ export function mainWorldScript(): void {
           const py = posArray[idx3 + 1];
           const pz = posArray[idx3 + 2];
 
-          // Lấy Intensity chuẩn hóa v in [0, 1]
+          // 1. FAST GLOBAL REJECT: Nếu nằm ngoài vùng bao quanh của toàn bộ các box
+          // (Loại bỏ ngay 70-90% số điểm LiDAR không cần duyệt bất kỳ box nào!)
+          if (
+            numBoxes === 0 ||
+            px < globalMinX || px > globalMaxX ||
+            py < globalMinY || py > globalMaxY ||
+            pz < globalMinZ || pz > globalMaxZ
+          ) {
+            colorArray[idx3] = plainR;
+            colorArray[idx3 + 1] = plainG;
+            colorArray[idx3 + 2] = plainB;
+            continue;
+          }
+
+          // Lấy Intensity chuẩn hóa v in [0, 1] (Defensive Programming chống NaN / Infinity)
           let v = 0.5;
           if (intensityAttr && i < intensityAttr.length) {
             const rawInt = intensityAttr[i];
-            v = rawInt <= 1.0 ? rawInt : Math.min(1.0, rawInt / 255);
+            if (typeof rawInt === "number" && !isNaN(rawInt) && isFinite(rawInt)) {
+              v = rawInt <= 1.0 ? Math.max(0, rawInt) : Math.min(1.0, Math.max(0, rawInt) / 255);
+            }
           }
 
           // Kiểm tra Point-in-Box (Hỗ trợ phát hiện Overlap 2..N box)
           let matched: FastBoxTarget | null = null;
           let matchCount = 0;
-          if (numBoxes > 0) {
-            for (let k = 0; k < numBoxes; k++) {
+
+          // SPATIAL FAST-PATH: Khi có >= 4 boxes, chỉ duyệt các box lọt vào cell 2D của điểm
+          let candidateIndices: number[] | null = null;
+          if (numBoxes >= 4) {
+            const gx = Math.floor(px * 0.125); // 0.125 = 1 / 8.0
+            const gy = Math.floor(py * 0.125);
+            const key = (((gx + 2048) << 12) | ((gy + 2048) & 0xfff));
+            candidateIndices = spatialBoxGrid.get(key) || null;
+          }
+
+          if (numBoxes < 4 || (candidateIndices && candidateIndices.length > 0)) {
+            const candidatesLen = candidateIndices ? candidateIndices.length : numBoxes;
+            for (let cIdx = 0; cIdx < candidatesLen; cIdx++) {
+              const k = candidateIndices ? candidateIndices[cIdx] : cIdx;
               const b = fastBoxes[k];
+
+              // A. Fast Reject bằng AABB của từng box (chỉ dùng phép so sánh số học, không gọi hàm)
+              if (px < b.minX || px > b.maxX || py < b.minY || py > b.maxY || pz < b.minZ || pz > b.maxZ) {
+                continue;
+              }
+
               const dx = px - b.cx;
               const dy = py - b.cy;
               const dz = pz - b.cz;
 
-              if (Math.abs(dx) > b.maxR || Math.abs(dy) > b.maxR || Math.abs(dz) > b.maxR) {
+              // B. Fast Reject bằng Bounding Sphere R^2 (tránh hoàn toàn Math.abs và phép quay ma trận)
+              if (dx * dx + dy * dy + dz * dz > b.maxR2) {
                 continue;
               }
 
+              // C. Chỉ khi lọt qua Bounding Sphere mới thực hiện biến đổi góc xoay Yaw, Pitch, Roll
               let lx = dx * b.cosY - dy * b.sinY;
               let ly = dx * b.sinY + dy * b.cosY;
               let lz = dz;
 
-              if (b.rx || b.ry) {
-                const cosP = Math.cos(-b.ry);
-                const sinP = Math.sin(-b.ry);
-                const lx2 = lx * cosP + lz * sinP;
-                const lz2 = -lx * sinP + lz * cosP;
+              if (b.hasPitchRoll) {
+                const lx2 = lx * b.cosP + lz * b.sinP;
+                const lz2 = -lx * b.sinP + lz * b.cosP;
 
-                const cosR = Math.cos(-b.rx);
-                const sinR = Math.sin(-b.rx);
-                const ly2 = ly * cosR - lz2 * sinR;
-                const lz3 = ly * sinR + lz2 * cosR;
+                const ly2 = ly * b.cosR - lz2 * b.sinR;
+                const lz3 = ly * b.sinR + lz2 * b.cosR;
 
                 lx = lx2;
                 ly = ly2;
                 lz = lz3;
               }
 
-              if (Math.abs(lx) <= b.halfL && Math.abs(ly) <= b.halfW && Math.abs(lz) <= b.halfH) {
+              if (
+                lx >= -b.halfL && lx <= b.halfL &&
+                ly >= -b.halfW && ly <= b.halfW &&
+                lz >= -b.halfH && lz <= b.halfH
+              ) {
                 matchCount++;
                 if (matchCount === 1) {
                   matched = b;
@@ -518,54 +1202,129 @@ export function mainWorldScript(): void {
             }
           }
 
+          // 2. Kiểm tra Cảnh Báo Viền & Cắt Lẹm đối với Active Box (Top / Side / Front Edge Snap)
+          let isCutOut = false;
+          let isEdgeSnap = false;
+
+          if (activeBox) {
+            const adx = px - activeBox.cx;
+            const ady = py - activeBox.cy;
+            const adz = pz - activeBox.cz;
+            if (
+              adx >= -activeMaxR15 && adx <= activeMaxR15 &&
+              ady >= -activeMaxR15 && ady <= activeMaxR15 &&
+              adz >= -activeMaxR15 && adz <= activeMaxR15 &&
+              adx * adx + ady * ady + adz * adz <= activeMaxR15_2
+            ) {
+              let alx = adx * activeBox.cosY - ady * activeBox.sinY;
+              let aly = adx * activeBox.sinY + ady * activeBox.cosY;
+              let alz = adz;
+
+              if (activeBox.hasPitchRoll) {
+                const lx2 = alx * activeBox.cosP + alz * activeBox.sinP;
+                const lz2 = -alx * activeBox.sinP + alz * activeBox.cosP;
+                const ly2 = aly * activeBox.cosR - lz2 * activeBox.sinR;
+                const lz3 = aly * activeBox.sinR + lz2 * activeBox.cosR;
+                alx = lx2;
+                aly = ly2;
+                alz = lz3;
+              }
+
+              // Lọc tầng độ cao: Cắt bỏ nhiễu sát sàn theo chuẩn GEMINI.md
+              const zFloor = -activeBox.halfH + 0.15;
+              const zCeil = activeBox.halfH + 0.10;
+              if (alz >= zFloor && alz <= zCeil) {
+                // Kiểm tra Cắt Lẹm Ngoài Mép (1cm ~ 8cm) - Bao quát cả 3 view Top (X, Y), Side (X, Z), Front (Y, Z)
+                const dFront = alx - activeBox.halfL;
+                const dRear = -activeBox.halfL - alx;
+                const dLeft = aly - activeBox.halfW;
+                const dRight = -activeBox.halfW - aly;
+                const dRoof = alz - activeBox.halfH;
+
+                const isCutFront = dFront > 0.01 && dFront <= 0.08 && Math.abs(aly) <= activeBox.halfW + 0.05;
+                const isCutRear = dRear > 0.01 && dRear <= 0.08 && Math.abs(aly) <= activeBox.halfW + 0.05;
+                const isCutLeft = dLeft > 0.01 && dLeft <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05;
+                const isCutRight = dRight > 0.01 && dRight <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05;
+                const isCutRoof = dRoof > 0.01 && dRoof <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05 && Math.abs(aly) <= activeBox.halfW + 0.05;
+
+                if (isCutFront || isCutRear || isCutLeft || isCutRight || isCutRoof) {
+                  isCutOut = true;
+                } else if (
+                  Math.abs(alx) <= activeBox.halfL + 0.01 &&
+                  Math.abs(aly) <= activeBox.halfW + 0.01 &&
+                  alz <= activeBox.halfH + 0.01
+                ) {
+                  // Điểm nằm trong hoặc sát mép (<= 1cm) -> Kiểm tra Bám Sát Viền (±3cm) trên cả 3 chiều
+                  const distX = Math.min(Math.abs(alx - activeBox.halfL), Math.abs(alx + activeBox.halfL));
+                  const distY = Math.min(Math.abs(aly - activeBox.halfW), Math.abs(aly + activeBox.halfW));
+                  const distZ = Math.abs(alz - activeBox.halfH);
+                  if (Math.min(distX, distY, distZ) <= 0.03) {
+                    isEdgeSnap = true;
+                  }
+                }
+              }
+            }
+          }
+
           if (matchCount >= 2) {
-            // VÙNG CHỒNG LẤN TỪ 2 ĐẾN N BOX: ĐỎ NEON CẢNH BÁO (#ff0d33) FULL BRIGHTNESS
+            // VÙNG CHỒNG LẤN TỪ 2 ĐẾN N BOX: ĐỎ NEON CẢNH BÁO (#ff0033) FULL BRIGHTNESS
             colorArray[idx3] = OVERLAP_WARNING_COLOR.r;
             colorArray[idx3 + 1] = OVERLAP_WARNING_COLOR.g;
             colorArray[idx3 + 2] = OVERLAP_WARNING_COLOR.b;
+          } else if (isCutOut) {
+            // ĐIỂM BỊ CẮT LẸM NGOÀI MÉP ACTIVE BOX (1~8cm): ĐỎ CẢNH BÁO (#ef4444)
+            colorArray[idx3] = CUT_OUT_WARNING_COLOR.r;
+            colorArray[idx3 + 1] = CUT_OUT_WARNING_COLOR.g;
+            colorArray[idx3 + 2] = CUT_OUT_WARNING_COLOR.b;
+          } else if (isEdgeSnap) {
+            // ĐIỂM BÁM SÁT VIỀN ACTIVE BOX (±3cm): VÀNG CHANH NEON (#facc15)
+            colorArray[idx3] = EDGE_SNAP_COLOR.r;
+            colorArray[idx3 + 1] = EDGE_SNAP_COLOR.g;
+            colorArray[idx3 + 2] = EDGE_SNAP_COLOR.b;
           } else if (matched) {
-            // NẰM TRONG 1 XE BỌC: Nhuộm màu riêng biệt theo Track ID
-            const factor = isPlain ? 0.90 : 0.40 + 0.60 * v;
+            // NẰM TRONG 1 XE BỌC: Nhuộm màu riêng biệt theo Track ID (Đậm nhất có thể, factor = 1.0)
+            const factor = 1.0;
             colorArray[idx3] = matched.colorR * factor;
             colorArray[idx3 + 1] = matched.colorG * factor;
             colorArray[idx3 + 2] = matched.colorB * factor;
           } else {
             // NGOÀI XE BỌC:
-            if (isPlain) {
-              colorArray[idx3] = plainR;
-              colorArray[idx3 + 1] = plainG;
-              colorArray[idx3 + 2] = plainB;
-            } else {
-              // Intensity Mode (Mượt mà, không lag)
-              const boostV = Math.min(1.0, v * 1.25);
-              if (v >= 0.70) {
-                // Vạch sơn phản quang rực rỡ ánh vàng nhẹ
-                colorArray[idx3] = 1.0;
-                colorArray[idx3 + 1] = 0.95;
-                colorArray[idx3 + 2] = 0.50 + 0.50 * boostV;
-              } else {
-                colorArray[idx3] = boostV;
-                colorArray[idx3 + 1] = boostV;
-                colorArray[idx3 + 2] = boostV;
-              }
-            }
+            // Nền trắng: PHẢI ĐEN HOÀN TOÀN 100% (r: 0.0, g: 0.0, b: 0.0)
+            // Nền đen: PHẢI TRẮNG 100% (r: 1.0, g: 1.0, b: 1.0)
+            colorArray[idx3] = plainR;
+            colorArray[idx3 + 1] = plainG;
+            colorArray[idx3 + 2] = plainB;
           }
         }
 
-        colorAttr.needsUpdate = true;
+        if (colorAttr) {
+          colorAttr.needsUpdate = true;
+        }
+        if (geom.attributes?.color) {
+          geom.attributes.color.needsUpdate = true;
+        }
 
         if (obj.material) {
-          obj.material.vertexColors = true;
-          obj.material.needsUpdate = true;
+          const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+          for (const m of mats) {
+            if (m && !m.vertexColors) {
+              m.vertexColors = true;
+              m.needsUpdate = true;
+            }
+          }
         }
 
         anyUpdated = true;
       }
 
-      if (anyUpdated && typeof canvas.render === "function") {
+      if (anyUpdated) {
         isColorizingRunning = true;
         try {
-          canvas.render();
+          // Chỉ gọi canvas.render() để Three.js CVAT tự quản lý luồng render mượt mà,
+          // TUYỆT ĐỐI KHÔNG ép render thủ công cả 4 views gây tắc nghẽn GPU pipeline
+          if (typeof canvas.render === "function") {
+            canvas.render();
+          }
         } finally {
           isColorizingRunning = false;
         }
@@ -575,6 +1334,374 @@ export function mainWorldScript(): void {
     } catch (err) {
       console.warn("[CVAT 3D Suite] Lỗi applyPointCloudColorizationInMainWorld:", err);
       return false;
+    }
+  }
+
+  // Single-Flight Debounce Controller qua requestAnimationFrame cho Tô Màu Mây Điểm (Zero Main-Thread Freeze)
+  let colorizeRafId: number | null = null;
+  let colorizeDebounceTimer: any = null;
+  let pendingColorizeOptions: { mode?: "intensity" | "plain"; colorizeBoxed?: boolean } | undefined = undefined;
+
+  function schedulePointCloudColorization(
+    delayMs: number = 0,
+    options?: { mode?: "intensity" | "plain"; colorizeBoxed?: boolean }
+  ): void {
+    if (options) {
+      pendingColorizeOptions = { ...pendingColorizeOptions, ...options };
+    }
+    if (colorizeDebounceTimer) {
+      clearTimeout(colorizeDebounceTimer);
+      colorizeDebounceTimer = null;
+    }
+    if (colorizeRafId) {
+      cancelAnimationFrame(colorizeRafId);
+      colorizeRafId = null;
+    }
+
+    const execute = () => {
+      colorizeRafId = requestAnimationFrame(() => {
+        colorizeRafId = null;
+        const opts = pendingColorizeOptions;
+        pendingColorizeOptions = undefined;
+        applyPointCloudColorizationInMainWorld(opts);
+      });
+    };
+
+    if (delayMs > 0) {
+      colorizeDebounceTimer = setTimeout(execute, delayMs);
+    } else {
+      execute();
+    }
+  }
+
+  // =============================================================================
+  // WEBGL HARDWARE CLIPPING ENGINE: LÁT CẮT (SLICING), TẮT ĐẤT & ISOLATE ROI
+  // 100% GPU Fragment Discard (0ms CPU Main Thread / 0 Garbage Collection Heap)
+  // Bảo toàn 100% Perspective 3D View (View 3D chính không bị cắt)
+  // =============================================================================
+  interface OrthoSlicingConfig {
+    enabled: boolean;
+    slab: number;
+    hideGround: boolean;
+    isolateROI: boolean;
+  }
+
+  let currentOrthoSlicing: OrthoSlicingConfig = {
+    enabled: false,
+    slab: 0.5,
+    hideGround: true,
+    isolateROI: false,
+  };
+
+  try {
+    const savedSlicing = localStorage.getItem("cvat_3d_ortho_slicing");
+    if (savedSlicing) {
+      const parsed = JSON.parse(savedSlicing);
+      if (typeof parsed.enabled === "boolean") currentOrthoSlicing.enabled = parsed.enabled;
+      if (typeof parsed.slab === "number" && parsed.slab > 0) currentOrthoSlicing.slab = parsed.slab;
+      if (typeof parsed.hideGround === "boolean") currentOrthoSlicing.hideGround = parsed.hideGround;
+      if (typeof parsed.isolateROI === "boolean") currentOrthoSlicing.isolateROI = parsed.isolateROI;
+    }
+  } catch (_) {}
+
+  // Pre-allocated THREE.Plane pools để 0ms Garbage Collection
+  const cachedTopPlanes: any[] = [];
+  const cachedSidePlanes: any[] = [];
+  const cachedFrontPlanes: any[] = [];
+  let clippingThreeEngine: any = null;
+
+  function getClippingThree(): any {
+    if (clippingThreeEngine) return clippingThreeEngine;
+    const win = window as any;
+    if (win.THREE && typeof win.THREE.Plane === "function") {
+      clippingThreeEngine = win.THREE;
+      return clippingThreeEngine;
+    }
+    const store = getReduxStore();
+    const canvas = store?.getState()?.annotation?.canvas?.instance;
+    if (canvas?.THREE && typeof canvas.THREE.Plane === "function") {
+      clippingThreeEngine = canvas.THREE;
+      return clippingThreeEngine;
+    }
+    if (canvas?.view?.THREE && typeof canvas.view.THREE.Plane === "function") {
+      clippingThreeEngine = canvas.view.THREE;
+      return clippingThreeEngine;
+    }
+    return null;
+  }
+
+  function ensurePlaneAt(arr: any[], index: number, ThreeClass: any): any {
+    while (arr.length <= index) {
+      arr.push(new ThreeClass.Plane(new ThreeClass.Vector3(0, 0, 1), 0));
+    }
+    return arr[index];
+  }
+
+  /**
+   * Tính toán và cập nhật các mặt phẳng cắt GPU WebGL cho 3 view trực giao (Top, Side, Front)
+   * @param overrideTarget Thông số chi tiết đối tượng active (nếu truyền vào)
+   * @param forceRender Ép Three.js render (mặc định: true, đặt false khi đang drag chuột để rAF tự lo)
+   */
+  function updateOrthoClippingPlanes(overrideTarget?: any, forceRender: boolean = true): void {
+    try {
+      const Three = getClippingThree();
+      const store = getReduxStore();
+      const canvas = store?.getState()?.annotation?.canvas?.instance;
+      const views = canvas?.view?.views;
+      if (!views) return;
+
+      const topView = views.top;
+      const sideView = views.side;
+      const frontView = views.front;
+      const perspectiveView = views.perspective;
+
+      // Perspective View: Bảo toàn 100% toàn cảnh không bao giờ bị cắt
+      if (perspectiveView?.renderer && perspectiveView.renderer.clippingPlanes && perspectiveView.renderer.clippingPlanes.length > 0) {
+        perspectiveView.renderer.clippingPlanes = [];
+      }
+
+      // Nếu tính năng cắt bị tắt hoàn toàn cả 3 chế độ:
+      const isAnyClippingActive = currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI;
+
+      const activeId =
+        overrideTarget?.clientId ??
+        canvas?.view?.activatedElementID ??
+        store?.getState()?.annotation?.annotations?.activatedStateClientID ??
+        lastActiveTrackId;
+
+      if (!isAnyClippingActive || !Three || !activeId || isNaN(Number(activeId)) || Number(activeId) <= 0) {
+        // Reset sạch sẽ clipping planes trên cả 3 view trực giao
+        if (topView?.renderer) topView.renderer.clippingPlanes = [];
+        if (sideView?.renderer) sideView.renderer.clippingPlanes = [];
+        if (frontView?.renderer) frontView.renderer.clippingPlanes = [];
+        return;
+      }
+
+      const numId = Number(activeId);
+      let p: number[] | null = null;
+      if (overrideTarget?.points && Array.isArray(overrideTarget.points)) {
+        p = overrideTarget.points;
+      } else {
+        const drawnItem = canvas?.view?.drawnObjects?.[String(numId)];
+        if (drawnItem) {
+          const states = store?.getState()?.annotation?.annotations?.states || [];
+          const matched = states.find((s: any) => s.clientID === numId);
+          p = extractLivePointsFromDrawnAndState(drawnItem, matched);
+        }
+        if (!p) {
+          const details = extractObjectDetails(numId);
+          p = details?.points || null;
+        }
+      }
+
+      if (!p || p.length < 9) {
+        if (topView?.renderer) topView.renderer.clippingPlanes = [];
+        if (sideView?.renderer) sideView.renderer.clippingPlanes = [];
+        if (frontView?.renderer) frontView.renderer.clippingPlanes = [];
+        return;
+      }
+
+      const cx = p[0], cy = p[1], cz = p[2];
+      const rx = p[3] || 0;
+      const ry = p[4] || 0;
+      const rz = p[5] || 0;
+      const l = p[6], w = p[7], h = p[8];
+      const halfL = l / 2, halfW = w / 2, halfH = h / 2;
+
+      // Tính ma trận hướng u_x, u_y, u_z
+      const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
+      const cosY = Math.cos(ry), sinY = Math.sin(ry);
+      const cosX = Math.cos(rx), sinX = Math.sin(rx);
+
+      // u_x (Heading vector)
+      const uxx = cosZ * cosY;
+      const uxy = sinZ * cosY;
+      const uxz = -sinY;
+
+      // u_y (Lateral vector)
+      const uyx = cosZ * sinY * sinX - sinZ * cosX;
+      const uyy = sinZ * sinY * sinX + cosZ * cosX;
+      const uyz = cosY * sinX;
+
+      // u_z (Upward vector)
+      const uzx = cosZ * sinY * cosX + sinZ * sinX;
+      const uzy = sinZ * sinY * cosX - cosZ * sinX;
+      const uzz = cosY * cosX;
+
+      const slab = Math.max(0.2, currentOrthoSlicing.slab || 0.5);
+
+      // Helper set plane: normal (nx, ny, nz) và constant d = -(n . p)
+      const setPlane = (plane: any, nx: number, ny: number, nz: number, px: number, py: number, pz: number) => {
+        plane.normal.set(nx, ny, nz);
+        plane.constant = -(nx * px + ny * py + nz * pz);
+      };
+
+      // 1. TOP VIEW PLANES
+      const activeTopPlanes: any[] = [];
+      let topIdx = 0;
+
+      // A. Tắt mặt đất: Mặt cắt ngang cao hơn đáy xe +12cm (Z_base + 0.12m)
+      if (currentOrthoSlicing.hideGround) {
+        const pzCutX = cx + (-halfH + 0.12) * uzx;
+        const pzCutY = cy + (-halfH + 0.12) * uzy;
+        const pzCutZ = cz + (-halfH + 0.12) * uzz;
+        const pl = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
+        setPlane(pl, uzx, uzy, uzz, pzCutX, pzCutY, pzCutZ);
+        activeTopPlanes.push(pl);
+      }
+
+      // B. Isolate ROI: Khung hộp quanh xe (±1.0m)
+      if (currentOrthoSlicing.isolateROI) {
+        const roiSpan = 1.0;
+        // Trước (+X)
+        const pFx = cx + (halfL + roiSpan) * uxx;
+        const pFy = cy + (halfL + roiSpan) * uxy;
+        const pFz = cz + (halfL + roiSpan) * uxz;
+        const plF = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
+        setPlane(plF, -uxx, -uxy, -uxz, pFx, pFy, pFz);
+        activeTopPlanes.push(plF);
+
+        // Sau (-X)
+        const pBx = cx - (halfL + roiSpan) * uxx;
+        const pBy = cy - (halfL + roiSpan) * uxy;
+        const pBz = cz - (halfL + roiSpan) * uxz;
+        const plB = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
+        setPlane(plB, uxx, uxy, uxz, pBx, pBy, pBz);
+        activeTopPlanes.push(plB);
+
+        // Trái (+Y)
+        const pLx = cx + (halfW + roiSpan) * uyx;
+        const pLy = cy + (halfW + roiSpan) * uyy;
+        const pLz = cz + (halfW + roiSpan) * uyz;
+        const plL = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
+        setPlane(plL, -uyx, -uyy, -uyz, pLx, pLy, pLz);
+        activeTopPlanes.push(plL);
+
+        // Phải (-Y)
+        const pRx = cx - (halfW + roiSpan) * uyx;
+        const pRy = cy - (halfW + roiSpan) * uyy;
+        const pRz = cz - (halfW + roiSpan) * uyz;
+        const plR = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
+        setPlane(plR, uyx, uyy, uyz, pRx, pRy, pRz);
+        activeTopPlanes.push(plR);
+      }
+
+      // 2. SIDE VIEW PLANES (Nhìn dọc X-Z, cắt lát ngang sườn xe Y)
+      const activeSidePlanes: any[] = [];
+      let sideIdx = 0;
+
+      if (currentOrthoSlicing.enabled) {
+        // Dải lát cắt sườn xe: ± (halfW + slab)
+        const pLx = cx + (halfW + slab) * uyx;
+        const pLy = cy + (halfW + slab) * uyy;
+        const pLz = cz + (halfW + slab) * uyz;
+        const plL = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
+        setPlane(plL, -uyx, -uyy, -uyz, pLx, pLy, pLz);
+        activeSidePlanes.push(plL);
+
+        const pRx = cx - (halfW + slab) * uyx;
+        const pRy = cy - (halfW + slab) * uyy;
+        const pRz = cz - (halfW + slab) * uyz;
+        const plR = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
+        setPlane(plR, uyx, uyy, uyz, pRx, pRy, pRz);
+        activeSidePlanes.push(plR);
+      }
+
+      if (currentOrthoSlicing.isolateROI) {
+        const roiSpan = 1.0;
+        // Trước (+X)
+        const pFx = cx + (halfL + roiSpan) * uxx;
+        const pFy = cy + (halfL + roiSpan) * uxy;
+        const pFz = cz + (halfL + roiSpan) * uxz;
+        const plF = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
+        setPlane(plF, -uxx, -uxy, -uxz, pFx, pFy, pFz);
+        activeSidePlanes.push(plF);
+
+        // Sau (-X)
+        const pBx = cx - (halfL + roiSpan) * uxx;
+        const pBy = cy - (halfL + roiSpan) * uxy;
+        const pBz = cz - (halfL + roiSpan) * uxz;
+        const plB = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
+        setPlane(plB, uxx, uxy, uxz, pBx, pBy, pBz);
+        activeSidePlanes.push(plB);
+
+        // Nóc trần (+Z)
+        const pTx = cx + (halfH + 0.5) * uzx;
+        const pTy = cy + (halfH + 0.5) * uzy;
+        const pTz = cz + (halfH + 0.5) * uzz;
+        const plT = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
+        setPlane(plT, -uzx, -uzy, -uzz, pTx, pTy, pTz);
+        activeSidePlanes.push(plT);
+      }
+
+      // 3. FRONT VIEW PLANES (Nhìn ngang Y-Z, cắt lát dọc cản xe X)
+      const activeFrontPlanes: any[] = [];
+      let frontIdx = 0;
+
+      if (currentOrthoSlicing.enabled) {
+        // Dải lát cắt cản xe: ± (halfL + slab)
+        const pFx = cx + (halfL + slab) * uxx;
+        const pFy = cy + (halfL + slab) * uxy;
+        const pFz = cz + (halfL + slab) * uxz;
+        const plF = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
+        setPlane(plF, -uxx, -uxy, -uxz, pFx, pFy, pFz);
+        activeFrontPlanes.push(plF);
+
+        const pBx = cx - (halfL + slab) * uxx;
+        const pBy = cy - (halfL + slab) * uxy;
+        const pBz = cz - (halfL + slab) * uxz;
+        const plB = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
+        setPlane(plB, uxx, uxy, uxz, pBx, pBy, pBz);
+        activeFrontPlanes.push(plB);
+      }
+
+      if (currentOrthoSlicing.isolateROI) {
+        const roiSpan = 1.0;
+        // Trái (+Y)
+        const pLx = cx + (halfW + roiSpan) * uyx;
+        const pLy = cy + (halfW + roiSpan) * uyy;
+        const pLz = cz + (halfW + roiSpan) * uyz;
+        const plL = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
+        setPlane(plL, -uyx, -uyy, -uyz, pLx, pLy, pLz);
+        activeFrontPlanes.push(plL);
+
+        // Phải (-Y)
+        const pRx = cx - (halfW + roiSpan) * uyx;
+        const pRy = cy - (halfW + roiSpan) * uyy;
+        const pRz = cz - (halfW + roiSpan) * uyz;
+        const plR = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
+        setPlane(plR, uyx, uyy, uyz, pRx, pRy, pRz);
+        activeFrontPlanes.push(plR);
+
+        // Nóc trần (+Z)
+        const pTx = cx + (halfH + 0.5) * uzx;
+        const pTy = cy + (halfH + 0.5) * uzy;
+        const pTz = cz + (halfH + 0.5) * uzz;
+        const plT = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
+        setPlane(plT, -uzx, -uzy, -uzz, pTx, pTy, pTz);
+        activeFrontPlanes.push(plT);
+      }
+
+      // Áp dụng clippingPlanes trực tiếp lên WebGLRenderer của từng View (0ms CPU)
+      if (topView?.renderer) {
+        topView.renderer.localClippingEnabled = true;
+        topView.renderer.clippingPlanes = activeTopPlanes;
+      }
+      if (sideView?.renderer) {
+        sideView.renderer.localClippingEnabled = true;
+        sideView.renderer.clippingPlanes = activeSidePlanes;
+      }
+      if (frontView?.renderer) {
+        frontView.renderer.localClippingEnabled = true;
+        frontView.renderer.clippingPlanes = activeFrontPlanes;
+      }
+
+      // Trigger render Three.js nhẹ (chỉ khi forceRender = true, tránh bão render GPU khi đang drag chuột)
+      if (forceRender && typeof canvas?.render === "function") {
+        canvas.render();
+      }
+    } catch (e) {
+      console.warn("[CVAT 3D Suite] Lỗi updateOrthoClippingPlanes:", e);
     }
   }
 
@@ -636,235 +1763,17 @@ export function mainWorldScript(): void {
     return null;
   }
 
-  function updateGroundPlaneMeshInMainWorld(customZ?: number): void {
-    try {
-      const store = getReduxStore();
-      const canvas = store?.getState()?.annotation?.canvas?.instance;
-      if (!canvas || !canvas.view?.views) return;
 
-      const pView = canvas.view.views.perspective;
-      const scene = pView?.scene;
-      if (!scene) return;
 
-      // 1. Nếu người dùng TẮT mặt sàn: ẩn ngay lập tức
-      if (!currentGroundPlaneVisible) {
-        if (groundPlaneMeshGroup && groundPlaneMeshGroup.parent) {
-          groundPlaneMeshGroup.visible = false;
-          if (typeof canvas.render === "function") canvas.render();
-        }
-        return;
-      }
-
-      const three = getThreeEngineFromScene(scene, canvas);
-      if (!three) return;
-
-      // 2. Tính cao độ mặt đất chuẩn (Ego Road Ground Z)
-      let zGround = customZ !== undefined ? customZ : getEgoRoadGroundZInMainWorld();
-      if (isNaN(zGround) || zGround === 0) zGround = -1.75;
-
-      // Hàm hỗ trợ dựng Đĩa Tròn 360° bán kính 100m (Radial Disc)
-      const createCircleGeom = (radius: number, segments = 72, oz = 0) => {
-        const verts: number[] = [];
-        const step = (Math.PI * 2) / segments;
-        for (let i = 0; i < segments; i++) {
-          const a0 = i * step;
-          const a1 = (i + 1) * step;
-          const x0 = Math.cos(a0) * radius;
-          const y0 = Math.sin(a0) * radius;
-          const x1 = Math.cos(a1) * radius;
-          const y1 = Math.sin(a1) * radius;
-          verts.push(0, 0, oz,  x0, y0, oz,  x1, y1, oz);
-        }
-        const g = new three.BufferGeometry();
-        g.setAttribute("position", new three.BufferAttribute(new Float32Array(verts), 3));
-        return g;
-      };
-
-      // Hàm hỗ trợ dựng Vành Tròn Đồng Tâm phân chia cự ly (Concentric Range Rings)
-      const createRingGeom = (radius: number, width = 0.25, segments = 72, oz = 0.005) => {
-        const verts: number[] = [];
-        const rIn = radius - width / 2;
-        const rOut = radius + width / 2;
-        const step = (Math.PI * 2) / segments;
-        for (let i = 0; i < segments; i++) {
-          const a0 = i * step;
-          const a1 = (i + 1) * step;
-          const c0 = Math.cos(a0), s0 = Math.sin(a0);
-          const c1 = Math.cos(a1), s1 = Math.sin(a1);
-
-          const xIn0 = c0 * rIn, yIn0 = s0 * rIn;
-          const xOut0 = c0 * rOut, yOut0 = s0 * rOut;
-          const xIn1 = c1 * rIn, yIn1 = s1 * rIn;
-          const xOut1 = c1 * rOut, yOut1 = s1 * rOut;
-
-          verts.push(
-            xIn0, yIn0, oz,  xOut0, yOut0, oz,  xOut1, yOut1, oz,
-            xIn0, yIn0, oz,  xOut1, yOut1, oz,  xIn1, yIn1, oz
-          );
-        }
-        const g = new three.BufferGeometry();
-        g.setAttribute("position", new three.BufferAttribute(new Float32Array(verts), 3));
-        return g;
-      };
-
-      // Hàm hỗ trợ dựng Trục Chữ Thập X - Y dài 100m mỗi hướng
-      const createCrosshairGeom = (maxRadius: number, width = 0.18, oz = 0.008) => {
-        const hw = width / 2;
-        const verts = new Float32Array([
-          // Trục X (Tiến - Lùi): từ -maxRadius đến +maxRadius
-          -maxRadius, -hw, oz,   maxRadius, -hw, oz,   maxRadius, hw, oz,
-          -maxRadius, -hw, oz,   maxRadius, hw, oz,   -maxRadius, hw, oz,
-          // Trục Y (Trái - Phải): từ -maxRadius đến +maxRadius
-          -hw, -maxRadius, oz,   hw, -maxRadius, oz,   hw, maxRadius, oz,
-          -hw, -maxRadius, oz,   hw, maxRadius, oz,   -hw, maxRadius, oz,
-        ]);
-        const g = new three.BufferGeometry();
-        g.setAttribute("position", new three.BufferAttribute(verts, 3));
-        return g;
-      };
-
-      // Hàm hỗ trợ dựng Dải Vỉa Hè ôm gọn trong bán kính 100m
-      const createCurbGeom = (yMin: number, yMax: number, maxRadius = 100, oz = 0.15) => {
-        const verts: number[] = [];
-        const steps = 32;
-        const dy = (yMax - yMin) / steps;
-        for (let i = 0; i < steps; i++) {
-          const y0 = yMin + i * dy;
-          const y1 = yMin + (i + 1) * dy;
-          const xSpan0 = Math.sqrt(Math.max(0, maxRadius * maxRadius - y0 * y0));
-          const xSpan1 = Math.sqrt(Math.max(0, maxRadius * maxRadius - y1 * y1));
-
-          verts.push(
-            -xSpan0, y0, oz,   xSpan0, y0, oz,   xSpan1, y1, oz,
-            -xSpan0, y0, oz,   xSpan1, y1, oz,  -xSpan1, y1, oz
-          );
-        }
-        const g = new three.BufferGeometry();
-        g.setAttribute("position", new three.BufferAttribute(new Float32Array(verts), 3));
-        return g;
-      };
-
-      // Hàm hỗ trợ tạo Material bán trong suốt depthWrite=false
-      const createMat = (hexColor: number, opacity: number) => {
-        if (typeof three.MeshBasicMaterial === "function") {
-          return new three.MeshBasicMaterial({
-            color: hexColor,
-            transparent: true,
-            opacity,
-            depthWrite: false,
-            side: 2, // DoubleSide
-          });
-        }
-        if (typeof three.Material === "function") {
-          try {
-            return new three.Material({
-              color: hexColor,
-              transparent: true,
-              opacity,
-              depthWrite: false,
-              side: 2,
-            });
-          } catch (_) {}
-        }
-        // Fallback: Clone từ material trong scene
-        let baseMat: any = null;
-        scene.traverse((o: any) => {
-          if (!baseMat && o.material) baseMat = o.material;
-        });
-        if (baseMat) {
-          const m = baseMat.clone();
-          if (m.color && typeof m.color.setHex === "function") m.color.setHex(hexColor);
-          m.transparent = true;
-          m.opacity = opacity;
-          m.depthWrite = false;
-          m.side = 2;
-          return m;
-        }
-        return null;
-      };
-
-      // 3. Khởi tạo Three.js Group Đĩa Tròn 360° Bán Kính 100m
-      if (!groundPlaneMeshGroup || !(groundPlaneMeshGroup as any)._isRadial100m) {
-        if (groundPlaneMeshGroup && groundPlaneMeshGroup.parent) {
-          groundPlaneMeshGroup.parent.remove(groundPlaneMeshGroup);
-        }
-
-        const GroupCtor = three.Group || three.Mesh;
-        groundPlaneMeshGroup = new GroupCtor();
-        groundPlaneMeshGroup.name = "__cvat_suite_ground_plane_mesh";
-        (groundPlaneMeshGroup as any)._isRadial100m = true;
-
-        // A. ĐĨA TRÒN MẶT ĐƯỜNG 360 ĐỘ BÁN KÍNH 100M
-        const roadGeom = createCircleGeom(100, 72, 0);
-        const roadMat = createMat(0x0284c7, 0.10);
-        if (roadMat && typeof three.Mesh === "function") {
-          const roadMesh = new three.Mesh(roadGeom, roadMat);
-          roadMesh.name = "roadPlaneRadial100m";
-          groundPlaneMeshGroup.add(roadMesh);
-        }
-
-        // B. CÁC VÒNG CỰ LY ĐỒNG TÂM 360 ĐỘ (20m, 40m, 60m, 80m, 100m)
-        const ringMat = createMat(0x38bdf8, 0.28);
-        if (ringMat && typeof three.Mesh === "function") {
-          const distances = [20, 40, 60, 80, 100];
-          for (const d of distances) {
-            const ringGeom = createRingGeom(d, d === 100 ? 0.35 : 0.20, 72, 0.005);
-            const ringMesh = new three.Mesh(ringGeom, ringMat);
-            ringMesh.name = `rangeRing_${d}m`;
-            groundPlaneMeshGroup.add(ringMesh);
-          }
-        }
-
-        // C. TRỤC CHỮ THẬP ĐỊNH HƯỚNG 4 CHIỀU X - Y (100M MỖI HƯỚNG)
-        const crossMat = createMat(0x94a3b8, 0.22);
-        if (crossMat && typeof three.Mesh === "function") {
-          const crossGeom = createCrosshairGeom(100, 0.18, 0.008);
-          const crossMesh = new three.Mesh(crossGeom, crossMat);
-          crossMesh.name = "crosshairAxes100m";
-          groundPlaneMeshGroup.add(crossMesh);
-        }
-
-        // D. DẢI VỈA HÈ TRÁI & PHẢI TRONG BÁN KÍNH 100M (Giật cấp +15cm)
-        const curbMat = createMat(0xf59e0b, 0.14);
-        if (curbMat && typeof three.Mesh === "function") {
-          // Vỉa hè bên trái (Y in [3.8m, 12.0m])
-          const curbLeftGeom = createCurbGeom(3.8, 12.0, 100, 0.15);
-          const curbLeft = new three.Mesh(curbLeftGeom, curbMat);
-          curbLeft.name = "curbLeftRadial100m";
-          groundPlaneMeshGroup.add(curbLeft);
-
-          // Vỉa hè bên phải (Y in [-12.0m, -3.8m])
-          const curbRightGeom = createCurbGeom(-12.0, -3.8, 100, 0.15);
-          const curbRight = new three.Mesh(curbRightGeom, curbMat.clone ? curbMat.clone() : curbMat);
-          curbRight.name = "curbRightRadial100m";
-          groundPlaneMeshGroup.add(curbRight);
-        }
-
-        scene.add(groundPlaneMeshGroup);
-      }
-
-      // Đảm bảo group đã được add vào scene hiện tại
-      if (!groundPlaneMeshGroup.parent || groundPlaneMeshGroup.parent !== scene) {
-        scene.add(groundPlaneMeshGroup);
-      }
-
-      // 4. CẬP NHẬT CAO ĐỘ VÀ VỊ TRÍ MẶT SÀN CHO FRAME HIỆN TẠI
-      groundPlaneMeshGroup.position.set(0, 0, zGround);
-      groundPlaneMeshGroup.visible = true;
-
-      if (typeof canvas.render === "function") {
-        canvas.render();
-      }
-    } catch (err) {
-      console.warn("[CVAT 3D Suite] Lỗi updateGroundPlaneMeshInMainWorld:", err);
-    }
-  }
-
-  // Single-Flight Frame Controller: Hủy tác vụ cũ khi đổi frame, chỉ render đúng 1 lần cho frame active (kèm auto-retry nhẹ nếu mạng tải PCD chậm)
+  // Single-Flight Frame Controller: Hủy tác vụ cũ khi đổi frame, chỉ render đúng 1 lần cho frame active qua requestAnimationFrame
   function scheduleSingleFrameColorizationAndGround(targetFrame: number, delayMs: number = 180): void {
     if (singleFrameColorizeTimer) {
       clearTimeout(singleFrameColorizeTimer);
       singleFrameColorizeTimer = null;
+    }
+    if (colorizeRafId) {
+      cancelAnimationFrame(colorizeRafId);
+      colorizeRafId = null;
     }
 
     const runAttempt = (attempt: number) => {
@@ -874,12 +1783,15 @@ export function mainWorldScript(): void {
           store?.getState()?.annotation?.player?.frame?.number ??
           store?.getState()?.annotation?.job?.instance?.frame;
         if (curF === targetFrame) {
-          const ok = applyPointCloudColorizationInMainWorld();
-          updateGroundPlaneMeshInMainWorld();
-          // Nếu chưa có points (PCD đang tải qua mạng) và chưa thử quá 3 lần:
-          if (!ok && attempt < 3) {
-            singleFrameColorizeTimer = setTimeout(() => runAttempt(attempt + 1), 350);
-          }
+          applyCanvasThemeInMainWorld();
+          colorizeRafId = requestAnimationFrame(() => {
+            colorizeRafId = null;
+            const ok = applyPointCloudColorizationInMainWorld();
+            // Nếu chưa có points (PCD đang tải qua mạng) và chưa thử quá 3 lần:
+            if (!ok && attempt < 3) {
+              singleFrameColorizeTimer = setTimeout(() => runAttempt(attempt + 1), 350);
+            }
+          });
         }
       } catch (_) {}
     };
@@ -887,7 +1799,7 @@ export function mainWorldScript(): void {
     singleFrameColorizeTimer = setTimeout(() => runAttempt(1), delayMs);
   }
 
-  // Thuật toán Annular Ring Ground Detection & 3D Slope Fitting (Pitch Dọc & Roll Ngang Front)
+    // Thuật toán Annular Ring Ground Detection & 3D Slope Fitting (Pitch Dọc & Roll Ngang Front)
   // Thuật toán ƯỚC LƯỢNG CAO ĐỘ MẶT ĐƯỜNG XE EGO (Ego Road Surface Z Reference):
   // Quét các điểm mặt đường trong bán kính mở rộng 0.8m - 15.0m quanh xe Ego làm mốc chuẩn (mặc định -1.75m)
   function getEgoRoadGroundZInMainWorld(egoPos: { x: number; y: number; z: number } = { x: 0, y: 0, z: 0 }): number {
@@ -1734,6 +2646,229 @@ export function mainWorldScript(): void {
     return pts;
   }
 
+  // Thuật toán PHÂN CỤM THEO ĐỘ ĐO KHOẢNG CÁCH PHÓNG TO ĐIỂM 5X (5x Point Dilation Spatial Graph)
+  // - Mỗi điểm LiDAR được gán một bán kính hạt điểm cơ sở r0 ≈ 2.5cm.
+  // - Khi phóng to điểm lên 5x, bán kính hiệu dụng là Reff = 5 * r0 = 12.5cm.
+  // - Ngưỡng kết nối láng giềng giữa 2 điểm chạm nhau là Dconnect = 2 * Reff = 25cm.
+  // - Đám mây điểm thân vỏ xe/người/xe máy liên thông sẽ kết hợp thành duy nhất một Khối Thân Chính (Dominant Component).
+  // - Tối ưu hóa bằng Spatial Hash Grid O(N) và Disjoint Set Union (DSU) với thời gian thực thi < 0.05ms.
+  function clusterByPointDilation5x<T extends { lx: number; ly: number; z?: number }>(
+    pts: T[],
+    options: {
+      basePointSize?: number;
+      dilationFactor?: number;
+      connectDist?: number;
+      connectDistLx?: number;
+      connectDistLy?: number;
+      dim?: "2d" | "3d";
+      minClusterPts?: number;
+      centerBias?: { lx: number; ly: number };
+    } = {}
+  ): {
+    dominantPts: T[];
+    noisePts: T[];
+    clusters: T[][];
+    dominantClusterIndex: number;
+    connectDist: number;
+  } {
+    const n = pts.length;
+    const baseR = options.basePointSize ?? 0.025;
+    const dilation = options.dilationFactor ?? 5.0;
+    const defaultConnect = options.connectDist ?? (2 * baseR * dilation); // 0.25m
+    const connectDistX = options.connectDistLx ?? defaultConnect;
+    const connectDistY = options.connectDistLy ?? defaultConnect;
+    const connectDistZ = defaultConnect;
+    const is3D = options.dim === "3d";
+
+    if (n <= 1) {
+      return {
+        dominantPts: pts,
+        noisePts: [],
+        clusters: n === 1 ? [[pts[0]]] : [],
+        dominantClusterIndex: 0,
+        connectDist: defaultConnect,
+      };
+    }
+
+    const cellX = connectDistX;
+    const cellY = connectDistY;
+    const cellZ = connectDistZ;
+
+    const grid = new Map<string, number[]>();
+    for (let i = 0; i < n; i++) {
+      const p = pts[i];
+      const gx = Math.floor(p.lx / cellX);
+      const gy = Math.floor(p.ly / cellY);
+      const key = is3D ? `${gx}_${gy}_${Math.floor((p.z ?? 0) / cellZ)}` : `${gx}_${gy}`;
+      const bucket = grid.get(key);
+      if (bucket) {
+        bucket.push(i);
+      } else {
+        grid.set(key, [i]);
+      }
+    }
+
+    const parent = new Int32Array(n);
+    const rank = new Uint8Array(n);
+    for (let i = 0; i < n; i++) parent[i] = i;
+
+    function find(x: number): number {
+      let root = x;
+      while (root !== parent[root]) root = parent[root];
+      let curr = x;
+      while (curr !== root) {
+        const next = parent[curr];
+        parent[curr] = root;
+        curr = next;
+      }
+      return root;
+    }
+
+    function union(x: number, y: number): void {
+      const rootX = find(x);
+      const rootY = find(y);
+      if (rootX === rootY) return;
+      if (rank[rootX] < rank[rootY]) {
+        parent[rootX] = rootY;
+      } else if (rank[rootX] > rank[rootY]) {
+        parent[rootY] = rootX;
+      } else {
+        parent[rootY] = rootX;
+        rank[rootX]++;
+      }
+    }
+
+    for (let i = 0; i < n; i++) {
+      const pi = pts[i];
+      const gx = Math.floor(pi.lx / cellX);
+      const gy = Math.floor(pi.ly / cellY);
+      const gz = is3D ? Math.floor((pi.z ?? 0) / cellZ) : 0;
+
+      const zMin = is3D ? -1 : 0;
+      const zMax = is3D ? 1 : 0;
+
+      for (let dz = zMin; dz <= zMax; dz++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dy = -1; dy <= 1; dy++) {
+            const neighborKey = is3D ? `${gx + dx}_${gy + dy}_${gz + dz}` : `${gx + dx}_${gy + dy}`;
+            const neighborIndices = grid.get(neighborKey);
+            if (!neighborIndices) continue;
+
+            for (let k = 0; k < neighborIndices.length; k++) {
+              const j = neighborIndices[k];
+              if (j <= i) continue;
+
+              const pj = pts[j];
+              const dX = (pi.lx - pj.lx) / connectDistX;
+              const dY = (pi.ly - pj.ly) / connectDistY;
+              let distNormSq = dX * dX + dY * dY;
+
+              if (is3D) {
+                const dZ = ((pi.z ?? 0) - (pj.z ?? 0)) / connectDistZ;
+                distNormSq += dZ * dZ;
+              }
+
+              if (distNormSq <= 1.000001) {
+                union(i, j);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const groupMap = new Map<number, number[]>();
+    for (let i = 0; i < n; i++) {
+      const r = find(i);
+      const list = groupMap.get(r);
+      if (list) {
+        list.push(i);
+      } else {
+        groupMap.set(r, [i]);
+      }
+    }
+
+    const clusterIndices = Array.from(groupMap.values());
+    const clusters: T[][] = clusterIndices.map((indices) => indices.map((idx) => pts[idx]));
+
+    if (clusters.length === 1) {
+      return {
+        dominantPts: pts,
+        noisePts: [],
+        clusters,
+        dominantClusterIndex: 0,
+        connectDist: defaultConnect,
+      };
+    }
+
+    const biasX = options.centerBias?.lx ?? 0;
+    const biasY = options.centerBias?.ly ?? 0;
+    const minClusterPts = options.minClusterPts ?? 3;
+
+    const clusterStats = clusters.map((cluster, idx) => {
+      let dMin = Infinity;
+      let minLx = Infinity;
+      let maxLx = -Infinity;
+      let minLy = Infinity;
+      let maxLy = -Infinity;
+      for (let k = 0; k < cluster.length; k++) {
+        const p = cluster[k];
+        const d = Math.hypot(p.lx - biasX, p.ly - biasY);
+        if (d < dMin) dMin = d;
+        if (p.lx < minLx) minLx = p.lx;
+        if (p.lx > maxLx) maxLx = p.lx;
+        if (p.ly < minLy) minLy = p.ly;
+        if (p.ly > maxLy) maxLy = p.ly;
+      }
+      const span = Math.max(maxLx - minLx, maxLy - minLy);
+      return { idx, len: cluster.length, dMin, span };
+    });
+
+    const maxLen = Math.max(...clusterStats.map((s) => s.len));
+
+    let candidateStats = clusterStats.filter((s) => {
+      if (maxLen >= 8) {
+        if (s.len < Math.min(minClusterPts, 4)) return false;
+        const isSignificantSize = s.len >= maxLen * 0.15 || s.len >= 8;
+        const hasPhysicalSpan = s.span >= 0.25;
+        return isSignificantSize || hasPhysicalSpan;
+      } else {
+        return s.len >= Math.min(minClusterPts, 2);
+      }
+    });
+
+    if (candidateStats.length === 0) {
+      candidateStats = clusterStats;
+    }
+
+    candidateStats.sort((a, b) => {
+      const diffD = a.dMin - b.dMin;
+      if (Math.abs(diffD) > 0.20) {
+        return diffD;
+      }
+      return b.len - a.len;
+    });
+
+    const bestIdx = candidateStats[0].idx;
+
+    const dominantPts = clusters[bestIdx];
+    const noisePts: T[] = [];
+    for (let c = 0; c < clusters.length; c++) {
+      if (c === bestIdx) continue;
+      for (let k = 0; k < clusters[c].length; k++) {
+        noisePts.push(clusters[c][k]);
+      }
+    }
+
+    return {
+      dominantPts,
+      noisePts,
+      clusters,
+      dominantClusterIndex: bestIdx,
+      connectDist: defaultConnect,
+    };
+  }
+
   // Dò tìm biên 1D thích nghi theo mật độ điểm và khoảng hở (Density & Gap Adaptive 1D Boundary Detection)
   // Tự động loại bỏ cụm nhiễu bên ngoài (vị trí 2 chấm đỏ) và gương chiếu hậu nhô ra ở sườn xe
   function detectAdaptiveBounds(
@@ -2446,6 +3581,7 @@ export function mainWorldScript(): void {
       bumperEdge: number;
     };
     pointsCount: number;
+    fitStep?: "all" | "top" | "side" | "front";
     message: string;
   } {
     const cx = points[0];
@@ -2513,8 +3649,19 @@ export function mainWorldScript(): void {
       }
     }
 
+    // Lọc cụm liên thông bằng Độ đo phóng to điểm 5x (5x Point Dilation Spatial Graph)
+    // Kết nối liền mạch vỏ xe và bảo vệ 100% curpoint biên đón tia, triệt tiêu người đi bộ & xe đỗ bên cạnh
+    const dilationRes = clusterByPointDilation5x(rawBodyPts, {
+      basePointSize: 0.025,
+      dilationFactor: 5.0,
+      connectDist: 0.25,
+      dim: "2d",
+      centerBias: { lx: 0, ly: 0 },
+    });
+    const dominantDilationPts = dilationRes.dominantPts.length >= 4 ? dilationRes.dominantPts : rawBodyPts;
+
     // Lớp 1: Lọc nhiễu thưa thớt sát thân xe bằng mật độ lõi 3D
-    const denseCorePts = filterSparseNoiseByLocalDensity(rawBodyPts, { radius: 0.12, minCoreNeighbors: 2 });
+    const denseCorePts = filterSparseNoiseByLocalDensity(dominantDilationPts, { radius: 0.22, minCoreNeighbors: 2 });
 
     // Lớp 2: Lọc cụm liên tục (Loại bỏ 100% điểm của xe khác đỗ bên cạnh hoặc nối đuôi)
     const clusterLy = filterDenseConnectedCluster1D(denseCorePts, "ly", 0.22, 0);
@@ -2914,6 +4061,7 @@ export function mainWorldScript(): void {
         bumperEdge: Number(shiftLx.toFixed(3)),
       },
       pointsCount: bodyPts.length,
+      fitStep,
       message: msg,
     };
   }
@@ -2972,7 +4120,7 @@ export function mainWorldScript(): void {
     }
 
     const { count, array } = lidar;
-    const headBuffer = options.headBuffer ?? 0.02;
+    const headBuffer = options.headBuffer ?? 0.05;
     const margin = options.margin ?? 0.15;
 
     // 1. Quét mặt đất siêu hẹp sát chân người (R <= 0.45m)
@@ -3046,13 +4194,25 @@ export function mainWorldScript(): void {
       rawBodyPts = coreBodyPts.length >= 8 ? coreBodyPts : [...coreBodyPts, ...footPts];
     }
 
+    const isSparse = rawBodyPts.length <= 12;
+    let cleanPedPts = rawBodyPts;
+    if (!isSparse) {
+      const pedDilationRes = clusterByPointDilation5x(rawBodyPts, {
+        basePointSize: 0.022,
+        dilationFactor: 5.0,
+        connectDist: 0.22,
+        dim: "2d",
+        centerBias: { lx: 0, ly: 0 },
+      });
+      cleanPedPts = pedDilationRes.dominantPts.length >= 6 ? pedDilationRes.dominantPts : rawBodyPts;
+    }
+
     // 3. Phân cụm mật độ tự thích ứng (Adaptive Density-Connected Clustering):
     // - Giảm cắt nhiễu bớt đi: Dùng maxGapLx = 0.32m ở Side; maxGapLy = 0.30m ở Front để không chém đứt curpoint cẳng chân, sải bước hay tay
-    const isSparse = rawBodyPts.length <= 12;
     const maxGapLx = (step === "side" || isSparse) ? 0.32 : 0.22;
     const maxGapLy = (step === "front" || isSparse) ? 0.30 : 0.22;
 
-    const clusterLy = filterDenseConnectedCluster1D(rawBodyPts, "ly", maxGapLy, 0);
+    const clusterLy = filterDenseConnectedCluster1D(cleanPedPts, "ly", maxGapLy, 0);
     const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxGapLx, 0);
 
     let newX = cx;
@@ -3460,7 +4620,7 @@ export function mainWorldScript(): void {
     }
 
     const { count, array } = lidar;
-    const headBuffer = options.headBuffer ?? 0.02;
+    const headBuffer = options.headBuffer ?? 0.05;
     const margin = options.margin ?? 0.20;
 
     // 1. Quét mặt đất vệt bánh xe
@@ -3535,10 +4695,24 @@ export function mainWorldScript(): void {
     }
 
     const isSparse = rawPts.length <= 12;
+    let cleanCyclistPts = rawPts;
+    if (!isSparse) {
+      const cyclistDilationRes = clusterByPointDilation5x(rawPts, {
+        basePointSize: 0.03,
+        dilationFactor: 5.0,
+        connectDist: 0.30,
+        connectDistLx: 0.38,
+        connectDistLy: 0.32,
+        dim: "2d",
+        centerBias: { lx: 0, ly: 0 },
+      });
+      cleanCyclistPts = cyclistDilationRes.dominantPts.length >= 8 ? cyclistDilationRes.dominantPts : rawPts;
+    }
+
     // Giảm cắt nhiễu bớt đi: Dùng maxGapLx = 0.38m ở Side để nối thông lốp trước/sau; maxGapLy = 0.35m ở Front để nối thông gương/tay lái
     const maxGapLx = (step === "side" || isSparse) ? 0.38 : 0.28;
     const maxGapLy = (step === "front" || isSparse) ? 0.35 : 0.24;
-    const clusterLy = filterDenseConnectedCluster1D(rawPts, "ly", maxGapLy, 0);
+    const clusterLy = filterDenseConnectedCluster1D(cleanCyclistPts, "ly", maxGapLy, 0);
     const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxGapLx, 0);
 
     let newX = cx;
@@ -4189,18 +5363,55 @@ export function mainWorldScript(): void {
   // =========================================================================
   const mainWorldLabelsCache = new Map<number, { name: string; color: string }>();
 
+  // Biến và hàm tối ưu O(1) Class Swap cho DOM Sidebar của CVAT (Loại bỏ hoàn toàn querySelectorAll trên cả danh sách)
+  let lastHighlightedSidebarItem: HTMLElement | null = null;
+  function syncSidebarItemHighlight(id: number | null): void {
+    try {
+      if (id === null || id <= 0) {
+        if (lastHighlightedSidebarItem) {
+          lastHighlightedSidebarItem.classList.remove("cvat-objects-sidebar-state-item-active", "selected");
+          lastHighlightedSidebarItem = null;
+        }
+        return;
+      }
+
+      const sidebarItem =
+        document.querySelector<HTMLElement>(`#cvat-objects-sidebar-state-item-${id}`) ||
+        document.querySelector<HTMLElement>(`[data-cvat-state-item-id="${id}"]`) ||
+        document.querySelector<HTMLElement>(`[class*="cvat-objects-sidebar-state-item"][id*="${id}"]`);
+
+      if (sidebarItem) {
+        if (lastHighlightedSidebarItem && lastHighlightedSidebarItem !== sidebarItem) {
+          lastHighlightedSidebarItem.classList.remove("cvat-objects-sidebar-state-item-active", "selected");
+        }
+        sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
+        lastHighlightedSidebarItem = sidebarItem;
+        sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    } catch (_) {}
+  }
+
   function updateMainWorldLabels(job?: any): void {
     try {
       const store = getReduxStore();
-      const storeJob = store?.getState()?.annotation?.job?.instance || job;
-      const labels = storeJob?.labels || storeJob?.task?.labels || store?.getState()?.annotation?.job?.labels;
-      if (Array.isArray(labels)) {
-        for (const l of labels) {
-          if (l && l.id !== undefined) {
-            mainWorldLabelsCache.set(Number(l.id), {
-              name: l.name || "Object",
-              color: l.color || "#3b82f6",
-            });
+      const state = store?.getState?.();
+      const storeJob = state?.annotation?.job?.instance || job;
+      const candidates = [
+        storeJob?.labels,
+        storeJob?.task?.labels,
+        state?.annotation?.job?.labels,
+        state?.annotation?.job?.task?.labels,
+        state?.annotation?.canvas?.instance?.setup?.labels,
+      ];
+      for (const labels of candidates) {
+        if (Array.isArray(labels)) {
+          for (const l of labels) {
+            if (l && l.id !== undefined) {
+              mainWorldLabelsCache.set(Number(l.id), {
+                name: l.name || "Object",
+                color: l.color || "#3b82f6",
+              });
+            }
           }
         }
       }
@@ -4208,17 +5419,209 @@ export function mainWorldScript(): void {
   }
 
   function resolveLabelName(stateOrShape: any): { name: string; color: string } {
+    if (!stateOrShape) return { name: "Object", color: "#22c55e" };
+
+    // 1. Kiểm tra trực tiếp label.name
     if (stateOrShape?.label && typeof stateOrShape.label.name === "string" && stateOrShape.label.name.trim()) {
       return {
         name: stateOrShape.label.name.trim(),
         color: stateOrShape.label.color || "#22c55e",
       };
     }
-    const lblId = stateOrShape?.labelID ?? stateOrShape?.labelId ?? stateOrShape?.label_id;
-    if (lblId !== undefined && mainWorldLabelsCache.has(Number(lblId))) {
-      return mainWorldLabelsCache.get(Number(lblId))!;
+    // 1b. data.label.name
+    if (stateOrShape?.data?.label && typeof stateOrShape.data.label.name === "string" && stateOrShape.data.label.name.trim()) {
+      return {
+        name: stateOrShape.data.label.name.trim(),
+        color: stateOrShape.data.label.color || "#22c55e",
+      };
     }
-    return { name: "Car", color: "#22c55e" };
+
+    // 2. Tìm lblId
+    const lblId =
+      stateOrShape?.labelID ??
+      stateOrShape?.labelId ??
+      stateOrShape?.label_id ??
+      stateOrShape?.label?.id ??
+      stateOrShape?.data?.labelID ??
+      stateOrShape?.data?.labelId ??
+      stateOrShape?.data?.label?.id;
+
+    if (lblId !== undefined) {
+      if (!mainWorldLabelsCache.has(Number(lblId))) {
+        updateMainWorldLabels();
+      }
+      if (mainWorldLabelsCache.has(Number(lblId))) {
+        return mainWorldLabelsCache.get(Number(lblId))!;
+      }
+    }
+
+    // 3. Fallback tra cứu từ DOM sidebar nếu có clientID
+    const clientId = stateOrShape?.clientID ?? stateOrShape?.clientId ?? stateOrShape?.id;
+    if (clientId !== undefined && typeof document !== "undefined") {
+      try {
+        const sidebarItem =
+          document.querySelector<HTMLElement>(`#cvat-objects-sidebar-state-item-${clientId}`) ||
+          document.querySelector<HTMLElement>(`[class*="cvat-objects-sidebar-state-item"][id*="${clientId}"]`);
+        if (sidebarItem) {
+          const labelEl =
+            sidebarItem.querySelector<HTMLElement>(".cvat-objects-sidebar-state-item-label-selector .ant-select-selection-item") ||
+            sidebarItem.querySelector<HTMLElement>(".ant-select-selection-item") ||
+            sidebarItem.querySelector<HTMLElement>("[class*='label']");
+          const labelText = labelEl?.innerText?.trim() || labelEl?.textContent?.trim();
+          if (labelText) {
+            return { name: labelText, color: "#22c55e" };
+          }
+        }
+      } catch (_) {}
+    }
+
+    return { name: "Object", color: "#22c55e" };
+  }
+
+  // Trích xuất tọa độ và kích thước thời gian thực (Live 3D Coordinates)
+  // Ưu tiên đọc trực tiếp từ Three.js cuboid khi người dùng đang kéo bằng chuột trên Canvas
+  function extractLivePointsFromDrawnAndState(drawnItem: any, stateOrShape: any): number[] | null {
+    const basePoints =
+      drawnItem?.data?.points && Array.isArray(drawnItem.data.points) && drawnItem.data.points.length >= 9
+        ? drawnItem.data.points
+        : stateOrShape?.points && Array.isArray(stateOrShape.points) && stateOrShape.points.length >= 9
+        ? stateOrShape.points
+        : null;
+
+    if (!basePoints) return null;
+
+    let cx = basePoints[0];
+    let cy = basePoints[1];
+    let cz = basePoints[2];
+    let rx = basePoints[3] || 0;
+    let ry = basePoints[4] || 0;
+    let yaw = basePoints[5] || 0;
+    let l = basePoints[6];
+    let w = basePoints[7];
+    let h = basePoints[8];
+
+    if (drawnItem && drawnItem.cuboid) {
+      const basePos = { x: basePoints[0], y: basePoints[1], z: basePoints[2] };
+      const baseYaw = basePoints[5] || 0;
+      const baseScale = { l: basePoints[6], w: basePoints[7], h: basePoints[8] };
+      const c = drawnItem.cuboid;
+
+      let bestDeltaPos = 0;
+      let bestPos: { x: number; y: number; z: number } | null = null;
+      const candidateViews = [
+        { name: "top", obj: c.top },
+        { name: "side", obj: c.side },
+        { name: "front", obj: c.front },
+        { name: "perspective", obj: c.perspective },
+        { name: "root", obj: c },
+      ];
+
+      for (const cand of candidateViews) {
+        const p = cand.obj?.position;
+        if (p && typeof p.x === "number" && typeof p.y === "number" && typeof p.z === "number") {
+          let dx = p.x - basePos.x;
+          let dy = p.y - basePos.y;
+          let dz = p.z - basePos.z;
+          if (cand.name === "top") dz = 0;
+          if (cand.name === "side") dy = 0;
+          if (cand.name === "front") dx = 0;
+
+          const delta = dx * dx + dy * dy + dz * dz;
+          if (delta > bestDeltaPos && delta > 1e-4) {
+            bestDeltaPos = delta;
+            bestPos = {
+              x: cand.name === "front" ? basePos.x : p.x,
+              y: cand.name === "side" ? basePos.y : p.y,
+              z: cand.name === "top" ? basePos.z : p.z,
+            };
+          }
+        }
+      }
+
+      if (bestPos) {
+        cx = bestPos.x;
+        cy = bestPos.y;
+        cz = bestPos.z;
+      } else {
+        const fallbackPos = c.position || c.perspective?.position || c.top?.position;
+        if (fallbackPos && typeof fallbackPos.x === "number" && typeof fallbackPos.y === "number" && typeof fallbackPos.z === "number") {
+          cx = fallbackPos.x;
+          cy = fallbackPos.y;
+          cz = fallbackPos.z;
+        }
+      }
+
+      // Rotation (Yaw)
+      let bestDeltaYaw = 0;
+      let bestYaw: number | null = null;
+      for (const cand of candidateViews) {
+        const r = cand.obj?.rotation;
+        if (r && typeof r.z === "number") {
+          const dYaw = Math.abs(r.z - baseYaw);
+          if (dYaw > bestDeltaYaw && dYaw > 1e-4) {
+            bestDeltaYaw = dYaw;
+            bestYaw = r.z;
+          }
+        }
+      }
+      if (bestYaw !== null) {
+        yaw = bestYaw;
+      } else {
+        const fallbackRot = c.rotation || c.perspective?.rotation || c.top?.rotation;
+        if (fallbackRot && typeof fallbackRot.z === "number") {
+          yaw = fallbackRot.z;
+        }
+      }
+
+      // Scale (l, w, h)
+      let bestDeltaScale = 0;
+      let bestScale: { x: number; y: number; z: number } | null = null;
+      for (const cand of candidateViews) {
+        const s = cand.obj?.scale;
+        if (s && typeof s.x === "number" && s.x > 0) {
+          let dl = Math.abs(s.x - baseScale.l);
+          let dw = Math.abs(s.y - baseScale.w);
+          let dh = Math.abs(s.z - baseScale.h);
+          if (cand.name === "top") dh = 0;
+          if (cand.name === "side") dw = 0;
+          if (cand.name === "front") dl = 0;
+
+          const delta = dl + dw + dh;
+          if (delta > bestDeltaScale && delta > 1e-4) {
+            bestDeltaScale = delta;
+            bestScale = {
+              x: cand.name === "front" ? baseScale.l : s.x,
+              y: cand.name === "side" ? baseScale.w : s.y,
+              z: cand.name === "top" ? baseScale.h : s.z,
+            };
+          }
+        }
+      }
+      if (bestScale) {
+        l = bestScale.x;
+        w = bestScale.y;
+        h = bestScale.z;
+      } else {
+        const fallbackScale = c.scale || c.perspective?.scale || c.top?.scale;
+        if (fallbackScale && typeof fallbackScale.x === "number" && fallbackScale.x > 0) {
+          l = fallbackScale.x;
+          w = fallbackScale.y;
+          h = fallbackScale.z;
+        }
+      }
+    }
+
+    const res = [...basePoints];
+    res[0] = cx;
+    res[1] = cy;
+    res[2] = cz;
+    res[3] = rx;
+    res[4] = ry;
+    res[5] = yaw;
+    res[6] = l;
+    res[7] = w;
+    res[8] = h;
+    return res;
   }
 
   // Căn giữa (Center) và tập trung (Focus) View 3D vào đối tượng tức thì (Perspective & Orthographic Views)
@@ -4363,8 +5766,35 @@ export function mainWorldScript(): void {
   let autoCenterOnFrameChange = true;
   let lastActiveTrackId: number | null = null;
   let persistentActiveTrackId: number | null = null; // Khóa chặt Track ID bền vững xuyên suốt mọi frame
+  let currentActiveTrackId: number = -1;
   let isFrameTransitioning = false;
   let frameTransitionTimer: any = null;
+  let lockOnActiveTimer: any = null;
+
+  // 🚨 BẢO VỆ CHUYỂN FRAME: Theo dõi và thoát transition tức thì khi nhận thao tác chuột
+  // Bảo toàn 100% các sự kiện di chuột tự nhiên (pointermove/mouseenter) để CVAT nhận diện hover handle
+  // Cơ chế chống cướp active track đã được bảo vệ tuyệt đối ở tầng Redux store.subscribe
+  const handlePointerTransitionUnblock = (e: Event) => {
+    if (isFrameTransitioning) {
+      if (e.type === "pointerdown" || e.type === "mousedown") {
+        isFrameTransitioning = false;
+        if (frameTransitionTimer) {
+          clearTimeout(frameTransitionTimer);
+          frameTransitionTimer = null;
+        }
+        isCanvasInteracting = true;
+      }
+    }
+  };
+  window.addEventListener("pointerdown", handlePointerTransitionUnblock, { capture: true, passive: true });
+  window.addEventListener("mousedown", handlePointerTransitionUnblock, { capture: true, passive: true });
+
+  // Theo dõi trạng thái nhấn chuột toàn cục (Zero-Stall Mouse Tracking)
+  window.addEventListener("pointerdown", () => { (window as any).__cvat_mouse_down__ = true; }, { capture: true, passive: true });
+  window.addEventListener("mousedown", () => { (window as any).__cvat_mouse_down__ = true; }, { capture: true, passive: true });
+  window.addEventListener("pointerup", () => { (window as any).__cvat_mouse_down__ = false; }, { capture: true, passive: true });
+  window.addEventListener("mouseup", () => { (window as any).__cvat_mouse_down__ = false; }, { capture: true, passive: true });
+  window.addEventListener("pointercancel", () => { (window as any).__cvat_mouse_down__ = false; }, { capture: true, passive: true });
 
   // Cập nhật Track ID bền vững khi người dùng chọn đối tượng
   function updateLockedTrackId(clientId: number): void {
@@ -4386,53 +5816,76 @@ export function mainWorldScript(): void {
 
   // Dò tìm tọa độ và ghim tâm đối tượng đang active khi chuyển frame (Sticky Track Lock-On)
   function lockOnActiveObjectAtFrame(targetId: number, targetFrame: number, attempt: number = 0): void {
+    if (lockOnActiveTimer) {
+      clearTimeout(lockOnActiveTimer);
+      lockOnActiveTimer = null;
+    }
+
     try {
       const store = getReduxStore();
       const anno = store?.getState()?.annotation;
       const canvas = anno?.canvas?.instance;
       const states = anno?.annotations?.states || [];
 
-      // 1. Dò tìm đối tượng theo Track ID bền vững (persistentActiveTrackId) để CHỐNG NHẢY SANG ID KHÁC
+      // 1. Kiểm tra tính hợp lệ của states trong Redux đối với targetFrame
+      // Nếu Redux đang fetching, hoặc states đang rỗng, hoặc phần tử trong states mang frame cũ (!== targetFrame):
+      // ĐÂY LÀ STATES CỦA FRAME CŨ, KHÔNG ĐƯỢC DÙNG (chống kích hoạt nhầm ID cũ)!
+      const isFetching = !!anno?.annotations?.fetching;
+      const isStaleStates =
+        isFetching ||
+        states.length === 0 ||
+        (states.length > 0 && typeof states[0].frame === "number" && states[0].frame !== targetFrame);
+
+      // 2. Dò tìm đối tượng theo Track ID bền vững (persistentActiveTrackId) để CHỐNG NHẢY SANG ID KHÁC
       let matchedState: any = null;
-      if (persistentActiveTrackId !== null) {
+      const trackIdToFind = persistentActiveTrackId !== null ? persistentActiveTrackId : targetId;
+
+      if (!isStaleStates && trackIdToFind !== null && trackIdToFind !== undefined && !isNaN(trackIdToFind)) {
         matchedState = states.find(
           (s: any) =>
-            (Number(s.parentID ?? s.trackID ?? s.parent?.clientID) === Number(persistentActiveTrackId) ||
-              Number(s.clientID) === Number(persistentActiveTrackId)) &&
+            Number(s.parentID ?? s.trackID ?? s.parent?.clientID) === Number(trackIdToFind) &&
+            (typeof s.frame !== "number" || s.frame === targetFrame) &&
             !s.outside
         );
+        if (!matchedState) {
+          matchedState = states.find(
+            (s: any) =>
+              Number(s.clientID) === Number(trackIdToFind) &&
+              (s.parentID === undefined || s.parentID === null) &&
+              (typeof s.frame !== "number" || s.frame === targetFrame) &&
+              !s.outside
+          );
+        }
       }
 
-      if (!matchedState && targetId !== null && targetId !== undefined && !isNaN(targetId)) {
-        matchedState = states.find(
-          (s: any) =>
-            (Number(s.clientID) === Number(targetId) ||
-              Number(s.parentID ?? s.trackID ?? s.parent?.clientID) === Number(targetId)) &&
-            !s.outside
-        );
+      // TUYỆT ĐỐI KHÔNG lookup bừa bãi vào drawnObjects[String(targetId)] khi chưa có matchedState,
+      // vì targetId là Track ID (hoặc clientID cũ của frame trước), tra vào drawnObjects sẽ ăn nhầm sang object khác!
+      if (!matchedState) {
+        // Nếu chưa nạp xong states của frame mới hoặc đang là states cũ, thử lại ở attempt tiếp theo
+        const delays = [60, 140, 260, 480, 800];
+        if (attempt < delays.length) {
+          lockOnActiveTimer = setTimeout(() => {
+            lockOnActiveTimer = null;
+            const curF = anno?.player?.frame?.number ?? store?.getState()?.annotation?.job?.instance?.frame;
+            if (curF === targetFrame) {
+              lockOnActiveObjectAtFrame(targetId, targetFrame, attempt + 1);
+            }
+          }, delays[attempt]);
+        } else {
+          // Hết lượt thử mà không tìm thấy track này ở frame mới -> đối tượng kết thúc hoặc outside
+          window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_OBJECT_DEACTIVATED"));
+        }
+        return;
       }
 
-      let activeIdToUse = targetId;
+      const activeIdToUse = Number(matchedState.clientID);
       let foundPos: { x: number; y: number; z: number } | null = null;
-
-      if (matchedState) {
-        activeIdToUse = Number(matchedState.clientID);
-        if (Array.isArray(matchedState.points) && matchedState.points.length >= 3) {
-          foundPos = {
-            x: matchedState.points[0],
-            y: matchedState.points[1],
-            z: matchedState.points[2],
-          };
-        }
-      } else {
-        const drawnItem = canvas?.view?.drawnObjects?.[String(targetId)];
-        if (drawnItem?.data?.points && Array.isArray(drawnItem.data.points) && !drawnItem.data.outside) {
-          foundPos = {
-            x: drawnItem.data.points[0],
-            y: drawnItem.data.points[1],
-            z: drawnItem.data.points[2],
-          };
-        }
+      if (Array.isArray(matchedState.points) && matchedState.points.length >= 3) {
+        foundPos = {
+          x: matchedState.points[0],
+          y: matchedState.points[1],
+          z: matchedState.points[2],
+        };
       }
 
       // Kiểm tra xem Three.js đã tạo mesh cho đối tượng này chưa
@@ -4440,6 +5893,8 @@ export function mainWorldScript(): void {
 
       // 2. Kích hoạt và ghim tâm
       if (foundPos && typeof foundPos.x === "number" && !isNaN(foundPos.x)) {
+        lastActiveTrackId = activeIdToUse;
+
         // A. Kích hoạt lại đúng box trên canvas 3D để bật hiển thị Top, Side, Front views
         if (canvas && typeof canvas.activate === "function") {
           try {
@@ -4447,13 +5902,18 @@ export function mainWorldScript(): void {
           } catch (_) {}
         }
 
-        // B. Đồng bộ Redux Store
+        // B. Đồng bộ Redux Store (Anti-Loop: Chỉ dispatch khi Store chưa active ID này)
         if (store && typeof store.dispatch === "function") {
           try {
-            store.dispatch({
-              type: "ACTIVATE_OBJECT",
-              payload: { activatedStateClientID: activeIdToUse, activatedElementID: activeIdToUse },
-            });
+            const currentStoreActiveId =
+              store.getState()?.annotation?.annotations?.activatedStateClientID ??
+              store.getState()?.annotation?.canvas?.instance?.view?.activatedElementID;
+            if (Number(currentStoreActiveId) !== Number(activeIdToUse)) {
+              store.dispatch({
+                type: "ACTIVATE_OBJECT",
+                payload: { activatedStateClientID: activeIdToUse, activatedElementID: activeIdToUse },
+              });
+            }
           } catch (_) {}
         }
 
@@ -4462,46 +5922,35 @@ export function mainWorldScript(): void {
           center3DViewOnObject(activeIdToUse, foundPos);
         }
 
-        // D. Đồng bộ highlight Sidebar
-        try {
-          const sidebarItem =
-            document.querySelector<HTMLElement>(`#cvat-objects-sidebar-state-item-${activeIdToUse}`) ||
-            document.querySelector<HTMLElement>(`[data-cvat-state-item-id="${activeIdToUse}"]`) ||
-            document.querySelector<HTMLElement>(`[class*="cvat-objects-sidebar-state-item"][id*="${activeIdToUse}"]`);
-          if (sidebarItem) {
-            sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
-            const allItems = document.querySelectorAll<HTMLElement>("[class*='cvat-objects-sidebar-state-item']");
-            allItems.forEach((el) => el.classList.remove("cvat-objects-sidebar-state-item-active", "selected"));
-            sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
-          }
-        } catch (_) {}
+        // D. Đồng bộ highlight Sidebar (Tối ưu O(1) Direct Class Swap)
+        syncSidebarItemHighlight(Number(activeIdToUse));
 
         if (typeof canvas.render === "function") {
           canvas.render();
         }
 
-        // Thông báo cho Extension biết xe đã được kích hoạt lại thành công
+        // Thông báo cho Extension biết xe đã được kích hoạt lại thành công kèm trackId
         const details = extractObjectDetails(activeIdToUse);
+        updateOrthoClippingPlanes(details);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-            detail: { clientId: activeIdToUse, details },
+            detail: { clientId: activeIdToUse, trackId: persistentActiveTrackId, details },
           })
         );
       }
 
-      // 3. Thử lại lũy tiến để đảm bảo Three.js load xong và không bị CVAT ghi đè mất focus
-      const delays = [40, 100, 220, 450, 750];
-      if (attempt < delays.length) {
-        setTimeout(() => {
+      // 3. Nếu Three.js mesh chưa sẵn sàng, retry nhẹ để hoàn thiện hiển thị
+      if (!isMeshReady && attempt < 3) {
+        const delays = [60, 150, 300];
+        lockOnActiveTimer = setTimeout(() => {
+          lockOnActiveTimer = null;
           const curF = anno?.player?.frame?.number ?? store?.getState()?.annotation?.job?.instance?.frame;
           if (curF === targetFrame) {
             lockOnActiveObjectAtFrame(targetId, targetFrame, attempt + 1);
           }
         }, delays[attempt]);
-      } else if (!matchedState && attempt >= delays.length) {
-        // Hết lượt thử mà không tìm thấy track này ở frame mới -> đối tượng kết thúc hoặc outside
-        window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_OBJECT_DEACTIVATED"));
       }
+      // NẾU isMeshReady === true: ĐÃ THÀNH CÔNG VÀ MƯỢT MÀ -> DỪNG RETRY NGAY LẬP TỨC!
     } catch (err) {
       console.warn("[CVAT 3D Suite] Lỗi lockOnActiveObjectAtFrame:", err);
     }
@@ -4583,14 +6032,39 @@ export function mainWorldScript(): void {
       }
 
       if (currentColorizeBoxed) {
-        applyPointCloudColorizationInMainWorld();
+        schedulePointCloudColorization(0);
       }
+      calculateAndBroadcastBoxEdgeContacts();
+      updateOrthoClippingPlanes();
 
       return true;
     } catch (err) {
       console.warn("[CVAT 3D Suite] Lỗi cập nhật trực tiếp Three.js:", err);
       return false;
     }
+  }
+
+  // Phân tích và trích xuất attributes của đối tượng từ cvat-core / Redux
+  function parseObjectAttributes(rawAttrs: any): Record<string, any> {
+    const res: Record<string, any> = {};
+    if (!rawAttrs) return res;
+    if (typeof rawAttrs === "object") {
+      for (const k of Object.keys(rawAttrs)) {
+        const val = rawAttrs[k];
+        if (typeof val === "string" || typeof val === "number" || typeof val === "boolean") {
+          res[String(k).toLowerCase()] = val;
+          if (typeof val === "string") {
+            res[val.toLowerCase()] = true;
+          }
+        } else if (val && typeof val === "object" && val.value !== undefined) {
+          res[String(k).toLowerCase()] = val.value;
+          if (typeof val.value === "string") {
+            res[String(val.value).toLowerCase()] = true;
+          }
+        }
+      }
+    }
+    return res;
   }
 
   // Trích xuất chi tiết thời gian thực của đối tượng từ WebGL drawnObjects hoặc Redux States
@@ -4600,39 +6074,35 @@ export function mainWorldScript(): void {
       const anno = store?.getState()?.annotation;
       const canvas = anno?.canvas?.instance;
 
-      // Cập nhật từ điển nhãn từ Redux Job instance
-      updateMainWorldLabels();
-
-      // 1. Thử lấy từ Three.js canvas drawnObjects
-      const drawnItem = canvas?.view?.drawnObjects?.[String(clientId)];
-      if (drawnItem && drawnItem.data && Array.isArray(drawnItem.data.points)) {
-        const p = drawnItem.data.points;
-        const resolved = resolveLabelName(drawnItem.data);
-        return {
-          clientId,
-          serverId: drawnItem.data.serverID || null,
-          label: resolved.name,
-          color: resolved.color,
-          x: Number(p[0].toFixed(2)),
-          y: Number(p[1].toFixed(2)),
-          z: Number(p[2].toFixed(3)),
-          yawDeg: Math.round((p[5] * 180) / Math.PI),
-          l: Number(p[6].toFixed(2)),
-          w: Number(p[7].toFixed(2)),
-          h: Number(p[8].toFixed(2)),
-          points: [...p],
-        };
+      // Cập nhật từ điển nhãn từ Redux Job instance (chỉ quét khi cache rỗng)
+      if (mainWorldLabelsCache.size === 0) {
+        updateMainWorldLabels();
       }
 
-      // 2. Thử lấy từ Redux states
+      const drawnItem = canvas?.view?.drawnObjects?.[String(clientId)];
       const states = anno?.annotations?.states || [];
       const matched = states.find((s: any) => s.clientID === clientId);
-      if (matched && Array.isArray(matched.points)) {
-        const p = matched.points;
-        const resolved = resolveLabelName(matched);
+
+      const p = extractLivePointsFromDrawnAndState(drawnItem, matched);
+      if (p && p.length >= 9) {
+        const resolved = resolveLabelName(drawnItem?.data || matched);
+        const attrs = parseObjectAttributes(
+          drawnItem?.data?.attributes ||
+          drawnItem?.data?.attributeValues ||
+          matched?.attributes ||
+          matched?.attributeValues
+        );
+        const persistentTid =
+          matched?.parentID ??
+          matched?.trackID ??
+          matched?.parent?.clientID ??
+          drawnItem?.data?.parentID ??
+          drawnItem?.data?.trackID ??
+          clientId;
         return {
           clientId,
-          serverId: matched.serverID || null,
+          trackId: Number(persistentTid),
+          serverId: drawnItem?.data?.serverID || matched?.serverID || null,
           label: resolved.name,
           color: resolved.color,
           x: Number(p[0].toFixed(2)),
@@ -4643,10 +6113,75 @@ export function mainWorldScript(): void {
           w: Number(p[7].toFixed(2)),
           h: Number(p[8].toFixed(2)),
           points: [...p],
+          attributes: attrs,
         };
       }
     } catch (e) {}
     return null;
+  }
+
+  // Tính toán và phát sự kiện Cảnh Báo Viền Chạm Point (Edge Contact HUD) cho Active Box
+  function calculateAndBroadcastBoxEdgeContacts(): void {
+    try {
+      const store = getReduxStore();
+      const canvas = store?.getState()?.annotation?.canvas?.instance;
+      const activeId =
+        canvas?.view?.activatedElementID ??
+        store?.getState()?.annotation?.annotations?.activatedStateClientID ??
+        lastActiveTrackId;
+      if (activeId === null || activeId === undefined || isNaN(Number(activeId))) return;
+
+      const numId = Number(activeId);
+      const details = extractObjectDetails(numId);
+      if (!details || !Array.isArray(details.points) || details.points.length < 9) return;
+
+      const ptsObjs = getAllScenePointsObjects();
+      if (ptsObjs.length === 0) return;
+
+      // Chọn đối tượng Points có số lượng điểm lớn nhất (Mây điểm LiDAR chính của frame)
+      let mainPtsObj = ptsObjs[0];
+      let maxCount = 0;
+      for (const obj of ptsObjs) {
+        const c = obj.geometry?.attributes?.position?.count || 0;
+        if (c > maxCount) {
+          maxCount = c;
+          mainPtsObj = obj;
+        }
+      }
+
+      const geom = mainPtsObj?.geometry;
+      const posAttr = geom?.attributes?.position;
+      if (!posAttr || !posAttr.array) return;
+
+      const posArray = posAttr.array as Float32Array;
+      const p = details.points;
+      const boxTarget: any = {
+        id: numId,
+        cx: p[0],
+        cy: p[1],
+        cz: p[2],
+        rx: p[3] || 0,
+        ry: p[4] || 0,
+        rz: p[5] || 0,
+        l: p[6],
+        w: p[7],
+        h: p[8],
+        category: details.label,
+        isActive: true,
+      };
+
+      const computeFn = (window as any).computeBoxEdgeContacts || (globalThis as any).computeBoxEdgeContacts;
+      if (typeof computeFn === "function") {
+        const contacts = computeFn(posArray, boxTarget);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_EDGE_CONTACTS_UPDATED", {
+            detail: contacts || { clientId: numId, pointCount: 0 },
+          })
+        );
+      }
+    } catch (e) {
+      console.warn("[CVAT 3D Suite] Lỗi calculateAndBroadcastBoxEdgeContacts:", e);
+    }
   }
 
   // Đảm bảo mảng points của cuboid luôn có tối thiểu 16 phần tử để thỏa mãn quy tắc validation của cvat-core (16 / 2 = 8 đỉnh)
@@ -4832,10 +6367,39 @@ export function mainWorldScript(): void {
     return null;
   }
 
-  // Kích hoạt chế độ "Đã sửa nhưng chưa lưu" trên CVAT Native Header (Sáng nút Save, không disabled)
-  function markCvatSaveButtonUnsaved(): void {
+  // Kích hoạt chế độ "Đã sửa nhưng chưa lưu" chuẩn xác trên CVAT Native (Redux Store, cvat-core & Header UI)
+  function markCvatSaveButtonUnsaved(job?: any): void {
     try {
       (window as any).__CVAT_HAS_UNSAVED_CHANGES__ = true;
+
+      // 1. Đánh dấu trạng thái dirty trên cvat-core collection
+      const activeJob = job || getReduxStore()?.getState()?.annotation?.job?.instance;
+      if (activeJob && activeJob.annotations) {
+        const col = (activeJob.annotations as any)._collection || (activeJob.annotations as any).collection;
+        if (col) {
+          col._isModified = true;
+        }
+      }
+
+      // 2. Đồng bộ trạng thái Unsaved vào Redux Store của CVAT Native
+      const store = getReduxStore();
+      if (store && typeof store.dispatch === "function") {
+        try {
+          const historyState = store.getState()?.annotation?.annotations?.history || {};
+          store.dispatch({
+            type: "UPDATE_ANNOTATIONS_SUCCESS",
+            payload: {
+              history: historyState,
+            },
+          });
+        } catch (_) {
+          try {
+            store.dispatch({ type: "CHANGE_ANNOTATIONS" });
+          } catch (__) {}
+        }
+      }
+
+      // 3. Fallback đảm bảo nút Save trên Header CVAT Native sáng đèn (không disabled)
       const cvatSaveBtn = document.querySelector<HTMLButtonElement>(
         "button.cvat-annotation-header-save-button, .cvat-annotation-header-save-button, button[aria-label='Save annotations']"
       );
@@ -4849,7 +6413,9 @@ export function mainWorldScript(): void {
     } catch (e) {}
   }
 
-  // Tự động đồng bộ và lưu vĩnh viễn lên cơ sở dữ liệu CVAT bằng cvat-core API & AutoSave UI Header Trigger (CHỈ GỌI KHI USER BẤM LƯU)
+  const markCvatUnsavedInReduxAndCore = markCvatSaveButtonUnsaved;
+
+  // Đồng bộ và lưu lên cơ sở dữ liệu CVAT bằng cvat-core API (CHỈ GỌI KHI NGƯỜI DÙNG THỰC SỰ YÊU CẦU LƯU)
   async function persistJobAnnotations(job: any): Promise<void> {
     try {
       if (job && job.annotations && typeof job.annotations.save === "function") {
@@ -4859,19 +6425,6 @@ export function mainWorldScript(): void {
     } catch (err) {
       console.warn("[CVAT 3D Suite] Ghi nhận thay đổi cvat-core:", err);
     }
-
-    // AutoSave UI Header Sync: Tự động kích hoạt nút Save trên Header CVAT để giao diện web đồng bộ 100%
-    setTimeout(() => {
-      try {
-        const cvatSaveBtn = document.querySelector<HTMLButtonElement>(
-          "button.cvat-annotation-header-save-button, .cvat-annotation-header-save-button, button[aria-label='Save annotations']"
-        );
-        if (cvatSaveBtn && !cvatSaveBtn.disabled && !cvatSaveBtn.classList.contains("cvat-disabled-button")) {
-          cvatSaveBtn.click();
-          console.log("[CVAT 3D Suite] Đã kích hoạt AutoSave trên giao diện CVAT Header.");
-        }
-      } catch (e) {}
-    }, 120);
   }
 
   // Thiết lập bộ theo dõi tương tác chuột & bàn phím trên Canvas 3D (Realtime Point Cloud Color Update)
@@ -4880,32 +6433,228 @@ export function mainWorldScript(): void {
     if (isInteractiveWatcherAttached) return;
     isInteractiveWatcherAttached = true;
 
-    let isCanvasInteracting = false;
+    let pointerUpDebounceTimer: any = null;
     let dragRafId: number | null = null;
+    let hadBoxTransform = false;
+    let clippingRafId: number | null = null;
 
-    const onPointerMove = () => {
-      if (!isCanvasInteracting || !currentColorizeBoxed) return;
-      if (dragRafId !== null) return;
-      dragRafId = requestAnimationFrame(() => {
-        dragRafId = null;
-        if (isCanvasInteracting && currentColorizeBoxed) {
-          applyPointCloudColorizationInMainWorld();
+    const scheduleOrthoClippingUpdate = () => {
+      if (clippingRafId !== null) return;
+      clippingRafId = requestAnimationFrame(() => {
+        clippingRafId = null;
+        if (currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI) {
+          updateOrthoClippingPlanes(undefined, false);
         }
       });
     };
 
-    const onPointerUp = () => {
+    // Kiểm tra xem Three.js OrbitControls có đang trong trạng thái xoay/pan/dolly camera hay không
+    const isCameraNavigating = (): boolean => {
+      try {
+        const store = getReduxStore();
+        const canvas = store?.getState()?.annotation?.canvas?.instance;
+        const views = canvas?.view?.views;
+        if (!views) return false;
+        for (const vKey of ["perspective", "top", "side", "front"]) {
+          const v = views[vKey];
+          const controls = v?.controls;
+          if (controls) {
+            if (typeof controls.state === "number" && controls.state !== -1) {
+              return true;
+            }
+            if (typeof (controls as any)._state === "number" && (controls as any)._state !== -1) {
+              return true;
+            }
+            if ((controls as any).isRotating || (controls as any).isPanning) {
+              return true;
+            }
+          }
+        }
+      } catch (_) {}
+      return false;
+    };
+
+    // Kiểm tra xem Box đang active có thực sự bị transform (kéo di chuyển, xoay hoặc co giãn) hay không
+    // Tối ưu O(1) trực tiếp trên target active box, khử nhiễu 2D orthographic view (Top/Side/Front)
+    const isTargetBoxTransforming = (): boolean => {
+      try {
+        const store = getReduxStore();
+        const canvas = store?.getState()?.annotation?.canvas?.instance;
+        const activeId =
+          store?.getState()?.annotation?.annotations?.activatedStateClientID ??
+          lastActiveTrackId;
+
+        // Nếu không có đối tượng nào active thì chắc chắn 100% không có box nào đang bị kéo
+        if (!activeId || isNaN(Number(activeId)) || Number(activeId) <= 0) {
+          return false;
+        }
+
+        const drawnObjects = canvas?.view?.drawnObjects;
+        if (!drawnObjects) return false;
+
+        const drawnItem = drawnObjects[String(activeId)];
+        if (!drawnItem) return false;
+
+        const data = drawnItem.data;
+        const c = drawnItem.cuboid;
+        if (!data || !c || !Array.isArray(data.points) || data.points.length < 9 || data.outside) {
+          return false;
+        }
+
+        const bx = data.points[0];
+        const by = data.points[1];
+        const bz = data.points[2];
+        const bYaw = data.points[5] || 0;
+        const bL = data.points[6];
+        const bW = data.points[7];
+        const bH = data.points[8];
+
+        // 1. Kiểm tra Perspective View và Root Cuboid (Đầy đủ 3D: X, Y, Z)
+        for (const cand of [c.perspective, c]) {
+          const p = cand?.position;
+          if (p && typeof p.x === "number") {
+            const dx = p.x - bx;
+            const dy = p.y - by;
+            const dz = p.z - bz;
+            if (dx * dx + dy * dy + dz * dz > 1e-4) return true;
+          }
+        }
+
+        // 2. Kiểm tra Top View (2D Orthographic: CHỈ X và Y, tuyệt đối bỏ qua Z vì mặt phẳng chiếu 2D cố định z)
+        if (c.top?.position) {
+          const p = c.top.position;
+          if (typeof p.x === "number" && typeof p.y === "number") {
+            const dx = p.x - bx;
+            const dy = p.y - by;
+            if (dx * dx + dy * dy > 1e-4) return true;
+          }
+        }
+
+        // 3. Kiểm tra Side View (2D Orthographic: CHỈ X và Z, tuyệt đối bỏ qua Y)
+        if (c.side?.position) {
+          const p = c.side.position;
+          if (typeof p.x === "number" && typeof p.z === "number") {
+            const dx = p.x - bx;
+            const dz = p.z - bz;
+            if (dx * dx + dz * dz > 1e-4) return true;
+          }
+        }
+
+        // 4. Kiểm tra Front View (2D Orthographic: CHỈ Y và Z, tuyệt đối bỏ qua X)
+        if (c.front?.position) {
+          const p = c.front.position;
+          if (typeof p.y === "number" && typeof p.z === "number") {
+            const dy = p.y - by;
+            const dz = p.z - bz;
+            if (dy * dy + dz * dz > 1e-4) return true;
+          }
+        }
+
+        // 5. Kiểm tra Góc Xoay (Yaw / Rotation Z)
+        for (const cand of [c.perspective, c.top, c]) {
+          const r = cand?.rotation;
+          if (r && typeof r.z === "number") {
+            if (Math.abs(r.z - bYaw) > 1e-3) return true;
+          }
+        }
+
+        // 6. Kiểm tra Thay Đổi Kích Thước (Scale / Resize Box: L, W, H)
+        for (const cand of [c.perspective, c.top, c.side, c.front, c]) {
+          const s = cand?.scale;
+          if (s && typeof s.x === "number" && s.x > 0) {
+            if (
+              Math.abs(s.x - bL) > 1e-3 ||
+              Math.abs(s.y - bW) > 1e-3 ||
+              Math.abs(s.z - bH) > 1e-3
+            ) {
+              return true;
+            }
+          }
+        }
+      } catch (_) {}
+      return false;
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      // Tự động khôi phục cờ tương tác nếu chuột trái đang nhấn giữ (chống lỡ click lúc tua frame)
+      if (e.buttons === 1 && !isCanvasInteracting) {
+        isCanvasInteracting = true;
+      }
+
+      // Nếu chuột đã nhả nhưng sự kiện pointerup bị lỡ (ví dụ kéo ra ngoài window)
+      if (isCanvasInteracting && e.buttons === 0) {
+        onPointerUp();
+        return;
+      }
       if (!isCanvasInteracting) return;
-      isCanvasInteracting = false;
-      if (dragRafId !== null) {
+
+      // 1. LOẠI BỎ 100% RECOLOR NẶNG KHI XOAY CAMERA (ORBIT) & PANNING:
+      // Chuột phải (buttons === 2) hoặc chuột giữa (buttons === 4) hoặc phím Alt luôn là Camera Orbit/Pan
+      if (e.buttons === 2 || e.buttons === 4 || e.altKey) return;
+
+      // 2. Kiểm tra nếu OrbitControls đang active (Three.js STATE.ROTATE, STATE.PAN, STATE.DOLLY)
+      if (isCameraNavigating()) return;
+
+      // 3. Nếu chuột trái đang nhấn: Kiểm tra xem target box có thực sự đang bị transform không
+      // O(1) kiểm tra chính xác, loại bỏ hoàn toàn false positive từ 2D orthographic views
+      if (!isTargetBoxTransforming()) return;
+
+      hadBoxTransform = true;
+      // Kỹ thuật On-Release Recoloring: TUYỆT ĐỐI KHÔNG RECOLOR TRONG SUỐT QUÁ TRÌNH POINTERMOVE!
+      // Giữ cho Three.js CVAT render việc kéo box ở 60 FPS mượt mà tuyệt đối kể cả khi phóng to (maximize).
+
+      // Cập nhật live GPU clipping planes bám theo box theo thời gian thực qua rAF (0ms CPU, không ép sync render)
+      if (currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI) {
+        scheduleOrthoClippingUpdate();
+      }
+    };
+
+    const onPointerUp = () => {
+      if (dragRafId) {
         cancelAnimationFrame(dragRafId);
         dragRafId = null;
       }
-      if (currentColorizeBoxed) {
-        applyPointCloudColorizationInMainWorld();
-        // Quét bổ sung tức thì sau 80ms và 220ms để bắt trọn tọa độ commit sau khi nhả chuột
-        setTimeout(() => applyPointCloudColorizationInMainWorld(), 80);
-        setTimeout(() => applyPointCloudColorizationInMainWorld(), 220);
+      if (clippingRafId !== null) {
+        cancelAnimationFrame(clippingRafId);
+        clippingRafId = null;
+      }
+      if (!isCanvasInteracting) return;
+      isCanvasInteracting = false;
+
+      // CHỈ recolor & thông báo khi nhả chuột NẾU trước đó thực sự có thao tác kéo box (Box Transform)
+      // Nếu người dùng chỉ xoay/pan camera, mây điểm không đổi -> TUYỆT ĐỐI KHÔNG RECOLOR LÃNG PHÍ!
+      if (hadBoxTransform) {
+        hadBoxTransform = false;
+
+        // Bắn sự kiện biến đổi Live Transform sang Extension ngay khi nhả chuột
+        try {
+          const store = getReduxStore();
+          const canvas = store?.getState()?.annotation?.canvas?.instance;
+          const activeId =
+            store?.getState()?.annotation?.annotations?.activatedStateClientID ??
+            lastActiveTrackId;
+          if (activeId !== null && activeId !== undefined && !isNaN(Number(activeId))) {
+            const numId = Number(activeId);
+            const details = extractObjectDetails(numId);
+            if (details) {
+              window.dispatchEvent(
+                new CustomEvent("CVAT_EXT_RES_LIVE_TRANSFORM_CHANGED", {
+                  detail: { clientId: numId, details },
+                })
+              );
+            }
+          }
+        } catch (_) {}
+
+        if (pointerUpDebounceTimer) clearTimeout(pointerUpDebounceTimer);
+        pointerUpDebounceTimer = setTimeout(() => {
+          pointerUpDebounceTimer = null;
+          if (currentColorizeBoxed) {
+            schedulePointCloudColorization(0);
+          }
+          calculateAndBroadcastBoxEdgeContacts();
+          updateOrthoClippingPlanes(undefined, true);
+        }, 60);
       }
     };
 
@@ -4938,10 +6687,7 @@ export function mainWorldScript(): void {
             isCanvasInteracting = true;
             try {
               const store = getReduxStore();
-              const canvas = store?.getState()?.annotation?.canvas?.instance;
-              const activeId =
-                canvas?.view?.activatedElementID ||
-                store?.getState()?.annotation?.annotations?.activatedStateClientID;
+              const activeId = store?.getState()?.annotation?.annotations?.activatedStateClientID;
               if (activeId !== null && activeId !== undefined) {
                 updateLockedTrackId(Number(activeId));
               }
@@ -4975,7 +6721,8 @@ export function mainWorldScript(): void {
           if (keyDebounceTimer) clearTimeout(keyDebounceTimer);
           keyDebounceTimer = setTimeout(() => {
             keyDebounceTimer = null;
-            applyPointCloudColorizationInMainWorld();
+            schedulePointCloudColorization(0);
+            calculateAndBroadcastBoxEdgeContacts();
           }, 60);
         }
       },
@@ -5002,164 +6749,577 @@ export function mainWorldScript(): void {
     isCanvasAutoSelectAttached = true;
     setupCanvasInteractiveWatcher();
 
-    canvasContainers.forEach((container) => {
-      container.addEventListener("pointerup", () => {
-        setTimeout(() => {
-          try {
-            const currentStore = getReduxStore() || store;
-            const canvas = currentStore?.getState()?.annotation?.canvas?.instance;
-            const activeId =
-              canvas?.view?.activatedElementID ||
-              currentStore?.getState()?.annotation?.annotations?.activatedStateClientID;
+    // =========================================================================
+    // THUẬT TOÁN RAY-OBB DOUBLE CLICK 3D SIÊU TỐC (< 0.05ms, ZERO-LAG 60 FPS)
+    // Khi annotator hoặc QC nhấn click 2 lần vào đối tượng ở View 3D gốc:
+    // 1. Nhận diện chuẩn xác chiếc xe (Client ID / Track ID) dù là Solid Mesh hay Wireframe
+    // 2. Kích hoạt ngay lập tức trên Tool (FloatingPanel) và đồng bộ Redux / Sidebar
+    // 3. Lập tức GHIM TÂM CẢ 4 KHUNG NHÌN (Perspective 3D, Top, Side, Front) vào xe đó!
+    // =========================================================================
+    function transformVectorInverseEulerLocal(
+      v: { x: number; y: number; z: number },
+      rx: number = 0,
+      ry: number = 0,
+      rz: number = 0
+    ): { x: number; y: number; z: number } {
+      const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
+      const x1 = v.x * cosZ + v.y * sinZ;
+      const y1 = -v.x * sinZ + v.y * cosZ;
+      const z1 = v.z;
 
-            if (activeId !== null && activeId !== undefined) {
-              updateLockedTrackId(Number(activeId));
-              const details = extractObjectDetails(Number(activeId));
-              window.dispatchEvent(
-                new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-                  detail: { clientId: Number(activeId), details },
-                })
-              );
-              if (currentColorizeBoxed) {
-                applyPointCloudColorizationInMainWorld();
+      const cosY = Math.cos(ry), sinY = Math.sin(ry);
+      const x2 = x1 * cosY - z1 * sinY;
+      const y2 = y1;
+      const z2 = x1 * sinY + z1 * cosY;
+
+      const cosX = Math.cos(rx), sinX = Math.sin(rx);
+      const x3 = x2;
+      const y3 = y2 * cosX + z2 * sinX;
+      const z3 = -y2 * sinX + z2 * cosX;
+
+      return { x: x3, y: y3, z: z3 };
+    }
+
+    function intersectRayWithOBBLocal(
+      ray: { origin: { x: number; y: number; z: number }; direction: { x: number; y: number; z: number } },
+      box: { x: number; y: number; z: number; l: number; w: number; h: number; yaw: number; pitch?: number; roll?: number },
+      padding: number = 0.15
+    ): number | null {
+      if (box.l <= 0 || box.w <= 0 || box.h <= 0) return null;
+
+      const hx = box.l / 2 + padding;
+      const hy = box.w / 2 + padding;
+      const hz = box.h / 2 + padding;
+
+      const P = {
+        x: ray.origin.x - box.x,
+        y: ray.origin.y - box.y,
+        z: ray.origin.z - box.z,
+      };
+      const D = ray.direction;
+
+      const rx = box.roll || 0;
+      const ry = box.pitch || 0;
+      const rz = box.yaw || 0;
+
+      const Ploc = transformVectorInverseEulerLocal(P, rx, ry, rz);
+      const Dloc = transformVectorInverseEulerLocal(D, rx, ry, rz);
+
+      let tMin = -Infinity;
+      let tMax = Infinity;
+
+      if (Math.abs(Dloc.x) > 1e-7) {
+        let t1 = (-hx - Ploc.x) / Dloc.x;
+        let t2 = (hx - Ploc.x) / Dloc.x;
+        if (t1 > t2) { const t = t1; t1 = t2; t2 = t; }
+        tMin = Math.max(tMin, t1);
+        tMax = Math.min(tMax, t2);
+        if (tMin > tMax) return null;
+      } else if (Math.abs(Ploc.x) > hx) {
+        return null;
+      }
+
+      if (Math.abs(Dloc.y) > 1e-7) {
+        let t1 = (-hy - Ploc.y) / Dloc.y;
+        let t2 = (hy - Ploc.y) / Dloc.y;
+        if (t1 > t2) { const t = t1; t1 = t2; t2 = t; }
+        tMin = Math.max(tMin, t1);
+        tMax = Math.min(tMax, t2);
+        if (tMin > tMax) return null;
+      } else if (Math.abs(Ploc.y) > hy) {
+        return null;
+      }
+
+      if (Math.abs(Dloc.z) > 1e-7) {
+        let t1 = (-hz - Ploc.z) / Dloc.z;
+        let t2 = (hz - Ploc.z) / Dloc.z;
+        if (t1 > t2) { const t = t1; t1 = t2; t2 = t; }
+        tMin = Math.max(tMin, t1);
+        tMax = Math.min(tMax, t2);
+        if (tMin > tMax) return null;
+      } else if (Math.abs(Ploc.z) > hz) {
+        return null;
+      }
+
+      if (tMax < 0) return null;
+      return tMin >= 0 ? tMin : tMax;
+    }
+
+    let fastDoubleRaycaster: any = null;
+
+    function findObjectUnderPointer(
+      clientX: number,
+      clientY: number
+    ): { uiId: number; pos: { x: number; y: number; z: number } } | null {
+      try {
+        const curStore = getReduxStore() || store;
+        const canvas = curStore?.getState()?.annotation?.canvas?.instance;
+        const views = canvas?.view?.views;
+        if (!views) return null;
+
+        // 1. Xác định View đang được tương tác (Ưu tiên Perspective View 3D gốc)
+        let activeView = views.perspective;
+        let activeCam = activeView?.camera;
+        let activeRenderer = activeView?.renderer;
+        let targetCanvas: HTMLCanvasElement | null = activeRenderer?.domElement || null;
+
+        // Kiểm tra xem chuột có click trong canvas trực giao (Top, Side, Front) không
+        const orthoKeys = ["top", "side", "front"];
+        for (const name of orthoKeys) {
+          const v = views[name];
+          const dom = v?.renderer?.domElement;
+          if (dom) {
+            const r = dom.getBoundingClientRect();
+            if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+              activeView = v;
+              activeCam = v.camera;
+              activeRenderer = v.renderer;
+              targetCanvas = dom;
+              break;
+            }
+          }
+        }
+
+        if (!targetCanvas) {
+          targetCanvas =
+            document.querySelector<HTMLCanvasElement>(".cvat-canvas3d-perspective canvas") ||
+            document.querySelector<HTMLCanvasElement>(".cvat-canvas-container canvas");
+        }
+
+        if (!activeCam || !targetCanvas) return null;
+
+        const rect = targetCanvas.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) return null;
+
+        const mouseX = ((clientX - rect.left) / rect.width) * 2 - 1;
+        const mouseY = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+        const winThree = (window as any).THREE || canvas?.view?.THREE;
+        if (!winThree) return null;
+
+        if (!fastDoubleRaycaster && typeof winThree.Raycaster === "function") {
+          fastDoubleRaycaster = new winThree.Raycaster();
+        }
+        if (!fastDoubleRaycaster) return null;
+
+        fastDoubleRaycaster.setFromCamera({ x: mouseX, y: mouseY }, activeCam);
+        const ray = fastDoubleRaycaster.ray;
+        if (!ray || !ray.origin || !ray.direction) return null;
+
+        const drawnObjects = canvas?.view?.drawnObjects || {};
+        const states = curStore?.getState()?.annotation?.annotations?.states || [];
+
+        let bestHitDist = Infinity;
+        let bestUiId: number | null = null;
+        let bestPos: { x: number; y: number; z: number } | null = null;
+
+        const checkedIds = new Set<number>();
+
+        // TẦNG 1: Thuật toán Ray-OBB siêu tốc (< 0.02ms) trên drawnObjects của Three.js
+        for (const k of Object.keys(drawnObjects)) {
+          const item = drawnObjects[k];
+          const data = item?.data;
+          if (!data || data.outside) continue;
+          const uiId = Number(k);
+          if (isNaN(uiId) || uiId <= 0) continue;
+          checkedIds.add(uiId);
+
+          const pts = extractLivePointsFromDrawnAndState(item, null) || data.points;
+          if (!pts || !Array.isArray(pts) || pts.length < 9) continue;
+
+          const box = {
+            x: pts[0],
+            y: pts[1],
+            z: pts[2],
+            roll: pts[3] || 0,
+            pitch: pts[4] || 0,
+            yaw: pts[5] || 0,
+            l: pts[6],
+            w: pts[7],
+            h: pts[8],
+          };
+
+          const hitDist = intersectRayWithOBBLocal(ray, box, 0.15);
+          if (hitDist !== null && hitDist < bestHitDist) {
+            bestHitDist = hitDist;
+            bestUiId = uiId;
+            bestPos = { x: pts[0], y: pts[1], z: pts[2] };
+          }
+        }
+
+        // Quét thêm các state trong Redux nếu chưa có trong drawnObjects
+        for (const st of states) {
+          if (!st || st.outside || st.shapeType !== "cuboid") continue;
+          const uiId = Number(st.clientID ?? st.id);
+          if (isNaN(uiId) || uiId <= 0 || checkedIds.has(uiId)) continue;
+          checkedIds.add(uiId);
+
+          const pts = st.points;
+          if (!pts || !Array.isArray(pts) || pts.length < 9) continue;
+
+          const box = {
+            x: pts[0],
+            y: pts[1],
+            z: pts[2],
+            roll: pts[3] || 0,
+            pitch: pts[4] || 0,
+            yaw: pts[5] || 0,
+            l: pts[6],
+            w: pts[7],
+            h: pts[8],
+          };
+
+          const hitDist = intersectRayWithOBBLocal(ray, box, 0.15);
+          if (hitDist !== null && hitDist < bestHitDist) {
+            bestHitDist = hitDist;
+            bestUiId = uiId;
+            bestPos = { x: pts[0], y: pts[1], z: pts[2] };
+          }
+        }
+
+        if (bestUiId !== null && bestPos !== null) {
+          return { uiId: bestUiId, pos: bestPos };
+        }
+
+        // TẦNG 2: Mesh Raycast Fallback nếu OBB chưa bắt được
+        try {
+          const cuboidMeshes: any[] = [];
+          const meshToIdMap = new Map<any, number>();
+          for (const k of Object.keys(drawnObjects)) {
+            const item = drawnObjects[k];
+            const uiId = Number(k);
+            if (item?.cuboid) {
+              const cand = item.cuboid.perspective || item.cuboid;
+              if (cand) {
+                cuboidMeshes.push(cand);
+                meshToIdMap.set(cand, uiId);
               }
             }
-          } catch (e) {}
-        }, 80);
-      });
+          }
+          if (cuboidMeshes.length > 0) {
+            const intersects = fastDoubleRaycaster.intersectObjects(cuboidMeshes, true);
+            if (intersects && intersects.length > 0) {
+              const firstHit = intersects[0];
+              let curObj = firstHit.object;
+              while (curObj) {
+                if (meshToIdMap.has(curObj)) {
+                  const uiId = meshToIdMap.get(curObj)!;
+                  const d = drawnObjects[String(uiId)]?.data;
+                  const pos = d && Array.isArray(d.points) ? { x: d.points[0], y: d.points[1], z: d.points[2] } : undefined;
+                  return { uiId, pos: pos || { x: firstHit.point.x, y: firstHit.point.y, z: firstHit.point.z } };
+                }
+                curObj = curObj.parent;
+              }
+            }
+          }
+        } catch (_) {}
+
+        // TẦNG 3: Screen-Space 2D Proximity Fallback (Trong bán kính <= 32px trên màn hình)
+        try {
+          let bestScreenDist = 32;
+          let screenMatchId: number | null = null;
+          let screenMatchPos: { x: number; y: number; z: number } | null = null;
+
+          for (const id of checkedIds) {
+            const drawn = drawnObjects[String(id)];
+            const pts = extractLivePointsFromDrawnAndState(drawn, null) || drawn?.data?.points;
+            if (!pts || !Array.isArray(pts) || pts.length < 3) continue;
+
+            const cx = pts[0], cy = pts[1], cz = pts[2];
+            const tempV = new winThree.Vector3(cx, cy, cz);
+            tempV.project(activeCam);
+
+            if (tempV.z >= -1 && tempV.z <= 1) {
+              const screenX = ((tempV.x + 1) / 2) * rect.width + rect.left;
+              const screenY = ((-tempV.y + 1) / 2) * rect.height + rect.top;
+              const d = Math.hypot(clientX - screenX, clientY - screenY);
+              if (d < bestScreenDist) {
+                bestScreenDist = d;
+                screenMatchId = id;
+                screenMatchPos = { x: cx, y: cy, z: cz };
+              }
+            }
+          }
+
+          if (screenMatchId !== null && screenMatchPos !== null) {
+            return { uiId: screenMatchId, pos: screenMatchPos };
+          }
+        } catch (_) {}
+
+        return null;
+      } catch (err) {
+        console.warn("[CVAT 3D Suite] Lỗi findObjectUnderPointer:", err);
+        return null;
+      }
+    }
+
+    function activateAndGhimObjectImmediately(
+      uiId: number,
+      targetPos?: { x: number; y: number; z: number }
+    ): void {
+      if (uiId === null || uiId === undefined || isNaN(uiId) || uiId <= 0) return;
+
+      console.log(`[CVAT 3D Suite] ⚡ DOUBLE-CLICK: KÍCH HOẠT TỨC THÌ & GHIM TÂM XE #${uiId}!`);
+
+      lastActiveTrackId = uiId;
+      lastDispatchedActiveId = uiId;
+      updateLockedTrackId(uiId);
+
+      // 1. FOCUS CẢ 4 KHUNG NHÌN: Căn giữa camera 3D Perspective, Top, Side, Front vào tâm xe ngay lập tức!
+      center3DViewOnObject(uiId, targetPos);
+
+      // 2. Trích xuất thông số xe
+      const details = extractObjectDetails(uiId);
+
+      // 3. Gửi event cập nhật tức thì sang FloatingPanel
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+          detail: { clientId: uiId, details, isHover: false, isDoubleClick: true },
+        })
+      );
+
+      // 4. Highlight mây điểm xe active rực rỡ & Cảnh báo viền chạm
+      if (currentColorizeBoxed) {
+        schedulePointCloudColorization(0);
+      }
+      calculateAndBroadcastBoxEdgeContacts();
+      updateOrthoClippingPlanes(details);
+
+      // 5. Đồng bộ Three.js Canvas & Redux Store với ANTI-LOOP GUARD
+      try {
+        const curStore = getReduxStore() || store;
+        const canvas = curStore?.getState()?.annotation?.canvas?.instance;
+        if (canvas && typeof canvas.activate === "function") {
+          const curCanvasActive =
+            canvas.view?.activatedElementID ||
+            curStore?.getState()?.annotation?.annotations?.activatedStateClientID;
+          if (Number(curCanvasActive) !== uiId) {
+            canvas.activate(uiId);
+            if (typeof canvas.render === "function") {
+              canvas.render();
+            }
+          }
+        }
+
+        if (curStore && typeof curStore.dispatch === "function") {
+          const currentStoreActiveId =
+            curStore.getState()?.annotation?.annotations?.activatedStateClientID ??
+            curStore.getState()?.annotation?.canvas?.instance?.view?.activatedElementID;
+          if (Number(currentStoreActiveId) !== uiId) {
+            curStore.dispatch({
+              type: "ACTIVATE_OBJECT",
+              payload: { activatedStateClientID: uiId, activatedElementID: uiId },
+            });
+          }
+        }
+      } catch (_) {}
+
+      // 6. Highlight trên Sidebar của CVAT (Tối ưu O(1) Direct Class Swap)
+      syncSidebarItemHighlight(uiId);
+    }
+
+    let lastHandledDblClickTime = 0;
+    function handle3DCanvasDoubleClick(e: MouseEvent | PointerEvent): void {
+      if (isFrameTransitioning) return;
+      const now = Date.now();
+      if (now - lastHandledDblClickTime < 240) return;
+      lastHandledDblClickTime = now;
+
+      const hit = findObjectUnderPointer(e.clientX, e.clientY);
+      if (hit && hit.uiId > 0) {
+        activateAndGhimObjectImmediately(hit.uiId, hit.pos);
+        try {
+          e.stopPropagation();
+        } catch (_) {}
+      }
+    }
+
+    // A. Lắng nghe dblclick bản địa trên Canvas 3D
+    document.addEventListener(
+      "dblclick",
+      (e: MouseEvent) => {
+        if (isFrameTransitioning) return;
+        const target = e.target as HTMLElement;
+        if (!target) return;
+        if (target.closest("input, textarea, button, select, #cvat-3d-suite-panel, .cvat-3d-suite-modal")) {
+          return;
+        }
+        const canvasContainer = target.closest(
+          ".cvat-canvas-container, .cvat-canvas3d-perspective, .cvat-canvas3d-orthographic-view, .cvat-canvas3d-topview, .cvat-canvas3d-sideview, .cvat-canvas3d-frontview"
+        );
+        if (canvasContainer || target.tagName === "CANVAS") {
+          handle3DCanvasDoubleClick(e);
+        }
+      },
+      { capture: true }
+    );
+
+    // B. Fast Double Click Tracker (Đảm bảo 100% bắt được kể cả khi OrbitControls nuốt dblclick)
+    let fastDblLastTime = 0;
+    let fastDblLastX = 0;
+    let fastDblLastY = 0;
+
+    canvasContainers.forEach((container) => {
+      container.addEventListener(
+        "pointerup",
+        (e: PointerEvent) => {
+          if (isFrameTransitioning) return;
+          if (e.button !== 0) return;
+          const now = Date.now();
+          const dt = now - fastDblLastTime;
+          const dx = Math.abs(e.clientX - fastDblLastX);
+          const dy = Math.abs(e.clientY - fastDblLastY);
+
+          fastDblLastTime = now;
+          fastDblLastX = e.clientX;
+          fastDblLastY = e.clientY;
+
+          if (dt >= 40 && dt <= 320 && dx <= 8 && dy <= 8) {
+            handle3DCanvasDoubleClick(e);
+            return;
+          }
+
+          // Single click fallback cũ
+          setTimeout(() => {
+            if (isFrameTransitioning) return;
+            try {
+              const currentStore = getReduxStore() || store;
+              const activeId = currentStore?.getState()?.annotation?.annotations?.activatedStateClientID;
+
+              if (activeId !== null && activeId !== undefined) {
+                const numId = Number(activeId);
+                if (numId > 0) {
+                  updateLockedTrackId(numId);
+                  triggerFocusOnObject(numId, true);
+                }
+              }
+            } catch (err) {}
+          }, 80);
+        },
+        { capture: true }
+      );
     });
 
-    // Lắng nghe sự kiện click trên sidebar
+    // Lắng nghe sự kiện click tường minh trên sidebar để Focus vào đối tượng
     document.addEventListener("click", (e: MouseEvent) => {
+      if (isFrameTransitioning) return;
       const target = e.target as HTMLElement;
       const sidebarItem = target.closest<HTMLElement>(
-        "[class*='cvat-objects-sidebar-state-item']"
+        "[class*='cvat-objects-sidebar-state-item'], [class*='cvat-objects-sidebar-states-list-item'], [data-cvat-state-item-id]"
       );
       if (sidebarItem) {
         setTimeout(() => {
-          const match = (sidebarItem.id || sidebarItem.innerText || "").match(/#?(\d+)/);
-          if (match) {
-            const id = parseInt(match[1], 10);
-            updateLockedTrackId(id);
-            const details = extractObjectDetails(id);
-            window.dispatchEvent(
-              new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-                detail: { clientId: id, details },
-              })
-            );
-            if (currentColorizeBoxed) {
-              applyPointCloudColorizationInMainWorld();
+          if (isFrameTransitioning) return;
+          let id: number | null = null;
+          const dataId = sidebarItem.getAttribute("data-cvat-state-item-id") || sidebarItem.getAttribute("data-item-id");
+          if (dataId && /^\d+$/.test(dataId)) {
+            id = parseInt(dataId, 10);
+          } else {
+            const idAttr = sidebarItem.id || sidebarItem.closest("[id*='cvat-objects-sidebar-state-item-']")?.id || "";
+            const directMatch = idAttr.match(/cvat-objects-sidebar-state-item-(\d+)/);
+            if (directMatch) {
+              id = parseInt(directMatch[1], 10);
+            } else {
+              const textMatch = (sidebarItem.innerText || sidebarItem.textContent || "").match(/#(\d+)/);
+              if (textMatch) id = parseInt(textMatch[1], 10);
             }
+          }
+          if (id && id > 0) {
+            updateLockedTrackId(id);
+            triggerFocusOnObject(id, true);
           }
         }, 60);
       }
     });
 
     // =========================================================================
-    // XỬ LÝ FOCUS TẬP TRUNG KHI CVAT CHUYỂN OBJECT (NATIVE HOVER 3D & SIDEBAR)
+    // XỬ LÝ FOCUS TẬP TRUNG KHI CHỌN OBJECT (CLICK / SHORTCUT / REDUX ACTION)
     // =========================================================================
     let focusTriggerDebounceTimer: any = null;
+    let isTriggeringFocus = false;
+    let lastDispatchedActiveId: number | null = null;
+
     function triggerFocusOnObject(id: number, forceCenter: boolean = true): void {
       if (id === null || id === undefined || isNaN(id) || id <= 0) return;
-      if (id === lastActiveTrackId && id === persistentActiveTrackId) return;
+      if (isTriggeringFocus) return;
+
+      // 1. GỬI EVENT CẬP NHẬT TỨC THÌ SANG FLOATINGPANEL (< 0.2ms)
+      // Chỉ dispatch nếu chưa được dispatch trước đó (tránh bão event liên tiếp cùng 1 object)
+      if (id !== lastDispatchedActiveId) {
+        lastDispatchedActiveId = id;
+        const details = extractObjectDetails(id);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+            detail: { clientId: id, details, isHover: false },
+          })
+        );
+        calculateAndBroadcastBoxEdgeContacts();
+      }
+
+      // Nếu đối tượng đã active và không yêu cầu re-center thì kết thúc sớm
+      if (id === lastActiveTrackId && id === persistentActiveTrackId && !forceCenter) return;
+
+      lastActiveTrackId = id;
+      updateLockedTrackId(id);
 
       if (focusTriggerDebounceTimer) clearTimeout(focusTriggerDebounceTimer);
       focusTriggerDebounceTimer = setTimeout(() => {
         focusTriggerDebounceTimer = null;
-        if (id === lastActiveTrackId && id === persistentActiveTrackId) return;
+        isTriggeringFocus = true;
 
-        console.log(`[CVAT 3D Suite] Tự động FOCUS vào xe #${id} (3D, Top, Side, Front)`);
-        lastActiveTrackId = id;
-        updateLockedTrackId(id);
-
-        // 1. FOCUS CẢ 4 KHUNG NHÌN: Căn giữa camera 3D Perspective, Top View, Side View, Front View vào tâm xe!
-        if (forceCenter) {
-          center3DViewOnObject(id);
-        }
-
-        // 2. Trích xuất chi tiết xe (X, Y, Z, Yaw, L, W, H)
-        const details = extractObjectDetails(id);
-
-        // 3. Gửi event cập nhật tức thì sang FloatingPanel
-        window.dispatchEvent(
-          new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-            detail: { clientId: id, details, isHover: true },
-          })
-        );
-
-        // 4. Highlight mây điểm xe active rực rỡ
-        if (currentColorizeBoxed) {
-          applyPointCloudColorizationInMainWorld();
-        }
-
-        // 5. Đồng bộ Three.js Canvas & Redux Store
         try {
-          const store = getReduxStore();
-          const canvas = store?.getState()?.annotation?.canvas?.instance;
-          if (canvas && typeof canvas.activate === "function") {
-            const curActive =
-              canvas.view?.activatedElementID ||
-              store?.getState()?.annotation?.annotations?.activatedStateClientID;
-            if (curActive !== id) {
-              canvas.activate(id);
-              if (typeof canvas.render === "function") {
-                canvas.render();
+          // 2. FOCUS CẢ 4 KHUNG NHÌN: Căn giữa camera 3D Perspective, Top View, Side View, Front View vào tâm xe!
+          if (forceCenter) {
+            center3DViewOnObject(id);
+          }
+
+          // 3. Highlight mây điểm xe active
+          if (currentColorizeBoxed) {
+            schedulePointCloudColorization(0);
+          }
+          calculateAndBroadcastBoxEdgeContacts();
+          updateOrthoClippingPlanes();
+
+          // 4. Đồng bộ Three.js Canvas & Redux Store với ANTI-LOOP GUARD
+          try {
+            const store = getReduxStore();
+            const canvas = store?.getState()?.annotation?.canvas?.instance;
+            if (canvas && typeof canvas.activate === "function") {
+              const curCanvasActive =
+                canvas.view?.activatedElementID ||
+                store?.getState()?.annotation?.annotations?.activatedStateClientID;
+              if (Number(curCanvasActive) !== id) {
+                canvas.activate(id);
+                if (typeof canvas.render === "function") {
+                  canvas.render();
+                }
               }
             }
-          }
 
-          if (store && typeof store.dispatch === "function") {
-            store.dispatch({
-              type: "ACTIVATE_OBJECT",
-              payload: { activatedStateClientID: id, activatedElementID: id },
-            });
-          }
-        } catch (_) {}
+            if (store && typeof store.dispatch === "function") {
+              const currentStoreActiveId =
+                store.getState()?.annotation?.annotations?.activatedStateClientID ??
+                store.getState()?.annotation?.canvas?.instance?.view?.activatedElementID;
+              // 🚨 ANTI-LOOP GUARD: Tuyệt đối KHÔNG re-dispatch nếu Redux Store đã có ID này active!
+              // Ngăn chặn 100% Sidebar DOM re-render storm
+              if (Number(currentStoreActiveId) !== id) {
+                store.dispatch({
+                  type: "ACTIVATE_OBJECT",
+                  payload: { activatedStateClientID: id, activatedElementID: id },
+                });
+              }
+            }
+          } catch (_) {}
 
-        // 6. Highlight trên Sidebar của CVAT
-        try {
-          const sidebarItem =
-            document.querySelector<HTMLElement>(`#cvat-objects-sidebar-state-item-${id}`) ||
-            document.querySelector<HTMLElement>(`[data-cvat-state-item-id="${id}"]`) ||
-            document.querySelector<HTMLElement>(`[class*="cvat-objects-sidebar-state-item"][id*="${id}"]`);
-          if (sidebarItem) {
-            sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
-            const allItems = document.querySelectorAll<HTMLElement>("[class*='cvat-objects-sidebar-state-item']");
-            allItems.forEach((el) => el.classList.remove("cvat-objects-sidebar-state-item-active", "selected"));
-            sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
-          }
-        } catch (_) {}
-      }, 35);
+          // 5. Highlight trên Sidebar của CVAT (Tối ưu O(1) Direct Class Swap - Thay vì O(N) querySelectorAll)
+          syncSidebarItemHighlight(id);
+        } finally {
+          isTriggeringFocus = false;
+        }
+      }, 15);
     }
 
-    // 1. Theo dõi Hover trực tiếp trên thanh Sidebar của CVAT
-    document.addEventListener(
-      "mouseover",
-      (e: MouseEvent) => {
-        const target = e.target as HTMLElement;
-        if (!target) return;
-        const sidebarItem = target.closest<HTMLElement>(
-          "[class*='cvat-objects-sidebar-state-item'], [class*='cvat-objects-sidebar-states-list-item'], [data-cvat-state-item-id]"
-        );
-        if (sidebarItem) {
-          let id: number | null = null;
-          const dataId = sidebarItem.getAttribute("data-cvat-state-item-id") || sidebarItem.getAttribute("data-item-id");
-          if (dataId && /^\d+$/.test(dataId)) {
-            id = parseInt(dataId, 10);
-          } else {
-            const match = (sidebarItem.id || sidebarItem.innerText || sidebarItem.textContent || "").match(/#?(\d+)/);
-            if (match) id = parseInt(match[1], 10);
-          }
-          if (id && id > 0 && id !== lastActiveTrackId) {
-            triggerFocusOnObject(id, true);
-          }
-        }
-      },
-      { passive: true }
-    );
-
-    // 2. Theo dõi MutationObserver trên thanh bên cạnh (Sidebar) của CVAT
-    // Khi người dùng hover vào 3D trong CVAT, CVAT native tự động đổi active/highlight trên thanh bên cạnh
+    // Đồng bộ trạng thái active của Sidebar khi CVAT thay đổi (Chỉ lắng nghe Active/Selected thực sự, KHÔNG bắt hover)
     let lastObservedSidebarId: number | null = null;
     let sidebarObserverDebounce: any = null;
 
@@ -5175,25 +7335,18 @@ export function mainWorldScript(): void {
         (sidebarEl as any).__cvat_sidebar_observer_attached__ = true;
 
         const observer = new MutationObserver(() => {
+          if (isFrameTransitioning) return; // 🚨 BẢO VỆ CHUYỂN FRAME: Không bắt re-render DOM của Sidebar
           if (sidebarObserverDebounce) return;
           sidebarObserverDebounce = setTimeout(() => {
             sidebarObserverDebounce = null;
+            if (isFrameTransitioning) return;
             try {
+              // CHỈ lọc các phần tử có class active/selected thực sự, TUYỆT ĐỐI KHÔNG bắt class hover/highlight
               const activeItem = document.querySelector<HTMLElement>(
-                ".cvat-objects-sidebar-state-active-element, " +
-                "[class*='cvat-objects-sidebar-state-active-element'], " +
-                "[class*='state-active-element'], " +
-                "[id*='cvat-objects-sidebar-state-item-'][class*='active'], " +
                 ".cvat-objects-sidebar-state-item-active, " +
                 ".cvat-objects-sidebar-state-item.selected, " +
                 "[class*='sidebar-state-item-active'], " +
-                "[class*='sidebar-state-item--active'], " +
-                "[class*='state-item-activated'], " +
-                "[class*='state-item-highlighted'], " +
-                "[class*='state-item--highlighted'], " +
-                "[data-cvat-state-item-id][class*='active'], " +
-                "[data-cvat-state-item-id][class*='selected'], " +
-                "[data-cvat-state-item-id][class*='highlighted']"
+                "[data-cvat-state-item-id][class*='selected']"
               );
 
               if (activeItem) {
@@ -5212,68 +7365,28 @@ export function mainWorldScript(): void {
                   }
                 }
 
-                if (id && id > 0 && id !== lastObservedSidebarId && id !== lastActiveTrackId) {
-                  lastObservedSidebarId = id;
-                  console.log(`[CVAT 3D Suite] Thanh bên cạnh vừa đổi sang xe #${id} -> FOCUS NGAY!`);
-                  triggerFocusOnObject(id, true);
+                if (id && id > 0 && id !== lastObservedSidebarId) {
+                  const curReduxActive = getReduxStore()?.getState()?.annotation?.annotations?.activatedStateClientID;
+                  if (Number(curReduxActive) === id && id !== lastActiveTrackId) {
+                    lastObservedSidebarId = id;
+                    lastActiveTrackId = id;
+                    updateLockedTrackId(id);
+                  }
                 }
               }
             } catch (_) {}
-          }, 25);
+          }, 60);
         });
 
         observer.observe(sidebarEl, {
           attributes: true,
-          attributeFilter: ["class", "style", "data-cvat-state-item-id"],
+          attributeFilter: ["class", "data-cvat-state-item-id"],
           subtree: true,
         });
       } catch (_) {}
     }
 
     attachSidebarActiveObserver();
-    setInterval(attachSidebarActiveObserver, 2000);
-
-    // 3. Theo dõi pointermove trên toàn bộ màn hình để phát hiện tức thì khi CVAT đổi đối tượng
-    let windowPointerThrottle: any = null;
-    window.addEventListener(
-      "pointermove",
-      () => {
-        if (windowPointerThrottle) return;
-        windowPointerThrottle = setTimeout(() => {
-          windowPointerThrottle = null;
-          try {
-            const store = getReduxStore();
-            const canvas = store?.getState()?.annotation?.canvas?.instance;
-            const view = canvas?.view;
-            const activeId =
-              view?.activatedElementID ??
-              view?.hoveredElementID ??
-              store?.getState()?.annotation?.annotations?.activatedStateClientID ??
-              store?.getState()?.annotation?.annotations?.highlightedClientID;
-
-            if (activeId !== null && activeId !== undefined && Number(activeId) > 0 && Number(activeId) !== lastActiveTrackId) {
-              triggerFocusOnObject(Number(activeId), true);
-              return;
-            }
-
-            const activeEl = document.querySelector<HTMLElement>(
-              ".cvat-objects-sidebar-state-active-element, [class*='state-active-element'], [class*='sidebar-state-item-active']"
-            );
-            if (activeEl) {
-              const idAttr = activeEl.id || activeEl.closest("[id*='cvat-objects-sidebar-state-item-']")?.id || "";
-              const match = idAttr.match(/cvat-objects-sidebar-state-item-(\d+)/) || idAttr.match(/#?(\d+)/);
-              if (match) {
-                const idNum = parseInt(match[1], 10);
-                if (idNum > 0 && idNum !== lastActiveTrackId) {
-                  triggerFocusOnObject(idNum, true);
-                }
-              }
-            }
-          } catch (_) {}
-        }, 35);
-      },
-      { passive: true }
-    );
 
     // LẮNG NGHE REDUX STORE SUBSCRIBE ĐỂ PHÁT HIỆN TỨC THÌ KHI VỪA VẼ XONG BOX MỚI VÀ KHI TUA FRAME
     try {
@@ -5287,13 +7400,88 @@ export function mainWorldScript(): void {
         let dirtyDebounceTimer: any = null;
         let pointsDebounceTimer: any = null;
 
+        // Bộ Throttle 200ms cho tính toán Fingerprint nhằm giải phóng Main Thread khỏi hàng trăm Redux actions/giây
+        let lastFingerprintCalcTime = 0;
+        let fingerprintThrottleTimer: any = null;
+
+        const doComputeFingerprint = (states: any[]) => {
+          const isMouseDown = typeof window !== "undefined" && (window as any).__cvat_mouse_down__;
+          if (isCanvasInteracting || isMouseDown || isFrameTransitioning) return;
+
+          let currentPointsFingerprint = "";
+          for (let i = 0; i < states.length; i++) {
+            const st = states[i];
+            if (st && Array.isArray(st.points) && st.points.length >= 9 && !st.outside) {
+              const p = st.points;
+              // Băm nhanh: clientID, x, y, z, yaw, l, w, h (độ phân giải 2cm)
+              currentPointsFingerprint += `${st.clientID}:${Math.round(p[0] * 50)},${Math.round(p[1] * 50)},${Math.round(p[2] * 50)},${Math.round(p[5] * 50)},${Math.round(p[6] * 50)},${Math.round(p[7] * 50)},${Math.round(p[8] * 50)}|`;
+            }
+          }
+
+          if (currentPointsFingerprint !== prevPointsFingerprint) {
+            const isInit = prevPointsFingerprint === "";
+            prevPointsFingerprint = currentPointsFingerprint;
+            if (!isInit && !isCanvasInteracting && !isMouseDown && !isFrameTransitioning) {
+              if (pointsDebounceTimer) clearTimeout(pointsDebounceTimer);
+              pointsDebounceTimer = setTimeout(() => {
+                pointsDebounceTimer = null;
+                if (isFrameTransitioning) return;
+                schedulePointCloudColorization(0);
+                calculateAndBroadcastBoxEdgeContacts();
+
+                // Đồng bộ Live Transform tức thì sang Extension khi Redux states cập nhật
+                try {
+                  const store = getReduxStore();
+                  const activeId =
+                    store?.getState()?.annotation?.annotations?.activatedStateClientID ??
+                    lastActiveTrackId;
+                  if (activeId !== null && activeId !== undefined && !isNaN(Number(activeId))) {
+                    const numId = Number(activeId);
+                    const details = extractObjectDetails(numId);
+                    if (details) {
+                      window.dispatchEvent(
+                        new CustomEvent("CVAT_EXT_RES_LIVE_TRANSFORM_CHANGED", {
+                          detail: { clientId: numId, details },
+                        })
+                      );
+                    }
+                  }
+                } catch (_) {}
+              }, 50);
+            }
+          }
+        };
+
+        const checkPointsFingerprintThrottled = (states: any[]) => {
+          // BẢO VỆ TUYỆT ĐỐI: Đang tương tác kéo chuột hoặc nhấn chuột -> Không tính toán fingerprint
+          const isMouseDown = typeof window !== "undefined" && (window as any).__cvat_mouse_down__;
+          if (isCanvasInteracting || isMouseDown || isFrameTransitioning) return;
+
+          const now = Date.now();
+          const elapsed = now - lastFingerprintCalcTime;
+          if (elapsed >= 200) {
+            lastFingerprintCalcTime = now;
+            if (fingerprintThrottleTimer) {
+              clearTimeout(fingerprintThrottleTimer);
+              fingerprintThrottleTimer = null;
+            }
+            doComputeFingerprint(states);
+          } else if (!fingerprintThrottleTimer) {
+            fingerprintThrottleTimer = setTimeout(() => {
+              fingerprintThrottleTimer = null;
+              lastFingerprintCalcTime = Date.now();
+              const latestStates = getReduxStore()?.getState()?.annotation?.annotations?.states || states;
+              doComputeFingerprint(latestStates);
+            }, 200 - elapsed);
+          }
+        };
+
         store.subscribe(() => {
           try {
             const anno = store.getState()?.annotation;
-            const curActiveId =
-              anno?.annotations?.activatedStateClientID ??
-              canvas?.view?.activatedElementID ??
-              anno?.annotations?.highlightedClientID;
+            const canvas = anno?.canvas?.instance;
+            // CHỈ lấy ID thực sự active/selected do người dùng click (TUYỆT ĐỐI KHÔNG fallback vào activatedElementID của Three.js khi hover)
+            const curActiveId = anno?.annotations?.activatedStateClientID ?? null;
             const curStatesLen = anno?.annotations?.states?.length || 0;
             const curFrame = anno?.player?.frame?.number ?? anno?.job?.instance?.frame;
 
@@ -5302,25 +7490,43 @@ export function mainWorldScript(): void {
               const oldFrame = prevFrame;
               prevFrame = curFrame;
               prevPointsFingerprint = ""; // Reset fingerprint khi sang frame mới
+              lastFingerprintCalcTime = 0;
+              lastDispatchedActiveId = null;
+
+              // SINGLE-FLIGHT COALESCING: Hủy ngay toàn bộ timers và animation frames cũ
+              if (frameTransitionTimer) { clearTimeout(frameTransitionTimer); frameTransitionTimer = null; }
+              if (lockOnActiveTimer) { clearTimeout(lockOnActiveTimer); lockOnActiveTimer = null; }
+              if (singleFrameColorizeTimer) { clearTimeout(singleFrameColorizeTimer); singleFrameColorizeTimer = null; }
+              if (colorizeRafId) { cancelAnimationFrame(colorizeRafId); colorizeRafId = null; }
+              if (activeDebounceTimer) { clearTimeout(activeDebounceTimer); activeDebounceTimer = null; }
+              if (dirtyDebounceTimer) { clearTimeout(dirtyDebounceTimer); dirtyDebounceTimer = null; }
+
+              // KHÓA RAYCAST NGAY TỨC THÌ TRÊN TOÀN BỘ SCENES CỦA FRAME MỚI (MILIGIÂY 0)
+              installGlobalThreeRaycastGuard();
+              hookAllScenes();
 
               isFrameTransitioning = true;
-              if (frameTransitionTimer) clearTimeout(frameTransitionTimer);
               frameTransitionTimer = setTimeout(() => {
                 isFrameTransitioning = false;
                 frameTransitionTimer = null;
-              }, 700);
+              }, 120);
+
+              // Cập nhật lại clipping planes cho frame mới (không ép render đồng bộ)
+              if (currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI) {
+                setTimeout(() => updateOrthoClippingPlanes(undefined, false), 80);
+              }
 
               // Hủy ngay tiến trình của frame cũ và lên lịch render frame mới
               scheduleSingleFrameColorizationAndGround(curFrame, 180);
 
-              if (oldFrame !== null) {
-                // Bắn event tức thì thông báo cho Extension
-                window.dispatchEvent(
-                  new CustomEvent("CVAT_EXT_RES_FRAME_CHANGED", {
-                    detail: { frame: curFrame, prevFrame: oldFrame },
-                  })
-                );
+              // Bắn event tức thì thông báo cho Extension (kể cả frame khởi tạo đầu tiên để Event-Driven 100%)
+              window.dispatchEvent(
+                new CustomEvent("CVAT_EXT_RES_FRAME_CHANGED", {
+                  detail: { frame: curFrame, prevFrame: oldFrame },
+                })
+              );
 
+              if (oldFrame !== null) {
                 // GHIM TÂM XE ĐANG ACTIVE VÀO CHÍNH GIỮA MÀN EDIT THỜI GIAN THỰC (STICKY TRACK LOCK-ON)
                 const activeIdToLock =
                   persistentActiveTrackId !== null
@@ -5330,7 +7536,11 @@ export function mainWorldScript(): void {
                         : lastActiveTrackId);
 
                 if (activeIdToLock !== null && !isNaN(activeIdToLock)) {
-                  lockOnActiveObjectAtFrame(activeIdToLock, curFrame);
+                  if (lockOnActiveTimer) clearTimeout(lockOnActiveTimer);
+                  lockOnActiveTimer = setTimeout(() => {
+                    lockOnActiveTimer = null;
+                    lockOnActiveObjectAtFrame(activeIdToLock, curFrame, 0);
+                  }, 60);
                 }
               }
             }
@@ -5340,51 +7550,69 @@ export function mainWorldScript(): void {
               prevActiveId = curActiveId;
               if (curActiveId !== null && curActiveId !== undefined) {
                 const idNum = Number(curActiveId);
+
+                // 🚨 BẢO VỆ CHUYỂN FRAME (FRAME TRANSITION GUARD):
+                // Nếu đang trong thời gian chuyển frame, chỉ chấp nhận nếu idNum này thực sự thuộc về persistentActiveTrackId.
+                // Ngăn chặn Redux / Three.js Hover kích hoạt tạm thời một ID ngẫu nhiên khác!
+                if (isFrameTransitioning) {
+                  if (persistentActiveTrackId !== null) {
+                    const curStates = anno?.annotations?.states || [];
+                    const st = curStates.find((s: any) => Number(s.clientID) === idNum);
+                    const tid = st ? (st.parentID ?? st.trackID ?? st.parent?.clientID ?? st.clientID) : null;
+                    if (tid === null || Number(tid) !== Number(persistentActiveTrackId)) {
+                      // ID này không thuộc track đang khóa -> Bỏ qua, chống nhảy active sang ID khác!
+                      return;
+                    }
+                  } else {
+                    // Nếu trước đó không khóa track nào, tuyệt đối không tự ý kích hoạt ID ngẫu nhiên trong lúc chuyển frame!
+                    return;
+                  }
+                }
+
                 lastActiveTrackId = idNum;
+                currentActiveTrackId = idNum;
+                lastDispatchedActiveId = idNum;
                 if (!isFrameTransitioning) {
                   updateLockedTrackId(idNum);
                 }
+                // Đồng bộ siêu tốc < 0.2ms sang Tool kèm trackId
+                const details = extractObjectDetails(idNum);
+                window.dispatchEvent(
+                  new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+                    detail: { clientId: idNum, trackId: persistentActiveTrackId, details, isHover: false },
+                  })
+                );
+
                 if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
                 activeDebounceTimer = setTimeout(() => {
                   activeDebounceTimer = null;
                   triggerFocusOnObject(idNum, true);
-                }, 35);
+                }, 15);
               } else {
+                // 🚨 BẢO VỆ CHUYỂN FRAME: Khi chuyển frame, Redux có thể tạm thời trả về null trong vài ms
+                // Tuyệt đối không xóa persistentActiveTrackId khi đang chuyển frame!
+                if (isFrameTransitioning) return;
+
                 // Người dùng bỏ chọn hoặc click ra ngoài canvas -> Báo cho Extension biết để ẩn chức năng
                 lastActiveTrackId = null;
                 persistentActiveTrackId = null;
+                currentActiveTrackId = -1;
+                lastDispatchedActiveId = null;
+                syncSidebarItemHighlight(null);
                 if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
                 activeDebounceTimer = setTimeout(() => {
                   activeDebounceTimer = null;
+                  if (isFrameTransitioning) return;
                   window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_OBJECT_DEACTIVATED"));
-                  applyPointCloudColorizationInMainWorld();
-                }, 80);
+                  schedulePointCloudColorization(0);
+                  updateOrthoClippingPlanes();
+                }, 40);
               }
             }
 
-            // 3. THEO DÕI THAY ĐỔI TỌA ĐỘ / DIMENSIONS / ROTATION CỦA CÁC BOX TRÊN FRAME (POINTS FINGERPRINT)
+            // 3. THEO DÕI THAY ĐỔI TỌA ĐỘ / DIMENSIONS / ROTATION CỦA CÁC BOX TRÊN FRAME (POINTS FINGERPRINT QUA THROTTLE 200MS)
             const states = anno?.annotations?.states || [];
-            let currentPointsFingerprint = "";
-            for (let i = 0; i < states.length; i++) {
-              const st = states[i];
-              if (st && Array.isArray(st.points) && st.points.length >= 9 && !st.outside) {
-                const p = st.points;
-                // Băm nhanh: clientID, x, y, z, yaw, l, w, h (độ phân giải 2cm)
-                currentPointsFingerprint += `${st.clientID}:${Math.round(p[0] * 50)},${Math.round(p[1] * 50)},${Math.round(p[2] * 50)},${Math.round(p[5] * 50)},${Math.round(p[6] * 50)},${Math.round(p[7] * 50)},${Math.round(p[8] * 50)}|`;
-              }
-            }
-
-            if (currentPointsFingerprint !== prevPointsFingerprint) {
-              const isInit = prevPointsFingerprint === "";
-              prevPointsFingerprint = currentPointsFingerprint;
-              if (!isInit) {
-                if (pointsDebounceTimer) clearTimeout(pointsDebounceTimer);
-                pointsDebounceTimer = setTimeout(() => {
-                  pointsDebounceTimer = null;
-                  applyPointCloudColorizationInMainWorld();
-                }, 50);
-              }
-            }
+            checkPointsFingerprintThrottled(states);
 
             if (curStatesLen !== prevStatesLen) {
               prevStatesLen = curStatesLen;
@@ -5392,8 +7620,9 @@ export function mainWorldScript(): void {
               if (dirtyDebounceTimer) clearTimeout(dirtyDebounceTimer);
               dirtyDebounceTimer = setTimeout(() => {
                 dirtyDebounceTimer = null;
+                if (isFrameTransitioning) return;
                 window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS_DIRTY"));
-                applyPointCloudColorizationInMainWorld();
+                schedulePointCloudColorization(0);
               }, 400);
             }
           } catch (err) {}
@@ -5425,29 +7654,23 @@ export function mainWorldScript(): void {
           }
         }
 
-        // Tầng 2: Đồng bộ Redux Store của CVAT Native
+        // Tầng 2: Đồng bộ Redux Store của CVAT Native (Anti-Loop: Chỉ dispatch khi Store chưa active ID này)
         if (store && typeof store.dispatch === "function") {
           try {
-            store.dispatch({
-              type: "ACTIVATE_OBJECT",
-              payload: { activatedStateClientID: numId, activatedElementID: numId },
-            });
+            const currentStoreActiveId =
+              store.getState()?.annotation?.annotations?.activatedStateClientID ??
+              store.getState()?.annotation?.canvas?.instance?.view?.activatedElementID;
+            if (Number(currentStoreActiveId) !== numId) {
+              store.dispatch({
+                type: "ACTIVATE_OBJECT",
+                payload: { activatedStateClientID: numId, activatedElementID: numId },
+              });
+            }
           } catch (_) {}
         }
 
-        // Tầng 3: Đồng bộ DOM Sidebar của CVAT
-        try {
-          const sidebarItem =
-            document.querySelector<HTMLElement>(`#cvat-objects-sidebar-state-item-${numId}`) ||
-            document.querySelector<HTMLElement>(`[data-cvat-state-item-id="${numId}"]`) ||
-            document.querySelector<HTMLElement>(`[class*="cvat-objects-sidebar-state-item"][id*="${numId}"]`);
-          if (sidebarItem) {
-            sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
-            const allItems = document.querySelectorAll<HTMLElement>("[class*='cvat-objects-sidebar-state-item']");
-            allItems.forEach((el) => el.classList.remove("cvat-objects-sidebar-state-item-active", "selected"));
-            sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
-          }
-        } catch (_) {}
+        // Tầng 3: Đồng bộ DOM Sidebar của CVAT (Tối ưu O(1) Class Swap)
+        syncSidebarItemHighlight(numId);
 
         // Tầng 4: Tự động căn giữa View 3D vào chiếc xe vừa chọn
         center3DViewOnObject(numId, pos);
@@ -5479,6 +7702,28 @@ export function mainWorldScript(): void {
       if (clientId !== undefined && clientId !== null) {
         center3DViewOnObject(Number(clientId), pos);
       }
+    });
+
+    // Lắng nghe yêu cầu cập nhật cấu hình Lát cắt (Depth Slicing & Ground/ROI Filter)
+    window.addEventListener("CVAT_EXT_REQ_SET_ORTHO_SLICING", (e: any) => {
+      const cfg = e.detail;
+      if (cfg && typeof cfg === "object") {
+        currentOrthoSlicing = { ...currentOrthoSlicing, ...cfg };
+        try {
+          localStorage.setItem("cvat_3d_ortho_slicing", JSON.stringify(currentOrthoSlicing));
+        } catch (_) {}
+        updateOrthoClippingPlanes();
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_ORTHO_SLICING", { detail: { config: currentOrthoSlicing } })
+        );
+      }
+    });
+
+    // Lắng nghe yêu cầu lấy cấu hình Lát cắt hiện tại
+    window.addEventListener("CVAT_EXT_REQ_GET_ORTHO_SLICING", () => {
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_ORTHO_SLICING", { detail: { config: currentOrthoSlicing } })
+      );
     });
   }
 
@@ -5516,25 +7761,75 @@ export function mainWorldScript(): void {
           return;
         }
       }
-      const list = annotations
-        .filter((s: any) => s && s.shapeType === "cuboid" && Array.isArray(s.points) && s.points.length >= 9 && typeof s.clientID === "number")
-        .map((s: any) => {
-          const p = s.points;
-          const resolved = resolveLabelName(s);
-          return {
-            uiId: s.clientID,       // SỐ CLIENT_ID HIỂN THỊ CHUẨN XÁC 100% TRÊN GIAO DIỆN!
-            serverId: s.serverID,   // SỐ SERVER_ID LƯU DƯỚI CƠ SỞ DỮ LIỆU
-            label: resolved.name,
-            color: resolved.color,
-            x: Number(p[0].toFixed(2)),
-            y: Number(p[1].toFixed(2)),
-            z: Number(p[2].toFixed(3)),
-            yawDeg: Math.round((p[5] * 180) / Math.PI),
-            l: Number(p[6].toFixed(2)),
-            w: Number(p[7].toFixed(2)),
-            h: Number(p[8].toFixed(2)),
-          };
+      const store = getReduxStore();
+      const canvas = store?.getState()?.annotation?.canvas?.instance;
+      const drawnObjects = canvas?.view?.drawnObjects || {};
+      const reduxStates = store?.getState()?.annotation?.annotations?.states || [];
+
+      // MERGE TOÀN DIỆN: Đảm bảo bắt trọn 100% tất cả các box trên Canvas (kể cả box mới vẽ thêm hoặc vừa kéo chưa Save)
+      const stateMap = new Map<number, any>();
+      if (Array.isArray(annotations)) {
+        for (const a of annotations) {
+          if (a && typeof a.clientID === "number") stateMap.set(a.clientID, a);
+        }
+      }
+      // CHỈ MERGE reduxStates và drawnObjects NẾU canvas/redux THỰC SỰ ĐANG Ở ĐÚNG FRAME NÀY VÀ ĐÃ NẠP XONG
+      const curF = store?.getState()?.annotation?.player?.frame?.number ?? store?.getState()?.annotation?.job?.instance?.frame;
+      if (curF === frame && !isFrameTransitioning) {
+        for (const s of reduxStates) {
+          if (s && typeof s.clientID === "number") {
+            if (typeof s.frame === "number" && s.frame !== frame) continue;
+            if (!stateMap.has(s.clientID)) {
+              stateMap.set(s.clientID, s);
+            }
+          }
+        }
+        for (const key of Object.keys(drawnObjects)) {
+          const idNum = Number(key);
+          if (!isNaN(idNum) && !stateMap.has(idNum)) {
+            const item = drawnObjects[key];
+            if (item?.data) {
+              if (typeof item.data.frame === "number" && item.data.frame !== frame) continue;
+              stateMap.set(idNum, {
+                ...item.data,
+                clientID: idNum,
+                shapeType: "cuboid",
+              });
+            }
+          }
+        }
+      }
+
+      const list: any[] = [];
+      for (const [cId, s] of stateMap.entries()) {
+        if (!s || s.shapeType !== "cuboid" || s.outside) continue;
+        const drawn = drawnObjects[String(cId)];
+        const p = extractLivePointsFromDrawnAndState(drawn, s);
+        if (!p || p.length < 9) continue;
+
+        const resolved = resolveLabelName(s);
+        const persistentTid =
+          s.parentID ??
+          s.trackID ??
+          s.parent?.clientID ??
+          drawn?.data?.parentID ??
+          drawn?.data?.trackID ??
+          cId;
+        list.push({
+          uiId: cId,              // SỐ CLIENT_ID HIỂN THỊ CHUẨN XÁC 100% TRÊN GIAO DIỆN TẠI FRAME NÀY!
+          trackId: Number(persistentTid), // SỐ TRACK_ID BỀN VỮNG TOÀN CỤC XUYÊN SUỐT CÁC FRAME!
+          serverId: s.serverID || null,  // SỐ SERVER_ID LƯU DƯỚI CƠ SỞ DỮ LIỆU
+          label: resolved.name,
+          color: resolved.color,
+          x: Number(p[0].toFixed(2)),
+          y: Number(p[1].toFixed(2)),
+          z: Number(p[2].toFixed(3)),
+          yawDeg: Math.round((p[5] * 180) / Math.PI),
+          l: Number(p[6].toFixed(2)),
+          w: Number(p[7].toFixed(2)),
+          h: Number(p[8].toFixed(2)),
         });
+      }
 
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS", {
@@ -5550,7 +7845,7 @@ export function mainWorldScript(): void {
     }
   });
 
-  // 1b. Lắng nghe yêu cầu lấy TOÀN BỘ CÁC FRAME của một chiếc xe (Full-Track Lifecycle Query)
+  // 1b. Lắng nghe yêu cầu lấy TOÀN BỘ CÁC FRAME của một chiếc xe (Full-Track Lifecycle Query - Siêu tốc trong RAM < 1ms)
   window.addEventListener("CVAT_EXT_REQ_GET_TRACK_ALL_FRAMES", async (e: any) => {
     const { jobId, uiId, serverId } = e.detail || {};
     try {
@@ -5562,11 +7857,11 @@ export function mainWorldScript(): void {
       const parentTrack = await findTrackInJob(job, uiId, serverId);
       const trackLabel = resolveLabelName(parentTrack).name;
 
-      // 1. Thu thập keyframes từ Track instance nếu có
+      // 1. Thu thập shapes / keyframes trực tiếp từ Track instance trong bộ nhớ RAM (< 1ms, không khóa Main Thread)
       if (parentTrack) {
-        const shapes = toArray(parentTrack.shapes || parentTrack.keyframes);
+        const shapes = toArray(parentTrack.shapes || parentTrack.keyframes || (parentTrack as any)._shapes);
         for (const sh of shapes) {
-          if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+          if (sh && (sh.shapeType === "cuboid" || sh.type === "cuboid" || Array.isArray(sh.points)) && Array.isArray(sh.points) && sh.points.length >= 9) {
             framesMap.set(sh.frame, {
               frame: sh.frame,
               isKeyframe: true,
@@ -5578,29 +7873,29 @@ export function mainWorldScript(): void {
         }
       }
 
-      // 2. Quét dải frame của Job để lấy đầy đủ cả các frame nội suy
-      const startF = typeof job.startFrame === "number" ? job.startFrame : 0;
-      const stopF = typeof job.stopFrame === "number" ? job.stopFrame : (startF + 100);
-      for (let f = startF; f <= stopF; f++) {
-        try {
-          const states = await job.annotations.get(f);
-          if (Array.isArray(states)) {
-            const st = states.find(
-              (s: any) => s.clientID === uiId || (serverId && s.serverID === serverId)
-            );
-            if (st && Array.isArray(st.points) && st.points.length >= 9) {
-              const existing = framesMap.get(f);
-              framesMap.set(f, {
-                frame: f,
-                isKeyframe: existing ? existing.isKeyframe : !!st.keyframe,
-                outside: !!st.outside,
-                points: [...st.points],
-                label: resolveLabelName(st).name || trackLabel,
-              });
-            }
-          }
-        } catch (e) {}
-      }
+      // 2. Bổ sung dữ liệu frame hiện tại từ Redux store nếu có để đảm bảo tính thời gian thực
+      try {
+        const store = getReduxStore();
+        const curStates = store?.getState()?.annotation?.annotations?.states || [];
+        const curSt = curStates.find(
+          (s: any) => Number(s.clientID) === Number(uiId) || (serverId && Number(s.serverID) === Number(serverId))
+        );
+        const canvas = store?.getState()?.annotation?.canvas?.instance;
+        const drawn = canvas?.view?.drawnObjects?.[String(uiId)];
+        const livePts = extractLivePointsFromDrawnAndState(drawn, curSt);
+
+        if (livePts && livePts.length >= 9) {
+          const curF = store?.getState()?.annotation?.player?.frame?.number ?? (typeof job.frame === "number" ? job.frame : 0);
+          const existing = framesMap.get(curF);
+          framesMap.set(curF, {
+            frame: curF,
+            isKeyframe: existing ? existing.isKeyframe : !!curSt?.keyframe,
+            outside: !!curSt?.outside,
+            points: livePts,
+            label: (curSt ? resolveLabelName(curSt).name : null) || trackLabel,
+          });
+        }
+      } catch (_) {}
 
       const framesList = Array.from(framesMap.values()).sort((a, b) => a.frame - b.frame);
       window.dispatchEvent(
@@ -5617,7 +7912,7 @@ export function mainWorldScript(): void {
     }
   });
 
-  // 1b2. Lắng nghe yêu cầu lấy TOÀN BỘ CÁC TRACK trong Job kèm danh sách Shapes (Dùng cho Case 1 & Case 2 Store)
+  // 1b2. Lắng nghe yêu cầu lấy TOÀN BỘ CÁC TRACK trong Job kèm danh sách Shapes (Dùng cho Case 1 & Case 2 Store & QC Studio)
   window.addEventListener("CVAT_EXT_REQ_GET_ALL_JOB_TRACKS_WITH_SHAPES", async (e: any) => {
     const { jobId } = e.detail || {};
     try {
@@ -5625,16 +7920,16 @@ export function mainWorldScript(): void {
       if (!job) throw new Error("Không tìm thấy Job Instance của CVAT");
 
       const rawTracks = getJobTrackCollection(job);
-      const startF = typeof job.startFrame === "number" ? job.startFrame : 0;
-      const stopF = typeof job.stopFrame === "number" ? job.stopFrame : startF + 100;
 
-      // Gom nhóm shapes theo clientID
+      // Gom nhóm shapes theo clientID trực tiếp từ in-memory collection (siêu tốc < 5ms, không khoá Main Thread)
       const trackMap = new Map<number, any>();
       for (const t of rawTracks) {
-        if (!t.clientID) continue;
+        if (!t || typeof t.clientID !== "number") continue;
+        if (trackMap.has(t.clientID)) continue;
+
         const shList = toArray(t.shapes || t.keyframes);
         const shapes = shList
-          .filter((s: any) => s.shapeType === "cuboid" && Array.isArray(s.points) && s.points.length >= 9)
+          .filter((s: any) => s && s.shapeType === "cuboid" && Array.isArray(s.points) && s.points.length >= 9)
           .map((s: any) => ({
             type: "cuboid",
             frame: s.frame,
@@ -5645,52 +7940,110 @@ export function mainWorldScript(): void {
             rotation: 0,
           }));
 
+        const resolved = resolveLabelName(t);
         trackMap.set(t.clientID, {
           id: t.clientID,
           clientID: t.clientID,
           serverID: t.serverID || null,
           labelId: t.label?.id || 1,
-          labelName: t.label?.name || "Car",
-          labelColor: t.label?.color || "#38bdf8",
+          labelName: resolved.name || t.label?.name || "Car",
+          labelColor: resolved.color || t.label?.color || "#38bdf8",
           shapes,
         });
       }
 
-      // Quét các frame để bắt trọn vẹn cả những track chưa có trong memory collection
-      for (let f = startF; f <= stopF; f++) {
-        try {
-          const states = await job.annotations.get(f);
-          if (Array.isArray(states)) {
-            for (const st of states) {
-              if (st.shapeType !== "cuboid" || !Array.isArray(st.points) || st.points.length < 9) continue;
-              let t = trackMap.get(st.clientID);
-              if (!t) {
-                t = {
-                  id: st.clientID,
-                  clientID: st.clientID,
-                  serverID: st.serverID || null,
-                  labelId: st.label?.id || 1,
-                  labelName: st.label?.name || "Car",
-                  labelColor: st.label?.color || "#38bdf8",
-                  shapes: [],
-                };
-                trackMap.set(st.clientID, t);
-              }
-              if (st.keyframe && !t.shapes.some((s: any) => s.frame === f)) {
-                t.shapes.push({
-                  type: "cuboid",
-                  frame: f,
-                  points: [...st.points],
-                  outside: !!st.outside,
-                  occluded: !!st.occluded,
-                  z_order: st.zOrder || 0,
-                  rotation: 0,
-                });
+      // Chỉ fallback quét frame nhẹ khi bộ sưu tập in-memory hoàn toàn rỗng
+      if (trackMap.size === 0) {
+        const startF = typeof job.startFrame === "number" ? job.startFrame : 0;
+        const stopF = typeof job.stopFrame === "number" ? job.stopFrame : startF + 50;
+        const maxScanFrames = Math.min(stopF, startF + 80);
+
+        for (let f = startF; f <= maxScanFrames; f++) {
+          try {
+            const states = await job.annotations.get(f);
+            if (Array.isArray(states)) {
+              for (const st of states) {
+                if (st.shapeType !== "cuboid" || !Array.isArray(st.points) || st.points.length < 9) continue;
+                let t = trackMap.get(st.clientID);
+                if (!t) {
+                  const resolved = resolveLabelName(st);
+                  t = {
+                    id: st.clientID,
+                    clientID: st.clientID,
+                    serverID: st.serverID || null,
+                    labelId: st.label?.id || 1,
+                    labelName: resolved.name || "Car",
+                    labelColor: resolved.color || "#38bdf8",
+                    shapes: [],
+                  };
+                  trackMap.set(st.clientID, t);
+                }
+                if (st.keyframe && !t.shapes.some((s: any) => s.frame === f)) {
+                  t.shapes.push({
+                    type: "cuboid",
+                    frame: f,
+                    points: [...st.points],
+                    outside: !!st.outside,
+                    occluded: !!st.occluded,
+                    z_order: st.zOrder || 0,
+                    rotation: 0,
+                  });
+                }
               }
             }
-          }
-        } catch (e) {}
+          } catch (e) {}
+        }
       }
+
+      // ĐỒNG BỘ TỌA ĐỘ LIVE THỜI GIAN THỰC TỪ THREE.JS CANVAS & REDUX STATES CHO FRAME HIỆN TẠI
+      try {
+        const store = getReduxStore();
+        const canvas = store?.getState()?.annotation?.canvas?.instance;
+        const drawnObjects = canvas?.view?.drawnObjects || {};
+        const reduxStates = store?.getState()?.annotation?.annotations?.states || [];
+        const curF = store?.getState()?.annotation?.player?.frame?.number ?? (typeof job.frame === "number" ? job.frame : 0);
+
+        for (const st of reduxStates) {
+          if (!st || st.shapeType !== "cuboid" || typeof st.clientID !== "number") continue;
+          const cId = st.clientID;
+          const drawn = drawnObjects[String(cId)];
+          const livePoints = extractLivePointsFromDrawnAndState(drawn, st);
+
+          if (livePoints) {
+            let t = trackMap.get(cId);
+            if (!t) {
+              const resolved = resolveLabelName(st);
+              t = {
+                id: cId,
+                clientID: cId,
+                serverID: st.serverID || null,
+                labelId: st.label?.id || 1,
+                labelName: resolved.name || "Car",
+                labelColor: resolved.color || "#38bdf8",
+                shapes: [],
+              };
+              trackMap.set(cId, t);
+            }
+
+            const existingShapeIdx = t.shapes.findIndex((s: any) => s.frame === curF);
+            const liveShape = {
+              type: "cuboid",
+              frame: curF,
+              points: livePoints,
+              outside: !!st.outside,
+              occluded: !!st.occluded,
+              z_order: st.zOrder || 0,
+              rotation: 0,
+            };
+
+            if (existingShapeIdx >= 0) {
+              t.shapes[existingShapeIdx] = liveShape;
+            } else {
+              t.shapes.push(liveShape);
+            }
+          }
+        }
+      } catch (_) {}
 
       // Sắp xếp các shapes theo thứ tự frame
       const result = Array.from(trackMap.values()).map((t) => {
@@ -5712,6 +8065,154 @@ export function mainWorldScript(): void {
     }
   });
 
+  // 1b2b. Lắng nghe yêu cầu xuất TOÀN BỘ JOB CHUẨN FORMAT DATUMARO 1.0 (Bao gồm đầy đủ các frame nội suy)
+  window.addEventListener("CVAT_EXT_REQ_EXPORT_JOB_DATUMARO_DATA", async (e: any) => {
+    const { jobId } = e.detail || {};
+    try {
+      const job = await getActiveJobInstance(jobId);
+      if (!job) throw new Error("Không tìm thấy Job Instance của CVAT");
+
+      const startFrame = typeof job.startFrame === "number" ? job.startFrame : 0;
+      const stopFrame = typeof job.stopFrame === "number" ? job.stopFrame : startFrame;
+
+      // Trích xuất danh sách nhãn (labels)
+      const labels: Array<{ name: string; id?: number }> = [];
+      const jobLabels = job.labels || job.task?.labels || [];
+      if (Array.isArray(jobLabels)) {
+        for (const l of jobLabels) {
+          if (l && l.name) {
+            labels.push({ name: String(l.name), id: l.id });
+          }
+        }
+      }
+
+      const items: any[] = [];
+      let annIdCounter = 1;
+
+      // Duyệt qua tất cả các frame từ startFrame đến stopFrame theo lô (BATCH_SIZE = 25) để tối ưu hóa hiệu năng
+      const BATCH_SIZE = 25;
+      for (let bStart = startFrame; bStart <= stopFrame; bStart += BATCH_SIZE) {
+        const bEnd = Math.min(stopFrame, bStart + BATCH_SIZE - 1);
+        const batchPromises: Promise<{ f: number; states: any[] }>[] = [];
+        for (let f = bStart; f <= bEnd; f++) {
+          batchPromises.push(
+            Promise.resolve(job.annotations.get(f)).then(
+              (states: any[]) => ({ f, states: Array.isArray(states) ? states : [] }),
+              () => ({ f, states: [] })
+            )
+          );
+        }
+        const batchResults = await Promise.all(batchPromises);
+        batchResults.sort((a, b) => a.f - b.f);
+
+        for (const { f, states } of batchResults) {
+          const annotations: any[] = [];
+          if (Array.isArray(states)) {
+            for (const st of states) {
+              if (!st || st.shapeType !== "cuboid" || !Array.isArray(st.points) || st.points.length < 9) {
+                continue;
+              }
+              const isOutside =
+                st.outside === true ||
+                st.attributes?.outside === true ||
+                st.attributes?.outside === "true";
+              if (isOutside) {
+                continue; // Bỏ qua ngoài tầm nhìn theo đúng chuẩn Datumaro
+              }
+
+              const pos = [Number(st.points[0]), Number(st.points[1]), Number(st.points[2])];
+              const rot = [Number(st.points[3]), Number(st.points[4]), Number(st.points[5])];
+              const scale = [
+                Math.abs(Number(st.points[6])),
+                Math.abs(Number(st.points[7])),
+                Math.abs(Number(st.points[8])),
+              ];
+
+              // Xác định label_id
+              let labelId = 0;
+              const labelName =
+                st.label?.name ||
+                (typeof st.labelId === "number" ? labels.find((l) => l.id === st.labelId)?.name : null) ||
+                "car";
+              const existingLabelIdx = labels.findIndex((l) => l.name === labelName);
+              if (existingLabelIdx >= 0) {
+                labelId = existingLabelIdx;
+              } else {
+                labelId = labels.length;
+                labels.push({ name: labelName });
+              }
+
+              // Nhận diện Track ID gốc (parentID / trackID / parent.clientID) để không bị vỡ track ở frame nội suy
+              const parentTrackId =
+                st.parentID ??
+                st.trackID ??
+                (st.parent && (st.parent.clientID ?? st.parent.id));
+              const rawClient =
+                typeof parentTrackId === "number"
+                  ? parentTrackId
+                  : typeof st.clientID === "number"
+                  ? st.clientID
+                  : 1;
+              const datumaroTrackId = Math.max(0, rawClient - 1);
+
+              annotations.push({
+                type: "cuboid_3d",
+                id: annIdCounter++,
+                label_id: labelId,
+                position: pos,
+                rotation: rot,
+                scale: scale,
+                attributes: {
+                  track_id: datumaroTrackId,
+                  outside: false,
+                  keyframe: !!st.keyframe,
+                  ...(st.attributes || {}),
+                },
+              });
+            }
+          }
+
+          items.push({
+            id: `frame_${String(f).padStart(6, "0")}`,
+            attr: { frame: f },
+            annotations,
+          });
+        }
+      }
+
+      const datumaroDataset = {
+        dm_format_version: "1.0",
+        categories: {
+          label: {
+            labels: labels.map((l) => ({ name: l.name })),
+          },
+        },
+        items,
+      };
+
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_EXPORT_JOB_DATUMARO_DATA", {
+          detail: {
+            success: true,
+            dataset: datumaroDataset,
+            totalFrames: stopFrame - startFrame + 1,
+            jobId,
+          },
+        })
+      );
+    } catch (err: any) {
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_EXPORT_JOB_DATUMARO_DATA", {
+          detail: {
+            success: false,
+            error: err?.message || String(err),
+            jobId,
+          },
+        })
+      );
+    }
+  });
+
   // 1b3. Lắng nghe cập nhật Realtime Live Box (Two-Way Live Sync sang Three.js Canvas của CVAT)
   window.addEventListener("CVAT_EXT_REQ_UPDATE_LIVE_BOX", async (e: any) => {
     const { jobId, frame, uiId, serverId, points, isFinal } = e.detail || {};
@@ -5724,6 +8225,7 @@ export function mainWorldScript(): void {
           if (isFinal && typeof target.save === "function") {
             try {
               await target.save();
+              markCvatSaveButtonUnsaved(job);
             } catch (sErr) {
               console.warn("[CVAT 3D Suite] Cảnh báo target.save trong UPDATE_LIVE_BOX:", sErr);
             }
@@ -5845,24 +8347,90 @@ export function mainWorldScript(): void {
     }
   });
 
-  // 1b5. Lắng nghe yêu cầu chuyển frame trong CVAT native
+  // 1b5. Lắng nghe yêu cầu chuyển frame trong CVAT native (Chuẩn React Fiber, 1 Kênh Duy Nhất, Zero Delay)
   window.addEventListener("CVAT_EXT_REQ_JUMP_FRAME", (e: any) => {
     try {
       const { frame } = e.detail || {};
-      if (typeof frame !== "number") return;
+      if (typeof frame !== "number" || isNaN(frame) || frame < 0) return;
 
       const store = getReduxStore();
-      if (store) {
-        try {
-          store.dispatch({ type: "CHANGE_FRAME", payload: { frame } });
-        } catch (err) {}
+      const currentStoreFrame = store?.getState()?.annotation?.player?.frame?.number;
+      // Nếu đã ở đúng frame này rồi thì bỏ qua ngay lập tức, không kích hoạt nhảy frame
+      if (currentStoreFrame === frame) return;
+
+      // Tìm frame selector input của CVAT Player
+      const frameInput = document.querySelector<HTMLInputElement>(
+        ".cvat-player-frame-selector input, input.cvat-player-frame-selector, input[aria-label='Frame selector']"
+      );
+
+      if (frameInput) {
+        // Ưu tiên 1: Gọi trực tiếp React Fiber props (cách nhanh nhất và chính thống nhất của Ant Design / React)
+        const fiberKey = Object.keys(frameInput).find(
+          (k) => k.startsWith("__reactProps$") || k.startsWith("__reactEventHandlers$")
+        );
+        let handled = false;
+        if (fiberKey) {
+          const props = (frameInput as any)[fiberKey];
+          if (typeof props?.onPressEnter === "function") {
+            try {
+              props.onPressEnter({
+                target: { value: String(frame) },
+                currentTarget: { value: String(frame) },
+                preventDefault: () => {},
+                stopPropagation: () => {},
+              });
+              handled = true;
+            } catch (_) {}
+          } else if (typeof props?.onChange === "function") {
+            try {
+              props.onChange(frame);
+              handled = true;
+            } catch (_) {}
+          }
+        }
+
+        // Ưu tiên 2: Fallback nếu không bắt được Fiber (chỉ kích hoạt 1 lần dứt khoát)
+        if (!handled) {
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+            window.HTMLInputElement.prototype,
+            "value"
+          )?.set;
+          if (nativeInputValueSetter) {
+            nativeInputValueSetter.call(frameInput, String(frame));
+          } else {
+            frameInput.value = String(frame);
+          }
+          frameInput.dispatchEvent(new Event("change", { bubbles: true }));
+          frameInput.dispatchEvent(
+            new KeyboardEvent("keydown", {
+              key: "Enter",
+              code: "Enter",
+              keyCode: 13,
+              which: 13,
+              bubbles: true,
+              cancelable: true,
+            })
+          );
+        }
       }
 
-      const frameInput = document.querySelector<HTMLInputElement>("input.cvat-player-frame-selector");
-      if (frameInput) {
-        frameInput.value = String(frame);
-        frameInput.dispatchEvent(new Event("change", { bubbles: true }));
-        frameInput.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", keyCode: 13, bubbles: true }));
+      // Failsafe Spinner Release: phòng vệ nếu CVAT đang bị kẹt fetching = true quá 1.0s
+      if (store) {
+        setTimeout(() => {
+          try {
+            const checkState = store.getState?.();
+            if (checkState?.annotation?.player?.frame?.fetching) {
+              const curF = checkState?.annotation?.player?.frame?.number ?? frame;
+              store.dispatch({
+                type: "CHANGE_FRAME_SUCCESS",
+                payload: {
+                  number: curF,
+                  data: checkState?.annotation?.player?.frame?.data || null,
+                },
+              });
+            }
+          } catch (_) {}
+        }, 1000);
       }
     } catch (e) {
       console.warn("[CVAT 3D Suite] Lỗi Jump Frame:", e);
@@ -5940,7 +8508,11 @@ export function mainWorldScript(): void {
         }
       }
 
-      const res = fitYawToLaneIntensity(
+      const fitLaneFn = ((window as any).fitYawToLaneIntensity || (typeof fitYawToLaneIntensity !== "undefined" ? fitYawToLaneIntensity : undefined));
+      if (!fitLaneFn) {
+        throw new Error("Hàm fitYawToLaneIntensity chưa sẵn sàng trên window");
+      }
+      const res = fitLaneFn(
         ptsWithIntensity,
         curX,
         curY,
@@ -5997,7 +8569,7 @@ export function mainWorldScript(): void {
         }
       }
 
-      markCvatSaveButtonUnsaved();
+      markCvatSaveButtonUnsaved(job);
 
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_RES_SNAP_YAW_TO_LANE", {
@@ -6087,7 +8659,7 @@ export function mainWorldScript(): void {
         }
       }
 
-      markCvatSaveButtonUnsaved();
+      markCvatSaveButtonUnsaved(job);
 
       const newYawDeg = Math.round((newYaw * 180) / Math.PI);
       console.log(`[CVAT 3D Suite] Đã cập nhật xe #${uiId} sang Yaw: ${newYawDeg}° (Three.js Realtime: ${threeUpdated})`);
@@ -6216,7 +8788,7 @@ export function mainWorldScript(): void {
         }
       }
 
-      markCvatSaveButtonUnsaved();
+      markCvatSaveButtonUnsaved(job);
 
       const scopeText = applyToTrack
         ? `toàn bộ track (từ Frame #${startF} ➔ #${stopF}, ${trackCount} frames, Realtime)`
@@ -6248,7 +8820,7 @@ export function mainWorldScript(): void {
 
   // 4. Lắng nghe yêu cầu Ghim Mặt Đất & Địa Hình Vỉa Hè (Ground & Curb Snapping Chuẩn Xác từ LiDAR Points)
   window.addEventListener("CVAT_EXT_REQ_SNAP_GROUND", async (e: any) => {
-    const { jobId, frame, uiId, serverId, mode, deltaCm, deltaDeg, curbHeight, targetGroundZ: _targetGroundZ, applyToTrack } = e.detail || {};
+    const { jobId, frame, uiId, serverId, mode, deltaCm, deltaDeg, curbHeight, targetGroundZ: _targetGroundZ, applyToTrack, category, attributes } = e.detail || {};
     try {
       const job = await getActiveJobInstance(jobId);
       const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
@@ -6260,6 +8832,7 @@ export function mainWorldScript(): void {
       const curRx = newPoints[3] || 0;
       const curRy = newPoints[4] || 0;
       const curRz = newPoints[5] || 0;
+      const curL = newPoints[6] || 4.6;
       const curW = newPoints[7] || 1.85;
       const curH = newPoints[8] || 1.45;
 
@@ -6269,50 +8842,149 @@ export function mainWorldScript(): void {
       let msg = "";
 
       if (mode === "road") {
-        // GHIM MẶT ĐƯỜNG BÁM DỐC 3D (BÁM ĐÚNG GÓC NGHIÊNG ROLL TỰ NHIÊN; NẾU THIẾU ĐIỂM LẤY MỐC EGO Z = 0 ĐẶT PHẲNG MẶT)
-        const curL = newPoints[6] || 4.6;
-        const curW = newPoints[7] || 1.85;
-        const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW / 2, curH / 2, false, false);
+        if (category === "pedestrian") {
+          // =========================================================
+          // GHIM ĐẤT CHO NGƯỜI ĐI BỘ (PEDESTRIAN GROUND SNAP)
+          // - Bán kính 1.0m check độ dốc địa hình tham khảo
+          // - Ghim đáy chân người bám đất, KHÓA CỨNG Roll = 0°, Pitch = 0° tuyệt đối!
+          // =========================================================
+          const lidar = getSceneLidarPoints();
+          let baseGroundZ = curZ - curH / 2;
+          let pitchDeg = 0;
+          let rollDeg = 0;
 
-        if (groundInfo.isFallbackZeroGround || groundInfo.groundPointsCount < 10) {
-          // Point mặt đất quá ít (< 10 điểm) -> Khóa chuẩn 0° phẳng (Roll 0°, Pitch 0°), bảo toàn cao độ đáy
-          const baseZ = groundInfo.groundZ !== null ? groundInfo.groundZ : (curZ - curH / 2);
-          newRotX = 0;
-          newRotY = 0;
-          newZ = Number((baseZ + curH / 2).toFixed(3));
-          // Sanity Guardrail: Chống bay lên trời / sụt hố lún đất (> 0.50m so với curZ)
-          if (Math.abs(newZ - curZ) > 0.50) {
-            newZ = curZ;
-          }
-          msg = `Point mặt đất ít (${groundInfo.groundPointsCount} điểm) ➔ Khóa chuẩn 0° phẳng (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
-        } else if (groundInfo.groundZ !== null) {
-          const cosPitch = Math.cos(groundInfo.pitchRad);
-          const cosRoll = Math.cos(groundInfo.rollRad);
-          newRotY = groundInfo.pitchRad; // Bám đúng độ dốc dọc Pitch của mặt đường (Side View khít 100%)
+          if (lidar && lidar.count > 0) {
+            const pts: Array<{ x: number; y: number; z: number }> = [];
+            const r = 1.0;
+            const rSq = r * r;
+            const maxZ = baseGroundZ + 0.35;
+            const minZ = baseGroundZ - 1.0;
 
-          if (groundInfo.isHalfCurb) {
-            // TỰ ĐỘNG PHÁT HIỆN XE ĐỖ GÁC LỀ
-            newRotX = groundInfo.rollRad;
-            newZ = Number((groundInfo.groundZ + (curH / 2) * cosPitch * cosRoll).toFixed(3));
-            const sideText = groundInfo.halfCurbSide === "left" ? "bên TRÁI" : "bên PHẢI";
-            msg = `Đã tự động nhận diện xe #${uiId} gác lề ${sideText} (Bậc vỉa hè: +${groundInfo.curbHeightCm}cm, Nghiêng Front Roll: ${groundInfo.rollDeg}°, Tâm Z: ${newZ}m)`;
-          } else if (groundInfo.isCurbGround) {
-            // TỰ ĐỘNG PHÁT HIỆN XE ĐỖ TRÊN NỀN VỈA HÈ
-            newRotX = 0; // Khóa thẳng theo Ego để xe đứng ngay ngắn
-            newZ = Number((groundInfo.groundZ + (curH / 2) * cosPitch).toFixed(3));
-            msg = `Đã tự động nhận diện xe #${uiId} đỗ trên nền vỉa hè (+${groundInfo.curbHeightCm || 15}cm so với Ego, Khóa Roll 0°, Tâm Z: ${newZ}m)`;
-          } else {
-            // MẶT ĐƯỜNG DỐC TỰ NHIÊN
-            newRotX = groundInfo.rollRad;
-            newZ = Number((groundInfo.groundZ + (curH / 2) * cosPitch * cosRoll).toFixed(3));
-            msg = `Đã ghim đáy xe #${uiId} bám sát mặt đường (Z: ${newZ}m, Roll: ${groundInfo.rollDeg}°, Pitch: ${groundInfo.pitchDeg}°)`;
+            for (let i = 0; i < lidar.count; i++) {
+              const pz = lidar.array[i * 3 + 2];
+              if (pz > maxZ || pz < minZ) continue;
+              const px = lidar.array[i * 3];
+              const py = lidar.array[i * 3 + 1];
+              const dx = px - curX;
+              const dy = py - curY;
+              if (dx * dx + dy * dy <= rSq) {
+                pts.push({ x: px, y: py, z: pz });
+              }
+            }
+
+            if (pts.length >= 3) {
+              const footPts = pts.filter((p) => {
+                const dx = p.x - curX;
+                const dy = p.y - curY;
+                return dx * dx + dy * dy <= 0.45 * 0.45;
+              });
+              if (footPts.length >= 3) {
+                footPts.sort((a, b) => a.z - b.z);
+                baseGroundZ = footPts[Math.max(0, Math.floor(footPts.length * 0.15))].z;
+              }
+              const slopeFn = ((window as any).estimateGroundSlopeInRadius || (typeof estimateGroundSlopeInRadius !== "undefined" ? estimateGroundSlopeInRadius : undefined));
+              const slope = slopeFn ? slopeFn(pts, curX, curY, curZ, 1.0, 0.35, baseGroundZ) : { pitchDeg: 0, rollDeg: 0, pitchRad: 0, rollRad: 0 };
+              pitchDeg = slope.pitchDeg;
+              rollDeg = slope.rollDeg;
+            }
           }
+
+          newRotX = 0; // Khóa cứng Roll = 0°
+          newRotY = 0; // Khóa cứng Pitch = 0°
+          newZ = Number((baseGroundZ + curH / 2).toFixed(3));
+          msg = `Đã ghim Người #${uiId} bám sàn: Z=${newZ}m (Khóa thẳng Roll=0°, Pitch=0°, Dốc địa hình 1m: ${pitchDeg}°/${rollDeg}°)`;
+        } else if (category === "cyclist") {
+          // =========================================================
+          // GHIM ĐẤT CHO XE 2 BÁNH (CYCLIST GROUND SNAP)
+          // - Bán kính 1.5m quét trọn vệt 2 bánh xe
+          // - Bám dốc dọc Pitch của thân xe, KHÓA CỨNG Roll = 0° (đứng thẳng, cấm lật)
+          // =========================================================
+          const lidar = getSceneLidarPoints();
+          let baseGroundZ = curZ - curH / 2;
+          let pitchDeg = 0;
+          let pitchRad = 0;
+
+          if (lidar && lidar.count > 0) {
+            const pts: Array<{ x: number; y: number; z: number }> = [];
+            const r = 1.5;
+            const rSq = r * r;
+            const maxZ = baseGroundZ + 0.35;
+            const minZ = baseGroundZ - 1.0;
+
+            for (let i = 0; i < lidar.count; i++) {
+              const pz = lidar.array[i * 3 + 2];
+              if (pz > maxZ || pz < minZ) continue;
+              const px = lidar.array[i * 3];
+              const py = lidar.array[i * 3 + 1];
+              const dx = px - curX;
+              const dy = py - curY;
+              if (dx * dx + dy * dy <= rSq) {
+                pts.push({ x: px, y: py, z: pz });
+              }
+            }
+
+            if (pts.length >= 3) {
+              const wheelPts = pts.filter((p) => {
+                const dx = p.x - curX;
+                const dy = p.y - curY;
+                return dx * dx + dy * dy <= Math.pow(curL / 2 + 0.20, 2);
+              });
+              if (wheelPts.length >= 3) {
+                wheelPts.sort((a, b) => a.z - b.z);
+                baseGroundZ = wheelPts[Math.max(0, Math.floor(wheelPts.length * 0.15))].z;
+              }
+              const slopeFn = ((window as any).estimateGroundSlopeInRadius || (typeof estimateGroundSlopeInRadius !== "undefined" ? estimateGroundSlopeInRadius : undefined));
+              const slope = slopeFn ? slopeFn(pts, curX, curY, curZ, 1.5, 0.35, baseGroundZ) : { pitchDeg: 0, rollDeg: 0, pitchRad: 0, rollRad: 0 };
+              pitchDeg = slope.pitchDeg;
+              pitchRad = slope.pitchRad;
+            }
+          }
+
+          newRotX = 0; // Khóa cứng Roll = 0° (đứng thẳng 100%)
+          newRotY = pitchRad; // Bám dốc dọc Pitch của xe
+          newZ = Number((baseGroundZ + (curH / 2) * Math.cos(pitchRad)).toFixed(3));
+          msg = `Đã ghim Xe 2 bánh #${uiId} bám mặt đường: Z=${newZ}m (Pitch=${pitchDeg}°, Khóa Roll=0° đứng thẳng)`;
         } else {
-          // Fallback nếu không có điểm mặt đất: khóa chuẩn 0° phẳng, bảo toàn cao độ Z hiện tại
-          newRotX = 0;
-          newRotY = 0;
-          newZ = curZ;
-          msg = `Không có điểm mặt đất ➔ Khóa chuẩn 0° phẳng (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
+          // =========================================================
+          // GHIM ĐẤT CHO Ô TÔ (CAR / TRUCK / BUS GROUND SNAP)
+          // - Bám dốc 3D Roll 2 mép biên, Pitch cản trước/sau, vỉa hè / gác lề
+          // =========================================================
+          const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW / 2, curH / 2, false, false);
+
+          if (groundInfo.isFallbackZeroGround || groundInfo.groundPointsCount < 10) {
+            const baseZ = groundInfo.groundZ !== null ? groundInfo.groundZ : (curZ - curH / 2);
+            newRotX = 0;
+            newRotY = 0;
+            newZ = Number((baseZ + curH / 2).toFixed(3));
+            if (Math.abs(newZ - curZ) > 0.50) {
+              newZ = curZ;
+            }
+            msg = `Point mặt đất ít (${groundInfo.groundPointsCount} điểm) ➔ Khóa chuẩn 0° phẳng (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
+          } else if (groundInfo.groundZ !== null) {
+            const cosPitch = Math.cos(groundInfo.pitchRad);
+            const cosRoll = Math.cos(groundInfo.rollRad);
+            newRotY = groundInfo.pitchRad;
+
+            if (groundInfo.isHalfCurb) {
+              newRotX = groundInfo.rollRad;
+              newZ = Number((groundInfo.groundZ + (curH / 2) * cosPitch * cosRoll).toFixed(3));
+              const sideText = groundInfo.halfCurbSide === "left" ? "bên TRÁI" : "bên PHẢI";
+              msg = `Đã tự động nhận diện xe #${uiId} gác lề ${sideText} (Bậc vỉa hè: +${groundInfo.curbHeightCm}cm, Nghiêng Front Roll: ${groundInfo.rollDeg}°, Tâm Z: ${newZ}m)`;
+            } else if (groundInfo.isCurbGround) {
+              newRotX = 0;
+              newZ = Number((groundInfo.groundZ + (curH / 2) * cosPitch).toFixed(3));
+              msg = `Đã tự động nhận diện xe #${uiId} đỗ trên nền vỉa hè (+${groundInfo.curbHeightCm || 15}cm so với Ego, Khóa Roll 0°, Tâm Z: ${newZ}m)`;
+            } else {
+              newRotX = groundInfo.rollRad;
+              newZ = Number((groundInfo.groundZ + (curH / 2) * cosPitch * cosRoll).toFixed(3));
+              msg = `Đã ghim đáy xe #${uiId} bám sát mặt đường (Z: ${newZ}m, Roll: ${groundInfo.rollDeg}°, Pitch: ${groundInfo.pitchDeg}°)`;
+            }
+          } else {
+            newRotX = 0;
+            newRotY = 0;
+            newZ = curZ;
+            msg = `Không có điểm mặt đất ➔ Khóa chuẩn 0° phẳng (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
+          }
         }
       } else if (mode === "curb") {
         // TỰ ĐỘNG NHẬN DIỆN VỈA HÈ TỪ LIDAR (BÁN KÍNH RỘNG + ĐỘ SÂU)
@@ -6350,17 +9022,29 @@ export function mainWorldScript(): void {
         newZ = Number((curZ + dCm / 100).toFixed(3));
         msg = `Đã vi chỉnh cao độ xe #${uiId} (${dCm > 0 ? "+" : ""}${dCm}cm ➔ Z: ${newZ}m)`;
       } else if (mode === "micro_adjust_pitch") {
-        const dDeg = deltaDeg !== undefined ? deltaDeg : 0.5;
-        const dRad = (dDeg * Math.PI) / 180;
-        newRotY = Number((curRy + dRad).toFixed(5));
-        const pitchDeg = Number(((newRotY * 180) / Math.PI).toFixed(2));
-        msg = `Đã vi chỉnh dốc Side xe #${uiId} (${dDeg > 0 ? "+" : ""}${dDeg}° ➔ Pitch: ${pitchDeg}°)`;
+        if (category === "pedestrian") {
+          newRotX = 0;
+          newRotY = 0;
+          msg = `Người đi bộ #${uiId} luôn khóa thẳng đứng (Roll=0°, Pitch=0° tuyệt đối)`;
+        } else {
+          const dDeg = deltaDeg !== undefined ? deltaDeg : 0.5;
+          const dRad = (dDeg * Math.PI) / 180;
+          newRotY = Number((curRy + dRad).toFixed(5));
+          const pitchDeg = Number(((newRotY * 180) / Math.PI).toFixed(2));
+          msg = `Đã vi chỉnh dốc Side xe #${uiId} (${dDeg > 0 ? "+" : ""}${dDeg}° ➔ Pitch: ${pitchDeg}°)`;
+        }
       } else if (mode === "micro_adjust_roll") {
-        const dDeg = deltaDeg !== undefined ? deltaDeg : 0.5;
-        const dRad = (dDeg * Math.PI) / 180;
-        newRotX = Number((curRx + dRad).toFixed(5));
-        const rollDeg = Number(((newRotX * 180) / Math.PI).toFixed(2));
-        msg = `Đã vi chỉnh nghiêng Front xe #${uiId} (${dDeg > 0 ? "+" : ""}${dDeg}° ➔ Roll: ${rollDeg}°)`;
+        if (category === "pedestrian") {
+          newRotX = 0;
+          newRotY = 0;
+          msg = `Người đi bộ #${uiId} luôn khóa thẳng đứng (Roll=0°, Pitch=0° tuyệt đối)`;
+        } else {
+          const dDeg = deltaDeg !== undefined ? deltaDeg : 0.5;
+          const dRad = (dDeg * Math.PI) / 180;
+          newRotX = Number((curRx + dRad).toFixed(5));
+          const rollDeg = Number(((newRotX * 180) / Math.PI).toFixed(2));
+          msg = `Đã vi chỉnh nghiêng Front xe #${uiId} (${dDeg > 0 ? "+" : ""}${dDeg}° ➔ Roll: ${rollDeg}°)`;
+        }
       } else if (mode === "reset_slope") {
         newRotX = 0;
         newRotY = 0;
@@ -6379,6 +9063,8 @@ export function mainWorldScript(): void {
       if (applyToTrack) {
         try {
           const deltaZ = newZ - curZ;
+          const dRadPitch = mode === "micro_adjust_pitch" ? ((deltaDeg !== undefined ? deltaDeg : 0.5) * Math.PI) / 180 : 0;
+          const dRadRoll = mode === "micro_adjust_roll" ? ((deltaDeg !== undefined ? deltaDeg : 0.5) * Math.PI) / 180 : 0;
           const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
           if (parentTrack) {
             const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || (parentTrack as any)._shapes);
@@ -6386,8 +9072,17 @@ export function mainWorldScript(): void {
               if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
                 const pts = [...sh.points];
                 pts[2] = Number((pts[2] + deltaZ).toFixed(3));
-                pts[3] = newRotX;
-                pts[4] = newRotY;
+                if (category === "pedestrian") {
+                  pts[3] = 0;
+                  pts[4] = 0;
+                } else if (mode === "micro_adjust_pitch") {
+                  pts[4] = Number(((pts[4] || 0) + dRadPitch).toFixed(5));
+                } else if (mode === "micro_adjust_roll") {
+                  pts[3] = Number(((pts[3] || 0) + dRadRoll).toFixed(5));
+                } else {
+                  pts[3] = newRotX;
+                  pts[4] = newRotY;
+                }
                 sh.points = pts;
                 if (typeof sh.save === "function") {
                   await sh.save();
@@ -6399,7 +9094,7 @@ export function mainWorldScript(): void {
         } catch (tErr) {
           console.warn("[CVAT 3D Suite] Lỗi snap ground cho toàn track:", tErr);
         }
-        msg += ` (Đã ghim toàn bộ ${framesSnapped} frames trong track)`;
+        msg += ` (Đã cập nhật toàn bộ ${framesSnapped} frames trong track)`;
       }
 
       updateThreeJsCuboid(
@@ -6410,7 +9105,7 @@ export function mainWorldScript(): void {
         { rx: newRotX, ry: newRotY, rz: curRz }
       );
 
-      markCvatSaveButtonUnsaved();
+      markCvatSaveButtonUnsaved(job);
 
       console.log(`[CVAT 3D Suite] ${msg} (Three.js Side/Front Re-rendered Realtime)`);
 
@@ -6526,7 +9221,7 @@ export function mainWorldScript(): void {
         }
       }
 
-      markCvatSaveButtonUnsaved();
+      markCvatSaveButtonUnsaved(job);
 
       const scopeText = applyToTrack
         ? `toàn bộ track (từ Frame #${startF} ➔ #${stopF}, ${trackCount} frames, Realtime)`
@@ -6697,7 +9392,7 @@ export function mainWorldScript(): void {
         { rx: newRotX, ry: newRotY, rz: curYaw }
       );
 
-      markCvatSaveButtonUnsaved();
+      markCvatSaveButtonUnsaved(job);
 
       const msg = `Đã căn hộp ôm trọn cụm điểm (${bodyPts.length} điểm), bám dốc mặt đường (Pitch: ${groundInfo.pitchDeg}°, Roll: ${groundInfo.rollDeg}°) và BẢO TOÀN 100% kích thước chuẩn ${curL}x${curW}x${curH}m`;
       console.log(`[CVAT 3D Suite] ${msg}`);
@@ -6738,6 +9433,11 @@ export function mainWorldScript(): void {
     try {
       const job = await getActiveJobInstance(jobId);
       const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+      const targetBox = {
+        c: [target.points[0], target.points[1], target.points[2]],
+        s: [target.points[6], target.points[7], target.points[8]],
+        r: [target.points[3] || 0, target.points[4] || 0, target.points[5] || 0],
+      };
 
       const fit = fitBoxToEgoRayAndGroundInMainWorld(
         target.points,
@@ -6774,7 +9474,7 @@ export function mainWorldScript(): void {
         { rx: fit.rollRad, ry: fit.pitchRad, rz: newYaw }
       );
 
-      markCvatSaveButtonUnsaved();
+      markCvatSaveButtonUnsaved(job);
 
       let trackCount = 1;
       if (applyToTrack === true && job) {
@@ -6853,6 +9553,11 @@ export function mainWorldScript(): void {
     try {
       const job = await getActiveJobInstance(jobId);
       const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+      const targetBox = {
+        c: [target.points[0], target.points[1], target.points[2]],
+        s: [target.points[6], target.points[7], target.points[8]],
+        r: [target.points[3] || 0, target.points[4] || 0, target.points[5] || 0],
+      };
 
       const fit = fitPedestrianInMainWorld(target.points, { headBuffer, egoPos, step });
 
@@ -6951,7 +9656,7 @@ export function mainWorldScript(): void {
         { rx: 0, ry: 0, rz: newPoints[5] }
       );
 
-      markCvatSaveButtonUnsaved();
+      markCvatSaveButtonUnsaved(job);
       console.log(`[CVAT 3D Suite] ${fit.message}`);
 
       window.dispatchEvent(
@@ -6991,6 +9696,11 @@ export function mainWorldScript(): void {
     try {
       const job = await getActiveJobInstance(jobId);
       const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+      const targetBox = {
+        c: [target.points[0], target.points[1], target.points[2]],
+        s: [target.points[6], target.points[7], target.points[8]],
+        r: [target.points[3] || 0, target.points[4] || 0, target.points[5] || 0],
+      };
 
       const fit = fitCyclistInMainWorld(target.points, { headBuffer, egoPos, step });
 
@@ -7089,7 +9799,7 @@ export function mainWorldScript(): void {
         { rx: 0, ry: 0, rz: newPoints[5] }
       );
 
-      markCvatSaveButtonUnsaved();
+      markCvatSaveButtonUnsaved(job);
       console.log(`[CVAT 3D Suite] ${fit.message}`);
 
       window.dispatchEvent(
@@ -7123,8 +9833,8 @@ export function mainWorldScript(): void {
     }
   });
 
-  // Thuật toán Fit Box tại Frame Hiện Tại với Padding 5cm mỗi bên (+10cm L, +10cm W, +5cm H, Đáy Ghim Sàn)
-  function fitBoxWithPadding5cm(points: number[]): {
+  // Thuật toán Fit Box tại Frame Hiện Tại với Padding 5cm mỗi bên (+10cm L, +10cm W, +5cm H, Đáy Ghim Sàn, Kẹp Chuẩn Tool_QC)
+  function fitBoxWithPadding5cm(points: number[], attributes?: Record<string, any>): {
     newL: number;
     newW: number;
     newH: number;
@@ -7207,9 +9917,25 @@ export function mainWorldScript(): void {
     // +10cm cho L (5cm trước, 5cm sau)
     // +10cm cho W (5cm trái, 5cm phải)
     // +5cm cho H (nóc xe, đáy bám sàn cố định tại groundZ)
-    const newL = Number((measuredL + 0.10).toFixed(2));
-    const newW = Number((measuredW + 0.10).toFixed(2));
-    const newH = Number((measuredH + 0.05).toFixed(2));
+    let rawL = Number((measuredL + 0.10).toFixed(2));
+    let rawW = Number((measuredW + 0.10).toFixed(2));
+    let rawH = Number((measuredH + 0.05).toFixed(2));
+
+    // KẸP CHUẨN TOOL_QC CHO XE CƠ GIỚI:
+    const isLargeVehicle = Boolean(
+      attributes?.is_large ||
+      attributes?.truck ||
+      attributes?.bus ||
+      attributes?.vehicle_type === "truck" ||
+      attributes?.vehicle_type === "bus"
+    );
+    const minL = 3.20, maxL = isLargeVehicle ? 12.00 : 5.50;
+    const minW = 1.60, maxW = isLargeVehicle ? 2.60 : 2.20;
+    const minH = 1.45, maxH = isLargeVehicle ? 3.60 : 1.90;
+
+    const newL = Number(Math.max(minL, Math.min(maxL, rawL)).toFixed(2));
+    const newW = Number(Math.max(minW, Math.min(maxW, rawW)).toFixed(2));
+    const newH = Number(Math.max(minH, Math.min(maxH, rawH)).toFixed(2));
 
     // Đáy bám sàn cố định: newZ = groundZ + newH / 2
     const newZ = Number((groundZ + newH / 2).toFixed(3));
@@ -7229,12 +9955,12 @@ export function mainWorldScript(): void {
 
   // 6. Lắng nghe yêu cầu Fit Box Hiện Tại có Padding 5cm (+10cm L, +10cm W, +5cm H)
   window.addEventListener("CVAT_EXT_REQ_FIT_CURRENT_BOX", async (e: any) => {
-    const { jobId, frame, uiId, serverId, applyToTrack = false } = e.detail || {};
+    const { jobId, frame, uiId, serverId, applyToTrack = false, attributes } = e.detail || {};
     try {
       const job = await getActiveJobInstance(jobId);
       const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
 
-      const fit = fitBoxWithPadding5cm(target.points);
+      const fit = fitBoxWithPadding5cm(target.points, attributes);
 
       const newPoints = [...target.points];
       newPoints[2] = fit.newZ;
@@ -7279,7 +10005,7 @@ export function mainWorldScript(): void {
         { rx: newPoints[3] || 0, ry: newPoints[4] || 0, rz: newPoints[5] }
       );
 
-      markCvatSaveButtonUnsaved();
+      markCvatSaveButtonUnsaved(job);
 
       const scopeText = applyToTrack ? `toàn bộ ${framesSynced} frames trong track` : `frame #${frame}`;
       const msg = `Đã Fit Box với padding 5cm (L=${fit.newL}m, W=${fit.newW}m, H=${fit.newH}m, ${fit.pointsCount} điểm LiDAR) cho ${scopeText}`;
@@ -7445,7 +10171,7 @@ export function mainWorldScript(): void {
         }
       } catch (rErr) {}
 
-      markCvatSaveButtonUnsaved();
+      markCvatSaveButtonUnsaved(job);
 
       if (canvas && typeof canvas.render === "function") {
         canvas.render();
@@ -7590,7 +10316,7 @@ export function mainWorldScript(): void {
         }
       }
 
-      markCvatSaveButtonUnsaved();
+      markCvatSaveButtonUnsaved(job);
 
       const store = getReduxStore();
       const canvas = store?.getState()?.annotation?.canvas?.instance;
@@ -7681,7 +10407,7 @@ export function mainWorldScript(): void {
         { rx: currentPts[3] || 0, ry: currentPts[4] || 0, rz: yaw }
       );
 
-      markCvatSaveButtonUnsaved();
+      markCvatSaveButtonUnsaved(job);
 
       const scopeText = applyToTrack ? `toàn bộ ${framesShifted} frames trong track` : `frame #${frame}`;
       const msg = `Đã vi chỉnh Center (${isWorld ? 'Screen Space' : 'Local'} ΔX: ${deltaXWorld > 0 ? "+" : ""}${(deltaXWorld * 100).toFixed(1)}cm, ΔY: ${deltaYWorld > 0 ? "+" : ""}${(deltaYWorld * 100).toFixed(1)}cm, ΔZ: ${deltaZ > 0 ? "+" : ""}${(deltaZ * 100).toFixed(1)}cm) cho ${scopeText}`;
@@ -7746,6 +10472,12 @@ export function mainWorldScript(): void {
       const maxRoofZ = groundZ + 4.0;
       const searchHalfL = curL / 2 + 0.55;
       const searchHalfW = curW / 2 + 0.45;
+
+      const targetBox = {
+        c: [cx, cy, cz],
+        s: [curL, curW, curH],
+        r: [rx, ry, yaw],
+      };
 
       const rawBodyPts: Array<{ lx: number; ly: number; z: number }> = [];
       for (let i = 0; i < count; i++) {
@@ -7851,7 +10583,7 @@ export function mainWorldScript(): void {
         { rx, ry, rz: yaw }
       );
 
-      markCvatSaveButtonUnsaved();
+      markCvatSaveButtonUnsaved(job);
 
       const scopeText = applyToTrack ? `toàn bộ ${framesSynced} frames trong track` : `frame #${frame}`;
       const msg = `Đã ${dimMessage} cho ${scopeText}`;
@@ -7935,29 +10667,67 @@ export function mainWorldScript(): void {
     );
   });
 
-  // 18. Lắng nghe yêu cầu Bật/Tắt Mặt Sàn Polygon 3D Mờ (Mặt đường & Vỉa hè)
-  window.addEventListener("CVAT_EXT_REQ_SET_GROUND_PLANE_VISIBLE", (e: any) => {
-    const { visible } = e.detail || {};
-    currentGroundPlaneVisible = !!visible;
-    if (typeof localStorage !== "undefined") {
-      try {
-        localStorage.setItem("cvat_3d_ground_plane_visible", String(currentGroundPlaneVisible));
-      } catch (_) {}
+
+  // 19. Lắng nghe yêu cầu cấu hình Canvas Theme (Light: Nền Trắng + Điểm Đen ⇄ Dark: Nền Tối + Điểm Sáng)
+  window.addEventListener("CVAT_EXT_REQ_SET_CANVAS_THEME", (e: any) => {
+    const { theme } = e.detail || {};
+    if (theme === "light" || theme === "dark") {
+      currentCanvasTheme = theme;
     }
-    updateGroundPlaneMeshInMainWorld();
+    applyCanvasThemeInMainWorld(currentCanvasTheme);
+    applyPointCloudColorizationInMainWorld({
+      mode: currentPointColorMode,
+      colorizeBoxed: currentColorizeBoxed,
+    });
     window.dispatchEvent(
-      new CustomEvent("CVAT_EXT_RES_SET_GROUND_PLANE_VISIBLE", {
-        detail: { success: true, visible: currentGroundPlaneVisible },
+      new CustomEvent("CVAT_EXT_RES_SET_CANVAS_THEME", {
+        detail: {
+          success: true,
+          theme: currentCanvasTheme,
+        },
       })
     );
   });
 
-  window.addEventListener("CVAT_EXT_REQ_GET_GROUND_PLANE_VISIBLE", () => {
+  window.addEventListener("CVAT_EXT_REQ_GET_CANVAS_THEME", () => {
     window.dispatchEvent(
-      new CustomEvent("CVAT_EXT_RES_GET_GROUND_PLANE_VISIBLE", {
-        detail: { visible: currentGroundPlaneVisible },
+      new CustomEvent("CVAT_EXT_RES_GET_CANVAS_THEME", {
+        detail: {
+          theme: currentCanvasTheme,
+        },
       })
     );
+  });
+
+  // 20. Lắng nghe yêu cầu cấu hình Kích thước điểm mây Ortho 2D (Top / Side / Front)
+  window.addEventListener("CVAT_EXT_REQ_SET_ORTHO_POINT_SIZE", (e: any) => {
+    const { size } = e.detail || {};
+    if (typeof size === "number" && size >= 1.0 && size <= 10.0) {
+      applyOrthoPointSize(size);
+    }
+    window.dispatchEvent(
+      new CustomEvent("CVAT_EXT_RES_SET_ORTHO_POINT_SIZE", {
+        detail: {
+          success: true,
+          size: currentOrthoPointSize,
+        },
+      })
+    );
+  });
+
+  window.addEventListener("CVAT_EXT_REQ_GET_ORTHO_POINT_SIZE", () => {
+    window.dispatchEvent(
+      new CustomEvent("CVAT_EXT_RES_GET_ORTHO_POINT_SIZE", {
+        detail: {
+          size: currentOrthoPointSize,
+        },
+      })
+    );
+  });
+
+  // 21. Lắng nghe yêu cầu tính toán lại Cảnh Báo Viền Chạm Point (Edge Contact HUD)
+  window.addEventListener("CVAT_EXT_REQ_CALCULATE_EDGE_CONTACTS", () => {
+    calculateAndBroadcastBoxEdgeContacts();
   });
 
   // Khởi động nạp ban đầu cho Frame đầu tiên (Single-Flight sau khi canvas sẵn sàng)

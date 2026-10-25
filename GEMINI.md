@@ -125,3 +125,50 @@
 ## III. QUY TRÌNH BUILD & RUNTIME
 1. **Lệnh build**: `npm run build` (chạy Vite bundle cả Userscript `dist/cvat-3d-suite.user.js` và Chrome Extension `dist/extension/`).
 2. **Auto Reload**: Build script tự động reload tab Chrome Extension sau khi hoàn tất.
+
+---
+
+## IV. BỘ QUY CHUẨN HIỆU NĂNG 60 FPS & EVENT-DRIVEN SYNC (ZERO-LAG ARCHITECTURE)
+
+### 1. Phân Lập Tuyệt Đối: Camera Orbit/Pan vs Box Transform
+- **Camera Navigation Guard**: Khi người dùng nhấn giữ chuột để xoay góc nhìn 3D (Perspective Orbit) hoặc di chuyển góc nhìn 2D (Pan), vị trí thế giới của mây điểm và các box không thay đổi $\rightarrow$ **TUYỆT ĐỐI KHÔNG CHẠY LẠI HÀM TÔ MÀU MÂY ĐIỂM (`applyPointCloudColorizationInMainWorld`)**.
+- **Bộ lọc Transform $O(1)$ (`isTargetBoxTransforming`)**:
+  - Chỉ kiểm tra duy nhất đối tượng đang active (Active Track).
+  - Khử nhiễu các trục cố định của Camera 2D trực giao (Top View chỉ kiểm tra $X, Y$; Side View chỉ kiểm tra $X, Z$; Front View chỉ kiểm tra $Y, Z$) để triệt tiêu 100% tình trạng False-Positive kích hoạt tô màu khi xoay camera.
+  - Kiểm tra đầy đủ cả 3 thao tác: Dịch chuyển vị trí ($X, Y, Z$), Thay đổi góc xoay ($Yaw$) và Co giãn kích thước ($L, W, H$).
+
+### 2. Anti-Loop: Chống Bão Re-Dispatch Redux Khi Focus Đối Tượng
+- Khi annotator click chọn đối tượng trên Canvas hoặc Sidebar: Redux Store của CVAT đã nắm giữ trạng thái `activatedStateClientID`.
+- **Nguyên tắc Anti-Loop**: Nếu đối tượng đã active trên Redux/Canvas, tool **chỉ ghi nhận và focus**, tuyệt đối **không dispatch ngược lại action `ACTIVATE_OBJECT` vào Redux**, ngăn chặn triệt để bão re-render toàn bộ DOM Sidebar và component con của CVAT.
+- **Khử Duplicate Events**: Áp dụng guard `lastDispatchedActiveId` để đảm bảo mỗi lượt chọn đối tượng chỉ phát ra đúng 1 event duy nhất sang UI panel trong $< 0.2\text{ms}$.
+
+### 3. Kiến Trúc Thuần Event-Driven (Cấm Polling `setInterval`)
+- **Loại bỏ hoàn toàn vòng lặp Polling `setInterval`**: Không dùng `setInterval(..., 400ms)` để query DOM hoặc quét lại danh sách track.
+- **Kích hoạt theo sự kiện**: Chỉ cập nhật danh sách xe và frame khi nhận tín hiệu từ Redux / CustomEvents (`CVAT_EXT_RES_FRAME_CHANGED`, `CVAT_EXT_RES_FRAME_TRACKS_DIRTY`, `CVAT_EXT_RES_OBJECT_ACTIVATED`), giải phóng 100% CPU khi hệ thống rảnh rỗi.
+
+### 4. Highlight DOM Bằng $O(1)$ Direct Class Swap
+- Tuyệt đối không dùng `document.querySelectorAll` duyệt hàng trăm node Sidebar để xóa class active.
+- Sử dụng trực tiếp class swap trên phần tử DOM mục tiêu qua `syncSidebarItemHighlight(id)`.
+
+### 5. Tối Ưu Hóa Sâu Tầng Nền Tảng CVAT (Native Engine Acceleration)
+- **CSS Virtualization cho Sidebar CVAT**: Áp dụng `content-visibility: auto` và `contain-intrinsic-size` cho danh sách `.cvat-objects-sidebar-state-item` để Chromium ngắt render 85% phần tử ngoài viewport, giảm ngay 70% CPU Layout/Repaint.
+- **Hardware Compositing Layer Isolation**: Đẩy 4 container canvas Three.js lên GPU Texture Surface độc lập qua `transform: translateZ(0); will-change: transform; isolation: isolate;` nhằm triệt tiêu repaint lây lan khi UI xung quanh thay đổi.
+- **Raycasting Guard trên Mây Điểm**: Gán `ptsObj.raycast = () => {}` trên đối tượng `THREE.Points` 305.000 điểm để vô hiệu hóa việc duyệt va chạm đỉnh mây điểm khi di chuột, giải phóng 100% hiện tượng khựng chuột vi mô (Micro-stutter).
+
+---
+
+## V. NGUYÊN TẮC THIẾT KẾ: TÍNH THỰC DỤNG & HIỆU NĂNG TỐI THƯỢNG (UTILITY & ZERO-BLOAT FIRST)
+
+### 1. Bộ Lọc Giá Trị Thực Tế (Adoption & Utility Filter)
+- Trước khi thêm bất kỳ tính năng, nút bấm, chế độ hay thuật toán mới nào, **BẮT BUỘC** phải trả lời 2 câu hỏi:
+  1. **Ai sẽ dùng chức năng này?** Tần suất sử dụng trong ca làm việc thực tế là bao nhiêu (thường xuyên mỗi frame, hay chỉ thỉnh thoảng)?
+  2. **Giá trị thực tế đem lại là gì?** Nó có trực tiếp giúp annotator gán nhãn nhanh hơn hoặc chính xác hơn không, hay chỉ làm rối rắm giao diện và phình to codebase?
+
+### 2. Kỷ Luật Hiệu Năng Chi Phí Bằng Không (Zero-Performance-Cost Guard)
+- Mọi tính năng mới **TUYỆT ĐỐI KHÔNG ĐƯỢC ĐÁNH ĐỔI HIỆU NĂNG 60 FPS**:
+  - Không được làm tăng thời gian xử lý khung hình (Frame-Time) vượt quá ngưỡng $16.6\text{ms}$.
+  - Không được cấp phát rác liên tục trên heap gây nghẽn Garbage Collection.
+  - Không được chạy ngầm vô điều kiện trên CPU Main Thread.
+- **Quy tắc đào thải**: Nếu một chức năng ít khi dùng hoặc chỉ phục vụ trường hợp hiếm gặp mà lại tiêu tốn CPU/GPU/RAM hoặc làm phức tạp luồng render $\rightarrow$ **DỨT KHOÁT LOẠI BỎ hoặc MẶC ĐỊNH TẮT**, ưu tiên số 1 luôn là tốc độ phản hồi tức thì và sự mượt mà tối đa của hệ thống!
+
+

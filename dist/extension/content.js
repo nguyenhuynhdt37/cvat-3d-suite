@@ -70,8 +70,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
     const canvasElements = document.querySelectorAll("canvas");
-    for (const canvas2 of canvasElements) {
-      if (canvas2.classList.contains("cvat-canvas3d") || canvas2.id.includes("3d")) {
+    for (const canvas of canvasElements) {
+      if (canvas.classList.contains("cvat-canvas3d") || canvas.id.includes("3d")) {
         return true;
       }
     }
@@ -122,13 +122,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     grip: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>`,
     // Icon thẻ Tag / Bounding Box phẳng
     box: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>`,
+    // Module Tabs
+    ruler: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.3 15.3-7.6-7.6a2 2 0 0 0-2.8 0L2.7 15.9a2 2 0 0 0 0 2.8l2.6 2.6a2 2 0 0 0 2.8 0l8.2-8.2"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg>`,
     // Điều hướng Track
     chevronLeft: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
     chevronRight: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`,
     refresh: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>`,
     flip: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 5 5-5 5V7"/><path d="m21 7-5 5 5 5V7"/><path d="M12 20v2"/><path d="M12 14v2"/><path d="M12 8v2"/><path d="M12 2v2"/></svg>`,
-    // Thao tác Kích thước & Fit
-    save: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>`,
     sparkles: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>`,
     // Địa hình & Ghim mặt đất
     road: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19 8 5"/><path d="m16 5 4 14"/><path d="M12 8v2"/><path d="M12 14v2"/></svg>`,
@@ -146,13 +146,20 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     chevronDown: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`,
     chevronUp: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>`,
     sliders: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="17" x2="23" y1="16" y2="16"/></svg>`,
+    zap: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
     // Icon định hướng Fit phẳng 2D (Thay thế emoji 🔝, ↔️, ↕️)
     arrowUp: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>`,
+    // Icon Theme Sáng / Tối (Nền Trắng / Nền Tối)
+    sun: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`,
+    moon: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`,
     arrowRightLeft: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>`,
     arrowUpDown: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/></svg>`,
     // Điều khiển Modal & Lọc dữ liệu
     close: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
+    filter: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>`,
+    database: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>`,
     undo: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>`,
+    redo: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>`,
     eyeOff: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`,
     eye: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
     camera: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`,
@@ -164,7 +171,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     shieldAlert: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>`,
     matrix: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>`,
     listCheck: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>`,
-    externalLink: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`
+    activity: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`,
+    radar: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.07 4.93A10 10 0 0 0 4.93 19.07"/><path d="M16.24 7.76A6 6 0 0 0 7.76 16.24"/><path d="M2 12h20"/><path d="M12 2v20"/></svg>`,
+    download: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>`,
+    copy: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`,
+    // Icon Lát cắt (Ortho Slicing & Ground Filter)
+    scissors: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" x2="8.12" y1="4" y2="15.88"/><line x1="14.47" x2="20" y1="14.48" y2="20"/><line x1="8.12" x2="12" y1="8.12" y2="12"/></svg>`,
+    mountain: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>`,
+    focus: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>`,
+    minus: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" x2="19" y1="12" y2="12"/></svg>`,
+    plus: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>`
   };
   function flipYaw(currentYaw) {
     let newYaw = currentYaw + Math.PI;
@@ -234,6 +250,180 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return bestCluster;
     }
     return pts;
+  }
+  function clusterByPointDilation5x(pts, options = {}) {
+    var _a, _b;
+    const n = pts.length;
+    const baseR = options.basePointSize ?? 0.025;
+    const dilation = options.dilationFactor ?? 5;
+    const defaultConnect = options.connectDist ?? 2 * baseR * dilation;
+    const connectDistX = options.connectDistLx ?? defaultConnect;
+    const connectDistY = options.connectDistLy ?? defaultConnect;
+    const connectDistZ = defaultConnect;
+    const is3D = options.dim === "3d";
+    if (n <= 1) {
+      return {
+        dominantPts: pts,
+        noisePts: [],
+        clusters: n === 1 ? [[pts[0]]] : [],
+        dominantClusterIndex: 0,
+        connectDist: defaultConnect
+      };
+    }
+    const cellX = connectDistX;
+    const cellY = connectDistY;
+    const cellZ = connectDistZ;
+    const grid = /* @__PURE__ */ new Map();
+    for (let i = 0; i < n; i++) {
+      const p = pts[i];
+      const gx = Math.floor(p.lx / cellX);
+      const gy = Math.floor(p.ly / cellY);
+      const key = is3D ? `${gx}_${gy}_${Math.floor((p.z ?? 0) / cellZ)}` : `${gx}_${gy}`;
+      const bucket = grid.get(key);
+      if (bucket) {
+        bucket.push(i);
+      } else {
+        grid.set(key, [i]);
+      }
+    }
+    const parent = new Int32Array(n);
+    const rank = new Uint8Array(n);
+    for (let i = 0; i < n; i++) parent[i] = i;
+    function find(x) {
+      let root = x;
+      while (root !== parent[root]) root = parent[root];
+      let curr = x;
+      while (curr !== root) {
+        const next = parent[curr];
+        parent[curr] = root;
+        curr = next;
+      }
+      return root;
+    }
+    function union(x, y) {
+      const rootX = find(x);
+      const rootY = find(y);
+      if (rootX === rootY) return;
+      if (rank[rootX] < rank[rootY]) {
+        parent[rootX] = rootY;
+      } else if (rank[rootX] > rank[rootY]) {
+        parent[rootY] = rootX;
+      } else {
+        parent[rootY] = rootX;
+        rank[rootX]++;
+      }
+    }
+    for (let i = 0; i < n; i++) {
+      const pi = pts[i];
+      const gx = Math.floor(pi.lx / cellX);
+      const gy = Math.floor(pi.ly / cellY);
+      const gz = is3D ? Math.floor((pi.z ?? 0) / cellZ) : 0;
+      const zMin = is3D ? -1 : 0;
+      const zMax = is3D ? 1 : 0;
+      for (let dz = zMin; dz <= zMax; dz++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dy = -1; dy <= 1; dy++) {
+            const neighborKey = is3D ? `${gx + dx}_${gy + dy}_${gz + dz}` : `${gx + dx}_${gy + dy}`;
+            const neighborIndices = grid.get(neighborKey);
+            if (!neighborIndices) continue;
+            for (let k = 0; k < neighborIndices.length; k++) {
+              const j = neighborIndices[k];
+              if (j <= i) continue;
+              const pj = pts[j];
+              const dX = (pi.lx - pj.lx) / connectDistX;
+              const dY = (pi.ly - pj.ly) / connectDistY;
+              let distNormSq = dX * dX + dY * dY;
+              if (is3D) {
+                const dZ = ((pi.z ?? 0) - (pj.z ?? 0)) / connectDistZ;
+                distNormSq += dZ * dZ;
+              }
+              if (distNormSq <= 1.000001) {
+                union(i, j);
+              }
+            }
+          }
+        }
+      }
+    }
+    const groupMap = /* @__PURE__ */ new Map();
+    for (let i = 0; i < n; i++) {
+      const r = find(i);
+      const list = groupMap.get(r);
+      if (list) {
+        list.push(i);
+      } else {
+        groupMap.set(r, [i]);
+      }
+    }
+    const clusterIndices = Array.from(groupMap.values());
+    const clusters = clusterIndices.map((indices) => indices.map((idx) => pts[idx]));
+    if (clusters.length === 1) {
+      return {
+        dominantPts: pts,
+        noisePts: [],
+        clusters,
+        dominantClusterIndex: 0,
+        connectDist: defaultConnect
+      };
+    }
+    const biasX = ((_a = options.centerBias) == null ? void 0 : _a.lx) ?? 0;
+    const biasY = ((_b = options.centerBias) == null ? void 0 : _b.ly) ?? 0;
+    const minClusterPts = options.minClusterPts ?? 3;
+    const clusterStats = clusters.map((cluster, idx) => {
+      let dMin = Infinity;
+      let minLx = Infinity;
+      let maxLx = -Infinity;
+      let minLy = Infinity;
+      let maxLy = -Infinity;
+      for (let k = 0; k < cluster.length; k++) {
+        const p = cluster[k];
+        const d = Math.hypot(p.lx - biasX, p.ly - biasY);
+        if (d < dMin) dMin = d;
+        if (p.lx < minLx) minLx = p.lx;
+        if (p.lx > maxLx) maxLx = p.lx;
+        if (p.ly < minLy) minLy = p.ly;
+        if (p.ly > maxLy) maxLy = p.ly;
+      }
+      const span = Math.max(maxLx - minLx, maxLy - minLy);
+      return { idx, len: cluster.length, dMin, span };
+    });
+    const maxLen = Math.max(...clusterStats.map((s) => s.len));
+    let candidateStats = clusterStats.filter((s) => {
+      if (maxLen >= 8) {
+        if (s.len < Math.min(minClusterPts, 4)) return false;
+        const isSignificantSize = s.len >= maxLen * 0.15 || s.len >= 8;
+        const hasPhysicalSpan = s.span >= 0.25;
+        return isSignificantSize || hasPhysicalSpan;
+      } else {
+        return s.len >= Math.min(minClusterPts, 2);
+      }
+    });
+    if (candidateStats.length === 0) {
+      candidateStats = clusterStats;
+    }
+    candidateStats.sort((a, b) => {
+      const diffD = a.dMin - b.dMin;
+      if (Math.abs(diffD) > 0.2) {
+        return diffD;
+      }
+      return b.len - a.len;
+    });
+    const bestIdx = candidateStats[0].idx;
+    const dominantPts = clusters[bestIdx];
+    const noisePts = [];
+    for (let c = 0; c < clusters.length; c++) {
+      if (c === bestIdx) continue;
+      for (let k = 0; k < clusters[c].length; k++) {
+        noisePts.push(clusters[c][k]);
+      }
+    }
+    return {
+      dominantPts,
+      noisePts,
+      clusters,
+      dominantClusterIndex: bestIdx,
+      connectDist: defaultConnect
+    };
   }
   function detectAdaptiveBounds(sortedValues, isYAxis = false) {
     const n = sortedValues.length;
@@ -428,6 +618,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const minWallWeight = Math.max(1.8, maxWeight * 0.12);
     let outerWallBin = peakBin;
     let consecutiveEmptyBins = 0;
+    const maxGapBins = Math.round(0.12 / binSize);
     for (let b = peakBin + 1; b < numBins; b++) {
       const ptsInBin = bins[b];
       const count = ptsInBin.length;
@@ -435,7 +626,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const hasBrightInBin = ptsInBin.some((item) => item.isBright);
       if (count === 0) {
         consecutiveEmptyBins++;
-        if (consecutiveEmptyBins >= 2) {
+        if (consecutiveEmptyBins >= maxGapBins) {
           const nextBinHasBright = b + 1 < numBins && bins[b + 1].some((item) => item.isBright);
           if (!nextBinHasBright) {
             break;
@@ -451,7 +642,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const distCenter = (b + 0.5) * binSize;
       if (bw < minWallWeight && distCenter > nominalHalf) {
         consecutiveEmptyBins++;
-        if (consecutiveEmptyBins >= 2) {
+        if (consecutiveEmptyBins >= maxGapBins) {
           break;
         }
         continue;
@@ -802,7 +993,49 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const p15Idx = Math.floor(validZ.length * 0.15);
     return Number(validZ[p15Idx].toFixed(3));
   }
-  function computeGroundSlopesAndZ(pts, cx, cy, cz, yaw, halfL, halfW, ceilingZ, options = {}) {
+  function computeGroundSlopesAndZ(ptsOrBox, cxOrPts, cy = 0, cz = 0, yaw = 0, halfL = 2.25, halfW = 0.9, ceilingZ, options = {}) {
+    if (ptsOrBox && typeof ptsOrBox === "object" && !Array.isArray(ptsOrBox) && !(ptsOrBox instanceof Float32Array) && ("x" in ptsOrBox || "pos" in ptsOrBox)) {
+      const box = ptsOrBox;
+      const rawPts = cxOrPts;
+      const boxX = box.x ?? (box.pos ? box.pos[0] : 0);
+      const boxY = box.y ?? (box.pos ? box.pos[1] : 0);
+      const boxZ = box.z ?? (box.pos ? box.pos[2] : 0);
+      const boxYaw = box.yaw ?? (box.rot ? box.rot[2] : 0);
+      const boxL = box.l ?? (box.scale ? box.scale[0] : 4.5);
+      const boxW = box.w ?? (box.scale ? box.scale[1] : 1.8);
+      const boxH = box.h ?? (box.scale ? box.scale[2] : 1.6);
+      const ceilZ = boxZ + boxH / 2;
+      const opts = (typeof cy === "object" ? cy : options) || {};
+      return computeGroundSlopesAndZ(
+        rawPts,
+        boxX,
+        boxY,
+        boxZ,
+        boxYaw,
+        boxL / 2,
+        boxW / 2,
+        ceilZ,
+        opts
+      );
+    }
+    let pts;
+    if (ptsOrBox instanceof Float32Array) {
+      pts = [];
+      const n = Math.floor(ptsOrBox.length / 3);
+      for (let i = 0; i < n; i++) {
+        pts.push({ x: ptsOrBox[i * 3], y: ptsOrBox[i * 3 + 1], z: ptsOrBox[i * 3 + 2] });
+      }
+    } else if (Array.isArray(ptsOrBox)) {
+      pts = ptsOrBox;
+    } else {
+      pts = [];
+    }
+    const cx = typeof cxOrPts === "number" ? cxOrPts : 0;
+    cy = cy ?? 0;
+    cz = cz ?? 0;
+    yaw = yaw ?? 0;
+    halfL = halfL ?? 2.25;
+    halfW = halfW ?? 0.9;
     const cosY = Math.cos(-yaw);
     const sinY = Math.sin(-yaw);
     const outerL = halfL + 0.55;
@@ -890,6 +1123,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         pitchDeg: 0,
         rollDeg: 0,
         groundPointsCount: groundPts.length,
+        isValidGround: false,
         isFallbackZeroGround: true,
         isCurbGround: false,
         isHalfCurb: false,
@@ -969,6 +1203,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         pitchDeg: 0,
         rollDeg: 0,
         groundPointsCount: finalPts.length,
+        isValidGround: false,
         isFallbackZeroGround: true,
         isCurbGround: false,
         isHalfCurb: false,
@@ -1201,6 +1436,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       pitchDeg: pitchDegVal,
       rollDeg: rollDegVal,
       groundPointsCount: finalPts.length,
+      isValidGround: true,
       isCurbGround,
       isHalfCurb,
       halfCurbSide,
@@ -1268,7 +1504,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     const tan25 = 0.466;
     const isEgoParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * tan25;
-    const isSymmetricBothEnds = Math.abs(nFront20 - nRear20) <= 2 && nFront20 >= 2 && nRear20 >= 2 && nMiddle60 >= 3;
+    const isEgoFacingBumper = Math.abs(egoLocalX) > Math.abs(egoLocalY) * tan25;
+    const isSymmetricBothEnds = !isEgoFacingBumper && Math.abs(nFront20 - nRear20) <= 2 && nFront20 >= 2 && nRear20 >= 2 && nMiddle60 >= 3;
     if ((isEgoParallel || isSymmetricBothEnds) && pts.length >= 4) {
       return {
         visibleBumper: egoLocalX >= 0 ? "front" : "rear",
@@ -1321,7 +1558,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         rawBodyPts.push({ lx, ly, z: p.z });
       }
     }
-    const denseCoreBodyPts = filterSparseNoiseByLocalDensity(rawBodyPts, { radius: 0.22, minCoreNeighbors: 2 });
+    const dilationRes = clusterByPointDilation5x(rawBodyPts, {
+      basePointSize: 0.025,
+      dilationFactor: 5,
+      connectDist: 0.25,
+      dim: "2d",
+      centerBias: { lx: 0, ly: 0 }
+    });
+    const dominantDilationPts = dilationRes.dominantPts.length >= 4 ? dilationRes.dominantPts : rawBodyPts;
+    const denseCoreBodyPts = filterSparseNoiseByLocalDensity(dominantDilationPts, { radius: 0.22, minCoreNeighbors: 2 });
     const clusterLy = filterDenseConnectedCluster1D(denseCoreBodyPts, "ly", 0.22, 0);
     const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", 0.22, 0);
     const dxEgo = cx - egoPos.x;
@@ -1339,7 +1584,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     let newW = W;
     const preserveDimensions = options.preserveDimensions ?? true;
     const alignMode = options.alignMode ?? "both";
-    const validBodyPts = bodyPts.length >= 4 ? bodyPts : denseCoreBodyPts.length >= 4 ? denseCoreBodyPts : rawBodyPts;
+    const validBodyPts = bodyPts.length >= 4 ? bodyPts : dominantDilationPts.length >= 4 ? dominantDilationPts : denseCoreBodyPts.length >= 4 ? denseCoreBodyPts : rawBodyPts;
     let straightYawResult = {
       newYawRad: yaw,
       newYawDeg: Number((yaw * 180 / Math.PI).toFixed(1)),
@@ -1350,14 +1595,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (fitStep === "top") {
         const expectedRoofZ = groundZ + H;
         roofTopZ = detectRoofTopBounds(validBodyPts, expectedRoofZ);
+        const cleanRoofBodyPts = validBodyPts.filter((p) => p.z <= roofTopZ + 0.05);
+        const cleanPts = cleanRoofBodyPts.length >= 4 ? cleanRoofBodyPts : validBodyPts;
         const wallDet = detectDominantWallEdgeWithValleyCutoff(
-          validBodyPts,
+          cleanPts,
           "ly",
           visibleLateral === "left" ? "positive" : "negative",
           W / 2,
           { minSpanOrthogonal: 0.7 }
         );
-        const activePtsForYaw = wallDet.wallPoints.length >= 6 ? wallDet.wallPoints : validBodyPts;
+        const activePtsForYaw = wallDet.wallPoints.length >= 6 ? wallDet.wallPoints : cleanPts;
         straightYawResult = straightenYawFromBoundaryEdge(activePtsForYaw, yaw, L, W, visibleLateral, { maxAdjustmentDeg: 12 });
         finalYaw = straightYawResult.newYawRad;
         shiftLx = 0;
@@ -1418,7 +1665,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const leftSidePts = validBodyPts.filter((p) => p.ly > 0.05);
         const rightSidePts = validBodyPts.filter((p) => p.ly < -0.05);
         let visibleSide;
-        if (leftSidePts.length >= rightSidePts.length + 3) {
+        if (Math.abs(egoLocalY) >= 0.25) {
+          visibleSide = egoLocalY >= 0 ? "left" : "right";
+        } else if (leftSidePts.length >= rightSidePts.length + 3) {
           visibleSide = "left";
         } else if (rightSidePts.length >= leftSidePts.length + 3) {
           visibleSide = "right";
@@ -1538,8 +1787,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const cosPitch = Math.cos(pitchRad);
     const cosRoll = Math.cos(rollRad);
     let newCenterZ = Number((groundZ + newH / 2 * cosPitch * cosRoll).toFixed(3));
+    let finalPitch = pitchRad;
+    let finalRoll = rollRad;
+    let finalPitchDeg = pitchDeg;
+    let finalRollDeg = rollDeg;
     if (fitStep === "top" || fitStep === "side" || fitStep === "front") {
       newCenterZ = cz;
+      finalPitch = options.pitch ?? 0;
+      finalRoll = options.roll ?? 0;
+      finalPitchDeg = Number((finalPitch * 180 / Math.PI).toFixed(2));
+      finalRollDeg = Number((finalRoll * 180 / Math.PI).toFixed(2));
     }
     const faceTextLong = visibleLongitudinal === "front" ? "Mặt Trước" : "Mặt Sau";
     const faceTextLat = visibleLateral === "left" ? "Sườn Trái" : "Sườn Phải";
@@ -1568,10 +1825,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newL,
       newW,
       newH,
-      pitchRad,
-      rollRad,
-      pitchDeg,
-      rollDeg,
+      pitchRad: finalPitch,
+      rollRad: finalRoll,
+      pitchDeg: finalPitchDeg,
+      rollDeg: finalRollDeg,
       groundZ,
       roofTopZ,
       shiftLx: Number(shiftLx.toFixed(3)),
@@ -1589,17 +1846,340 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         bumperEdge: Number(shiftLx.toFixed(3))
       },
       pointsCount: bodyPts.length,
+      fitStep,
       message: msg
     };
   }
+  function estimateGroundSlopeInRadius$1(pts, cx, cy, cz, radius = 1, maxGroundZOffset = 0.35, baseZ) {
+    const groundPts = [];
+    const referenceBaseZ = baseZ !== void 0 ? baseZ : cz;
+    const maxZ = referenceBaseZ + maxGroundZOffset;
+    const minZ = referenceBaseZ - 1;
+    const rSq = radius * radius;
+    for (const p of pts) {
+      if (p.z > maxZ || p.z < minZ) continue;
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      if (dx * dx + dy * dy <= rSq) {
+        groundPts.push(p);
+      }
+    }
+    if (groundPts.length < 4) {
+      const fallbackZ = groundPts.length > 0 ? groundPts.map((p) => p.z).sort((a, b) => a - b)[0] : referenceBaseZ;
+      return { groundZ: fallbackZ, pitchDeg: 0, rollDeg: 0, pitchRad: 0, rollRad: 0, groundPointsCount: groundPts.length };
+    }
+    const sortedZ = groundPts.map((p) => p.z).sort((a, b) => a - b);
+    const groundZ = sortedZ[Math.max(0, Math.floor(sortedZ.length * 0.15))];
+    let sumDx2 = 0, sumDy2 = 0, sumDxDy = 0;
+    let sumDxDz = 0, sumDyDz = 0;
+    for (const p of groundPts) {
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      const dz = p.z - groundZ;
+      sumDx2 += dx * dx;
+      sumDy2 += dy * dy;
+      sumDxDy += dx * dy;
+      sumDxDz += dx * dz;
+      sumDyDz += dy * dz;
+    }
+    const denom = sumDx2 * sumDy2 - sumDxDy * sumDxDy;
+    let slopeX = 0;
+    let slopeY = 0;
+    if (Math.abs(denom) > 1e-5) {
+      slopeX = (sumDxDz * sumDy2 - sumDyDz * sumDxDy) / denom;
+      slopeY = (sumDyDz * sumDx2 - sumDxDz * sumDxDy) / denom;
+    }
+    const maxSlope = Math.tan(35 * Math.PI / 180);
+    slopeX = Math.max(-maxSlope, Math.min(maxSlope, slopeX));
+    slopeY = Math.max(-maxSlope, Math.min(maxSlope, slopeY));
+    const pitchRad = Math.atan(slopeX);
+    const rollRad = Math.atan(slopeY);
+    const pitchDeg = Number((pitchRad * 180 / Math.PI).toFixed(1));
+    const rollDeg = Number((rollRad * 180 / Math.PI).toFixed(1));
+    return { groundZ, pitchDeg, rollDeg, pitchRad, rollRad, groundPointsCount: groundPts.length };
+  }
+  const CLASS_SIZE_LIMITS = {
+    pedestrian: {
+      minL: 0.65,
+      maxL: 1,
+      minW: 0.65,
+      maxW: 1,
+      minH: 1.2,
+      maxH: 1.9
+    },
+    two_wheel: {
+      minL: 1.5,
+      maxL: 2,
+      minW: 0.6,
+      maxW: 0.9,
+      minH: 1.5,
+      maxH: 1.8
+    },
+    vehicle: {
+      minL: 3.2,
+      maxL: 5.5,
+      minW: 1.6,
+      maxW: 2.2,
+      minH: 1.5,
+      maxH: 1.9
+    }
+  };
+  function analyzeOrientedDensityEnvelope(localPts, objectClass, curL, curW, curH, groundZ, options = {}) {
+    var _a, _b, _c, _d, _e, _f, _g;
+    const binSize = options.binSize ?? 0.02;
+    const rawCount = localPts.length;
+    const limits = CLASS_SIZE_LIMITS[objectClass] ?? CLASS_SIZE_LIMITS.pedestrian;
+    const isPedestrian = objectClass === "pedestrian";
+    const isTwoWheel = objectClass === "two_wheel";
+    const isBackpackOrLuggage = Boolean(
+      ((_a = options.attributes) == null ? void 0 : _a.backpack) || ((_b = options.attributes) == null ? void 0 : _b.baggage) || ((_c = options.attributes) == null ? void 0 : _c.carrying_object) || ((_d = options.attributes) == null ? void 0 : _d.cargo) || ((_e = options.attributes) == null ? void 0 : _e.luggage) || ((_f = options.attributes) == null ? void 0 : _f.suitcase) || ((_g = options.attributes) == null ? void 0 : _g.bag)
+    );
+    const baseSemiA = isPedestrian ? isBackpackOrLuggage ? 0.6 : 0.55 : isTwoWheel ? 1.15 : limits.maxL / 2 + 0.35;
+    const baseSemiB = isPedestrian ? isBackpackOrLuggage ? 0.6 : 0.55 : isTwoWheel ? 0.85 : limits.maxW / 2 + 0.25;
+    let semiA = Math.max(baseSemiA, curL / 2 + 0.45);
+    let semiB = Math.max(baseSemiB, curW / 2 + 0.45);
+    const minZ = options.isSideOrFrontStep ? groundZ + 0.02 : groundZ + 0.08;
+    const maxZ = groundZ + 2.1;
+    const ptsInEllipsoid = [];
+    for (const p of localPts) {
+      if (p.z < minZ || p.z > maxZ) continue;
+      if (Math.abs(p.lx) > semiA || Math.abs(p.ly) > semiB) continue;
+      const ellipseNorm = p.lx * p.lx / (semiA * semiA) + p.ly * p.ly / (semiB * semiB);
+      if (ellipseNorm <= 1.08) {
+        ptsInEllipsoid.push(p);
+      }
+    }
+    if (ptsInEllipsoid.length < 3) {
+      const defaultFront = curL / 2;
+      const defaultRear = -curL / 2;
+      const defaultLeft = curW / 2;
+      const defaultRight = -curW / 2;
+      return {
+        filteredPts: ptsInEllipsoid,
+        rawCount,
+        filteredCount: ptsInEllipsoid.length,
+        meanR: 0,
+        meanAbsLx: 0,
+        meanAbsLy: 0,
+        lxFrontEdge: defaultFront,
+        lxRearEdge: defaultRear,
+        lyLeftEdge: defaultLeft,
+        lyRightEdge: defaultRight,
+        lxPeak: 0,
+        lyPeak: 0,
+        uncoveredFront: 0,
+        uncoveredRear: 0,
+        uncoveredLeft: 0,
+        uncoveredRight: 0,
+        measuredSpanL: curL,
+        measuredSpanW: curW,
+        limits,
+        hasCrowdSeparation: false,
+        hasParallelVehicleSeparation: false
+      };
+    }
+    let sumR = 0;
+    let sumAbsLx = 0;
+    let sumAbsLy = 0;
+    for (const p of ptsInEllipsoid) {
+      const r = Math.sqrt(p.lx * p.lx + p.ly * p.ly);
+      sumR += r;
+      sumAbsLx += Math.abs(p.lx);
+      sumAbsLy += Math.abs(p.ly);
+    }
+    const meanR = Number((sumR / ptsInEllipsoid.length).toFixed(3));
+    const meanAbsLx = Number((sumAbsLx / ptsInEllipsoid.length).toFixed(3));
+    const meanAbsLy = Number((sumAbsLy / ptsInEllipsoid.length).toFixed(3));
+    const numBinsLx = Math.max(1, Math.ceil(semiA * 2 / binSize));
+    const numBinsLy = Math.max(1, Math.ceil(semiB * 2 / binSize));
+    const histLx = new Array(numBinsLx).fill(0);
+    const histLy = new Array(numBinsLy).fill(0);
+    for (const p of ptsInEllipsoid) {
+      const binX = Math.max(0, Math.min(numBinsLx - 1, Math.floor((p.lx + semiA) / binSize)));
+      const binY = Math.max(0, Math.min(numBinsLy - 1, Math.floor((p.ly + semiB) / binSize)));
+      histLx[binX]++;
+      histLy[binY]++;
+    }
+    let maxCountX = -1;
+    let peakBinX = Math.floor(numBinsLx / 2);
+    for (let i = 0; i < numBinsLx; i++) {
+      if (histLx[i] > maxCountX) {
+        maxCountX = histLx[i];
+        peakBinX = i;
+      }
+    }
+    let maxCountY = -1;
+    let peakBinY = Math.floor(numBinsLy / 2);
+    for (let i = 0; i < numBinsLy; i++) {
+      if (histLy[i] > maxCountY) {
+        maxCountY = histLy[i];
+        peakBinY = i;
+      }
+    }
+    const lxPeak = Number(((peakBinX + 0.5) * binSize - semiA).toFixed(3));
+    const lyPeak = Number(((peakBinY + 0.5) * binSize - semiB).toFixed(3));
+    const valleyGapDefault = options.densityValleyGap ?? 0.12;
+    let hasCrowdSeparation = false;
+    let hasParallelVehicleSeparation = false;
+    const isSparse = ptsInEllipsoid.length <= 12;
+    const valleyGapLy = isSparse ? 0.3 : valleyGapDefault;
+    const leftPts = ptsInEllipsoid.filter((p) => p.ly > 0).sort((a, b) => a.ly - b.ly);
+    let lyLeftEdge = leftPts.length > 0 ? leftPts[leftPts.length - 1].ly : 0;
+    const validLeftSet = /* @__PURE__ */ new Set();
+    if (leftPts.length > 0) {
+      let cutoffIdx = leftPts.length;
+      for (let i = 1; i < leftPts.length; i++) {
+        const gap = leftPts[i].ly - leftPts[i - 1].ly;
+        if (gap > valleyGapLy && leftPts[i - 1].ly >= 0.04) {
+          cutoffIdx = i;
+          hasCrowdSeparation = true;
+          if (isTwoWheel) hasParallelVehicleSeparation = true;
+          break;
+        }
+      }
+      for (let i = 0; i < cutoffIdx; i++) {
+        validLeftSet.add(leftPts[i]);
+      }
+      lyLeftEdge = leftPts[cutoffIdx - 1].ly;
+    }
+    const rightPts = ptsInEllipsoid.filter((p) => p.ly < 0).sort((a, b) => Math.abs(a.ly) - Math.abs(b.ly));
+    let lyRightEdge = rightPts.length > 0 ? rightPts[rightPts.length - 1].ly : 0;
+    const validRightSet = /* @__PURE__ */ new Set();
+    if (rightPts.length > 0) {
+      let cutoffIdx = rightPts.length;
+      for (let i = 1; i < rightPts.length; i++) {
+        const gap = Math.abs(rightPts[i].ly) - Math.abs(rightPts[i - 1].ly);
+        if (gap > valleyGapLy && Math.abs(rightPts[i - 1].ly) >= 0.04) {
+          cutoffIdx = i;
+          hasCrowdSeparation = true;
+          if (isTwoWheel) hasParallelVehicleSeparation = true;
+          break;
+        }
+      }
+      for (let i = 0; i < cutoffIdx; i++) {
+        validRightSet.add(rightPts[i]);
+      }
+      lyRightEdge = rightPts[cutoffIdx - 1].ly;
+    }
+    const centerLinePts = ptsInEllipsoid.filter((p) => p.ly === 0);
+    const ptsAfterLy = [...Array.from(validLeftSet), ...Array.from(validRightSet), ...centerLinePts];
+    const valleyGapLxPed = isSparse ? 0.32 : valleyGapDefault;
+    const frontPts = ptsAfterLy.filter((p) => p.lx > 0).sort((a, b) => a.lx - b.lx);
+    let lxFrontEdge = frontPts.length > 0 ? frontPts[frontPts.length - 1].lx : 0;
+    const validFrontSet = /* @__PURE__ */ new Set();
+    if (frontPts.length > 0) {
+      let cutoffIdx = frontPts.length;
+      for (let i = 1; i < frontPts.length; i++) {
+        const gap = frontPts[i].lx - frontPts[i - 1].lx;
+        let thresholdGap = valleyGapLxPed;
+        if (isTwoWheel) {
+          thresholdGap = frontPts[i - 1].lx <= Math.max(0.9, curL / 2 + 0.05) ? 0.45 : 0.15;
+        }
+        if (gap > thresholdGap && frontPts[i - 1].lx >= 0.05) {
+          cutoffIdx = i;
+          hasCrowdSeparation = true;
+          break;
+        }
+      }
+      for (let i = 0; i < cutoffIdx; i++) {
+        validFrontSet.add(frontPts[i]);
+      }
+      lxFrontEdge = frontPts[cutoffIdx - 1].lx;
+    }
+    const rearPts = ptsAfterLy.filter((p) => p.lx < 0).sort((a, b) => Math.abs(a.lx) - Math.abs(b.lx));
+    let lxRearEdge = rearPts.length > 0 ? rearPts[rearPts.length - 1].lx : 0;
+    const validRearSet = /* @__PURE__ */ new Set();
+    if (rearPts.length > 0) {
+      let cutoffIdx = rearPts.length;
+      for (let i = 1; i < rearPts.length; i++) {
+        const gap = Math.abs(rearPts[i].lx) - Math.abs(rearPts[i - 1].lx);
+        let thresholdGap = valleyGapLxPed;
+        if (isTwoWheel) {
+          thresholdGap = Math.abs(rearPts[i - 1].lx) <= Math.max(0.9, curL / 2 + 0.05) ? 0.45 : 0.15;
+        }
+        if (gap > thresholdGap && Math.abs(rearPts[i - 1].lx) >= 0.05) {
+          cutoffIdx = i;
+          hasCrowdSeparation = true;
+          break;
+        }
+      }
+      for (let i = 0; i < cutoffIdx; i++) {
+        validRearSet.add(rearPts[i]);
+      }
+      lxRearEdge = rearPts[cutoffIdx - 1].lx;
+    }
+    const centerLxPts = ptsAfterLy.filter((p) => p.lx === 0);
+    const filteredPts = [...Array.from(validFrontSet), ...Array.from(validRearSet), ...centerLxPts];
+    const halfL = curL / 2;
+    const halfW = curW / 2;
+    const uncoveredFront = Number((lxFrontEdge - halfL).toFixed(3));
+    const uncoveredRear = Number((-halfL - lxRearEdge).toFixed(3));
+    const uncoveredLeft = Number((lyLeftEdge - halfW).toFixed(3));
+    const uncoveredRight = Number((-halfW - lyRightEdge).toFixed(3));
+    const measuredSpanL = Number((lxFrontEdge - lxRearEdge).toFixed(3));
+    const measuredSpanW = Number((lyLeftEdge - lyRightEdge).toFixed(3));
+    return {
+      filteredPts: filteredPts.length >= 3 ? filteredPts : ptsInEllipsoid,
+      rawCount,
+      filteredCount: filteredPts.length >= 3 ? filteredPts.length : ptsInEllipsoid.length,
+      meanR,
+      meanAbsLx,
+      meanAbsLy,
+      lxFrontEdge: Number(lxFrontEdge.toFixed(3)),
+      lxRearEdge: Number(lxRearEdge.toFixed(3)),
+      lyLeftEdge: Number(lyLeftEdge.toFixed(3)),
+      lyRightEdge: Number(lyRightEdge.toFixed(3)),
+      lxPeak,
+      lyPeak,
+      uncoveredFront,
+      uncoveredRear,
+      uncoveredLeft,
+      uncoveredRight,
+      measuredSpanL,
+      measuredSpanW,
+      limits,
+      hasCrowdSeparation,
+      hasParallelVehicleSeparation
+    };
+  }
+  function computeAODEDensityEnvelope(pts, cx, cy, cz, yaw, objectClass, curL, curW, curH, options = {}) {
+    const baseZ = cz - curH / 2;
+    const groundZ = options.groundZ ?? baseZ;
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+    const localPts = pts.map((p) => {
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      return {
+        lx: dx * cosY - dy * sinY,
+        ly: dx * sinY + dy * cosY,
+        z: p.z
+      };
+    });
+    if (options.egoPos) {
+      options.egoPos.x - cx;
+      options.egoPos.y - cy;
+    }
+    return analyzeOrientedDensityEnvelope(localPts, objectClass, curL, curW, curH, groundZ, {
+      binSize: options.binSize,
+      densityValleyGap: options.densityValleyGap,
+      attributes: options.attributes,
+      isSideOrFrontStep: options.isSideOrFrontStep
+    });
+  }
   function fitPedestrianBox(pts, cx, cy, cz, yaw, curL = 0.65, curW = 0.65, curH = 1.7, options = {}, stepParam = "all") {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A;
     const step = options.step ?? stepParam;
     const headBuffer = options.headBuffer ?? 0.05;
     const margin = options.margin ?? 0.15;
+    const baseZ = cz - curH / 2;
+    const groundSlopeInfo = estimateGroundSlopeInRadius$1(pts, cx, cy, cz, 1, 0.35, baseZ);
+    const groundPitchDeg = groundSlopeInfo.pitchDeg;
+    const groundRollDeg = groundSlopeInfo.rollDeg;
     const footRadius = Math.max(0.35, Math.max(curL, curW) / 2 + margin);
     const footGroundPts = [];
-    const maxFootGroundZ = cz - curH / 2 + 0.35;
-    const minFootGroundZ = cz - 4;
+    const maxFootGroundZ = baseZ + 0.35;
+    const minFootGroundZ = baseZ - 1;
     for (const p of pts) {
       if (p.z > maxFootGroundZ || p.z < minFootGroundZ) continue;
       const dx = p.x - cx;
@@ -1608,7 +2188,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         footGroundPts.push(p.z);
       }
     }
-    let groundZ = cz - curH / 2;
+    let groundZ = baseZ;
     if (footGroundPts.length >= 3) {
       footGroundPts.sort((a, b) => a - b);
       groundZ = footGroundPts[Math.max(0, Math.floor(footGroundPts.length * 0.15))];
@@ -1645,9 +2225,39 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       rawBodyPts = coreBodyPts.length >= 8 ? coreBodyPts : [...coreBodyPts, ...footPts];
     }
     const isSparse = rawBodyPts.length <= 12;
+    let cleanPedBodyPts = rawBodyPts;
+    if (!isSparse) {
+      const pedDilationRes = clusterByPointDilation5x(rawBodyPts, {
+        basePointSize: 0.022,
+        dilationFactor: 5,
+        connectDist: 0.22,
+        dim: "2d",
+        centerBias: { lx: 0, ly: 0 }
+      });
+      cleanPedBodyPts = pedDilationRes.dominantPts.length >= 6 ? pedDilationRes.dominantPts : rawBodyPts;
+    }
+    const aodeRes = analyzeOrientedDensityEnvelope(
+      cleanPedBodyPts,
+      "pedestrian",
+      curL,
+      curW,
+      curH,
+      groundZ,
+      {
+        binSize: 0.02,
+        densityValleyGap: 0.12,
+        attributes: options.attributes,
+        isSideOrFrontStep: step === "side" || step === "front",
+        egoLocalPos: options.egoPos ? {
+          lx: (options.egoPos.x - cx) * Math.cos(yaw) + (options.egoPos.y - cy) * Math.sin(yaw),
+          ly: -(options.egoPos.x - cx) * Math.sin(yaw) + (options.egoPos.y - cy) * Math.cos(yaw)
+        } : void 0
+      }
+    );
     const maxGapLy = step === "front" || isSparse ? 0.3 : 0.22;
     const maxGapLx = step === "side" || isSparse ? 0.32 : 0.22;
-    const clusterLy = filterDenseConnectedCluster1D(rawBodyPts, "ly", maxGapLy, 0);
+    const sourcePts = aodeRes.filteredPts.length >= 3 ? aodeRes.filteredPts : rawBodyPts;
+    const clusterLy = filterDenseConnectedCluster1D(sourcePts, "ly", maxGapLy, 0);
     const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxGapLx, 0);
     let newCenterX = cx;
     let newCenterY = cy;
@@ -1681,7 +2291,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         roofTopZ: Number(roofTopZ.toFixed(3)),
         pointsCount: bodyPts.length,
         step,
-        message: `Không đủ điểm LiDAR thân người (${bodyPts.length} điểm), giữ nguyên box`
+        message: `Không đủ điểm LiDAR thân người (${bodyPts.length} điểm), giữ nguyên box`,
+        aodeInfo: {
+          meanR: aodeRes.meanR,
+          meanAbsLx: aodeRes.meanAbsLx,
+          meanAbsLy: aodeRes.meanAbsLy,
+          uncoveredFront: aodeRes.uncoveredFront,
+          uncoveredRear: aodeRes.uncoveredRear,
+          uncoveredLeft: aodeRes.uncoveredLeft,
+          uncoveredRight: aodeRes.uncoveredRight,
+          lxPeak: aodeRes.lxPeak,
+          lyPeak: aodeRes.lyPeak,
+          hasCrowdSeparation: aodeRes.hasCrowdSeparation
+        }
       };
     }
     const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
@@ -1813,10 +2435,18 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newW = curW;
       newH = curH;
       newCenterZ = cz;
+      const isBackpack = Boolean(
+        ((_a = options.attributes) == null ? void 0 : _a.backpack) || ((_b = options.attributes) == null ? void 0 : _b.baggage) || ((_c = options.attributes) == null ? void 0 : _c.carrying_object) || ((_d = options.attributes) == null ? void 0 : _d.cargo)
+      );
+      Boolean(
+        ((_e = options.attributes) == null ? void 0 : _e.luggage) || ((_f = options.attributes) == null ? void 0 : _f.suitcase) || ((_g = options.attributes) == null ? void 0 : _g.bag)
+      );
+      Boolean(((_h = options.attributes) == null ? void 0 : _h.sitting) || ((_i = options.attributes) == null ? void 0 : _i.pose) === "sitting");
       const spanL = lxMax - lxMin + 0.05;
       shiftLx = 0;
-      if (spanL > 0.78) {
-        newL = 0.78;
+      const maxCapL = isBackpack ? 1 : 0.78;
+      if (spanL > maxCapL) {
+        newL = maxCapL;
         if (options.egoPos) {
           const toEgoX = options.egoPos.x - cx;
           const toEgoY = options.egoPos.y - cy;
@@ -1834,14 +2464,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           shiftLx = (lxMin + lxMax) / 2;
         }
       } else {
-        newL = Number(Math.max(0.35, Math.min(0.78, spanL)).toFixed(2));
+        newL = Number(Math.max(0.35, Math.min(maxCapL, spanL)).toFixed(2));
         shiftLx = (lxMin + lxMax) / 2;
       }
       shiftLx = Math.max(-0.35, Math.min(0.35, shiftLx));
       newCenterX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
       newCenterY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
       const deltaXSign = shiftLx >= 0 ? "+" : "";
-      msg = `Đã fix Chiều Dài (L) Người đi bộ: L=${newL}m (căn tâm X: ${deltaXSign}${(shiftLx * 100).toFixed(1)}cm, kháng ghosting), giữ nguyên W, H & Z`;
+      const backpackTag = isBackpack ? " [🎒 Balo/Đồ mang vác]" : "";
+      msg = `Đã fix Chiều Dài (L) Người đi bộ${backpackTag}: L=${newL}m (căn tâm X: ${deltaXSign}${(shiftLx * 100).toFixed(1)}cm, chuẩn Tool_QC), giữ nguyên W, H & Z`;
     } else if (step === "w") {
       newYawRad = yaw;
       newYawDeg = radToDeg(yaw);
@@ -1849,10 +2480,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newL = curL;
       newH = curH;
       newCenterZ = cz;
+      const isLuggage = Boolean(
+        ((_j = options.attributes) == null ? void 0 : _j.luggage) || ((_k = options.attributes) == null ? void 0 : _k.carrying_object) || ((_l = options.attributes) == null ? void 0 : _l.suitcase) || ((_m = options.attributes) == null ? void 0 : _m.bag)
+      );
       const spanW = lyMax - lyMin + 0.04;
       shiftLy = 0;
-      if (spanW > 0.68) {
-        newW = 0.68;
+      const maxCapW = isLuggage ? 1 : 0.68;
+      if (spanW > maxCapW) {
+        newW = maxCapW;
         if (options.egoPos) {
           const toEgoX = options.egoPos.x - cx;
           const toEgoY = options.egoPos.y - cy;
@@ -1868,14 +2503,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           shiftLy = (lyMin + lyMax) / 2;
         }
       } else {
-        newW = Number(Math.max(0.35, Math.min(0.68, spanW)).toFixed(2));
+        newW = Number(Math.max(0.35, Math.min(maxCapW, spanW)).toFixed(2));
         shiftLy = (lyMin + lyMax) / 2;
       }
       shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
       newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
       newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
       const deltaYSign = shiftLy >= 0 ? "+" : "";
-      msg = `Đã fix Chiều Rộng (W) Người đi bộ: W=${newW}m (căn tâm Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, vừa khít vai), giữ nguyên L, H & Z`;
+      const luggageTag = isLuggage ? " [👜 Vali/Túi xách]" : "";
+      msg = `Đã fix Chiều Rộng (W) Người đi bộ${luggageTag}: W=${newW}m (căn tâm Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, chuẩn Tool_QC), giữ nguyên L, H & Z`;
     } else if (step === "h") {
       newYawRad = yaw;
       newYawDeg = radToDeg(yaw);
@@ -1887,16 +2523,29 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const currentBaseZ = cz - curH / 2;
       const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
       roofTopZ = highestPtZ + headBuffer;
-      const maxCapPedH = options.headBuffer !== void 0 ? 1.95 : 1.78;
-      newH = Number(Math.max(1, Math.min(maxCapPedH, roofTopZ - effectiveBaseZ)).toFixed(2));
+      const isSitting = Boolean(((_n = options.attributes) == null ? void 0 : _n.sitting) || ((_o = options.attributes) == null ? void 0 : _o.pose) === "sitting");
+      const maxCapPedH = isSitting ? 1.45 : options.headBuffer !== void 0 ? 1.9 : 1.85;
+      const minCapPedH = 1;
+      newH = Number(Math.max(minCapPedH, Math.min(maxCapPedH, roofTopZ - effectiveBaseZ)).toFixed(2));
       newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
-      msg = `Đã fix Chiều Cao (H) Người đi bộ: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên đỉnh đầu +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
+      const sittingTag = isSitting ? " [🪑 Người ngồi]" : "";
+      msg = `Đã fix Chiều Cao (H) Người đi bộ${sittingTag}: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, chuẩn Tool_QC), giữ nguyên L, W & XY`;
     } else {
-      newL = Number(Math.max(0.4, Math.min(0.78, lxMax - lxMin + 0.05)).toFixed(2));
-      newW = Number(Math.max(0.38, Math.min(0.68, lyMax - lyMin + 0.04)).toFixed(2));
+      const isBackpack = Boolean(
+        ((_p = options.attributes) == null ? void 0 : _p.backpack) || ((_q = options.attributes) == null ? void 0 : _q.baggage) || ((_r = options.attributes) == null ? void 0 : _r.carrying_object) || ((_s = options.attributes) == null ? void 0 : _s.cargo)
+      );
+      const isLuggage = Boolean(
+        ((_t = options.attributes) == null ? void 0 : _t.luggage) || ((_u = options.attributes) == null ? void 0 : _u.carrying_object) || ((_v = options.attributes) == null ? void 0 : _v.suitcase) || ((_w = options.attributes) == null ? void 0 : _w.bag)
+      );
+      const isSitting = Boolean(((_x = options.attributes) == null ? void 0 : _x.sitting) || ((_y = options.attributes) == null ? void 0 : _y.pose) === "sitting");
+      const maxCapL = isBackpack ? 1 : 0.78;
+      const maxCapW = isLuggage ? 1 : 0.68;
+      const maxCapPedH = isSitting ? 1.45 : options.headBuffer !== void 0 ? 1.9 : 1.85;
+      const minCapPedH = 1;
+      newL = Number(Math.max(0.4, Math.min(maxCapL, lxMax - lxMin + 0.05)).toFixed(2));
+      newW = Number(Math.max(0.38, Math.min(maxCapW, lyMax - lyMin + 0.04)).toFixed(2));
       roofTopZ = highestPtZ + headBuffer;
-      const maxCapPedH = options.headBuffer !== void 0 ? 1.95 : 1.78;
-      newH = Number(Math.max(1.05, Math.min(maxCapPedH, roofTopZ - groundZ)).toFixed(2));
+      newH = Number(Math.max(minCapPedH, Math.min(maxCapPedH, roofTopZ - groundZ)).toFixed(2));
       shiftLx = (lxMin + lxMax) / 2;
       shiftLy = (lyMin + lyMax) / 2;
       const maxShift = 0.4;
@@ -1907,7 +2556,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       newCenterX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
       newCenterY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
       newCenterZ = Number((groundZ + newH / 2).toFixed(3));
-      msg = `Đã fit Người Đi Bộ: ${newL}x${newW}x${newH}m (Khóa thẳng đứng 0°, Ghim đất Z: ${newCenterZ}m, Bù đỉnh đầu +${Math.round(headBuffer * 100)}cm)`;
+      const tag = isBackpack ? " [🎒 Balo]" : isLuggage ? " [👜 Vali]" : isSitting ? " [🪑 Ngồi]" : "";
+      msg = `Đã fit Người Đi Bộ${tag}: ${newL}x${newW}x${newH}m (Chuẩn Tool_QC, Khóa thẳng 0°, Ghim đất Z: ${newCenterZ}m, Dốc địa hình: ${groundPitchDeg}°/${groundRollDeg}°)`;
     }
     return {
       newCenterX,
@@ -1925,11 +2575,26 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       rollDeg: 0,
       groundZ: Number(groundZ.toFixed(3)),
       roofTopZ: Number(roofTopZ.toFixed(3)),
+      groundPitchDeg,
+      groundRollDeg,
+      hasBackpack: Boolean(((_z = options.attributes) == null ? void 0 : _z.backpack) || ((_A = options.attributes) == null ? void 0 : _A.baggage)),
       shiftLx: Number(shiftLx.toFixed(3)),
       shiftLy: Number(shiftLy.toFixed(3)),
       pointsCount: bodyPts.length,
       step,
-      message: msg
+      message: msg,
+      aodeInfo: {
+        meanR: aodeRes.meanR,
+        meanAbsLx: aodeRes.meanAbsLx,
+        meanAbsLy: aodeRes.meanAbsLy,
+        uncoveredFront: aodeRes.uncoveredFront,
+        uncoveredRear: aodeRes.uncoveredRear,
+        uncoveredLeft: aodeRes.uncoveredLeft,
+        uncoveredRight: aodeRes.uncoveredRight,
+        lxPeak: aodeRes.lxPeak,
+        lyPeak: aodeRes.lyPeak,
+        hasCrowdSeparation: aodeRes.hasCrowdSeparation
+      }
     };
   }
   function estimateTwoWheelerHeading(bodyPts, curYaw) {
@@ -1982,13 +2647,18 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return { deltaYawRad: deltaTheta, deltaYawDeg, newYawRad, newYawDeg };
   }
   function fitTwoWheelerBox(pts, cx, cy, cz, yaw, curL = 1.75, curW = 0.65, curH = 1.55, options = {}, stepParam = "all") {
+    var _a, _b, _c, _d, _e, _f, _g;
     const step = options.step ?? stepParam;
     const headBuffer = options.headBuffer ?? 0.05;
     const margin = options.margin ?? 0.2;
+    const baseZ = cz - curH / 2;
+    const groundSlopeInfo = estimateGroundSlopeInRadius$1(pts, cx, cy, cz, 1.5, 0.35, baseZ);
+    const groundPitchDeg = groundSlopeInfo.pitchDeg;
+    const groundRollDeg = groundSlopeInfo.rollDeg;
     const footRadius = Math.max(0.6, curL / 2 + margin);
     const groundPts = [];
-    const maxGroundZ = cz - curH / 2 + 0.35;
-    const minGroundZ = cz - 4;
+    const maxGroundZ = baseZ + 0.35;
+    const minGroundZ = baseZ - 1;
     for (const p of pts) {
       if (p.z > maxGroundZ || p.z < minGroundZ) continue;
       const dx = p.x - cx;
@@ -1997,7 +2667,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         groundPts.push(p.z);
       }
     }
-    let groundZ = cz - curH / 2;
+    let groundZ = baseZ;
     if (groundPts.length >= 3) {
       groundPts.sort((a, b) => a - b);
       groundZ = groundPts[Math.max(0, Math.floor(groundPts.length * 0.15))];
@@ -2034,9 +2704,41 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       rawPts = corePts.length >= 8 ? corePts : [...corePts, ...wheelPts];
     }
     const isSparse = rawPts.length <= 12;
+    let cleanCyclistPts = rawPts;
+    if (!isSparse) {
+      const cyclistDilationRes = clusterByPointDilation5x(rawPts, {
+        basePointSize: 0.03,
+        dilationFactor: 5,
+        connectDist: 0.3,
+        connectDistLx: 0.38,
+        connectDistLy: 0.32,
+        dim: "2d",
+        centerBias: { lx: 0, ly: 0 }
+      });
+      cleanCyclistPts = cyclistDilationRes.dominantPts.length >= 8 ? cyclistDilationRes.dominantPts : rawPts;
+    }
+    const aodeRes = analyzeOrientedDensityEnvelope(
+      cleanCyclistPts,
+      "two_wheel",
+      curL,
+      curW,
+      curH,
+      groundZ,
+      {
+        binSize: 0.02,
+        densityValleyGap: 0.12,
+        attributes: options.attributes,
+        isSideOrFrontStep: step === "side" || step === "front",
+        egoLocalPos: options.egoPos ? {
+          lx: (options.egoPos.x - cx) * Math.cos(yaw) + (options.egoPos.y - cy) * Math.sin(yaw),
+          ly: -(options.egoPos.x - cx) * Math.sin(yaw) + (options.egoPos.y - cy) * Math.cos(yaw)
+        } : void 0
+      }
+    );
     const maxGapLx = step === "side" || isSparse ? 0.38 : 0.28;
     const maxGapLy = step === "front" || isSparse ? 0.35 : 0.24;
-    const clusterLy = filterDenseConnectedCluster1D(rawPts, "ly", maxGapLy, 0);
+    const sourcePts = aodeRes.filteredPts.length >= 3 ? aodeRes.filteredPts : rawPts;
+    const clusterLy = filterDenseConnectedCluster1D(sourcePts, "ly", maxGapLy, 0);
     const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxGapLx, 0);
     let newCenterX = cx;
     let newCenterY = cy;
@@ -2070,7 +2772,20 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         roofTopZ: Number(roofTopZ.toFixed(3)),
         pointsCount: bodyPts.length,
         step,
-        message: `Không đủ điểm LiDAR xe 2 bánh (${bodyPts.length} điểm), giữ nguyên box`
+        message: `Không đủ điểm LiDAR xe 2 bánh (${bodyPts.length} điểm), giữ nguyên box`,
+        aodeInfo: {
+          meanR: aodeRes.meanR,
+          meanAbsLx: aodeRes.meanAbsLx,
+          meanAbsLy: aodeRes.meanAbsLy,
+          uncoveredFront: aodeRes.uncoveredFront,
+          uncoveredRear: aodeRes.uncoveredRear,
+          uncoveredLeft: aodeRes.uncoveredLeft,
+          uncoveredRight: aodeRes.uncoveredRight,
+          lxPeak: aodeRes.lxPeak,
+          lyPeak: aodeRes.lyPeak,
+          hasCrowdSeparation: aodeRes.hasCrowdSeparation,
+          hasParallelVehicleSeparation: aodeRes.hasParallelVehicleSeparation
+        }
       };
     }
     const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
@@ -2256,8 +2971,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         shiftLy = (lyMin + lyMax) / 2;
         shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
       }
-      if (measuredW > 0.85) {
-        newW = 0.85;
+      const hasSideLuggage = bodyPts.filter((p) => p.z >= groundZ + 0.35 && Math.abs(p.ly) > 0.35).length >= 3;
+      const maxCapW = hasSideLuggage ? 0.9 : 0.85;
+      if (measuredW > maxCapW) {
+        newW = maxCapW;
         if (options.egoPos) {
           const toEgoX = options.egoPos.x - cx;
           const toEgoY = options.egoPos.y - cy;
@@ -2269,13 +2986,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
       } else {
-        newW = Number(Math.max(0.55, Math.min(0.85, measuredW)).toFixed(2));
+        newW = Number(Math.max(0.6, Math.min(maxCapW, measuredW)).toFixed(2));
       }
       shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
       newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
       newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
       const deltaYSign = shiftLy >= 0 ? "+" : "";
-      msg = `Đã fit Rộng (W) Xe 2 bánh: W=${newW}m (Đệm +3cm vừa khít gương/tay lái), căn Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên L, H & Z`;
+      const cargoTag = hasSideLuggage ? " [📦 Giá chở hàng]" : "";
+      msg = `Đã fit Rộng (W) Xe 2 bánh${cargoTag}: W=${newW}m (Đệm vừa khít tay lái/gương/thùng hàng, chuẩn Tool_QC), căn Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên L, H & Z`;
     } else if (step === "h") {
       newYawRad = yaw;
       newYawDeg = radToDeg(yaw);
@@ -2287,23 +3005,28 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const currentBaseZ = cz - curH / 2;
       const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
       const roofTopZ2 = highestPtZ + headBuffer;
-      const maxCap2WH = options.headBuffer !== void 0 ? 1.85 : 1.68;
-      newH = Number(Math.max(1.05, Math.min(maxCap2WH, roofTopZ2 - effectiveBaseZ)).toFixed(2));
+      const isParkedNoRider = Boolean(((_a = options.attributes) == null ? void 0 : _a.parked) || ((_b = options.attributes) == null ? void 0 : _b.rider) === false);
+      const maxCap2WH = 1.8;
+      const minCap2WH = isParkedNoRider ? 1 : 1.5;
+      newH = Number(Math.max(minCap2WH, Math.min(maxCap2WH, roofTopZ2 - effectiveBaseZ)).toFixed(2));
       newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
-      msg = `Đã fit Cao (H) Xe 2 bánh: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên nóc +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
+      const parkedTag = isParkedNoRider ? " [🅿️ Xe đỗ không người]" : "";
+      msg = `Đã fit Cao (H) Xe 2 bánh${parkedTag}: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, chuẩn Tool_QC), giữ nguyên L, W & XY`;
     } else {
       const headingRes = estimateTwoWheelerHeading(bodyPts, yaw);
       newYawRad = headingRes.newYawRad;
       newYawDeg = headingRes.newYawDeg;
       deltaYawDeg = headingRes.deltaYawDeg;
-      newL = curL;
+      const hasCargo = bodyPts.filter((p) => p.z >= groundZ + 0.45 && p.lx < -0.25).length >= 3 || Boolean(((_c = options.attributes) == null ? void 0 : _c.cargo) || ((_d = options.attributes) == null ? void 0 : _d.delivery_box));
+      const maxCapL = hasCargo ? 2 : 1.95;
+      newL = Number(Math.max(1.5, Math.min(maxCapL, curL)).toFixed(2));
       shiftLx = 0;
       const frontCount = bodyPts.filter((p) => p.lx > 0).length;
       const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
       if (frontCount > rearCount * 1.5) {
-        shiftLx = lxMax - curL / 2;
+        shiftLx = lxMax - newL / 2;
       } else if (rearCount > frontCount * 1.5) {
-        shiftLx = lxMin + curL / 2;
+        shiftLx = lxMin + newL / 2;
       } else {
         shiftLx = (lxMin + lxMax) / 2;
       }
@@ -2325,16 +3048,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         shiftLy = (lyMin + lyMax) / 2;
         shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
       }
-      newW = Number(Math.max(0.55, Math.min(0.85, measuredW)).toFixed(2));
+      const hasSideLuggage = bodyPts.filter((p) => p.z >= groundZ + 0.35 && Math.abs(p.ly) > 0.35).length >= 3;
+      const maxCapW = hasSideLuggage ? 0.9 : 0.85;
+      newW = Number(Math.max(0.6, Math.min(maxCapW, measuredW)).toFixed(2));
       roofTopZ = highestPtZ + headBuffer;
-      const maxCap2WH = options.headBuffer !== void 0 ? 1.85 : 1.68;
-      newH = Number(Math.max(1.05, Math.min(maxCap2WH, roofTopZ - groundZ)).toFixed(2));
+      const isParkedNoRider = Boolean(((_e = options.attributes) == null ? void 0 : _e.parked) || ((_f = options.attributes) == null ? void 0 : _f.rider) === false);
+      const maxCap2WH = 1.8;
+      const minCap2WH = isParkedNoRider ? 1 : 1.5;
+      newH = Number(Math.max(minCap2WH, Math.min(maxCap2WH, roofTopZ - groundZ)).toFixed(2));
       newCenterZ = Number((groundZ + newH / 2).toFixed(3));
       const cosWorld = Math.cos(newYawRad);
       const sinWorld = Math.sin(newYawRad);
       newCenterX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
       newCenterY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
-      msg = `Đã fit toàn diện Xe 2 bánh: ${newL}x${newW}x${newH}m (Khóa L, Xoay Yaw ${newYawDeg}°, Ghim đất Z: ${newCenterZ}m)`;
+      const cargoMsg = hasCargo ? " [📦 Chở hàng]" : isParkedNoRider ? " [🅿️ Xe đỗ]" : "";
+      msg = `Đã fit toàn diện Xe 2 bánh${cargoMsg}: ${newL}x${newW}x${newH}m (Chuẩn Tool_QC, Khóa L, Xoay Yaw ${newYawDeg}°, Ghim Z: ${newCenterZ}m, Dốc địa hình: ${groundPitchDeg}°/${groundRollDeg}°)`;
     }
     return {
       newCenterX,
@@ -2352,11 +3080,27 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       rollDeg: 0,
       groundZ: Number(groundZ.toFixed(3)),
       roofTopZ: Number(roofTopZ.toFixed(3)),
+      groundPitchDeg,
+      groundRollDeg,
+      hasCargo: bodyPts.filter((p) => p.z >= groundZ + 0.45 && p.lx < -0.25).length >= 3 || Boolean((_g = options.attributes) == null ? void 0 : _g.cargo),
       shiftLx: Number(shiftLx.toFixed(3)),
       shiftLy: Number(shiftLy.toFixed(3)),
       pointsCount: bodyPts.length,
       step,
-      message: msg
+      message: msg,
+      aodeInfo: {
+        meanR: aodeRes.meanR,
+        meanAbsLx: aodeRes.meanAbsLx,
+        meanAbsLy: aodeRes.meanAbsLy,
+        uncoveredFront: aodeRes.uncoveredFront,
+        uncoveredRear: aodeRes.uncoveredRear,
+        uncoveredLeft: aodeRes.uncoveredLeft,
+        uncoveredRight: aodeRes.uncoveredRight,
+        lxPeak: aodeRes.lxPeak,
+        lyPeak: aodeRes.lyPeak,
+        hasCrowdSeparation: aodeRes.hasCrowdSeparation,
+        hasParallelVehicleSeparation: aodeRes.hasParallelVehicleSeparation
+      }
     };
   }
   function fitPedestrianLength(pts, cx, cy, cz, yaw, curL = 0.65, curW = 0.65, curH = 1.7, options = {}) {
@@ -2435,26 +3179,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     out[k] = [0, 1, 2].map((i) => -s * ej[i] + c * ek[i]);
     return axesToEuler(out);
   }
-  const dotVec$1 = (u, v) => u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
   const addVec$1 = (u, v) => [
     u[0] + v[0],
     u[1] + v[1],
     u[2] + v[2]
-  ];
-  const subVec$1 = (u, v) => [
-    u[0] - v[0],
-    u[1] - v[1],
-    u[2] - v[2]
   ];
   const scaleVec$1 = (u, k) => [
     u[0] * k,
     u[1] * k,
     u[2] * k
   ];
-  function worldToLocal(p, c, ax) {
-    const v = subVec$1(p, c);
-    return [dotVec$1(v, ax.ex), dotVec$1(v, ax.ey), dotVec$1(v, ax.ez)];
-  }
   function localToWorld(q, c, ax) {
     return addVec$1(
       c,
@@ -2855,8 +3589,185 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     { r: 0.29, g: 0.87, b: 0.5 }
     // 31: Xanh Táo Apple Green (#4ade80)
   ];
-  const OVERLAP_WARNING_COLOR = { r: 1, g: 0.05, b: 0.2 };
-  function getDistinctTrackColor(trackId, isActive) {
+  const DEEP_VIVID_TRACK_PALETTE = [
+    { r: 0.02, g: 0.38, b: 0.68 },
+    // 0: Xanh Ocean Đậm Sâu (#0369a1)
+    { r: 0.7, g: 0.32, b: 0.02 },
+    // 1: Vàng Hổ Phách Nâu Đậm (#b45309)
+    { r: 0.4, g: 0.08, b: 0.68 },
+    // 2: Tím Hoàng Gia Đậm (#6b21a8)
+    { r: 0.01, g: 0.45, b: 0.28 },
+    // 3: Xanh Lục Bảo Đậm Sâu (#047857)
+    { r: 0.65, g: 0.05, b: 0.15 },
+    // 4: Đỏ Ruby / Đỏ Mận Đậm (#991b1b)
+    { r: 0.08, g: 0.22, b: 0.72 },
+    // 5: Xanh Cobalt Đậm (#1e40af)
+    { r: 0.22, g: 0.38, b: 0.04 },
+    // 6: Xanh Rêu Đậm Sâu (#3f6212)
+    { r: 0.65, g: 0.18, b: 0.04 },
+    // 7: Cam Cháy Đậm (#9a3412)
+    { r: 0.04, g: 0.36, b: 0.34 },
+    // 8: Xanh Teal Đậm Sâu (#115e59)
+    { r: 0.58, g: 0.25, b: 0.02 },
+    // 9: Nâu Đồng Đậm (#78350f)
+    { r: 0.2, g: 0.16, b: 0.65 },
+    // 10: Tím Indigo Đậm Sâu (#3730a3)
+    { r: 0.01, g: 0.38, b: 0.24 },
+    // 11: Xanh Thông Đậm (#064e3b)
+    { r: 0.52, g: 0.08, b: 0.58 },
+    // 12: Hồng Tím Fuchsia Đậm (#86198f)
+    { r: 0.01, g: 0.32, b: 0.58 },
+    // 13: Xanh Biển Đậm (#075985)
+    { r: 0.68, g: 0.1, b: 0.02 },
+    // 14: Đỏ Cam Đậm (#991b1b)
+    { r: 0.06, g: 0.42, b: 0.18 },
+    // 15: Xanh Lá Đậm Sâu (#166534)
+    { r: 0.35, g: 0.1, b: 0.62 },
+    // 16: Tím Mận Đậm (#581c87)
+    { r: 0.03, g: 0.35, b: 0.45 },
+    // 17: Xanh Petrol Đậm (#155e75)
+    { r: 0.62, g: 0.04, b: 0.12 },
+    // 18: Đỏ Rượu Vang Đậm (#881337)
+    { r: 0.3, g: 0.44, b: 0.05 },
+    // 19: Vàng Chanh Rêu Đậm (#4d7c0f)
+    { r: 0.02, g: 0.36, b: 0.5 },
+    // 20: Xanh Băng Đậm Sâu (#0e7490)
+    { r: 0.65, g: 0.28, b: 0.05 },
+    // 21: Cam Đất Đậm (#9a3412)
+    { r: 0.38, g: 0.06, b: 0.62 },
+    // 22: Tím Đậm Sâu (#581c87)
+    { r: 0.04, g: 0.32, b: 0.14 },
+    // 23: Xanh Rừng Đậm (#14532d)
+    { r: 0.6, g: 0.06, b: 0.22 },
+    // 24: Hồng Đậm Sâu (#881337)
+    { r: 0.08, g: 0.2, b: 0.58 },
+    // 25: Xanh Navy Đậm (#172554)
+    { r: 0.02, g: 0.3, b: 0.28 },
+    // 26: Xanh Rêu Đen (#042f2e)
+    { r: 0.58, g: 0.26, b: 0.02 },
+    // 27: Vàng Đất Nung Đậm (#78350f)
+    { r: 0.16, g: 0.12, b: 0.55 },
+    // 28: Tím Đêm Đậm (#312e81)
+    { r: 0.02, g: 0.38, b: 0.48 },
+    // 29: Xanh Lam Đậm Sâu (#155e75)
+    { r: 0.55, g: 0.08, b: 0.35 },
+    // 30: Hồng Sen Đậm Sâu (#701a75)
+    { r: 0.08, g: 0.4, b: 0.2 }
+    // 31: Xanh Táo Đậm Sâu (#166534)
+  ];
+  const OVERLAP_WARNING_COLOR = { r: 1, g: 0, b: 0.2 };
+  const EDGE_SNAP_COLOR = { r: 0.98, g: 0.8, b: 0.08 };
+  const CUT_OUT_WARNING_COLOR = { r: 0.94, g: 0.27, b: 0.27 };
+  function computeBoxEdgeContacts(positions, box, options) {
+    if (!box || box.l <= 0 || box.w <= 0 || box.h <= 0) return null;
+    const count = Math.floor(positions.length / 3);
+    if (count === 0) return null;
+    const minPoints = (options == null ? void 0 : options.minPoints) ?? 3;
+    const groundMargin = (options == null ? void 0 : options.groundNoiseMargin) ?? 0.15;
+    const cosY = Math.cos(-box.rz);
+    const sinY = Math.sin(-box.rz);
+    const hasPitchRoll = !!(box.rx || box.ry);
+    const cosP = hasPitchRoll ? Math.cos(-(box.ry || 0)) : 1;
+    const sinP = hasPitchRoll ? Math.sin(-(box.ry || 0)) : 0;
+    const cosR = hasPitchRoll ? Math.cos(-(box.rx || 0)) : 1;
+    const sinR = hasPitchRoll ? Math.sin(-(box.rx || 0)) : 0;
+    const halfL = box.l / 2;
+    const halfW = box.w / 2;
+    const halfH = box.h / 2;
+    const maxR = Math.max(box.l, box.w, box.h) * 0.75 + 0.25;
+    const zFloor = -halfH + groundMargin;
+    const zCeil = halfH + 0.1;
+    let maxLx = -Infinity;
+    let minLx = Infinity;
+    let maxLy = -Infinity;
+    let minLy = Infinity;
+    let maxLz = -Infinity;
+    let validPointCount = 0;
+    for (let i = 0; i < count; i++) {
+      const idx3 = i * 3;
+      const px = positions[idx3];
+      const py = positions[idx3 + 1];
+      const pz = positions[idx3 + 2];
+      const dx = px - box.cx;
+      const dy = py - box.cy;
+      const dz = pz - box.cz;
+      if (Math.abs(dx) > maxR || Math.abs(dy) > maxR || Math.abs(dz) > maxR) {
+        continue;
+      }
+      let lx = dx * cosY - dy * sinY;
+      let ly = dx * sinY + dy * cosY;
+      let lz = dz;
+      if (hasPitchRoll) {
+        const lx2 = lx * cosP + lz * sinP;
+        const lz2 = -lx * sinP + lz * cosP;
+        const ly2 = ly * cosR - lz2 * sinR;
+        const lz3 = ly * sinR + lz2 * cosR;
+        lx = lx2;
+        ly = ly2;
+        lz = lz3;
+      }
+      if (lz < zFloor || lz > zCeil) continue;
+      if (Math.abs(lx) > halfL + 0.15 || Math.abs(ly) > halfW + 0.15) continue;
+      validPointCount++;
+      if (lx > 0 && Math.abs(ly) <= halfW + 0.05) {
+        if (lx > maxLx) maxLx = lx;
+      }
+      if (lx < 0 && Math.abs(ly) <= halfW + 0.05) {
+        if (lx < minLx) minLx = lx;
+      }
+      if (ly > 0 && Math.abs(lx) <= halfL + 0.05) {
+        if (ly > maxLy) maxLy = ly;
+      }
+      if (ly < 0 && Math.abs(lx) <= halfL + 0.05) {
+        if (ly < minLy) minLy = ly;
+      }
+      if (lz > 0 && Math.abs(lx) <= halfL + 0.05 && Math.abs(ly) <= halfW + 0.05) {
+        if (lz > maxLz) maxLz = lz;
+      }
+    }
+    if (validPointCount < minPoints) {
+      return null;
+    }
+    const evaluateSide = (diff, isFound, maxLooseGap = 0.35) => {
+      if (!isFound) return void 0;
+      if (diff > 0.01) {
+        return {
+          status: "cut",
+          gapCm: -Math.round(diff * 100),
+          label: "Cắt lẹm"
+        };
+      } else if (Math.abs(diff) <= 0.03) {
+        return {
+          status: "tight",
+          gapCm: -Math.round(diff * 100),
+          label: "Khít"
+        };
+      } else if (diff >= -maxLooseGap) {
+        return {
+          status: "loose",
+          gapCm: Math.round(-diff * 100),
+          label: "Hở"
+        };
+      } else {
+        return void 0;
+      }
+    };
+    const frontDiff = maxLx - halfL;
+    const rearDiff = -halfL - minLx;
+    const leftDiff = maxLy - halfW;
+    const rightDiff = -halfW - minLy;
+    const roofDiff = maxLz - halfH;
+    return {
+      clientId: box.id ?? box.trackId,
+      front: evaluateSide(frontDiff, maxLx !== -Infinity),
+      rear: evaluateSide(rearDiff, minLx !== Infinity),
+      left: evaluateSide(leftDiff, maxLy !== -Infinity),
+      right: evaluateSide(rightDiff, minLy !== Infinity),
+      roof: evaluateSide(roofDiff, maxLz !== -Infinity, 0.25),
+      pointCount: validPointCount
+    };
+  }
+  function getDistinctTrackColor(trackId, isActive, theme) {
     let numId = 0;
     if (typeof trackId === "number") {
       numId = Math.abs(trackId);
@@ -2870,9 +3781,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
     }
-    const colorIndex = (numId * 13 + 7) % DISTINCT_TRACK_PALETTE.length;
-    const baseColor = DISTINCT_TRACK_PALETTE[colorIndex];
+    const palette = theme === "light" ? DEEP_VIVID_TRACK_PALETTE : DISTINCT_TRACK_PALETTE;
+    const colorIndex = (numId * 13 + 7) % palette.length;
+    const baseColor = palette[colorIndex];
     if (isActive) {
+      if (theme === "light") {
+        return {
+          r: Math.min(1, baseColor.r * 0.75 + 0.98 * 0.25),
+          g: Math.min(1, baseColor.g * 0.75 + 0.7 * 0.25),
+          b: Math.min(1, baseColor.b * 0.75 + 0.05 * 0.25)
+        };
+      }
       return {
         r: Math.min(1, baseColor.r * 0.8 + 0.98 * 0.2),
         g: Math.min(1, baseColor.g * 0.8 + 0.8 * 0.2),
@@ -2885,11 +3804,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     var _a, _b, _c;
     const count = Math.floor(positions.length / 3);
     const colors = outColors && outColors.length === count * 3 ? outColors : new Float32Array(count * 3);
-    const isPlainMode = options.mode === "plain";
+    const isLight = options.theme === "light";
+    options.mode === "plain";
     const colorizeBoxed = options.colorizeBoxed !== false && boxes.length > 0;
-    const plainR = ((_a = options.plainColor) == null ? void 0 : _a.r) ?? 0.72;
-    const plainG = ((_b = options.plainColor) == null ? void 0 : _b.g) ?? 0.76;
-    const plainB = ((_c = options.plainColor) == null ? void 0 : _c.b) ?? 0.82;
+    const defaultBg = isLight ? 0 : 1;
+    const plainR = ((_a = options.plainColor) == null ? void 0 : _a.r) ?? defaultBg;
+    const plainG = ((_b = options.plainColor) == null ? void 0 : _b.g) ?? defaultBg;
+    const plainB = ((_c = options.plainColor) == null ? void 0 : _c.b) ?? defaultBg;
     const fastBoxes = [];
     if (colorizeBoxed) {
       for (const b of boxes) {
@@ -2901,9 +3822,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (!c) {
           const boxId = b.trackId ?? b.id;
           if (boxId !== void 0 && boxId !== null) {
-            c = getDistinctTrackColor(boxId, b.isActive);
+            c = getDistinctTrackColor(boxId, b.isActive, options.theme);
           } else if (b.isActive) {
-            c = DEFAULT_LABEL_COLORS.active;
+            c = options.activeBoxColor || (options.theme === "light" ? { r: 0.85, g: 0.6, b: 0.02 } : DEFAULT_LABEL_COLORS.active);
           } else {
             const cat = (b.category || "car").toLowerCase();
             c = DEFAULT_LABEL_COLORS[cat] || DEFAULT_LABEL_COLORS.car;
@@ -2924,20 +3845,20 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           maxR,
           colorR: c.r,
           colorG: c.g,
-          colorB: c.b
+          colorB: c.b,
+          isActive: !!b.isActive
         });
       }
     }
     const numBoxes = fastBoxes.length;
+    const activeBox = fastBoxes.find((b) => b.isActive);
     for (let i = 0; i < count; i++) {
       const idx3 = i * 3;
       const px = positions[idx3];
       const py = positions[idx3 + 1];
       const pz = positions[idx3 + 2];
-      let v = 0.5;
       if (intensities && i < intensities.length) {
-        const rawInt = intensities[i];
-        v = rawInt <= 1 ? rawInt : Math.min(1, rawInt / 255);
+        intensities[i];
       }
       let matchedBox = null;
       let matchCount = 0;
@@ -2977,35 +3898,157 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
       }
+      let isCutOut = false;
+      let isEdgeSnap = false;
+      if (activeBox) {
+        const adx = px - activeBox.cx;
+        const ady = py - activeBox.cy;
+        const adz = pz - activeBox.cz;
+        if (Math.abs(adx) <= activeBox.maxR + 0.15 && Math.abs(ady) <= activeBox.maxR + 0.15 && Math.abs(adz) <= activeBox.maxR + 0.15) {
+          let alx = adx * activeBox.cosY - ady * activeBox.sinY;
+          let aly = adx * activeBox.sinY + ady * activeBox.cosY;
+          let alz = adz;
+          if (activeBox.rx || activeBox.ry) {
+            const cosP = Math.cos(-activeBox.ry);
+            const sinP = Math.sin(-activeBox.ry);
+            const lx2 = alx * cosP + alz * sinP;
+            const lz2 = -alx * sinP + alz * cosP;
+            const cosR = Math.cos(-activeBox.rx);
+            const sinR = Math.sin(-activeBox.rx);
+            const ly2 = aly * cosR - lz2 * sinR;
+            const lz3 = aly * sinR + lz2 * cosR;
+            alx = lx2;
+            aly = ly2;
+            alz = lz3;
+          }
+          const zFloor = -activeBox.halfH + 0.15;
+          const zCeil = activeBox.halfH + 0.1;
+          if (alz >= zFloor && alz <= zCeil) {
+            const dFront = alx - activeBox.halfL;
+            const dRear = -activeBox.halfL - alx;
+            const dLeft = aly - activeBox.halfW;
+            const dRight = -activeBox.halfW - aly;
+            const dRoof = alz - activeBox.halfH;
+            const isCutFront = dFront > 0.01 && dFront <= 0.08 && Math.abs(aly) <= activeBox.halfW + 0.05;
+            const isCutRear = dRear > 0.01 && dRear <= 0.08 && Math.abs(aly) <= activeBox.halfW + 0.05;
+            const isCutLeft = dLeft > 0.01 && dLeft <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05;
+            const isCutRight = dRight > 0.01 && dRight <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05;
+            const isCutRoof = dRoof > 0.01 && dRoof <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05 && Math.abs(aly) <= activeBox.halfW + 0.05;
+            if (isCutFront || isCutRear || isCutLeft || isCutRight || isCutRoof) {
+              isCutOut = true;
+            } else if (Math.abs(alx) <= activeBox.halfL + 0.01 && Math.abs(aly) <= activeBox.halfW + 0.01 && alz <= activeBox.halfH + 0.01) {
+              const distX = Math.min(Math.abs(alx - activeBox.halfL), Math.abs(alx + activeBox.halfL));
+              const distY = Math.min(Math.abs(aly - activeBox.halfW), Math.abs(aly + activeBox.halfW));
+              const distZ = Math.abs(alz - activeBox.halfH);
+              if (Math.min(distX, distY, distZ) <= 0.03) {
+                isEdgeSnap = true;
+              }
+            }
+          }
+        }
+      }
       if (matchCount >= 2) {
         colors[idx3] = OVERLAP_WARNING_COLOR.r;
         colors[idx3 + 1] = OVERLAP_WARNING_COLOR.g;
         colors[idx3 + 2] = OVERLAP_WARNING_COLOR.b;
+      } else if (isCutOut) {
+        colors[idx3] = CUT_OUT_WARNING_COLOR.r;
+        colors[idx3 + 1] = CUT_OUT_WARNING_COLOR.g;
+        colors[idx3 + 2] = CUT_OUT_WARNING_COLOR.b;
+      } else if (isEdgeSnap) {
+        colors[idx3] = EDGE_SNAP_COLOR.r;
+        colors[idx3 + 1] = EDGE_SNAP_COLOR.g;
+        colors[idx3 + 2] = EDGE_SNAP_COLOR.b;
       } else if (matchedBox) {
-        const factor = isPlainMode ? 0.9 : 0.4 + 0.6 * v;
+        const factor = 1;
         colors[idx3] = matchedBox.colorR * factor;
         colors[idx3 + 1] = matchedBox.colorG * factor;
         colors[idx3 + 2] = matchedBox.colorB * factor;
       } else {
-        if (isPlainMode) {
-          colors[idx3] = plainR;
-          colors[idx3 + 1] = plainG;
-          colors[idx3 + 2] = plainB;
-        } else {
-          const boostV = Math.min(1, v * 1.25);
-          if (v >= 0.7) {
-            colors[idx3] = 1;
-            colors[idx3 + 1] = 0.96;
-            colors[idx3 + 2] = 0.5 + 0.5 * boostV;
-          } else {
-            colors[idx3] = boostV;
-            colors[idx3 + 1] = boostV;
-            colors[idx3 + 2] = boostV;
-          }
-        }
+        colors[idx3] = plainR;
+        colors[idx3 + 1] = plainG;
+        colors[idx3 + 2] = plainB;
       }
     }
     return colors;
+  }
+  function transformVectorInverseEuler(v, rx = 0, ry = 0, rz = 0) {
+    const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
+    const x1 = v.x * cosZ + v.y * sinZ;
+    const y1 = -v.x * sinZ + v.y * cosZ;
+    const z1 = v.z;
+    const cosY = Math.cos(ry), sinY = Math.sin(ry);
+    const x2 = x1 * cosY - z1 * sinY;
+    const y2 = y1;
+    const z2 = x1 * sinY + z1 * cosY;
+    const cosX = Math.cos(rx), sinX = Math.sin(rx);
+    const x3 = x2;
+    const y3 = y2 * cosX + z2 * sinX;
+    const z3 = -y2 * sinX + z2 * cosX;
+    return { x: x3, y: y3, z: z3 };
+  }
+  function intersectRayWithOBB(ray, box, padding = 0.12) {
+    if (box.l <= 0 || box.w <= 0 || box.h <= 0) return null;
+    const hx = box.l / 2 + padding;
+    const hy = box.w / 2 + padding;
+    const hz = box.h / 2 + padding;
+    const P = {
+      x: ray.origin.x - box.x,
+      y: ray.origin.y - box.y,
+      z: ray.origin.z - box.z
+    };
+    const D = ray.direction;
+    const rx = box.roll || 0;
+    const ry = box.pitch || 0;
+    const rz = box.yaw || 0;
+    const Ploc = transformVectorInverseEuler(P, rx, ry, rz);
+    const Dloc = transformVectorInverseEuler(D, rx, ry, rz);
+    let tMin = -Infinity;
+    let tMax = Infinity;
+    if (Math.abs(Dloc.x) > 1e-7) {
+      let t1 = (-hx - Ploc.x) / Dloc.x;
+      let t2 = (hx - Ploc.x) / Dloc.x;
+      if (t1 > t2) {
+        const t = t1;
+        t1 = t2;
+        t2 = t;
+      }
+      tMin = Math.max(tMin, t1);
+      tMax = Math.min(tMax, t2);
+      if (tMin > tMax) return null;
+    } else if (Math.abs(Ploc.x) > hx) {
+      return null;
+    }
+    if (Math.abs(Dloc.y) > 1e-7) {
+      let t1 = (-hy - Ploc.y) / Dloc.y;
+      let t2 = (hy - Ploc.y) / Dloc.y;
+      if (t1 > t2) {
+        const t = t1;
+        t1 = t2;
+        t2 = t;
+      }
+      tMin = Math.max(tMin, t1);
+      tMax = Math.min(tMax, t2);
+      if (tMin > tMax) return null;
+    } else if (Math.abs(Ploc.y) > hy) {
+      return null;
+    }
+    if (Math.abs(Dloc.z) > 1e-7) {
+      let t1 = (-hz - Ploc.z) / Dloc.z;
+      let t2 = (hz - Ploc.z) / Dloc.z;
+      if (t1 > t2) {
+        const t = t1;
+        t1 = t2;
+        t2 = t;
+      }
+      tMin = Math.max(tMin, t1);
+      tMax = Math.min(tMax, t2);
+      if (tMin > tMax) return null;
+    } else if (Math.abs(Ploc.z) > hz) {
+      return null;
+    }
+    if (tMax < 0) return null;
+    return tMin >= 0 ? tMin : tMax;
   }
   if (typeof globalThis !== "undefined") {
     globalThis.boxCorners = boxCorners;
@@ -3021,12 +4064,23 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     globalThis.estimateEgoRoadGroundZ = estimateEgoRoadGroundZ;
     globalThis.detectTrueHeadZ = detectTrueHeadZ;
     globalThis.computeGroundSlopesAndZ = computeGroundSlopesAndZ;
+    globalThis.estimateGroundSlopeInRadius = estimateGroundSlopeInRadius$1;
     globalThis.fitYawToLaneIntensity = fitYawToLaneIntensity$1;
     globalThis.isPointInsideBox3D = isPointInsideBox3D;
     globalThis.computePointCloudColors = computePointCloudColors;
     globalThis.DISTINCT_TRACK_PALETTE = DISTINCT_TRACK_PALETTE;
     globalThis.OVERLAP_WARNING_COLOR = OVERLAP_WARNING_COLOR;
+    globalThis.EDGE_SNAP_COLOR = EDGE_SNAP_COLOR;
+    globalThis.CUT_OUT_WARNING_COLOR = CUT_OUT_WARNING_COLOR;
+    globalThis.computeBoxEdgeContacts = computeBoxEdgeContacts;
     globalThis.getDistinctTrackColor = getDistinctTrackColor;
+    globalThis.analyzeOrientedDensityEnvelope = analyzeOrientedDensityEnvelope;
+    globalThis.computeAODEDensityEnvelope = computeAODEDensityEnvelope;
+    globalThis.CLASS_SIZE_LIMITS = CLASS_SIZE_LIMITS;
+    globalThis.axes = axes;
+    globalThis.transformVectorInverseEuler = transformVectorInverseEuler;
+    globalThis.intersectRayWithOBB = intersectRayWithOBB;
+    globalThis.clusterByPointDilation5x = clusterByPointDilation5x;
   }
   if (typeof window !== "undefined") {
     window.boxCorners = boxCorners;
@@ -3042,17 +4096,173 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     window.estimateEgoRoadGroundZ = estimateEgoRoadGroundZ;
     window.detectTrueHeadZ = detectTrueHeadZ;
     window.computeGroundSlopesAndZ = computeGroundSlopesAndZ;
+    window.estimateGroundSlopeInRadius = estimateGroundSlopeInRadius$1;
     window.fitYawToLaneIntensity = fitYawToLaneIntensity$1;
     window.isPointInsideBox3D = isPointInsideBox3D;
     window.computePointCloudColors = computePointCloudColors;
     window.DISTINCT_TRACK_PALETTE = DISTINCT_TRACK_PALETTE;
     window.OVERLAP_WARNING_COLOR = OVERLAP_WARNING_COLOR;
+    window.EDGE_SNAP_COLOR = EDGE_SNAP_COLOR;
+    window.CUT_OUT_WARNING_COLOR = CUT_OUT_WARNING_COLOR;
+    window.computeBoxEdgeContacts = computeBoxEdgeContacts;
     window.getDistinctTrackColor = getDistinctTrackColor;
+    window.analyzeOrientedDensityEnvelope = analyzeOrientedDensityEnvelope;
+    window.computeAODEDensityEnvelope = computeAODEDensityEnvelope;
+    window.CLASS_SIZE_LIMITS = CLASS_SIZE_LIMITS;
+    window.axes = axes;
+    window.transformVectorInverseEuler = transformVectorInverseEuler;
+    window.intersectRayWithOBB = intersectRayWithOBB;
+    window.clusterByPointDilation5x = clusterByPointDilation5x;
   }
   function mainWorldScript() {
     if (window.__CVAT_3D_SUITE_INJECTED__) return;
     window.__CVAT_3D_SUITE_INJECTED__ = true;
     console.log("[CVAT 3D Suite] Main-World Injected Bridge đã sẵn sàng (LiDAR Point Cloud Engine, Auto-Fit & Canvas Select).");
+    function guardPointsInstance(obj) {
+      if (!obj) return;
+      if (!obj.__cvat_raycast_guarded__) {
+        obj.__cvat_raycast_guarded__ = true;
+        obj.raycast = () => {
+        };
+      }
+      try {
+        const proto = Object.getPrototypeOf(obj);
+        if (proto && !proto.__cvat_proto_guarded__) {
+          proto.__cvat_proto_guarded__ = true;
+          proto.raycast = () => {
+          };
+        }
+        if (obj.constructor && obj.constructor.prototype && !obj.constructor.prototype.__cvat_proto_guarded__) {
+          obj.constructor.prototype.__cvat_proto_guarded__ = true;
+          obj.constructor.prototype.raycast = () => {
+          };
+        }
+      } catch (_) {
+      }
+    }
+    function installGlobalThreeRaycastGuard(target) {
+      var _a, _b, _c, _d, _e, _f, _g;
+      try {
+        const candidates = [];
+        if (target) candidates.push(target);
+        if (typeof window !== "undefined") {
+          const win = window;
+          if (win.THREE) candidates.push(win.THREE);
+          if (win.__THREE__) candidates.push(win.__THREE__);
+        }
+        try {
+          const store = getReduxStore();
+          const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+          if (canvas == null ? void 0 : canvas.THREE) candidates.push(canvas.THREE);
+          if ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.THREE) candidates.push(canvas.view.THREE);
+          if ((_e = canvas == null ? void 0 : canvas.view) == null ? void 0 : _e.views) {
+            for (const k of ["perspective", "top", "side", "front"]) {
+              const v = canvas.view.views[k];
+              if (v == null ? void 0 : v.THREE) candidates.push(v.THREE);
+              if ((_f = v == null ? void 0 : v.renderer) == null ? void 0 : _f.constructor) candidates.push(v.renderer.constructor);
+              if (v == null ? void 0 : v.scene) candidates.push(v.scene);
+            }
+          }
+        } catch (_) {
+        }
+        for (const cand of candidates) {
+          if (!cand) continue;
+          let PointsCtor = cand.Points;
+          if (!PointsCtor) {
+            if (typeof cand === "function" && (cand.name === "Points" || ((_g = cand.prototype) == null ? void 0 : _g.isPoints))) {
+              PointsCtor = cand;
+            } else if (cand.isPoints && cand.constructor) {
+              PointsCtor = cand.constructor;
+            }
+          }
+          if (PointsCtor && PointsCtor.prototype && !PointsCtor.prototype.__cvat_proto_guarded__) {
+            PointsCtor.prototype.__cvat_proto_guarded__ = true;
+            PointsCtor.prototype.raycast = () => {
+            };
+          }
+          let RaycasterCtor = cand.Raycaster;
+          if (!RaycasterCtor) {
+            if (typeof cand === "function" && cand.name === "Raycaster") {
+              RaycasterCtor = cand;
+            } else if (cand.intersectObjects && cand.constructor) {
+              RaycasterCtor = cand.constructor;
+            }
+          }
+          if (RaycasterCtor && RaycasterCtor.prototype && !RaycasterCtor.prototype.__cvat_proto_guarded__) {
+            RaycasterCtor.prototype.__cvat_proto_guarded__ = true;
+            const origIntersectObject = RaycasterCtor.prototype.intersectObject;
+            RaycasterCtor.prototype.intersectObject = function(object, recursive, optionalTarget) {
+              if (object && (object.isPoints || object.type === "Points")) {
+                return optionalTarget || [];
+              }
+              return origIntersectObject.call(this, object, recursive, optionalTarget);
+            };
+            const origIntersectObjects = RaycasterCtor.prototype.intersectObjects;
+            RaycasterCtor.prototype.intersectObjects = function(objects, recursive, optionalTarget) {
+              if (!Array.isArray(objects)) return optionalTarget || [];
+              const filtered = objects.filter((o) => o && !o.isPoints && o.type !== "Points");
+              return origIntersectObjects.call(this, filtered, recursive, optionalTarget);
+            };
+          }
+        }
+      } catch (_) {
+      }
+    }
+    function hookSceneForPointsGuard(scene) {
+      if (!scene) return;
+      if (typeof scene.traverse === "function") {
+        scene.traverse((obj) => {
+          if (obj && (obj.isPoints || obj.type === "Points")) {
+            guardPointsInstance(obj);
+            installGlobalThreeRaycastGuard(obj);
+          }
+        });
+      }
+      if (typeof scene.add === "function" && !scene.__cvat_add_guarded__) {
+        scene.__cvat_add_guarded__ = true;
+        const origAdd = scene.add;
+        scene.add = function(...objects) {
+          for (const item of objects) {
+            if (item) {
+              if (item.isPoints || item.type === "Points") {
+                guardPointsInstance(item);
+                installGlobalThreeRaycastGuard(item);
+              }
+              if (typeof item.traverse === "function") {
+                item.traverse((child) => {
+                  if (child && (child.isPoints || child.type === "Points")) {
+                    guardPointsInstance(child);
+                    installGlobalThreeRaycastGuard(child);
+                  }
+                });
+              }
+            }
+          }
+          return origAdd.apply(this, objects);
+        };
+      }
+    }
+    function hookAllScenes() {
+      var _a, _b, _c, _d, _e, _f;
+      try {
+        const store = getReduxStore();
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        const scenes = [];
+        if ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views) {
+          for (const k of ["perspective", "top", "side", "front"]) {
+            const s = (_e = canvas.view.views[k]) == null ? void 0 : _e.scene;
+            if (s && !scenes.includes(s)) scenes.push(s);
+          }
+        }
+        if (((_f = canvas == null ? void 0 : canvas.view) == null ? void 0 : _f.scene) && !scenes.includes(canvas.view.scene)) scenes.push(canvas.view.scene);
+        if ((canvas == null ? void 0 : canvas.scene) && !scenes.includes(canvas.scene)) scenes.push(canvas.scene);
+        for (const sc of scenes) {
+          hookSceneForPointsGuard(sc);
+        }
+      } catch (_) {
+      }
+    }
+    installGlobalThreeRaycastGuard();
     function flipYawRad(yaw) {
       let newYaw = yaw + Math.PI;
       while (newYaw > Math.PI) newYaw -= 2 * Math.PI;
@@ -3088,8 +4298,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r;
       try {
         const store = getReduxStore();
-        const canvas2 = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        const pScene = (_f = (_e = (_d = canvas2 == null ? void 0 : canvas2.view) == null ? void 0 : _d.views) == null ? void 0 : _e.perspective) == null ? void 0 : _f.scene;
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        const pScene = (_f = (_e = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views) == null ? void 0 : _e.perspective) == null ? void 0 : _f.scene;
         if (!pScene) return null;
         let found = null;
         pScene.traverse((obj) => {
@@ -3133,26 +4343,209 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     let currentPointColorMode = typeof localStorage !== "undefined" && localStorage.getItem("cvat_3d_point_color_mode") === "plain" ? "plain" : "intensity";
     let currentColorizeBoxed = typeof localStorage !== "undefined" ? localStorage.getItem("cvat_3d_colorize_boxed") !== "false" : true;
-    let currentGroundPlaneVisible = typeof localStorage !== "undefined" ? localStorage.getItem("cvat_3d_ground_plane_visible") !== "false" : true;
-    let isColorizingRunning = false;
-    let groundPlaneMeshGroup = null;
-    let singleFrameColorizeTimer = null;
-    function getAllScenePointsObjects() {
+    let currentCanvasTheme = typeof localStorage !== "undefined" && localStorage.getItem("cvat_3d_canvas_theme") === "dark" ? "dark" : "light";
+    let currentOrthoPointSize = 3.5;
+    try {
+      const savedOrthoSize = localStorage.getItem("cvat_3d_ortho_point_size");
+      if (savedOrthoSize) {
+        const parsed = parseFloat(savedOrthoSize);
+        if (!isNaN(parsed) && parsed >= 1 && parsed <= 10) {
+          currentOrthoPointSize = parsed;
+        }
+      }
+    } catch (_) {
+    }
+    function applyOrthoPointSize(size) {
       var _a, _b, _c;
+      currentOrthoPointSize = size;
+      try {
+        localStorage.setItem("cvat_3d_ortho_point_size", String(size));
+      } catch (_) {
+      }
       try {
         const store = getReduxStore();
-        const canvas2 = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        if (!canvas2 || !canvas2.view || !canvas2.view.views) return [];
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (canvas && typeof canvas.render === "function") {
+          canvas.render();
+        }
+      } catch (_) {
+      }
+    }
+    let isColorizingRunning = false;
+    let isCanvasInteracting = false;
+    let singleFrameColorizeTimer = null;
+    function applyCanvasThemeInMainWorld(theme) {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+      try {
+        if (theme) currentCanvasTheme = theme;
+        if (typeof localStorage !== "undefined") {
+          try {
+            localStorage.setItem("cvat_3d_canvas_theme", currentCanvasTheme);
+          } catch (_) {
+          }
+        }
+        const store = getReduxStore();
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        const isLight = currentCanvasTheme === "light";
+        const bgColor = isLight ? 16777215 : 0;
+        const bgCss = isLight ? "#ffffff" : "#000000";
+        if ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views) {
+          const views2 = canvas.view.views;
+          const winThree = window.THREE;
+          let ColorCtor = (winThree == null ? void 0 : winThree.Color) || ((_e = canvas == null ? void 0 : canvas.THREE) == null ? void 0 : _e.Color) || ((_g = (_f = canvas == null ? void 0 : canvas.view) == null ? void 0 : _f.THREE) == null ? void 0 : _g.Color);
+          const viewKeys = Object.keys(views2);
+          for (const key of viewKeys) {
+            const v = views2[key];
+            if (!v) continue;
+            if (v.scene) {
+              if (v.scene.background && typeof v.scene.background.setHex === "function") {
+                v.scene.background.setHex(bgColor);
+              } else {
+                if (!ColorCtor) {
+                  if (((_h = v.scene.background) == null ? void 0 : _h.constructor) && typeof v.scene.background.constructor === "function") {
+                    ColorCtor = v.scene.background.constructor;
+                  } else {
+                    v.scene.traverse((obj) => {
+                      var _a2;
+                      if (!ColorCtor && ((_a2 = obj.material) == null ? void 0 : _a2.color) && typeof obj.material.color.setHex === "function") {
+                        ColorCtor = obj.material.color.constructor;
+                      }
+                    });
+                  }
+                }
+                if (ColorCtor && typeof ColorCtor === "function") {
+                  v.scene.background = new ColorCtor(bgColor);
+                } else {
+                  v.scene.background = null;
+                }
+              }
+            }
+            if (v.renderer && typeof v.renderer.setClearColor === "function") {
+              v.renderer.setClearColor(bgColor, 1);
+            }
+          }
+        }
+        let styleEl = document.getElementById("cvat-3d-suite-canvas-theme-style");
+        if (!styleEl) {
+          styleEl = document.createElement("style");
+          styleEl.id = "cvat-3d-suite-canvas-theme-style";
+          document.head.appendChild(styleEl);
+        }
+        styleEl.textContent = `
+        .cvat-canvas-container,
+        .cvat-canvas3d-perspective,
+        .cvat-canvas3d-topview,
+        .cvat-canvas3d-sideview,
+        .cvat-canvas3d-frontview,
+        .cvat-canvas3d-orthographic-view,
+        .cvat-canvas3d-orthographic-view canvas,
+        .cvat-canvas-container canvas {
+          background-color: ${bgCss} !important;
+          transform: translateZ(0) !important;
+          will-change: transform !important;
+          isolation: isolate !important;
+        }
+        .cvat-canvas3d-orthographic-view-header,
+        .cvat-canvas3d-perspective-header {
+          color: ${isLight ? "#1e293b" : "#f8fafc"} !important;
+        }
+
+        /* Tối ưu hóa sâu CSS Virtualization cho Sidebar CVAT: Ngắt render 85% thẻ ngoài màn hình */
+        .cvat-objects-sidebar-states-list > div,
+        .cvat-objects-sidebar-state-item {
+          content-visibility: auto !important;
+          contain-intrinsic-size: 0 46px !important;
+        }
+
+        /* Triệt tiêu độ trễ hoạt họa thừa trên Sidebar để phản hồi click tức thì 0ms */
+        .cvat-objects-sidebar-state-item,
+        .cvat-objects-sidebar-state-item * {
+          transition: none !important;
+        }
+      `;
+        if (canvas && typeof canvas.render === "function") {
+          canvas.render();
+        }
+        const views = (_i = canvas == null ? void 0 : canvas.view) == null ? void 0 : _i.views;
+        if (views) {
+          for (const key of ["perspective", "top", "side", "front"]) {
+            const v = views[key];
+            if (v && typeof v.render === "function") {
+              try {
+                v.render();
+              } catch (_) {
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[CVAT 3D Suite] Lỗi applyCanvasThemeInMainWorld:", err);
+      }
+    }
+    function getAllScenePointsObjects() {
+      var _a, _b, _c, _d;
+      try {
+        const store = getReduxStore();
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (!canvas || !canvas.view) return [];
         const pointsObjects = [];
-        const views = canvas2.view.views;
-        const viewKeys = ["perspective", "top", "side", "front"];
-        for (const key of viewKeys) {
-          const v = views[key];
-          const scene = v == null ? void 0 : v.scene;
+        const scenes = [];
+        const views = canvas.view.views;
+        if (views) {
+          const viewKeys = ["perspective", "top", "side", "front"];
+          for (const key of viewKeys) {
+            const s = (_d = views[key]) == null ? void 0 : _d.scene;
+            if (s && !scenes.includes(s)) scenes.push(s);
+          }
+        }
+        if (canvas.view.scene && !scenes.includes(canvas.view.scene)) {
+          scenes.push(canvas.view.scene);
+        }
+        if (canvas.scene && !scenes.includes(canvas.scene)) {
+          scenes.push(canvas.scene);
+        }
+        for (const scene of scenes) {
           if (!scene) continue;
+          hookSceneForPointsGuard(scene);
+          if (typeof scene.traverse !== "function") continue;
           scene.traverse((obj) => {
             var _a2, _b2, _c2;
-            if ((obj.isPoints || obj.type === "Points") && ((_c2 = (_b2 = (_a2 = obj.geometry) == null ? void 0 : _a2.attributes) == null ? void 0 : _b2.position) == null ? void 0 : _c2.count) > 5e3 && !pointsObjects.includes(obj)) {
+            if ((obj.isPoints || obj.type === "Points") && ((_c2 = (_b2 = (_a2 = obj.geometry) == null ? void 0 : _a2.attributes) == null ? void 0 : _b2.position) == null ? void 0 : _c2.count) >= 10 && !pointsObjects.includes(obj)) {
+              guardPointsInstance(obj);
+              installGlobalThreeRaycastGuard(obj);
+              if (!obj.__cvat_ortho_size_hooked__) {
+                obj.__cvat_ortho_size_hooked__ = true;
+                const originalOnBeforeRender = obj.onBeforeRender;
+                obj.onBeforeRender = function(renderer, scene2, camera, geometry, material, group) {
+                  if (typeof originalOnBeforeRender === "function") {
+                    try {
+                      originalOnBeforeRender.call(this, renderer, scene2, camera, geometry, material, group);
+                    } catch (_) {
+                    }
+                  }
+                  const isOrtho = camera && (camera.isOrthographicCamera || camera.type === "OrthographicCamera");
+                  const mats = Array.isArray(this.material) ? this.material : this.material ? [this.material] : [];
+                  for (const m of mats) {
+                    if (!m) continue;
+                    if (m.__cvat_native_point_size__ === void 0) {
+                      m.__cvat_native_point_size__ = typeof m.size === "number" ? m.size : 1;
+                    }
+                    if (isOrtho) {
+                      if (m.size !== currentOrthoPointSize) {
+                        m.size = currentOrthoPointSize;
+                      }
+                    } else {
+                      if (typeof m.size === "number" && m.size !== currentOrthoPointSize && m.size !== m.__cvat_native_point_size__) {
+                        m.__cvat_native_point_size__ = m.size;
+                      }
+                      const nativeSize = m.__cvat_native_point_size__;
+                      if (m.size !== nativeSize) {
+                        m.size = nativeSize;
+                      }
+                    }
+                  }
+                };
+              }
               pointsObjects.push(obj);
             }
           });
@@ -3228,7 +4621,73 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       { r: 0.29, g: 0.87, b: 0.5 }
       // 31: Xanh Táo Apple Green (#4ade80)
     ];
-    const OVERLAP_WARNING_COLOR2 = { r: 1, g: 0.05, b: 0.2 };
+    const DEEP_VIVID_TRACK_PALETTE2 = [
+      { r: 0.02, g: 0.38, b: 0.68 },
+      // 0: Xanh Ocean Đậm Sâu (#0369a1)
+      { r: 0.7, g: 0.32, b: 0.02 },
+      // 1: Vàng Hổ Phách Nâu Đậm (#b45309)
+      { r: 0.4, g: 0.08, b: 0.68 },
+      // 2: Tím Hoàng Gia Đậm (#6b21a8)
+      { r: 0.01, g: 0.45, b: 0.28 },
+      // 3: Xanh Lục Bảo Đậm Sâu (#047857)
+      { r: 0.65, g: 0.05, b: 0.15 },
+      // 4: Đỏ Ruby / Đỏ Mận Đậm (#991b1b)
+      { r: 0.08, g: 0.22, b: 0.72 },
+      // 5: Xanh Cobalt Đậm (#1e40af)
+      { r: 0.22, g: 0.38, b: 0.04 },
+      // 6: Xanh Rêu Đậm Sâu (#3f6212)
+      { r: 0.65, g: 0.18, b: 0.04 },
+      // 7: Cam Cháy Đậm (#9a3412)
+      { r: 0.04, g: 0.36, b: 0.34 },
+      // 8: Xanh Teal Đậm Sâu (#115e59)
+      { r: 0.58, g: 0.25, b: 0.02 },
+      // 9: Nâu Đồng Đậm (#78350f)
+      { r: 0.2, g: 0.16, b: 0.65 },
+      // 10: Tím Indigo Đậm Sâu (#3730a3)
+      { r: 0.01, g: 0.38, b: 0.24 },
+      // 11: Xanh Thông Đậm (#064e3b)
+      { r: 0.52, g: 0.08, b: 0.58 },
+      // 12: Hồng Tím Fuchsia Đậm (#86198f)
+      { r: 0.01, g: 0.32, b: 0.58 },
+      // 13: Xanh Biển Đậm (#075985)
+      { r: 0.68, g: 0.1, b: 0.02 },
+      // 14: Đỏ Cam Đậm (#991b1b)
+      { r: 0.06, g: 0.42, b: 0.18 },
+      // 15: Xanh Lá Đậm Sâu (#166534)
+      { r: 0.35, g: 0.1, b: 0.62 },
+      // 16: Tím Mận Đậm (#581c87)
+      { r: 0.03, g: 0.35, b: 0.45 },
+      // 17: Xanh Petrol Đậm (#155e75)
+      { r: 0.62, g: 0.04, b: 0.12 },
+      // 18: Đỏ Rượu Vang Đậm (#881337)
+      { r: 0.3, g: 0.44, b: 0.05 },
+      // 19: Vàng Chanh Rêu Đậm (#4d7c0f)
+      { r: 0.02, g: 0.36, b: 0.5 },
+      // 20: Xanh Băng Đậm Sâu (#0e7490)
+      { r: 0.65, g: 0.28, b: 0.05 },
+      // 21: Cam Đất Đậm (#9a3412)
+      { r: 0.38, g: 0.06, b: 0.62 },
+      // 22: Tím Đậm Sâu (#581c87)
+      { r: 0.04, g: 0.32, b: 0.14 },
+      // 23: Xanh Rừng Đậm (#14532d)
+      { r: 0.6, g: 0.06, b: 0.22 },
+      // 24: Hồng Đậm Sâu (#881337)
+      { r: 0.08, g: 0.2, b: 0.58 },
+      // 25: Xanh Navy Đậm (#172554)
+      { r: 0.02, g: 0.3, b: 0.28 },
+      // 26: Xanh Rêu Đen (#042f2e)
+      { r: 0.58, g: 0.26, b: 0.02 },
+      // 27: Vàng Đất Nung Đậm (#78350f)
+      { r: 0.16, g: 0.12, b: 0.55 },
+      // 28: Tím Đêm Đậm (#312e81)
+      { r: 0.02, g: 0.38, b: 0.48 },
+      // 29: Xanh Lam Đậm Sâu (#155e75)
+      { r: 0.55, g: 0.08, b: 0.35 },
+      // 30: Hồng Sen Đậm Sâu (#701a75)
+      { r: 0.08, g: 0.4, b: 0.2 }
+      // 31: Xanh Táo Đậm Sâu (#166534)
+    ];
+    const OVERLAP_WARNING_COLOR2 = { r: 1, g: 0, b: 0.2 };
     function getDistinctTrackColor2(trackId, isActive) {
       let numId = 0;
       if (typeof trackId === "number") {
@@ -3243,9 +4702,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
       }
-      const colorIndex = (numId * 13 + 7) % DISTINCT_TRACK_PALETTE2.length;
-      const baseColor = DISTINCT_TRACK_PALETTE2[colorIndex];
+      const palette = currentCanvasTheme === "light" ? DEEP_VIVID_TRACK_PALETTE2 : DISTINCT_TRACK_PALETTE2;
+      const colorIndex = (numId * 13 + 7) % palette.length;
+      const baseColor = palette[colorIndex];
       if (isActive) {
+        if (currentCanvasTheme === "light") {
+          return {
+            r: Math.min(1, baseColor.r * 0.75 + 0.98 * 0.25),
+            g: Math.min(1, baseColor.g * 0.75 + 0.7 * 0.25),
+            b: Math.min(1, baseColor.b * 0.75 + 0.05 * 0.25)
+          };
+        }
         return {
           r: Math.min(1, baseColor.r * 0.8 + 0.98 * 0.2),
           g: Math.min(1, baseColor.g * 0.8 + 0.8 * 0.2),
@@ -3255,14 +4722,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return baseColor;
     }
     function applyPointCloudColorizationInMainWorld(options) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A;
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E;
       if (isColorizingRunning) return false;
       try {
         if (options == null ? void 0 : options.mode) currentPointColorMode = options.mode;
         if ((options == null ? void 0 : options.colorizeBoxed) !== void 0) currentColorizeBoxed = !!options.colorizeBoxed;
         const store = getReduxStore();
-        const canvas2 = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        if (!canvas2) return false;
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (!canvas) return false;
         const ptsObjs = getAllScenePointsObjects();
         if (ptsObjs.length === 0) return false;
         const curFrame = ((_g = (_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.player) == null ? void 0 : _f.frame) == null ? void 0 : _g.number) ?? ((_k = (_j = (_i = (_h = store == null ? void 0 : store.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.job) == null ? void 0 : _j.instance) == null ? void 0 : _k.frame) ?? 0;
@@ -3280,8 +4747,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           active: { r: 0.98, g: 0.8, b: 0.08 }
           // Vàng chanh Neon (#facc15)
         };
+        const EDGE_SNAP_COLOR2 = { r: 0.98, g: 0.8, b: 0.08 };
+        const CUT_OUT_WARNING_COLOR2 = { r: 0.94, g: 0.27, b: 0.27 };
         const fastBoxesMap = /* @__PURE__ */ new Map();
-        const activeClientId = ((_l = canvas2.view) == null ? void 0 : _l.activatedElementID) || ((_o = (_n = (_m = store == null ? void 0 : store.getState()) == null ? void 0 : _m.annotation) == null ? void 0 : _n.annotations) == null ? void 0 : _o.activatedStateClientID);
+        const activeClientId = ((_n = (_m = (_l = store == null ? void 0 : store.getState()) == null ? void 0 : _l.annotation) == null ? void 0 : _m.annotations) == null ? void 0 : _n.activatedStateClientID) ?? (isCanvasInteracting ? (_o = canvas.view) == null ? void 0 : _o.activatedElementID : null);
         if (currentColorizeBoxed) {
           const states = ((_r = (_q = (_p = store == null ? void 0 : store.getState()) == null ? void 0 : _p.annotation) == null ? void 0 : _q.annotations) == null ? void 0 : _r.states) || [];
           for (const s of states) {
@@ -3296,26 +4765,51 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               const trackId = s.parentID ?? s.trackID ?? clientId;
               const c = getDistinctTrackColor2(trackId, isActive);
               const yaw = pts[5] || 0;
+              const rx = pts[3] || 0;
+              const ry = pts[4] || 0;
+              const hasPitchRoll = rx !== 0 || ry !== 0;
+              const cosP = hasPitchRoll ? Math.cos(-ry) : 1;
+              const sinP = hasPitchRoll ? Math.sin(-ry) : 0;
+              const cosR = hasPitchRoll ? Math.cos(-rx) : 1;
+              const sinR = hasPitchRoll ? Math.sin(-rx) : 0;
+              const halfL = l / 2;
+              const halfW = w / 2;
+              const halfH = h2 / 2;
+              const maxR = Math.sqrt(halfL * halfL + halfW * halfW + halfH * halfH);
+              const maxR2 = maxR * maxR;
               fastBoxesMap.set(clientId, {
                 cx: pts[0],
                 cy: pts[1],
                 cz: pts[2],
-                rx: pts[3] || 0,
-                ry: pts[4] || 0,
+                rx,
+                ry,
                 rz: yaw,
                 cosY: Math.cos(-yaw),
                 sinY: Math.sin(-yaw),
-                halfL: l / 2,
-                halfW: w / 2,
-                halfH: h2 / 2,
-                maxR: Math.max(l, w, h2) * 0.75,
+                cosP,
+                sinP,
+                cosR,
+                sinR,
+                hasPitchRoll,
+                halfL,
+                halfW,
+                halfH,
+                maxR,
+                maxR2,
+                minX: pts[0] - maxR,
+                maxX: pts[0] + maxR,
+                minY: pts[1] - maxR,
+                maxY: pts[1] + maxR,
+                minZ: pts[2] - maxR,
+                maxZ: pts[2] + maxR,
                 colorR: c.r,
                 colorG: c.g,
-                colorB: c.b
+                colorB: c.b,
+                isActive
               });
             }
           }
-          const drawnObjects = ((_s = canvas2.view) == null ? void 0 : _s.drawnObjects) || {};
+          const drawnObjects = ((_s = canvas.view) == null ? void 0 : _s.drawnObjects) || {};
           for (const idStr of Object.keys(drawnObjects)) {
             const drawnItem = drawnObjects[idStr];
             const data = drawnItem == null ? void 0 : drawnItem.data;
@@ -3329,21 +4823,104 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               let w = pts[7];
               let h2 = pts[8];
               if (drawnItem.cuboid) {
-                const cp = drawnItem.cuboid.position || ((_t = drawnItem.cuboid.perspective) == null ? void 0 : _t.position) || ((_u = drawnItem.cuboid.top) == null ? void 0 : _u.position);
-                const cr = drawnItem.cuboid.rotation || ((_v = drawnItem.cuboid.perspective) == null ? void 0 : _v.rotation) || ((_w = drawnItem.cuboid.top) == null ? void 0 : _w.rotation);
-                const cs = drawnItem.cuboid.scale || ((_x = drawnItem.cuboid.perspective) == null ? void 0 : _x.scale) || ((_y = drawnItem.cuboid.top) == null ? void 0 : _y.scale);
-                if (cp && typeof cp.x === "number") {
-                  cx = cp.x;
-                  cy = cp.y;
-                  cz = cp.z;
+                const basePos = { x: pts[0], y: pts[1], z: pts[2] };
+                const baseYaw = pts[5] || 0;
+                const baseScale = { l: pts[6], w: pts[7], h: pts[8] };
+                const c2 = drawnItem.cuboid;
+                let bestDeltaPos = 0;
+                let bestPos = null;
+                const candidateViews = [
+                  { name: "top", obj: c2.top },
+                  { name: "side", obj: c2.side },
+                  { name: "front", obj: c2.front },
+                  { name: "perspective", obj: c2.perspective },
+                  { name: "root", obj: c2 }
+                ];
+                for (const cand of candidateViews) {
+                  const p = (_t = cand.obj) == null ? void 0 : _t.position;
+                  if (p && typeof p.x === "number" && typeof p.y === "number" && typeof p.z === "number") {
+                    let dx = p.x - basePos.x;
+                    let dy = p.y - basePos.y;
+                    let dz = p.z - basePos.z;
+                    if (cand.name === "top") dz = 0;
+                    if (cand.name === "side") dy = 0;
+                    if (cand.name === "front") dx = 0;
+                    const delta = dx * dx + dy * dy + dz * dz;
+                    if (delta > bestDeltaPos && delta > 1e-4) {
+                      bestDeltaPos = delta;
+                      bestPos = {
+                        x: cand.name === "front" ? basePos.x : p.x,
+                        y: cand.name === "side" ? basePos.y : p.y,
+                        z: cand.name === "top" ? basePos.z : p.z
+                      };
+                    }
+                  }
                 }
-                if (cr && typeof cr.z === "number") {
-                  yaw = cr.z;
+                if (bestPos) {
+                  cx = bestPos.x;
+                  cy = bestPos.y;
+                  cz = bestPos.z;
+                } else {
+                  const fallbackPos = c2.position || ((_u = c2.perspective) == null ? void 0 : _u.position) || ((_v = c2.top) == null ? void 0 : _v.position);
+                  if (fallbackPos && typeof fallbackPos.x === "number") {
+                    cx = fallbackPos.x;
+                    cy = fallbackPos.y;
+                    cz = fallbackPos.z;
+                  }
                 }
-                if (cs && typeof cs.x === "number" && cs.x > 0) {
-                  l = cs.x;
-                  w = cs.y;
-                  h2 = cs.z;
+                let bestDeltaYaw = 0;
+                let bestYaw = null;
+                for (const cand of candidateViews) {
+                  const r = (_w = cand.obj) == null ? void 0 : _w.rotation;
+                  if (r && typeof r.z === "number") {
+                    const dYaw = Math.abs(r.z - baseYaw);
+                    if (dYaw > bestDeltaYaw && dYaw > 1e-4) {
+                      bestDeltaYaw = dYaw;
+                      bestYaw = r.z;
+                    }
+                  }
+                }
+                if (bestYaw !== null) {
+                  yaw = bestYaw;
+                } else {
+                  const fallbackRot = c2.rotation || ((_x = c2.perspective) == null ? void 0 : _x.rotation) || ((_y = c2.top) == null ? void 0 : _y.rotation);
+                  if (fallbackRot && typeof fallbackRot.z === "number") {
+                    yaw = fallbackRot.z;
+                  }
+                }
+                let bestDeltaScale = 0;
+                let bestScale = null;
+                for (const cand of candidateViews) {
+                  const s = (_z = cand.obj) == null ? void 0 : _z.scale;
+                  if (s && typeof s.x === "number" && s.x > 0) {
+                    let dl = Math.abs(s.x - baseScale.l);
+                    let dw = Math.abs(s.y - baseScale.w);
+                    let dh = Math.abs(s.z - baseScale.h);
+                    if (cand.name === "top") dh = 0;
+                    if (cand.name === "side") dw = 0;
+                    if (cand.name === "front") dl = 0;
+                    const delta = dl + dw + dh;
+                    if (delta > bestDeltaScale && delta > 1e-4) {
+                      bestDeltaScale = delta;
+                      bestScale = {
+                        x: cand.name === "front" ? baseScale.l : s.x,
+                        y: cand.name === "side" ? baseScale.w : s.y,
+                        z: cand.name === "top" ? baseScale.h : s.z
+                      };
+                    }
+                  }
+                }
+                if (bestScale) {
+                  l = bestScale.x;
+                  w = bestScale.y;
+                  h2 = bestScale.z;
+                } else {
+                  const fallbackScale = c2.scale || ((_A = c2.perspective) == null ? void 0 : _A.scale) || ((_B = c2.top) == null ? void 0 : _B.scale);
+                  if (fallbackScale && typeof fallbackScale.x === "number" && fallbackScale.x > 0) {
+                    l = fallbackScale.x;
+                    w = fallbackScale.y;
+                    h2 = fallbackScale.z;
+                  }
                 }
               }
               if (l <= 0 || w <= 0 || h2 <= 0) continue;
@@ -3351,32 +4928,114 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               const isActive = clientId === Number(activeClientId);
               const trackId = data.parentID ?? data.trackID ?? clientId;
               const c = getDistinctTrackColor2(trackId, isActive);
+              const rx = pts[3] || 0;
+              const ry = pts[4] || 0;
+              const hasPitchRoll = rx !== 0 || ry !== 0;
+              const cosP = hasPitchRoll ? Math.cos(-ry) : 1;
+              const sinP = hasPitchRoll ? Math.sin(-ry) : 0;
+              const cosR = hasPitchRoll ? Math.cos(-rx) : 1;
+              const sinR = hasPitchRoll ? Math.sin(-rx) : 0;
+              const halfL = l / 2;
+              const halfW = w / 2;
+              const halfH = h2 / 2;
+              const maxR = Math.sqrt(halfL * halfL + halfW * halfW + halfH * halfH);
+              const maxR2 = maxR * maxR;
               fastBoxesMap.set(clientId, {
                 cx,
                 cy,
                 cz,
-                rx: pts[3] || 0,
-                ry: pts[4] || 0,
+                rx,
+                ry,
                 rz: yaw,
                 cosY: Math.cos(-yaw),
                 sinY: Math.sin(-yaw),
-                halfL: l / 2,
-                halfW: w / 2,
-                halfH: h2 / 2,
-                maxR: Math.max(l, w, h2) * 0.75,
+                cosP,
+                sinP,
+                cosR,
+                sinR,
+                hasPitchRoll,
+                halfL,
+                halfW,
+                halfH,
+                maxR,
+                maxR2,
+                minX: cx - maxR,
+                maxX: cx + maxR,
+                minY: cy - maxR,
+                maxY: cy + maxR,
+                minZ: cz - maxR,
+                maxZ: cz + maxR,
                 colorR: c.r,
                 colorG: c.g,
-                colorB: c.b
+                colorB: c.b,
+                isActive
               });
             }
           }
         }
         const fastBoxes = Array.from(fastBoxesMap.values());
+        const activeBox = fastBoxes.find((b) => b.isActive) || (activeClientId ? fastBoxesMap.get(Number(activeClientId)) : null);
         const numBoxes = fastBoxes.length;
         const isPlain = currentPointColorMode === "plain";
-        const plainR = 0.72;
-        const plainG = 0.76;
-        const plainB = 0.82;
+        const isLight = currentCanvasTheme === "light";
+        const plainR = isLight ? 0 : 1;
+        const plainG = isLight ? 0 : 1;
+        const plainB = isLight ? 0 : 1;
+        let globalMinX = Infinity;
+        let globalMaxX = -Infinity;
+        let globalMinY = Infinity;
+        let globalMaxY = -Infinity;
+        let globalMinZ = Infinity;
+        let globalMaxZ = -Infinity;
+        for (let k = 0; k < numBoxes; k++) {
+          const b = fastBoxes[k];
+          if (b.minX < globalMinX) globalMinX = b.minX;
+          if (b.maxX > globalMaxX) globalMaxX = b.maxX;
+          if (b.minY < globalMinY) globalMinY = b.minY;
+          if (b.maxY > globalMaxY) globalMaxY = b.maxY;
+          if (b.minZ < globalMinZ) globalMinZ = b.minZ;
+          if (b.maxZ > globalMaxZ) globalMaxZ = b.maxZ;
+        }
+        let activeMaxR15 = 0;
+        let activeMaxR15_2 = 0;
+        if (activeBox) {
+          activeMaxR15 = activeBox.maxR + 0.15;
+          activeMaxR15_2 = activeMaxR15 * activeMaxR15;
+          const aMinX = activeBox.minX - 0.15;
+          const aMaxX = activeBox.maxX + 0.15;
+          const aMinY = activeBox.minY - 0.15;
+          const aMaxY = activeBox.maxY + 0.15;
+          const aMinZ = activeBox.minZ - 0.15;
+          const aMaxZ = activeBox.maxZ + 0.15;
+          if (aMinX < globalMinX) globalMinX = aMinX;
+          if (aMaxX > globalMaxX) globalMaxX = aMaxX;
+          if (aMinY < globalMinY) globalMinY = aMinY;
+          if (aMaxY > globalMaxY) globalMaxY = aMaxY;
+          if (aMinZ < globalMinZ) globalMinZ = aMinZ;
+          if (aMaxZ > globalMaxZ) globalMaxZ = aMaxZ;
+        }
+        const SPATIAL_GRID_CELL = 8;
+        const spatialBoxGrid = /* @__PURE__ */ new Map();
+        if (numBoxes >= 4) {
+          for (let k = 0; k < numBoxes; k++) {
+            const b = fastBoxes[k];
+            const minGx = Math.floor(b.minX / SPATIAL_GRID_CELL);
+            const maxGx = Math.floor(b.maxX / SPATIAL_GRID_CELL);
+            const minGy = Math.floor(b.minY / SPATIAL_GRID_CELL);
+            const maxGy = Math.floor(b.maxY / SPATIAL_GRID_CELL);
+            for (let gx = minGx; gx <= maxGx; gx++) {
+              for (let gy = minGy; gy <= maxGy; gy++) {
+                const key = gx + 2048 << 12 | gy + 2048 & 4095;
+                let bucket = spatialBoxGrid.get(key);
+                if (!bucket) {
+                  bucket = [];
+                  spatialBoxGrid.set(key, bucket);
+                }
+                bucket.push(k);
+              }
+            }
+          }
+        }
         let anyUpdated = false;
         const processedGeometries = /* @__PURE__ */ new Set();
         for (const obj of ptsObjs) {
@@ -3384,29 +5043,49 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           if (!geom) continue;
           if (processedGeometries.has(geom)) {
             if (obj.material) {
-              obj.material.vertexColors = true;
-              obj.material.needsUpdate = true;
+              const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+              for (const m of mats) {
+                if (m && !m.vertexColors) {
+                  m.vertexColors = true;
+                  m.needsUpdate = true;
+                }
+              }
             }
+            anyUpdated = true;
             continue;
           }
           processedGeometries.add(geom);
-          const posAttr = (_z = geom.attributes) == null ? void 0 : _z.position;
+          const posAttr = (_C = geom.attributes) == null ? void 0 : _C.position;
           if (!posAttr || !posAttr.array) continue;
           const count = posAttr.count;
           const posArray = posAttr.array;
-          const intensityAttr = (_A = geom.attributes.intensity || geom.attributes.intensities) == null ? void 0 : _A.array;
+          const intensityAttr = (_D = geom.attributes.intensity || geom.attributes.intensities) == null ? void 0 : _D.array;
           let colorAttr = geom.attributes.color;
           let colorArray;
           const BufferAttrClass = posAttr.constructor;
           const winThree = window.THREE;
           if (!colorAttr || !colorAttr.array || colorAttr.array.length !== count * 3) {
             colorArray = new Float32Array(count * 3);
+            let created = false;
             if (typeof BufferAttrClass === "function") {
-              geom.setAttribute("color", new BufferAttrClass(colorArray, 3));
-              colorAttr = geom.attributes.color;
-            } else if (winThree && typeof winThree.BufferAttribute === "function") {
-              geom.setAttribute("color", new winThree.BufferAttribute(colorArray, 3));
-              colorAttr = geom.attributes.color;
+              try {
+                geom.setAttribute("color", new BufferAttrClass(colorArray, 3));
+                colorAttr = geom.attributes.color;
+                created = !!colorAttr;
+              } catch (_) {
+              }
+            }
+            if (!created && winThree && typeof winThree.BufferAttribute === "function") {
+              try {
+                geom.setAttribute("color", new winThree.BufferAttribute(colorArray, 3));
+                colorAttr = geom.attributes.color;
+                created = !!colorAttr;
+              } catch (_) {
+              }
+            }
+            if (!colorAttr) {
+              colorAttr = { array: colorArray, needsUpdate: false };
+              geom.attributes.color = colorAttr;
             }
           } else {
             colorArray = colorAttr.array;
@@ -3416,39 +5095,55 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             const px = posArray[idx3];
             const py = posArray[idx3 + 1];
             const pz = posArray[idx3 + 2];
+            if (numBoxes === 0 || px < globalMinX || px > globalMaxX || py < globalMinY || py > globalMaxY || pz < globalMinZ || pz > globalMaxZ) {
+              colorArray[idx3] = plainR;
+              colorArray[idx3 + 1] = plainG;
+              colorArray[idx3 + 2] = plainB;
+              continue;
+            }
             let v = 0.5;
             if (intensityAttr && i < intensityAttr.length) {
               const rawInt = intensityAttr[i];
-              v = rawInt <= 1 ? rawInt : Math.min(1, rawInt / 255);
+              if (typeof rawInt === "number" && !isNaN(rawInt) && isFinite(rawInt)) {
+                v = rawInt <= 1 ? Math.max(0, rawInt) : Math.min(1, Math.max(0, rawInt) / 255);
+              }
             }
             let matched = null;
             let matchCount = 0;
-            if (numBoxes > 0) {
-              for (let k = 0; k < numBoxes; k++) {
+            let candidateIndices = null;
+            if (numBoxes >= 4) {
+              const gx = Math.floor(px * 0.125);
+              const gy = Math.floor(py * 0.125);
+              const key = gx + 2048 << 12 | gy + 2048 & 4095;
+              candidateIndices = spatialBoxGrid.get(key) || null;
+            }
+            if (numBoxes < 4 || candidateIndices && candidateIndices.length > 0) {
+              const candidatesLen = candidateIndices ? candidateIndices.length : numBoxes;
+              for (let cIdx = 0; cIdx < candidatesLen; cIdx++) {
+                const k = candidateIndices ? candidateIndices[cIdx] : cIdx;
                 const b = fastBoxes[k];
+                if (px < b.minX || px > b.maxX || py < b.minY || py > b.maxY || pz < b.minZ || pz > b.maxZ) {
+                  continue;
+                }
                 const dx = px - b.cx;
                 const dy = py - b.cy;
                 const dz = pz - b.cz;
-                if (Math.abs(dx) > b.maxR || Math.abs(dy) > b.maxR || Math.abs(dz) > b.maxR) {
+                if (dx * dx + dy * dy + dz * dz > b.maxR2) {
                   continue;
                 }
                 let lx = dx * b.cosY - dy * b.sinY;
                 let ly = dx * b.sinY + dy * b.cosY;
                 let lz = dz;
-                if (b.rx || b.ry) {
-                  const cosP = Math.cos(-b.ry);
-                  const sinP = Math.sin(-b.ry);
-                  const lx2 = lx * cosP + lz * sinP;
-                  const lz2 = -lx * sinP + lz * cosP;
-                  const cosR = Math.cos(-b.rx);
-                  const sinR = Math.sin(-b.rx);
-                  const ly2 = ly * cosR - lz2 * sinR;
-                  const lz3 = ly * sinR + lz2 * cosR;
+                if (b.hasPitchRoll) {
+                  const lx2 = lx * b.cosP + lz * b.sinP;
+                  const lz2 = -lx * b.sinP + lz * b.cosP;
+                  const ly2 = ly * b.cosR - lz2 * b.sinR;
+                  const lz3 = ly * b.sinR + lz2 * b.cosR;
                   lx = lx2;
                   ly = ly2;
                   lz = lz3;
                 }
-                if (Math.abs(lx) <= b.halfL && Math.abs(ly) <= b.halfW && Math.abs(lz) <= b.halfH) {
+                if (lx >= -b.halfL && lx <= b.halfL && ly >= -b.halfW && ly <= b.halfW && lz >= -b.halfH && lz <= b.halfH) {
                   matchCount++;
                   if (matchCount === 1) {
                     matched = b;
@@ -3459,45 +5154,97 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 }
               }
             }
+            let isCutOut = false;
+            let isEdgeSnap = false;
+            if (activeBox) {
+              const adx = px - activeBox.cx;
+              const ady = py - activeBox.cy;
+              const adz = pz - activeBox.cz;
+              if (adx >= -activeMaxR15 && adx <= activeMaxR15 && ady >= -activeMaxR15 && ady <= activeMaxR15 && adz >= -activeMaxR15 && adz <= activeMaxR15 && adx * adx + ady * ady + adz * adz <= activeMaxR15_2) {
+                let alx = adx * activeBox.cosY - ady * activeBox.sinY;
+                let aly = adx * activeBox.sinY + ady * activeBox.cosY;
+                let alz = adz;
+                if (activeBox.hasPitchRoll) {
+                  const lx2 = alx * activeBox.cosP + alz * activeBox.sinP;
+                  const lz2 = -alx * activeBox.sinP + alz * activeBox.cosP;
+                  const ly2 = aly * activeBox.cosR - lz2 * activeBox.sinR;
+                  const lz3 = aly * activeBox.sinR + lz2 * activeBox.cosR;
+                  alx = lx2;
+                  aly = ly2;
+                  alz = lz3;
+                }
+                const zFloor = -activeBox.halfH + 0.15;
+                const zCeil = activeBox.halfH + 0.1;
+                if (alz >= zFloor && alz <= zCeil) {
+                  const dFront = alx - activeBox.halfL;
+                  const dRear = -activeBox.halfL - alx;
+                  const dLeft = aly - activeBox.halfW;
+                  const dRight = -activeBox.halfW - aly;
+                  const dRoof = alz - activeBox.halfH;
+                  const isCutFront = dFront > 0.01 && dFront <= 0.08 && Math.abs(aly) <= activeBox.halfW + 0.05;
+                  const isCutRear = dRear > 0.01 && dRear <= 0.08 && Math.abs(aly) <= activeBox.halfW + 0.05;
+                  const isCutLeft = dLeft > 0.01 && dLeft <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05;
+                  const isCutRight = dRight > 0.01 && dRight <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05;
+                  const isCutRoof = dRoof > 0.01 && dRoof <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05 && Math.abs(aly) <= activeBox.halfW + 0.05;
+                  if (isCutFront || isCutRear || isCutLeft || isCutRight || isCutRoof) {
+                    isCutOut = true;
+                  } else if (Math.abs(alx) <= activeBox.halfL + 0.01 && Math.abs(aly) <= activeBox.halfW + 0.01 && alz <= activeBox.halfH + 0.01) {
+                    const distX = Math.min(Math.abs(alx - activeBox.halfL), Math.abs(alx + activeBox.halfL));
+                    const distY = Math.min(Math.abs(aly - activeBox.halfW), Math.abs(aly + activeBox.halfW));
+                    const distZ = Math.abs(alz - activeBox.halfH);
+                    if (Math.min(distX, distY, distZ) <= 0.03) {
+                      isEdgeSnap = true;
+                    }
+                  }
+                }
+              }
+            }
             if (matchCount >= 2) {
               colorArray[idx3] = OVERLAP_WARNING_COLOR2.r;
               colorArray[idx3 + 1] = OVERLAP_WARNING_COLOR2.g;
               colorArray[idx3 + 2] = OVERLAP_WARNING_COLOR2.b;
+            } else if (isCutOut) {
+              colorArray[idx3] = CUT_OUT_WARNING_COLOR2.r;
+              colorArray[idx3 + 1] = CUT_OUT_WARNING_COLOR2.g;
+              colorArray[idx3 + 2] = CUT_OUT_WARNING_COLOR2.b;
+            } else if (isEdgeSnap) {
+              colorArray[idx3] = EDGE_SNAP_COLOR2.r;
+              colorArray[idx3 + 1] = EDGE_SNAP_COLOR2.g;
+              colorArray[idx3 + 2] = EDGE_SNAP_COLOR2.b;
             } else if (matched) {
-              const factor = isPlain ? 0.9 : 0.4 + 0.6 * v;
+              const factor = 1;
               colorArray[idx3] = matched.colorR * factor;
               colorArray[idx3 + 1] = matched.colorG * factor;
               colorArray[idx3 + 2] = matched.colorB * factor;
             } else {
-              if (isPlain) {
-                colorArray[idx3] = plainR;
-                colorArray[idx3 + 1] = plainG;
-                colorArray[idx3 + 2] = plainB;
-              } else {
-                const boostV = Math.min(1, v * 1.25);
-                if (v >= 0.7) {
-                  colorArray[idx3] = 1;
-                  colorArray[idx3 + 1] = 0.95;
-                  colorArray[idx3 + 2] = 0.5 + 0.5 * boostV;
-                } else {
-                  colorArray[idx3] = boostV;
-                  colorArray[idx3 + 1] = boostV;
-                  colorArray[idx3 + 2] = boostV;
-                }
+              colorArray[idx3] = plainR;
+              colorArray[idx3 + 1] = plainG;
+              colorArray[idx3 + 2] = plainB;
+            }
+          }
+          if (colorAttr) {
+            colorAttr.needsUpdate = true;
+          }
+          if ((_E = geom.attributes) == null ? void 0 : _E.color) {
+            geom.attributes.color.needsUpdate = true;
+          }
+          if (obj.material) {
+            const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+            for (const m of mats) {
+              if (m && !m.vertexColors) {
+                m.vertexColors = true;
+                m.needsUpdate = true;
               }
             }
           }
-          colorAttr.needsUpdate = true;
-          if (obj.material) {
-            obj.material.vertexColors = true;
-            obj.material.needsUpdate = true;
-          }
           anyUpdated = true;
         }
-        if (anyUpdated && typeof canvas2.render === "function") {
+        if (anyUpdated) {
           isColorizingRunning = true;
           try {
-            canvas2.render();
+            if (typeof canvas.render === "function") {
+              canvas.render();
+            }
           } finally {
             isColorizingRunning = false;
           }
@@ -3508,305 +5255,275 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return false;
       }
     }
-    function getThreeEngineFromScene(scene, canvas2) {
-      var _a;
-      const win = window;
-      if (win.THREE && typeof win.THREE.Mesh === "function") {
-        return win.THREE;
+    let colorizeRafId = null;
+    let colorizeDebounceTimer = null;
+    let pendingColorizeOptions = void 0;
+    function schedulePointCloudColorization(delayMs = 0, options) {
+      if (colorizeDebounceTimer) {
+        clearTimeout(colorizeDebounceTimer);
+        colorizeDebounceTimer = null;
       }
-      if ((canvas2 == null ? void 0 : canvas2.THREE) && typeof canvas2.THREE.Mesh === "function") {
-        return canvas2.THREE;
+      if (colorizeRafId) {
+        cancelAnimationFrame(colorizeRafId);
+        colorizeRafId = null;
       }
-      if (((_a = canvas2 == null ? void 0 : canvas2.view) == null ? void 0 : _a.THREE) && typeof canvas2.view.THREE.Mesh === "function") {
-        return canvas2.view.THREE;
-      }
-      let MeshClass = null;
-      let BufferGeometryClass = null;
-      let BufferAttributeClass = null;
-      let MaterialClass = null;
-      let GroupClass = null;
-      if (scene) {
-        if (typeof scene.constructor === "function") {
-          GroupClass = scene.constructor;
-        }
-        scene.traverse((obj) => {
-          var _a2, _b;
-          if (!MeshClass && (obj.isMesh || obj.type === "Mesh")) {
-            MeshClass = obj.constructor;
-            if (obj.material && !MaterialClass) {
-              MaterialClass = obj.material.constructor;
-            }
-          }
-          if (!BufferGeometryClass && ((_a2 = obj.geometry) == null ? void 0 : _a2.isBufferGeometry)) {
-            BufferGeometryClass = obj.geometry.constructor;
-            if (((_b = obj.geometry.attributes) == null ? void 0 : _b.position) && !BufferAttributeClass) {
-              BufferAttributeClass = obj.geometry.attributes.position.constructor;
-            }
-          }
-          if (!GroupClass && (obj.isGroup || obj.type === "Group")) {
-            GroupClass = obj.constructor;
-          }
+      const execute = () => {
+        colorizeRafId = requestAnimationFrame(() => {
+          colorizeRafId = null;
+          const opts = pendingColorizeOptions;
+          pendingColorizeOptions = void 0;
+          applyPointCloudColorizationInMainWorld(opts);
         });
+      };
+      if (delayMs > 0) {
+        colorizeDebounceTimer = setTimeout(execute, delayMs);
+      } else {
+        execute();
       }
-      if (BufferGeometryClass && BufferAttributeClass) {
-        return {
-          Mesh: MeshClass || GroupClass,
-          BufferGeometry: BufferGeometryClass,
-          BufferAttribute: BufferAttributeClass,
-          Material: MaterialClass,
-          Group: GroupClass || MeshClass
-        };
+    }
+    let currentOrthoSlicing = {
+      enabled: false,
+      slab: 0.5,
+      hideGround: true,
+      isolateROI: false
+    };
+    try {
+      const savedSlicing = localStorage.getItem("cvat_3d_ortho_slicing");
+      if (savedSlicing) {
+        const parsed = JSON.parse(savedSlicing);
+        if (typeof parsed.enabled === "boolean") currentOrthoSlicing.enabled = parsed.enabled;
+        if (typeof parsed.slab === "number" && parsed.slab > 0) currentOrthoSlicing.slab = parsed.slab;
+        if (typeof parsed.hideGround === "boolean") currentOrthoSlicing.hideGround = parsed.hideGround;
+        if (typeof parsed.isolateROI === "boolean") currentOrthoSlicing.isolateROI = parsed.isolateROI;
+      }
+    } catch (_) {
+    }
+    const cachedTopPlanes = [];
+    const cachedSidePlanes = [];
+    const cachedFrontPlanes = [];
+    let clippingThreeEngine = null;
+    function getClippingThree() {
+      var _a, _b, _c, _d;
+      if (clippingThreeEngine) return clippingThreeEngine;
+      const win = window;
+      if (win.THREE && typeof win.THREE.Plane === "function") {
+        clippingThreeEngine = win.THREE;
+        return clippingThreeEngine;
+      }
+      const store = getReduxStore();
+      const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+      if ((canvas == null ? void 0 : canvas.THREE) && typeof canvas.THREE.Plane === "function") {
+        clippingThreeEngine = canvas.THREE;
+        return clippingThreeEngine;
+      }
+      if (((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.THREE) && typeof canvas.view.THREE.Plane === "function") {
+        clippingThreeEngine = canvas.view.THREE;
+        return clippingThreeEngine;
       }
       return null;
     }
-    function updateGroundPlaneMeshInMainWorld(customZ) {
-      var _a, _b, _c, _d;
+    function ensurePlaneAt(arr, index, ThreeClass) {
+      while (arr.length <= index) {
+        arr.push(new ThreeClass.Plane(new ThreeClass.Vector3(0, 0, 1), 0));
+      }
+      return arr[index];
+    }
+    function updateOrthoClippingPlanes(overrideTarget, forceRender = true) {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
       try {
+        const Three = getClippingThree();
         const store = getReduxStore();
-        const canvas2 = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        if (!canvas2 || !((_d = canvas2.view) == null ? void 0 : _d.views)) return;
-        const pView = canvas2.view.views.perspective;
-        const scene = pView == null ? void 0 : pView.scene;
-        if (!scene) return;
-        if (!currentGroundPlaneVisible) {
-          if (groundPlaneMeshGroup && groundPlaneMeshGroup.parent) {
-            groundPlaneMeshGroup.visible = false;
-            if (typeof canvas2.render === "function") canvas2.render();
-          }
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        const views = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views;
+        if (!views) return;
+        const topView = views.top;
+        const sideView = views.side;
+        const frontView = views.front;
+        const perspectiveView = views.perspective;
+        if ((perspectiveView == null ? void 0 : perspectiveView.renderer) && perspectiveView.renderer.clippingPlanes && perspectiveView.renderer.clippingPlanes.length > 0) {
+          perspectiveView.renderer.clippingPlanes = [];
+        }
+        const isAnyClippingActive = currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI;
+        const activeId = (overrideTarget == null ? void 0 : overrideTarget.clientId) ?? ((_e = canvas == null ? void 0 : canvas.view) == null ? void 0 : _e.activatedElementID) ?? ((_h = (_g = (_f = store == null ? void 0 : store.getState()) == null ? void 0 : _f.annotation) == null ? void 0 : _g.annotations) == null ? void 0 : _h.activatedStateClientID) ?? lastActiveTrackId;
+        if (!isAnyClippingActive || !Three || !activeId || isNaN(Number(activeId)) || Number(activeId) <= 0) {
+          if (topView == null ? void 0 : topView.renderer) topView.renderer.clippingPlanes = [];
+          if (sideView == null ? void 0 : sideView.renderer) sideView.renderer.clippingPlanes = [];
+          if (frontView == null ? void 0 : frontView.renderer) frontView.renderer.clippingPlanes = [];
           return;
         }
-        const three = getThreeEngineFromScene(scene, canvas2);
-        if (!three) return;
-        let zGround = customZ !== void 0 ? customZ : getEgoRoadGroundZInMainWorld();
-        if (isNaN(zGround) || zGround === 0) zGround = -1.75;
-        const createCircleGeom = (radius, segments = 72, oz = 0) => {
-          const verts = [];
-          const step = Math.PI * 2 / segments;
-          for (let i = 0; i < segments; i++) {
-            const a0 = i * step;
-            const a1 = (i + 1) * step;
-            const x0 = Math.cos(a0) * radius;
-            const y0 = Math.sin(a0) * radius;
-            const x1 = Math.cos(a1) * radius;
-            const y1 = Math.sin(a1) * radius;
-            verts.push(0, 0, oz, x0, y0, oz, x1, y1, oz);
+        const numId = Number(activeId);
+        let p = null;
+        if ((overrideTarget == null ? void 0 : overrideTarget.points) && Array.isArray(overrideTarget.points)) {
+          p = overrideTarget.points;
+        } else {
+          const drawnItem = (_j = (_i = canvas == null ? void 0 : canvas.view) == null ? void 0 : _i.drawnObjects) == null ? void 0 : _j[String(numId)];
+          if (drawnItem) {
+            const states = ((_m = (_l = (_k = store == null ? void 0 : store.getState()) == null ? void 0 : _k.annotation) == null ? void 0 : _l.annotations) == null ? void 0 : _m.states) || [];
+            const matched = states.find((s) => s.clientID === numId);
+            p = extractLivePointsFromDrawnAndState(drawnItem, matched);
           }
-          const g = new three.BufferGeometry();
-          g.setAttribute("position", new three.BufferAttribute(new Float32Array(verts), 3));
-          return g;
-        };
-        const createRingGeom = (radius, width = 0.25, segments = 72, oz = 5e-3) => {
-          const verts = [];
-          const rIn = radius - width / 2;
-          const rOut = radius + width / 2;
-          const step = Math.PI * 2 / segments;
-          for (let i = 0; i < segments; i++) {
-            const a0 = i * step;
-            const a1 = (i + 1) * step;
-            const c0 = Math.cos(a0), s0 = Math.sin(a0);
-            const c1 = Math.cos(a1), s1 = Math.sin(a1);
-            const xIn0 = c0 * rIn, yIn0 = s0 * rIn;
-            const xOut0 = c0 * rOut, yOut0 = s0 * rOut;
-            const xIn1 = c1 * rIn, yIn1 = s1 * rIn;
-            const xOut1 = c1 * rOut, yOut1 = s1 * rOut;
-            verts.push(
-              xIn0,
-              yIn0,
-              oz,
-              xOut0,
-              yOut0,
-              oz,
-              xOut1,
-              yOut1,
-              oz,
-              xIn0,
-              yIn0,
-              oz,
-              xOut1,
-              yOut1,
-              oz,
-              xIn1,
-              yIn1,
-              oz
-            );
+          if (!p) {
+            const details = extractObjectDetails(numId);
+            p = (details == null ? void 0 : details.points) || null;
           }
-          const g = new three.BufferGeometry();
-          g.setAttribute("position", new three.BufferAttribute(new Float32Array(verts), 3));
-          return g;
-        };
-        const createCrosshairGeom = (maxRadius, width = 0.18, oz = 8e-3) => {
-          const hw = width / 2;
-          const verts = new Float32Array([
-            // Trục X (Tiến - Lùi): từ -maxRadius đến +maxRadius
-            -maxRadius,
-            -hw,
-            oz,
-            maxRadius,
-            -hw,
-            oz,
-            maxRadius,
-            hw,
-            oz,
-            -maxRadius,
-            -hw,
-            oz,
-            maxRadius,
-            hw,
-            oz,
-            -maxRadius,
-            hw,
-            oz,
-            // Trục Y (Trái - Phải): từ -maxRadius đến +maxRadius
-            -hw,
-            -maxRadius,
-            oz,
-            hw,
-            -maxRadius,
-            oz,
-            hw,
-            maxRadius,
-            oz,
-            -hw,
-            -maxRadius,
-            oz,
-            hw,
-            maxRadius,
-            oz,
-            -hw,
-            maxRadius,
-            oz
-          ]);
-          const g = new three.BufferGeometry();
-          g.setAttribute("position", new three.BufferAttribute(verts, 3));
-          return g;
-        };
-        const createCurbGeom = (yMin, yMax, maxRadius = 100, oz = 0.15) => {
-          const verts = [];
-          const steps = 32;
-          const dy = (yMax - yMin) / steps;
-          for (let i = 0; i < steps; i++) {
-            const y0 = yMin + i * dy;
-            const y1 = yMin + (i + 1) * dy;
-            const xSpan0 = Math.sqrt(Math.max(0, maxRadius * maxRadius - y0 * y0));
-            const xSpan1 = Math.sqrt(Math.max(0, maxRadius * maxRadius - y1 * y1));
-            verts.push(
-              -xSpan0,
-              y0,
-              oz,
-              xSpan0,
-              y0,
-              oz,
-              xSpan1,
-              y1,
-              oz,
-              -xSpan0,
-              y0,
-              oz,
-              xSpan1,
-              y1,
-              oz,
-              -xSpan1,
-              y1,
-              oz
-            );
-          }
-          const g = new three.BufferGeometry();
-          g.setAttribute("position", new three.BufferAttribute(new Float32Array(verts), 3));
-          return g;
-        };
-        const createMat = (hexColor, opacity) => {
-          if (typeof three.MeshBasicMaterial === "function") {
-            return new three.MeshBasicMaterial({
-              color: hexColor,
-              transparent: true,
-              opacity,
-              depthWrite: false,
-              side: 2
-              // DoubleSide
-            });
-          }
-          if (typeof three.Material === "function") {
-            try {
-              return new three.Material({
-                color: hexColor,
-                transparent: true,
-                opacity,
-                depthWrite: false,
-                side: 2
-              });
-            } catch (_) {
-            }
-          }
-          let baseMat = null;
-          scene.traverse((o) => {
-            if (!baseMat && o.material) baseMat = o.material;
-          });
-          if (baseMat) {
-            const m = baseMat.clone();
-            if (m.color && typeof m.color.setHex === "function") m.color.setHex(hexColor);
-            m.transparent = true;
-            m.opacity = opacity;
-            m.depthWrite = false;
-            m.side = 2;
-            return m;
-          }
-          return null;
-        };
-        if (!groundPlaneMeshGroup || !groundPlaneMeshGroup._isRadial100m) {
-          if (groundPlaneMeshGroup && groundPlaneMeshGroup.parent) {
-            groundPlaneMeshGroup.parent.remove(groundPlaneMeshGroup);
-          }
-          const GroupCtor = three.Group || three.Mesh;
-          groundPlaneMeshGroup = new GroupCtor();
-          groundPlaneMeshGroup.name = "__cvat_suite_ground_plane_mesh";
-          groundPlaneMeshGroup._isRadial100m = true;
-          const roadGeom = createCircleGeom(100, 72, 0);
-          const roadMat = createMat(165063, 0.1);
-          if (roadMat && typeof three.Mesh === "function") {
-            const roadMesh = new three.Mesh(roadGeom, roadMat);
-            roadMesh.name = "roadPlaneRadial100m";
-            groundPlaneMeshGroup.add(roadMesh);
-          }
-          const ringMat = createMat(3718648, 0.28);
-          if (ringMat && typeof three.Mesh === "function") {
-            const distances = [20, 40, 60, 80, 100];
-            for (const d of distances) {
-              const ringGeom = createRingGeom(d, d === 100 ? 0.35 : 0.2, 72, 5e-3);
-              const ringMesh = new three.Mesh(ringGeom, ringMat);
-              ringMesh.name = `rangeRing_${d}m`;
-              groundPlaneMeshGroup.add(ringMesh);
-            }
-          }
-          const crossMat = createMat(9741240, 0.22);
-          if (crossMat && typeof three.Mesh === "function") {
-            const crossGeom = createCrosshairGeom(100, 0.18, 8e-3);
-            const crossMesh = new three.Mesh(crossGeom, crossMat);
-            crossMesh.name = "crosshairAxes100m";
-            groundPlaneMeshGroup.add(crossMesh);
-          }
-          const curbMat = createMat(16096779, 0.14);
-          if (curbMat && typeof three.Mesh === "function") {
-            const curbLeftGeom = createCurbGeom(3.8, 12, 100, 0.15);
-            const curbLeft = new three.Mesh(curbLeftGeom, curbMat);
-            curbLeft.name = "curbLeftRadial100m";
-            groundPlaneMeshGroup.add(curbLeft);
-            const curbRightGeom = createCurbGeom(-12, -3.8, 100, 0.15);
-            const curbRight = new three.Mesh(curbRightGeom, curbMat.clone ? curbMat.clone() : curbMat);
-            curbRight.name = "curbRightRadial100m";
-            groundPlaneMeshGroup.add(curbRight);
-          }
-          scene.add(groundPlaneMeshGroup);
         }
-        if (!groundPlaneMeshGroup.parent || groundPlaneMeshGroup.parent !== scene) {
-          scene.add(groundPlaneMeshGroup);
+        if (!p || p.length < 9) {
+          if (topView == null ? void 0 : topView.renderer) topView.renderer.clippingPlanes = [];
+          if (sideView == null ? void 0 : sideView.renderer) sideView.renderer.clippingPlanes = [];
+          if (frontView == null ? void 0 : frontView.renderer) frontView.renderer.clippingPlanes = [];
+          return;
         }
-        groundPlaneMeshGroup.position.set(0, 0, zGround);
-        groundPlaneMeshGroup.visible = true;
-        if (typeof canvas2.render === "function") {
-          canvas2.render();
+        const cx = p[0], cy = p[1], cz = p[2];
+        const rx = p[3] || 0;
+        const ry = p[4] || 0;
+        const rz = p[5] || 0;
+        const l = p[6], w = p[7], h2 = p[8];
+        const halfL = l / 2, halfW = w / 2, halfH = h2 / 2;
+        const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
+        const cosY = Math.cos(ry), sinY = Math.sin(ry);
+        const cosX = Math.cos(rx), sinX = Math.sin(rx);
+        const uxx = cosZ * cosY;
+        const uxy = sinZ * cosY;
+        const uxz = -sinY;
+        const uyx = cosZ * sinY * sinX - sinZ * cosX;
+        const uyy = sinZ * sinY * sinX + cosZ * cosX;
+        const uyz = cosY * sinX;
+        const uzx = cosZ * sinY * cosX + sinZ * sinX;
+        const uzy = sinZ * sinY * cosX - cosZ * sinX;
+        const uzz = cosY * cosX;
+        const slab = Math.max(0.2, currentOrthoSlicing.slab || 0.5);
+        const setPlane = (plane, nx, ny, nz, px, py, pz) => {
+          plane.normal.set(nx, ny, nz);
+          plane.constant = -(nx * px + ny * py + nz * pz);
+        };
+        const activeTopPlanes = [];
+        let topIdx = 0;
+        if (currentOrthoSlicing.hideGround) {
+          const pzCutX = cx + (-halfH + 0.12) * uzx;
+          const pzCutY = cy + (-halfH + 0.12) * uzy;
+          const pzCutZ = cz + (-halfH + 0.12) * uzz;
+          const pl = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
+          setPlane(pl, uzx, uzy, uzz, pzCutX, pzCutY, pzCutZ);
+          activeTopPlanes.push(pl);
         }
-      } catch (err) {
-        console.warn("[CVAT 3D Suite] Lỗi updateGroundPlaneMeshInMainWorld:", err);
+        if (currentOrthoSlicing.isolateROI) {
+          const roiSpan = 1;
+          const pFx = cx + (halfL + roiSpan) * uxx;
+          const pFy = cy + (halfL + roiSpan) * uxy;
+          const pFz = cz + (halfL + roiSpan) * uxz;
+          const plF = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
+          setPlane(plF, -uxx, -uxy, -uxz, pFx, pFy, pFz);
+          activeTopPlanes.push(plF);
+          const pBx = cx - (halfL + roiSpan) * uxx;
+          const pBy = cy - (halfL + roiSpan) * uxy;
+          const pBz = cz - (halfL + roiSpan) * uxz;
+          const plB = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
+          setPlane(plB, uxx, uxy, uxz, pBx, pBy, pBz);
+          activeTopPlanes.push(plB);
+          const pLx = cx + (halfW + roiSpan) * uyx;
+          const pLy = cy + (halfW + roiSpan) * uyy;
+          const pLz = cz + (halfW + roiSpan) * uyz;
+          const plL = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
+          setPlane(plL, -uyx, -uyy, -uyz, pLx, pLy, pLz);
+          activeTopPlanes.push(plL);
+          const pRx = cx - (halfW + roiSpan) * uyx;
+          const pRy = cy - (halfW + roiSpan) * uyy;
+          const pRz = cz - (halfW + roiSpan) * uyz;
+          const plR = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
+          setPlane(plR, uyx, uyy, uyz, pRx, pRy, pRz);
+          activeTopPlanes.push(plR);
+        }
+        const activeSidePlanes = [];
+        let sideIdx = 0;
+        if (currentOrthoSlicing.enabled) {
+          const pLx = cx + (halfW + slab) * uyx;
+          const pLy = cy + (halfW + slab) * uyy;
+          const pLz = cz + (halfW + slab) * uyz;
+          const plL = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
+          setPlane(plL, -uyx, -uyy, -uyz, pLx, pLy, pLz);
+          activeSidePlanes.push(plL);
+          const pRx = cx - (halfW + slab) * uyx;
+          const pRy = cy - (halfW + slab) * uyy;
+          const pRz = cz - (halfW + slab) * uyz;
+          const plR = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
+          setPlane(plR, uyx, uyy, uyz, pRx, pRy, pRz);
+          activeSidePlanes.push(plR);
+        }
+        if (currentOrthoSlicing.isolateROI) {
+          const roiSpan = 1;
+          const pFx = cx + (halfL + roiSpan) * uxx;
+          const pFy = cy + (halfL + roiSpan) * uxy;
+          const pFz = cz + (halfL + roiSpan) * uxz;
+          const plF = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
+          setPlane(plF, -uxx, -uxy, -uxz, pFx, pFy, pFz);
+          activeSidePlanes.push(plF);
+          const pBx = cx - (halfL + roiSpan) * uxx;
+          const pBy = cy - (halfL + roiSpan) * uxy;
+          const pBz = cz - (halfL + roiSpan) * uxz;
+          const plB = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
+          setPlane(plB, uxx, uxy, uxz, pBx, pBy, pBz);
+          activeSidePlanes.push(plB);
+          const pTx = cx + (halfH + 0.5) * uzx;
+          const pTy = cy + (halfH + 0.5) * uzy;
+          const pTz = cz + (halfH + 0.5) * uzz;
+          const plT = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
+          setPlane(plT, -uzx, -uzy, -uzz, pTx, pTy, pTz);
+          activeSidePlanes.push(plT);
+        }
+        const activeFrontPlanes = [];
+        let frontIdx = 0;
+        if (currentOrthoSlicing.enabled) {
+          const pFx = cx + (halfL + slab) * uxx;
+          const pFy = cy + (halfL + slab) * uxy;
+          const pFz = cz + (halfL + slab) * uxz;
+          const plF = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
+          setPlane(plF, -uxx, -uxy, -uxz, pFx, pFy, pFz);
+          activeFrontPlanes.push(plF);
+          const pBx = cx - (halfL + slab) * uxx;
+          const pBy = cy - (halfL + slab) * uxy;
+          const pBz = cz - (halfL + slab) * uxz;
+          const plB = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
+          setPlane(plB, uxx, uxy, uxz, pBx, pBy, pBz);
+          activeFrontPlanes.push(plB);
+        }
+        if (currentOrthoSlicing.isolateROI) {
+          const roiSpan = 1;
+          const pLx = cx + (halfW + roiSpan) * uyx;
+          const pLy = cy + (halfW + roiSpan) * uyy;
+          const pLz = cz + (halfW + roiSpan) * uyz;
+          const plL = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
+          setPlane(plL, -uyx, -uyy, -uyz, pLx, pLy, pLz);
+          activeFrontPlanes.push(plL);
+          const pRx = cx - (halfW + roiSpan) * uyx;
+          const pRy = cy - (halfW + roiSpan) * uyy;
+          const pRz = cz - (halfW + roiSpan) * uyz;
+          const plR = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
+          setPlane(plR, uyx, uyy, uyz, pRx, pRy, pRz);
+          activeFrontPlanes.push(plR);
+          const pTx = cx + (halfH + 0.5) * uzx;
+          const pTy = cy + (halfH + 0.5) * uzy;
+          const pTz = cz + (halfH + 0.5) * uzz;
+          const plT = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
+          setPlane(plT, -uzx, -uzy, -uzz, pTx, pTy, pTz);
+          activeFrontPlanes.push(plT);
+        }
+        if (topView == null ? void 0 : topView.renderer) {
+          topView.renderer.localClippingEnabled = true;
+          topView.renderer.clippingPlanes = activeTopPlanes;
+        }
+        if (sideView == null ? void 0 : sideView.renderer) {
+          sideView.renderer.localClippingEnabled = true;
+          sideView.renderer.clippingPlanes = activeSidePlanes;
+        }
+        if (frontView == null ? void 0 : frontView.renderer) {
+          frontView.renderer.localClippingEnabled = true;
+          frontView.renderer.clippingPlanes = activeFrontPlanes;
+        }
+        if (forceRender && typeof (canvas == null ? void 0 : canvas.render) === "function") {
+          canvas.render();
+        }
+      } catch (e) {
+        console.warn("[CVAT 3D Suite] Lỗi updateOrthoClippingPlanes:", e);
       }
     }
     function scheduleSingleFrameColorizationAndGround(targetFrame, delayMs = 180) {
@@ -3814,17 +5531,24 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         clearTimeout(singleFrameColorizeTimer);
         singleFrameColorizeTimer = null;
       }
+      if (colorizeRafId) {
+        cancelAnimationFrame(colorizeRafId);
+        colorizeRafId = null;
+      }
       const runAttempt = (attempt) => {
         var _a, _b, _c, _d, _e, _f, _g, _h;
         try {
           const store = getReduxStore();
           const curF = ((_d = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.player) == null ? void 0 : _c.frame) == null ? void 0 : _d.number) ?? ((_h = (_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.job) == null ? void 0 : _g.instance) == null ? void 0 : _h.frame);
           if (curF === targetFrame) {
-            const ok = applyPointCloudColorizationInMainWorld();
-            updateGroundPlaneMeshInMainWorld();
-            if (!ok && attempt < 3) {
-              singleFrameColorizeTimer = setTimeout(() => runAttempt(attempt + 1), 350);
-            }
+            applyCanvasThemeInMainWorld();
+            colorizeRafId = requestAnimationFrame(() => {
+              colorizeRafId = null;
+              const ok = applyPointCloudColorizationInMainWorld();
+              if (!ok && attempt < 3) {
+                singleFrameColorizeTimer = setTimeout(() => runAttempt(attempt + 1), 350);
+              }
+            });
           }
         } catch (_) {
         }
@@ -4425,6 +6149,180 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       return pts;
     }
+    function clusterByPointDilation5x2(pts, options = {}) {
+      var _a, _b;
+      const n = pts.length;
+      const baseR = options.basePointSize ?? 0.025;
+      const dilation = options.dilationFactor ?? 5;
+      const defaultConnect = options.connectDist ?? 2 * baseR * dilation;
+      const connectDistX = options.connectDistLx ?? defaultConnect;
+      const connectDistY = options.connectDistLy ?? defaultConnect;
+      const connectDistZ = defaultConnect;
+      const is3D = options.dim === "3d";
+      if (n <= 1) {
+        return {
+          dominantPts: pts,
+          noisePts: [],
+          clusters: n === 1 ? [[pts[0]]] : [],
+          dominantClusterIndex: 0,
+          connectDist: defaultConnect
+        };
+      }
+      const cellX = connectDistX;
+      const cellY = connectDistY;
+      const cellZ = connectDistZ;
+      const grid = /* @__PURE__ */ new Map();
+      for (let i = 0; i < n; i++) {
+        const p = pts[i];
+        const gx = Math.floor(p.lx / cellX);
+        const gy = Math.floor(p.ly / cellY);
+        const key = is3D ? `${gx}_${gy}_${Math.floor((p.z ?? 0) / cellZ)}` : `${gx}_${gy}`;
+        const bucket = grid.get(key);
+        if (bucket) {
+          bucket.push(i);
+        } else {
+          grid.set(key, [i]);
+        }
+      }
+      const parent = new Int32Array(n);
+      const rank = new Uint8Array(n);
+      for (let i = 0; i < n; i++) parent[i] = i;
+      function find(x) {
+        let root = x;
+        while (root !== parent[root]) root = parent[root];
+        let curr = x;
+        while (curr !== root) {
+          const next = parent[curr];
+          parent[curr] = root;
+          curr = next;
+        }
+        return root;
+      }
+      function union(x, y) {
+        const rootX = find(x);
+        const rootY = find(y);
+        if (rootX === rootY) return;
+        if (rank[rootX] < rank[rootY]) {
+          parent[rootX] = rootY;
+        } else if (rank[rootX] > rank[rootY]) {
+          parent[rootY] = rootX;
+        } else {
+          parent[rootY] = rootX;
+          rank[rootX]++;
+        }
+      }
+      for (let i = 0; i < n; i++) {
+        const pi = pts[i];
+        const gx = Math.floor(pi.lx / cellX);
+        const gy = Math.floor(pi.ly / cellY);
+        const gz = is3D ? Math.floor((pi.z ?? 0) / cellZ) : 0;
+        const zMin = is3D ? -1 : 0;
+        const zMax = is3D ? 1 : 0;
+        for (let dz = zMin; dz <= zMax; dz++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+              const neighborKey = is3D ? `${gx + dx}_${gy + dy}_${gz + dz}` : `${gx + dx}_${gy + dy}`;
+              const neighborIndices = grid.get(neighborKey);
+              if (!neighborIndices) continue;
+              for (let k = 0; k < neighborIndices.length; k++) {
+                const j = neighborIndices[k];
+                if (j <= i) continue;
+                const pj = pts[j];
+                const dX = (pi.lx - pj.lx) / connectDistX;
+                const dY = (pi.ly - pj.ly) / connectDistY;
+                let distNormSq = dX * dX + dY * dY;
+                if (is3D) {
+                  const dZ = ((pi.z ?? 0) - (pj.z ?? 0)) / connectDistZ;
+                  distNormSq += dZ * dZ;
+                }
+                if (distNormSq <= 1.000001) {
+                  union(i, j);
+                }
+              }
+            }
+          }
+        }
+      }
+      const groupMap = /* @__PURE__ */ new Map();
+      for (let i = 0; i < n; i++) {
+        const r = find(i);
+        const list = groupMap.get(r);
+        if (list) {
+          list.push(i);
+        } else {
+          groupMap.set(r, [i]);
+        }
+      }
+      const clusterIndices = Array.from(groupMap.values());
+      const clusters = clusterIndices.map((indices) => indices.map((idx) => pts[idx]));
+      if (clusters.length === 1) {
+        return {
+          dominantPts: pts,
+          noisePts: [],
+          clusters,
+          dominantClusterIndex: 0,
+          connectDist: defaultConnect
+        };
+      }
+      const biasX = ((_a = options.centerBias) == null ? void 0 : _a.lx) ?? 0;
+      const biasY = ((_b = options.centerBias) == null ? void 0 : _b.ly) ?? 0;
+      const minClusterPts = options.minClusterPts ?? 3;
+      const clusterStats = clusters.map((cluster, idx) => {
+        let dMin = Infinity;
+        let minLx = Infinity;
+        let maxLx = -Infinity;
+        let minLy = Infinity;
+        let maxLy = -Infinity;
+        for (let k = 0; k < cluster.length; k++) {
+          const p = cluster[k];
+          const d = Math.hypot(p.lx - biasX, p.ly - biasY);
+          if (d < dMin) dMin = d;
+          if (p.lx < minLx) minLx = p.lx;
+          if (p.lx > maxLx) maxLx = p.lx;
+          if (p.ly < minLy) minLy = p.ly;
+          if (p.ly > maxLy) maxLy = p.ly;
+        }
+        const span = Math.max(maxLx - minLx, maxLy - minLy);
+        return { idx, len: cluster.length, dMin, span };
+      });
+      const maxLen = Math.max(...clusterStats.map((s) => s.len));
+      let candidateStats = clusterStats.filter((s) => {
+        if (maxLen >= 8) {
+          if (s.len < Math.min(minClusterPts, 4)) return false;
+          const isSignificantSize = s.len >= maxLen * 0.15 || s.len >= 8;
+          const hasPhysicalSpan = s.span >= 0.25;
+          return isSignificantSize || hasPhysicalSpan;
+        } else {
+          return s.len >= Math.min(minClusterPts, 2);
+        }
+      });
+      if (candidateStats.length === 0) {
+        candidateStats = clusterStats;
+      }
+      candidateStats.sort((a, b) => {
+        const diffD = a.dMin - b.dMin;
+        if (Math.abs(diffD) > 0.2) {
+          return diffD;
+        }
+        return b.len - a.len;
+      });
+      const bestIdx = candidateStats[0].idx;
+      const dominantPts = clusters[bestIdx];
+      const noisePts = [];
+      for (let c = 0; c < clusters.length; c++) {
+        if (c === bestIdx) continue;
+        for (let k = 0; k < clusters[c].length; k++) {
+          noisePts.push(clusters[c][k]);
+        }
+      }
+      return {
+        dominantPts,
+        noisePts,
+        clusters,
+        dominantClusterIndex: bestIdx,
+        connectDist: defaultConnect
+      };
+    }
     function detectAdaptiveBounds2(sortedValues, isYAxis = false) {
       const n = sortedValues.length;
       if (n < 8) {
@@ -4998,7 +6896,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           rawBodyPts.push({ x, y, z, lx, ly, intensity: lidar.getIntensityAt(i) });
         }
       }
-      const denseCorePts = filterSparseNoiseByLocalDensity2(rawBodyPts, { radius: 0.12, minCoreNeighbors: 2 });
+      const dilationRes = clusterByPointDilation5x2(rawBodyPts, {
+        basePointSize: 0.025,
+        dilationFactor: 5,
+        connectDist: 0.25,
+        dim: "2d",
+        centerBias: { lx: 0, ly: 0 }
+      });
+      const dominantDilationPts = dilationRes.dominantPts.length >= 4 ? dilationRes.dominantPts : rawBodyPts;
+      const denseCorePts = filterSparseNoiseByLocalDensity2(dominantDilationPts, { radius: 0.22, minCoreNeighbors: 2 });
       const clusterLy = filterDenseConnectedCluster1D2(denseCorePts, "ly", 0.22, 0);
       const bodyPts = filterDenseConnectedCluster1D2(clusterLy, "lx", 0.22, 0);
       const dxEgo = cx - egoPos.x;
@@ -5292,6 +7198,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           bumperEdge: Number(shiftLx.toFixed(3))
         },
         pointsCount: bodyPts.length,
+        fitStep,
         message: msg
       };
     }
@@ -5324,7 +7231,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         };
       }
       const { count, array } = lidar;
-      const headBuffer = options.headBuffer ?? 0.02;
+      const headBuffer = options.headBuffer ?? 0.05;
       const margin = options.margin ?? 0.15;
       const footRadius = Math.max(0.35, Math.max(curL, curW) / 2 + margin);
       const footGroundPts = [];
@@ -5382,9 +7289,20 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         rawBodyPts = coreBodyPts.length >= 8 ? coreBodyPts : [...coreBodyPts, ...footPts];
       }
       const isSparse = rawBodyPts.length <= 12;
+      let cleanPedPts = rawBodyPts;
+      if (!isSparse) {
+        const pedDilationRes = clusterByPointDilation5x2(rawBodyPts, {
+          basePointSize: 0.022,
+          dilationFactor: 5,
+          connectDist: 0.22,
+          dim: "2d",
+          centerBias: { lx: 0, ly: 0 }
+        });
+        cleanPedPts = pedDilationRes.dominantPts.length >= 6 ? pedDilationRes.dominantPts : rawBodyPts;
+      }
       const maxGapLx = step === "side" || isSparse ? 0.32 : 0.22;
       const maxGapLy = step === "front" || isSparse ? 0.3 : 0.22;
-      const clusterLy = filterDenseConnectedCluster1D2(rawBodyPts, "ly", maxGapLy, 0);
+      const clusterLy = filterDenseConnectedCluster1D2(cleanPedPts, "ly", maxGapLy, 0);
       const bodyPts = filterDenseConnectedCluster1D2(clusterLy, "lx", maxGapLx, 0);
       let newX = cx;
       let newY = cy;
@@ -5710,7 +7628,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         };
       }
       const { count, array } = lidar;
-      const headBuffer = options.headBuffer ?? 0.02;
+      const headBuffer = options.headBuffer ?? 0.05;
       const margin = options.margin ?? 0.2;
       const footRadius = Math.max(0.6, curL / 2 + margin);
       const groundPts = [];
@@ -5768,9 +7686,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         rawPts = corePts.length >= 8 ? corePts : [...corePts, ...wheelPts];
       }
       const isSparse = rawPts.length <= 12;
+      let cleanCyclistPts = rawPts;
+      if (!isSparse) {
+        const cyclistDilationRes = clusterByPointDilation5x2(rawPts, {
+          basePointSize: 0.03,
+          dilationFactor: 5,
+          connectDist: 0.3,
+          connectDistLx: 0.38,
+          connectDistLy: 0.32,
+          dim: "2d",
+          centerBias: { lx: 0, ly: 0 }
+        });
+        cleanCyclistPts = cyclistDilationRes.dominantPts.length >= 8 ? cyclistDilationRes.dominantPts : rawPts;
+      }
       const maxGapLx = step === "side" || isSparse ? 0.38 : 0.28;
       const maxGapLy = step === "front" || isSparse ? 0.35 : 0.24;
-      const clusterLy = filterDenseConnectedCluster1D2(rawPts, "ly", maxGapLy, 0);
+      const clusterLy = filterDenseConnectedCluster1D2(cleanCyclistPts, "ly", maxGapLy, 0);
       const bodyPts = filterDenseConnectedCluster1D2(clusterLy, "lx", maxGapLx, 0);
       let newX = cx;
       let newY = cy;
@@ -6276,19 +8207,50 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       };
     }
     const mainWorldLabelsCache = /* @__PURE__ */ new Map();
+    let lastHighlightedSidebarItem = null;
+    function syncSidebarItemHighlight(id) {
+      try {
+        if (id === null || id <= 0) {
+          if (lastHighlightedSidebarItem) {
+            lastHighlightedSidebarItem.classList.remove("cvat-objects-sidebar-state-item-active", "selected");
+            lastHighlightedSidebarItem = null;
+          }
+          return;
+        }
+        const sidebarItem = document.querySelector(`#cvat-objects-sidebar-state-item-${id}`) || document.querySelector(`[data-cvat-state-item-id="${id}"]`) || document.querySelector(`[class*="cvat-objects-sidebar-state-item"][id*="${id}"]`);
+        if (sidebarItem) {
+          if (lastHighlightedSidebarItem && lastHighlightedSidebarItem !== sidebarItem) {
+            lastHighlightedSidebarItem.classList.remove("cvat-objects-sidebar-state-item-active", "selected");
+          }
+          sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
+          lastHighlightedSidebarItem = sidebarItem;
+          sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+      } catch (_) {
+      }
+    }
     function updateMainWorldLabels(job) {
-      var _a, _b, _c, _d, _e, _f, _g;
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
       try {
         const store = getReduxStore();
-        const storeJob = ((_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.job) == null ? void 0 : _c.instance) || job;
-        const labels = (storeJob == null ? void 0 : storeJob.labels) || ((_d = storeJob == null ? void 0 : storeJob.task) == null ? void 0 : _d.labels) || ((_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.job) == null ? void 0 : _g.labels);
-        if (Array.isArray(labels)) {
-          for (const l of labels) {
-            if (l && l.id !== void 0) {
-              mainWorldLabelsCache.set(Number(l.id), {
-                name: l.name || "Object",
-                color: l.color || "#3b82f6"
-              });
+        const state = (_a = store == null ? void 0 : store.getState) == null ? void 0 : _a.call(store);
+        const storeJob = ((_c = (_b = state == null ? void 0 : state.annotation) == null ? void 0 : _b.job) == null ? void 0 : _c.instance) || job;
+        const candidates = [
+          storeJob == null ? void 0 : storeJob.labels,
+          (_d = storeJob == null ? void 0 : storeJob.task) == null ? void 0 : _d.labels,
+          (_f = (_e = state == null ? void 0 : state.annotation) == null ? void 0 : _e.job) == null ? void 0 : _f.labels,
+          (_i = (_h = (_g = state == null ? void 0 : state.annotation) == null ? void 0 : _g.job) == null ? void 0 : _h.task) == null ? void 0 : _i.labels,
+          (_m = (_l = (_k = (_j = state == null ? void 0 : state.annotation) == null ? void 0 : _j.canvas) == null ? void 0 : _k.instance) == null ? void 0 : _l.setup) == null ? void 0 : _m.labels
+        ];
+        for (const labels of candidates) {
+          if (Array.isArray(labels)) {
+            for (const l of labels) {
+              if (l && l.id !== void 0) {
+                mainWorldLabelsCache.set(Number(l.id), {
+                  name: l.name || "Object",
+                  color: l.color || "#3b82f6"
+                });
+              }
             }
           }
         }
@@ -6296,39 +8258,192 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
     function resolveLabelName(stateOrShape) {
+      var _a, _b, _c, _d, _e, _f, _g, _h;
+      if (!stateOrShape) return { name: "Object", color: "#22c55e" };
       if ((stateOrShape == null ? void 0 : stateOrShape.label) && typeof stateOrShape.label.name === "string" && stateOrShape.label.name.trim()) {
         return {
           name: stateOrShape.label.name.trim(),
           color: stateOrShape.label.color || "#22c55e"
         };
       }
-      const lblId = (stateOrShape == null ? void 0 : stateOrShape.labelID) ?? (stateOrShape == null ? void 0 : stateOrShape.labelId) ?? (stateOrShape == null ? void 0 : stateOrShape.label_id);
-      if (lblId !== void 0 && mainWorldLabelsCache.has(Number(lblId))) {
-        return mainWorldLabelsCache.get(Number(lblId));
+      if (((_a = stateOrShape == null ? void 0 : stateOrShape.data) == null ? void 0 : _a.label) && typeof stateOrShape.data.label.name === "string" && stateOrShape.data.label.name.trim()) {
+        return {
+          name: stateOrShape.data.label.name.trim(),
+          color: stateOrShape.data.label.color || "#22c55e"
+        };
       }
-      return { name: "Car", color: "#22c55e" };
+      const lblId = (stateOrShape == null ? void 0 : stateOrShape.labelID) ?? (stateOrShape == null ? void 0 : stateOrShape.labelId) ?? (stateOrShape == null ? void 0 : stateOrShape.label_id) ?? ((_b = stateOrShape == null ? void 0 : stateOrShape.label) == null ? void 0 : _b.id) ?? ((_c = stateOrShape == null ? void 0 : stateOrShape.data) == null ? void 0 : _c.labelID) ?? ((_d = stateOrShape == null ? void 0 : stateOrShape.data) == null ? void 0 : _d.labelId) ?? ((_f = (_e = stateOrShape == null ? void 0 : stateOrShape.data) == null ? void 0 : _e.label) == null ? void 0 : _f.id);
+      if (lblId !== void 0) {
+        if (!mainWorldLabelsCache.has(Number(lblId))) {
+          updateMainWorldLabels();
+        }
+        if (mainWorldLabelsCache.has(Number(lblId))) {
+          return mainWorldLabelsCache.get(Number(lblId));
+        }
+      }
+      const clientId = (stateOrShape == null ? void 0 : stateOrShape.clientID) ?? (stateOrShape == null ? void 0 : stateOrShape.clientId) ?? (stateOrShape == null ? void 0 : stateOrShape.id);
+      if (clientId !== void 0 && typeof document !== "undefined") {
+        try {
+          const sidebarItem = document.querySelector(`#cvat-objects-sidebar-state-item-${clientId}`) || document.querySelector(`[class*="cvat-objects-sidebar-state-item"][id*="${clientId}"]`);
+          if (sidebarItem) {
+            const labelEl = sidebarItem.querySelector(".cvat-objects-sidebar-state-item-label-selector .ant-select-selection-item") || sidebarItem.querySelector(".ant-select-selection-item") || sidebarItem.querySelector("[class*='label']");
+            const labelText = ((_g = labelEl == null ? void 0 : labelEl.innerText) == null ? void 0 : _g.trim()) || ((_h = labelEl == null ? void 0 : labelEl.textContent) == null ? void 0 : _h.trim());
+            if (labelText) {
+              return { name: labelText, color: "#22c55e" };
+            }
+          }
+        } catch (_) {
+        }
+      }
+      return { name: "Object", color: "#22c55e" };
+    }
+    function extractLivePointsFromDrawnAndState(drawnItem, stateOrShape) {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
+      const basePoints = ((_a = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _a.points) && Array.isArray(drawnItem.data.points) && drawnItem.data.points.length >= 9 ? drawnItem.data.points : (stateOrShape == null ? void 0 : stateOrShape.points) && Array.isArray(stateOrShape.points) && stateOrShape.points.length >= 9 ? stateOrShape.points : null;
+      if (!basePoints) return null;
+      let cx = basePoints[0];
+      let cy = basePoints[1];
+      let cz = basePoints[2];
+      let rx = basePoints[3] || 0;
+      let ry = basePoints[4] || 0;
+      let yaw = basePoints[5] || 0;
+      let l = basePoints[6];
+      let w = basePoints[7];
+      let h2 = basePoints[8];
+      if (drawnItem && drawnItem.cuboid) {
+        const basePos = { x: basePoints[0], y: basePoints[1], z: basePoints[2] };
+        const baseYaw = basePoints[5] || 0;
+        const baseScale = { l: basePoints[6], w: basePoints[7], h: basePoints[8] };
+        const c = drawnItem.cuboid;
+        let bestDeltaPos = 0;
+        let bestPos = null;
+        const candidateViews = [
+          { name: "top", obj: c.top },
+          { name: "side", obj: c.side },
+          { name: "front", obj: c.front },
+          { name: "perspective", obj: c.perspective },
+          { name: "root", obj: c }
+        ];
+        for (const cand of candidateViews) {
+          const p = (_b = cand.obj) == null ? void 0 : _b.position;
+          if (p && typeof p.x === "number" && typeof p.y === "number" && typeof p.z === "number") {
+            let dx = p.x - basePos.x;
+            let dy = p.y - basePos.y;
+            let dz = p.z - basePos.z;
+            if (cand.name === "top") dz = 0;
+            if (cand.name === "side") dy = 0;
+            if (cand.name === "front") dx = 0;
+            const delta = dx * dx + dy * dy + dz * dz;
+            if (delta > bestDeltaPos && delta > 1e-4) {
+              bestDeltaPos = delta;
+              bestPos = {
+                x: cand.name === "front" ? basePos.x : p.x,
+                y: cand.name === "side" ? basePos.y : p.y,
+                z: cand.name === "top" ? basePos.z : p.z
+              };
+            }
+          }
+        }
+        if (bestPos) {
+          cx = bestPos.x;
+          cy = bestPos.y;
+          cz = bestPos.z;
+        } else {
+          const fallbackPos = c.position || ((_c = c.perspective) == null ? void 0 : _c.position) || ((_d = c.top) == null ? void 0 : _d.position);
+          if (fallbackPos && typeof fallbackPos.x === "number" && typeof fallbackPos.y === "number" && typeof fallbackPos.z === "number") {
+            cx = fallbackPos.x;
+            cy = fallbackPos.y;
+            cz = fallbackPos.z;
+          }
+        }
+        let bestDeltaYaw = 0;
+        let bestYaw = null;
+        for (const cand of candidateViews) {
+          const r = (_e = cand.obj) == null ? void 0 : _e.rotation;
+          if (r && typeof r.z === "number") {
+            const dYaw = Math.abs(r.z - baseYaw);
+            if (dYaw > bestDeltaYaw && dYaw > 1e-4) {
+              bestDeltaYaw = dYaw;
+              bestYaw = r.z;
+            }
+          }
+        }
+        if (bestYaw !== null) {
+          yaw = bestYaw;
+        } else {
+          const fallbackRot = c.rotation || ((_f = c.perspective) == null ? void 0 : _f.rotation) || ((_g = c.top) == null ? void 0 : _g.rotation);
+          if (fallbackRot && typeof fallbackRot.z === "number") {
+            yaw = fallbackRot.z;
+          }
+        }
+        let bestDeltaScale = 0;
+        let bestScale = null;
+        for (const cand of candidateViews) {
+          const s = (_h = cand.obj) == null ? void 0 : _h.scale;
+          if (s && typeof s.x === "number" && s.x > 0) {
+            let dl = Math.abs(s.x - baseScale.l);
+            let dw = Math.abs(s.y - baseScale.w);
+            let dh = Math.abs(s.z - baseScale.h);
+            if (cand.name === "top") dh = 0;
+            if (cand.name === "side") dw = 0;
+            if (cand.name === "front") dl = 0;
+            const delta = dl + dw + dh;
+            if (delta > bestDeltaScale && delta > 1e-4) {
+              bestDeltaScale = delta;
+              bestScale = {
+                x: cand.name === "front" ? baseScale.l : s.x,
+                y: cand.name === "side" ? baseScale.w : s.y,
+                z: cand.name === "top" ? baseScale.h : s.z
+              };
+            }
+          }
+        }
+        if (bestScale) {
+          l = bestScale.x;
+          w = bestScale.y;
+          h2 = bestScale.z;
+        } else {
+          const fallbackScale = c.scale || ((_i = c.perspective) == null ? void 0 : _i.scale) || ((_j = c.top) == null ? void 0 : _j.scale);
+          if (fallbackScale && typeof fallbackScale.x === "number" && fallbackScale.x > 0) {
+            l = fallbackScale.x;
+            w = fallbackScale.y;
+            h2 = fallbackScale.z;
+          }
+        }
+      }
+      const res = [...basePoints];
+      res[0] = cx;
+      res[1] = cy;
+      res[2] = cz;
+      res[3] = rx;
+      res[4] = ry;
+      res[5] = yaw;
+      res[6] = l;
+      res[7] = w;
+      res[8] = h2;
+      return res;
     }
     function center3DViewOnObject(uiId, targetPos) {
       var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
       try {
         const store = getReduxStore();
-        const canvas2 = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        if (!canvas2 || !canvas2.view) return false;
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (!canvas || !canvas.view) return false;
         try {
-          if (typeof canvas2.center === "function") {
-            canvas2.center(uiId);
+          if (typeof canvas.center === "function") {
+            canvas.center(uiId);
           }
-          if (typeof ((_d = canvas2.view) == null ? void 0 : _d.center) === "function") {
-            canvas2.view.center(uiId);
+          if (typeof ((_d = canvas.view) == null ? void 0 : _d.center) === "function") {
+            canvas.view.center(uiId);
           }
-          if (typeof ((_e = canvas2.view) == null ? void 0 : _e.focus) === "function") {
-            canvas2.view.focus(uiId);
+          if (typeof ((_e = canvas.view) == null ? void 0 : _e.focus) === "function") {
+            canvas.view.focus(uiId);
           }
         } catch (_) {
         }
         let pos = targetPos;
         if (!pos) {
-          const drawn = (_g = (_f = canvas2.view) == null ? void 0 : _f.drawnObjects) == null ? void 0 : _g[String(uiId)];
+          const drawn = (_g = (_f = canvas.view) == null ? void 0 : _f.drawnObjects) == null ? void 0 : _g[String(uiId)];
           if (((_h = drawn == null ? void 0 : drawn.data) == null ? void 0 : _h.points) && Array.isArray(drawn.data.points)) {
             pos = {
               x: drawn.data.points[0],
@@ -6336,7 +8451,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               z: drawn.data.points[2]
             };
           } else {
-            const drawnObjects = ((_i = canvas2.view) == null ? void 0 : _i.drawnObjects) || {};
+            const drawnObjects = ((_i = canvas.view) == null ? void 0 : _i.drawnObjects) || {};
             for (const k of Object.keys(drawnObjects)) {
               const item = drawnObjects[k];
               const d = item == null ? void 0 : item.data;
@@ -6359,7 +8474,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
         if (!pos || typeof pos.x !== "number" || isNaN(pos.x)) return false;
-        const views = canvas2.view.views;
+        const views = canvas.view.views;
         if (views) {
           const pView = views.perspective;
           if ((_m = pView == null ? void 0 : pView.controls) == null ? void 0 : _m.target) {
@@ -6401,8 +8516,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               }
             }
           }
-          if (typeof canvas2.render === "function") {
-            canvas2.render();
+          if (typeof canvas.render === "function") {
+            canvas.render();
           }
         }
         return true;
@@ -6414,8 +8529,39 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     let autoCenterOnFrameChange = true;
     let lastActiveTrackId = null;
     let persistentActiveTrackId = null;
+    let currentActiveTrackId = -1;
     let isFrameTransitioning = false;
     let frameTransitionTimer = null;
+    let lockOnActiveTimer = null;
+    const handlePointerTransitionUnblock = (e) => {
+      if (isFrameTransitioning) {
+        if (e.type === "pointerdown" || e.type === "mousedown") {
+          isFrameTransitioning = false;
+          if (frameTransitionTimer) {
+            clearTimeout(frameTransitionTimer);
+            frameTransitionTimer = null;
+          }
+          isCanvasInteracting = true;
+        }
+      }
+    };
+    window.addEventListener("pointerdown", handlePointerTransitionUnblock, { capture: true, passive: true });
+    window.addEventListener("mousedown", handlePointerTransitionUnblock, { capture: true, passive: true });
+    window.addEventListener("pointerdown", () => {
+      window.__cvat_mouse_down__ = true;
+    }, { capture: true, passive: true });
+    window.addEventListener("mousedown", () => {
+      window.__cvat_mouse_down__ = true;
+    }, { capture: true, passive: true });
+    window.addEventListener("pointerup", () => {
+      window.__cvat_mouse_down__ = false;
+    }, { capture: true, passive: true });
+    window.addEventListener("mouseup", () => {
+      window.__cvat_mouse_down__ = false;
+    }, { capture: true, passive: true });
+    window.addEventListener("pointercancel", () => {
+      window.__cvat_mouse_down__ = false;
+    }, { capture: true, passive: true });
     function updateLockedTrackId(clientId) {
       var _a, _b, _c, _d;
       if (clientId === null || clientId === void 0 || isNaN(clientId)) return;
@@ -6435,101 +8581,104 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       persistentActiveTrackId = Number(clientId);
     }
     function lockOnActiveObjectAtFrame(targetId, targetFrame, attempt = 0) {
-      var _a, _b, _c, _d, _e, _f, _g, _h;
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
+      if (lockOnActiveTimer) {
+        clearTimeout(lockOnActiveTimer);
+        lockOnActiveTimer = null;
+      }
       try {
         const store = getReduxStore();
         const anno = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation;
-        const canvas2 = (_b = anno == null ? void 0 : anno.canvas) == null ? void 0 : _b.instance;
+        const canvas = (_b = anno == null ? void 0 : anno.canvas) == null ? void 0 : _b.instance;
         const states = ((_c = anno == null ? void 0 : anno.annotations) == null ? void 0 : _c.states) || [];
+        const isFetching = !!((_d = anno == null ? void 0 : anno.annotations) == null ? void 0 : _d.fetching);
+        const isStaleStates = isFetching || states.length === 0 || states.length > 0 && typeof states[0].frame === "number" && states[0].frame !== targetFrame;
         let matchedState = null;
-        if (persistentActiveTrackId !== null) {
+        const trackIdToFind = persistentActiveTrackId !== null ? persistentActiveTrackId : targetId;
+        if (!isStaleStates && trackIdToFind !== null && trackIdToFind !== void 0 && !isNaN(trackIdToFind)) {
           matchedState = states.find(
             (s) => {
               var _a2;
-              return (Number(s.parentID ?? s.trackID ?? ((_a2 = s.parent) == null ? void 0 : _a2.clientID)) === Number(persistentActiveTrackId) || Number(s.clientID) === Number(persistentActiveTrackId)) && !s.outside;
+              return Number(s.parentID ?? s.trackID ?? ((_a2 = s.parent) == null ? void 0 : _a2.clientID)) === Number(trackIdToFind) && (typeof s.frame !== "number" || s.frame === targetFrame) && !s.outside;
             }
           );
+          if (!matchedState) {
+            matchedState = states.find(
+              (s) => Number(s.clientID) === Number(trackIdToFind) && (s.parentID === void 0 || s.parentID === null) && (typeof s.frame !== "number" || s.frame === targetFrame) && !s.outside
+            );
+          }
         }
-        if (!matchedState && targetId !== null && targetId !== void 0 && !isNaN(targetId)) {
-          matchedState = states.find(
-            (s) => {
-              var _a2;
-              return (Number(s.clientID) === Number(targetId) || Number(s.parentID ?? s.trackID ?? ((_a2 = s.parent) == null ? void 0 : _a2.clientID)) === Number(targetId)) && !s.outside;
-            }
-          );
+        if (!matchedState) {
+          const delays = [60, 140, 260, 480, 800];
+          if (attempt < delays.length) {
+            lockOnActiveTimer = setTimeout(() => {
+              var _a2, _b2, _c2, _d2, _e2, _f2;
+              lockOnActiveTimer = null;
+              const curF = ((_b2 = (_a2 = anno == null ? void 0 : anno.player) == null ? void 0 : _a2.frame) == null ? void 0 : _b2.number) ?? ((_f2 = (_e2 = (_d2 = (_c2 = store == null ? void 0 : store.getState()) == null ? void 0 : _c2.annotation) == null ? void 0 : _d2.job) == null ? void 0 : _e2.instance) == null ? void 0 : _f2.frame);
+              if (curF === targetFrame) {
+                lockOnActiveObjectAtFrame(targetId, targetFrame, attempt + 1);
+              }
+            }, delays[attempt]);
+          } else {
+            window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_OBJECT_DEACTIVATED"));
+          }
+          return;
         }
-        let activeIdToUse = targetId;
+        const activeIdToUse = Number(matchedState.clientID);
         let foundPos = null;
-        if (matchedState) {
-          activeIdToUse = Number(matchedState.clientID);
-          if (Array.isArray(matchedState.points) && matchedState.points.length >= 3) {
-            foundPos = {
-              x: matchedState.points[0],
-              y: matchedState.points[1],
-              z: matchedState.points[2]
-            };
-          }
-        } else {
-          const drawnItem = (_e = (_d = canvas2 == null ? void 0 : canvas2.view) == null ? void 0 : _d.drawnObjects) == null ? void 0 : _e[String(targetId)];
-          if (((_f = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _f.points) && Array.isArray(drawnItem.data.points) && !drawnItem.data.outside) {
-            foundPos = {
-              x: drawnItem.data.points[0],
-              y: drawnItem.data.points[1],
-              z: drawnItem.data.points[2]
-            };
-          }
+        if (Array.isArray(matchedState.points) && matchedState.points.length >= 3) {
+          foundPos = {
+            x: matchedState.points[0],
+            y: matchedState.points[1],
+            z: matchedState.points[2]
+          };
         }
-        const isMeshReady = !!((_h = (_g = canvas2 == null ? void 0 : canvas2.view) == null ? void 0 : _g.drawnObjects) == null ? void 0 : _h[String(activeIdToUse)]);
+        const isMeshReady = !!((_f = (_e = canvas == null ? void 0 : canvas.view) == null ? void 0 : _e.drawnObjects) == null ? void 0 : _f[String(activeIdToUse)]);
         if (foundPos && typeof foundPos.x === "number" && !isNaN(foundPos.x)) {
-          if (canvas2 && typeof canvas2.activate === "function") {
+          lastActiveTrackId = activeIdToUse;
+          if (canvas && typeof canvas.activate === "function") {
             try {
-              canvas2.activate(activeIdToUse);
+              canvas.activate(activeIdToUse);
             } catch (_) {
             }
           }
           if (store && typeof store.dispatch === "function") {
             try {
-              store.dispatch({
-                type: "ACTIVATE_OBJECT",
-                payload: { activatedStateClientID: activeIdToUse, activatedElementID: activeIdToUse }
-              });
+              const currentStoreActiveId = ((_i = (_h = (_g = store.getState()) == null ? void 0 : _g.annotation) == null ? void 0 : _h.annotations) == null ? void 0 : _i.activatedStateClientID) ?? ((_n = (_m = (_l = (_k = (_j = store.getState()) == null ? void 0 : _j.annotation) == null ? void 0 : _k.canvas) == null ? void 0 : _l.instance) == null ? void 0 : _m.view) == null ? void 0 : _n.activatedElementID);
+              if (Number(currentStoreActiveId) !== Number(activeIdToUse)) {
+                store.dispatch({
+                  type: "ACTIVATE_OBJECT",
+                  payload: { activatedStateClientID: activeIdToUse, activatedElementID: activeIdToUse }
+                });
+              }
             } catch (_) {
             }
           }
           if (autoCenterOnFrameChange) {
             center3DViewOnObject(activeIdToUse, foundPos);
           }
-          try {
-            const sidebarItem = document.querySelector(`#cvat-objects-sidebar-state-item-${activeIdToUse}`) || document.querySelector(`[data-cvat-state-item-id="${activeIdToUse}"]`) || document.querySelector(`[class*="cvat-objects-sidebar-state-item"][id*="${activeIdToUse}"]`);
-            if (sidebarItem) {
-              sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
-              const allItems = document.querySelectorAll("[class*='cvat-objects-sidebar-state-item']");
-              allItems.forEach((el) => el.classList.remove("cvat-objects-sidebar-state-item-active", "selected"));
-              sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
-            }
-          } catch (_) {
-          }
-          if (typeof canvas2.render === "function") {
-            canvas2.render();
+          syncSidebarItemHighlight(Number(activeIdToUse));
+          if (typeof canvas.render === "function") {
+            canvas.render();
           }
           const details = extractObjectDetails(activeIdToUse);
+          updateOrthoClippingPlanes(details);
           window.dispatchEvent(
             new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-              detail: { clientId: activeIdToUse, details }
+              detail: { clientId: activeIdToUse, trackId: persistentActiveTrackId, details }
             })
           );
         }
-        const delays = [40, 100, 220, 450, 750];
-        if (attempt < delays.length) {
-          setTimeout(() => {
+        if (!isMeshReady && attempt < 3) {
+          const delays = [60, 150, 300];
+          lockOnActiveTimer = setTimeout(() => {
             var _a2, _b2, _c2, _d2, _e2, _f2;
+            lockOnActiveTimer = null;
             const curF = ((_b2 = (_a2 = anno == null ? void 0 : anno.player) == null ? void 0 : _a2.frame) == null ? void 0 : _b2.number) ?? ((_f2 = (_e2 = (_d2 = (_c2 = store == null ? void 0 : store.getState()) == null ? void 0 : _c2.annotation) == null ? void 0 : _d2.job) == null ? void 0 : _e2.instance) == null ? void 0 : _f2.frame);
             if (curF === targetFrame) {
               lockOnActiveObjectAtFrame(targetId, targetFrame, attempt + 1);
             }
           }, delays[attempt]);
-        } else if (!matchedState && attempt >= delays.length) {
-          window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_OBJECT_DEACTIVATED"));
         }
       } catch (err) {
         console.warn("[CVAT 3D Suite] Lỗi lockOnActiveObjectAtFrame:", err);
@@ -6539,11 +8688,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       var _a, _b, _c, _d;
       try {
         const store = getReduxStore();
-        const canvas2 = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        if (!canvas2 || !canvas2.view || !canvas2.view.drawnObjects) {
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (!canvas || !canvas.view || !canvas.view.drawnObjects) {
           return false;
         }
-        const drawnItem = canvas2.view.drawnObjects[String(uiId)];
+        const drawnItem = canvas.view.drawnObjects[String(uiId)];
         if (!drawnItem) {
           return false;
         }
@@ -6590,52 +8739,64 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         } else {
           center3DViewOnObject(uiId);
         }
-        if (typeof canvas2.render === "function") {
-          canvas2.render();
+        if (typeof canvas.render === "function") {
+          canvas.render();
         }
         if (currentColorizeBoxed) {
-          applyPointCloudColorizationInMainWorld();
+          schedulePointCloudColorization(0);
         }
+        calculateAndBroadcastBoxEdgeContacts();
+        updateOrthoClippingPlanes();
         return true;
       } catch (err) {
         console.warn("[CVAT 3D Suite] Lỗi cập nhật trực tiếp Three.js:", err);
         return false;
       }
     }
+    function parseObjectAttributes(rawAttrs) {
+      const res = {};
+      if (!rawAttrs) return res;
+      if (typeof rawAttrs === "object") {
+        for (const k of Object.keys(rawAttrs)) {
+          const val = rawAttrs[k];
+          if (typeof val === "string" || typeof val === "number" || typeof val === "boolean") {
+            res[String(k).toLowerCase()] = val;
+            if (typeof val === "string") {
+              res[val.toLowerCase()] = true;
+            }
+          } else if (val && typeof val === "object" && val.value !== void 0) {
+            res[String(k).toLowerCase()] = val.value;
+            if (typeof val.value === "string") {
+              res[String(val.value).toLowerCase()] = true;
+            }
+          }
+        }
+      }
+      return res;
+    }
     function extractObjectDetails(clientId) {
-      var _a, _b, _c, _d, _e;
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
       try {
         const store = getReduxStore();
         const anno = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation;
-        const canvas2 = (_b = anno == null ? void 0 : anno.canvas) == null ? void 0 : _b.instance;
-        updateMainWorldLabels();
-        const drawnItem = (_d = (_c = canvas2 == null ? void 0 : canvas2.view) == null ? void 0 : _c.drawnObjects) == null ? void 0 : _d[String(clientId)];
-        if (drawnItem && drawnItem.data && Array.isArray(drawnItem.data.points)) {
-          const p = drawnItem.data.points;
-          const resolved = resolveLabelName(drawnItem.data);
-          return {
-            clientId,
-            serverId: drawnItem.data.serverID || null,
-            label: resolved.name,
-            color: resolved.color,
-            x: Number(p[0].toFixed(2)),
-            y: Number(p[1].toFixed(2)),
-            z: Number(p[2].toFixed(3)),
-            yawDeg: Math.round(p[5] * 180 / Math.PI),
-            l: Number(p[6].toFixed(2)),
-            w: Number(p[7].toFixed(2)),
-            h: Number(p[8].toFixed(2)),
-            points: [...p]
-          };
+        const canvas = (_b = anno == null ? void 0 : anno.canvas) == null ? void 0 : _b.instance;
+        if (mainWorldLabelsCache.size === 0) {
+          updateMainWorldLabels();
         }
+        const drawnItem = (_d = (_c = canvas == null ? void 0 : canvas.view) == null ? void 0 : _c.drawnObjects) == null ? void 0 : _d[String(clientId)];
         const states = ((_e = anno == null ? void 0 : anno.annotations) == null ? void 0 : _e.states) || [];
         const matched = states.find((s) => s.clientID === clientId);
-        if (matched && Array.isArray(matched.points)) {
-          const p = matched.points;
-          const resolved = resolveLabelName(matched);
+        const p = extractLivePointsFromDrawnAndState(drawnItem, matched);
+        if (p && p.length >= 9) {
+          const resolved = resolveLabelName((drawnItem == null ? void 0 : drawnItem.data) || matched);
+          const attrs = parseObjectAttributes(
+            ((_f = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _f.attributes) || ((_g = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _g.attributeValues) || (matched == null ? void 0 : matched.attributes) || (matched == null ? void 0 : matched.attributeValues)
+          );
+          const persistentTid = (matched == null ? void 0 : matched.parentID) ?? (matched == null ? void 0 : matched.trackID) ?? ((_h = matched == null ? void 0 : matched.parent) == null ? void 0 : _h.clientID) ?? ((_i = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _i.parentID) ?? ((_j = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _j.trackID) ?? clientId;
           return {
             clientId,
-            serverId: matched.serverID || null,
+            trackId: Number(persistentTid),
+            serverId: ((_k = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _k.serverID) || (matched == null ? void 0 : matched.serverID) || null,
             label: resolved.name,
             color: resolved.color,
             x: Number(p[0].toFixed(2)),
@@ -6645,12 +8806,66 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             l: Number(p[6].toFixed(2)),
             w: Number(p[7].toFixed(2)),
             h: Number(p[8].toFixed(2)),
-            points: [...p]
+            points: [...p],
+            attributes: attrs
           };
         }
       } catch (e) {
       }
       return null;
+    }
+    function calculateAndBroadcastBoxEdgeContacts() {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+      try {
+        const store = getReduxStore();
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        const activeId = ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.activatedElementID) ?? ((_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID) ?? lastActiveTrackId;
+        if (activeId === null || activeId === void 0 || isNaN(Number(activeId))) return;
+        const numId = Number(activeId);
+        const details = extractObjectDetails(numId);
+        if (!details || !Array.isArray(details.points) || details.points.length < 9) return;
+        const ptsObjs = getAllScenePointsObjects();
+        if (ptsObjs.length === 0) return;
+        let mainPtsObj = ptsObjs[0];
+        let maxCount = 0;
+        for (const obj of ptsObjs) {
+          const c = ((_j = (_i = (_h = obj.geometry) == null ? void 0 : _h.attributes) == null ? void 0 : _i.position) == null ? void 0 : _j.count) || 0;
+          if (c > maxCount) {
+            maxCount = c;
+            mainPtsObj = obj;
+          }
+        }
+        const geom = mainPtsObj == null ? void 0 : mainPtsObj.geometry;
+        const posAttr = (_k = geom == null ? void 0 : geom.attributes) == null ? void 0 : _k.position;
+        if (!posAttr || !posAttr.array) return;
+        const posArray = posAttr.array;
+        const p = details.points;
+        const boxTarget = {
+          id: numId,
+          cx: p[0],
+          cy: p[1],
+          cz: p[2],
+          rx: p[3] || 0,
+          ry: p[4] || 0,
+          rz: p[5] || 0,
+          l: p[6],
+          w: p[7],
+          h: p[8],
+          category: details.label,
+          isActive: true
+        };
+        const computeFn = window.computeBoxEdgeContacts || globalThis.computeBoxEdgeContacts;
+        if (typeof computeFn === "function") {
+          const contacts = computeFn(posArray, boxTarget);
+          window.dispatchEvent(
+            new CustomEvent("CVAT_EXT_RES_EDGE_CONTACTS_UPDATED", {
+              detail: contacts || { clientId: numId, pointCount: 0 }
+            })
+          );
+        }
+      } catch (e) {
+        console.warn("[CVAT 3D Suite] Lỗi calculateAndBroadcastBoxEdgeContacts:", e);
+      }
     }
     function ensureCuboidPoints(newValues, existingPoints) {
       let result;
@@ -6680,8 +8895,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
       const store = getReduxStore();
-      const canvas2 = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-      const drawnItem = (_e = (_d = canvas2 == null ? void 0 : canvas2.view) == null ? void 0 : _d.drawnObjects) == null ? void 0 : _e[String(uiId)];
+      const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+      const drawnItem = (_e = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.drawnObjects) == null ? void 0 : _e[String(uiId)];
       if (drawnItem && drawnItem.data && Array.isArray(drawnItem.data.points)) {
         return { target: drawnItem.data, isDrawn: true };
       }
@@ -6789,9 +9004,34 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       return null;
     }
-    function markCvatSaveButtonUnsaved() {
+    function markCvatSaveButtonUnsaved(job) {
+      var _a, _b, _c, _d, _e, _f, _g;
       try {
         window.__CVAT_HAS_UNSAVED_CHANGES__ = true;
+        const activeJob = job || ((_d = (_c = (_b = (_a = getReduxStore()) == null ? void 0 : _a.getState()) == null ? void 0 : _b.annotation) == null ? void 0 : _c.job) == null ? void 0 : _d.instance);
+        if (activeJob && activeJob.annotations) {
+          const col = activeJob.annotations._collection || activeJob.annotations.collection;
+          if (col) {
+            col._isModified = true;
+          }
+        }
+        const store = getReduxStore();
+        if (store && typeof store.dispatch === "function") {
+          try {
+            const historyState = ((_g = (_f = (_e = store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.history) || {};
+            store.dispatch({
+              type: "UPDATE_ANNOTATIONS_SUCCESS",
+              payload: {
+                history: historyState
+              }
+            });
+          } catch (_) {
+            try {
+              store.dispatch({ type: "CHANGE_ANNOTATIONS" });
+            } catch (__) {
+            }
+          }
+        }
         const cvatSaveBtn = document.querySelector(
           "button.cvat-annotation-header-save-button, .cvat-annotation-header-save-button, button[aria-label='Save annotations']"
         );
@@ -6814,46 +9054,178 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       } catch (err) {
         console.warn("[CVAT 3D Suite] Ghi nhận thay đổi cvat-core:", err);
       }
-      setTimeout(() => {
-        try {
-          const cvatSaveBtn = document.querySelector(
-            "button.cvat-annotation-header-save-button, .cvat-annotation-header-save-button, button[aria-label='Save annotations']"
-          );
-          if (cvatSaveBtn && !cvatSaveBtn.disabled && !cvatSaveBtn.classList.contains("cvat-disabled-button")) {
-            cvatSaveBtn.click();
-            console.log("[CVAT 3D Suite] Đã kích hoạt AutoSave trên giao diện CVAT Header.");
-          }
-        } catch (e) {
-        }
-      }, 120);
     }
     let isInteractiveWatcherAttached = false;
     function setupCanvasInteractiveWatcher() {
       if (isInteractiveWatcherAttached) return;
       isInteractiveWatcherAttached = true;
-      let isCanvasInteracting = false;
-      let dragRafId = null;
-      const onPointerMove = () => {
-        if (!isCanvasInteracting || !currentColorizeBoxed) return;
-        if (dragRafId !== null) return;
-        dragRafId = requestAnimationFrame(() => {
-          dragRafId = null;
-          if (isCanvasInteracting && currentColorizeBoxed) {
-            applyPointCloudColorizationInMainWorld();
+      let pointerUpDebounceTimer = null;
+      let hadBoxTransform = false;
+      let clippingRafId = null;
+      const scheduleOrthoClippingUpdate = () => {
+        if (clippingRafId !== null) return;
+        clippingRafId = requestAnimationFrame(() => {
+          clippingRafId = null;
+          if (currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI) {
+            updateOrthoClippingPlanes(void 0, false);
           }
         });
       };
+      const isCameraNavigating = () => {
+        var _a, _b, _c, _d;
+        try {
+          const store = getReduxStore();
+          const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+          const views = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views;
+          if (!views) return false;
+          for (const vKey of ["perspective", "top", "side", "front"]) {
+            const v = views[vKey];
+            const controls = v == null ? void 0 : v.controls;
+            if (controls) {
+              if (typeof controls.state === "number" && controls.state !== -1) {
+                return true;
+              }
+              if (typeof controls._state === "number" && controls._state !== -1) {
+                return true;
+              }
+              if (controls.isRotating || controls.isPanning) {
+                return true;
+              }
+            }
+          }
+        } catch (_) {
+        }
+        return false;
+      };
+      const isTargetBoxTransforming = () => {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
+        try {
+          const store = getReduxStore();
+          const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+          const activeId = ((_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.annotations) == null ? void 0 : _f.activatedStateClientID) ?? lastActiveTrackId;
+          if (!activeId || isNaN(Number(activeId)) || Number(activeId) <= 0) {
+            return false;
+          }
+          const drawnObjects = (_g = canvas == null ? void 0 : canvas.view) == null ? void 0 : _g.drawnObjects;
+          if (!drawnObjects) return false;
+          const drawnItem = drawnObjects[String(activeId)];
+          if (!drawnItem) return false;
+          const data = drawnItem.data;
+          const c = drawnItem.cuboid;
+          if (!data || !c || !Array.isArray(data.points) || data.points.length < 9 || data.outside) {
+            return false;
+          }
+          const bx = data.points[0];
+          const by = data.points[1];
+          const bz = data.points[2];
+          const bYaw = data.points[5] || 0;
+          const bL = data.points[6];
+          const bW = data.points[7];
+          const bH = data.points[8];
+          for (const cand of [c.perspective, c]) {
+            const p = cand == null ? void 0 : cand.position;
+            if (p && typeof p.x === "number") {
+              const dx = p.x - bx;
+              const dy = p.y - by;
+              const dz = p.z - bz;
+              if (dx * dx + dy * dy + dz * dz > 1e-4) return true;
+            }
+          }
+          if ((_h = c.top) == null ? void 0 : _h.position) {
+            const p = c.top.position;
+            if (typeof p.x === "number" && typeof p.y === "number") {
+              const dx = p.x - bx;
+              const dy = p.y - by;
+              if (dx * dx + dy * dy > 1e-4) return true;
+            }
+          }
+          if ((_i = c.side) == null ? void 0 : _i.position) {
+            const p = c.side.position;
+            if (typeof p.x === "number" && typeof p.z === "number") {
+              const dx = p.x - bx;
+              const dz = p.z - bz;
+              if (dx * dx + dz * dz > 1e-4) return true;
+            }
+          }
+          if ((_j = c.front) == null ? void 0 : _j.position) {
+            const p = c.front.position;
+            if (typeof p.y === "number" && typeof p.z === "number") {
+              const dy = p.y - by;
+              const dz = p.z - bz;
+              if (dy * dy + dz * dz > 1e-4) return true;
+            }
+          }
+          for (const cand of [c.perspective, c.top, c]) {
+            const r = cand == null ? void 0 : cand.rotation;
+            if (r && typeof r.z === "number") {
+              if (Math.abs(r.z - bYaw) > 1e-3) return true;
+            }
+          }
+          for (const cand of [c.perspective, c.top, c.side, c.front, c]) {
+            const s = cand == null ? void 0 : cand.scale;
+            if (s && typeof s.x === "number" && s.x > 0) {
+              if (Math.abs(s.x - bL) > 1e-3 || Math.abs(s.y - bW) > 1e-3 || Math.abs(s.z - bH) > 1e-3) {
+                return true;
+              }
+            }
+          }
+        } catch (_) {
+        }
+        return false;
+      };
+      const onPointerMove = (e) => {
+        if (e.buttons === 1 && !isCanvasInteracting) {
+          isCanvasInteracting = true;
+        }
+        if (isCanvasInteracting && e.buttons === 0) {
+          onPointerUp();
+          return;
+        }
+        if (!isCanvasInteracting) return;
+        if (e.buttons === 2 || e.buttons === 4 || e.altKey) return;
+        if (isCameraNavigating()) return;
+        if (!isTargetBoxTransforming()) return;
+        hadBoxTransform = true;
+        if (currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI) {
+          scheduleOrthoClippingUpdate();
+        }
+      };
       const onPointerUp = () => {
+        var _a, _b, _c, _d, _e, _f;
+        if (clippingRafId !== null) {
+          cancelAnimationFrame(clippingRafId);
+          clippingRafId = null;
+        }
         if (!isCanvasInteracting) return;
         isCanvasInteracting = false;
-        if (dragRafId !== null) {
-          cancelAnimationFrame(dragRafId);
-          dragRafId = null;
-        }
-        if (currentColorizeBoxed) {
-          applyPointCloudColorizationInMainWorld();
-          setTimeout(() => applyPointCloudColorizationInMainWorld(), 80);
-          setTimeout(() => applyPointCloudColorizationInMainWorld(), 220);
+        if (hadBoxTransform) {
+          hadBoxTransform = false;
+          try {
+            const store = getReduxStore();
+            const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+            const activeId = ((_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.annotations) == null ? void 0 : _f.activatedStateClientID) ?? lastActiveTrackId;
+            if (activeId !== null && activeId !== void 0 && !isNaN(Number(activeId))) {
+              const numId = Number(activeId);
+              const details = extractObjectDetails(numId);
+              if (details) {
+                window.dispatchEvent(
+                  new CustomEvent("CVAT_EXT_RES_LIVE_TRANSFORM_CHANGED", {
+                    detail: { clientId: numId, details }
+                  })
+                );
+              }
+            }
+          } catch (_) {
+          }
+          if (pointerUpDebounceTimer) clearTimeout(pointerUpDebounceTimer);
+          pointerUpDebounceTimer = setTimeout(() => {
+            pointerUpDebounceTimer = null;
+            if (currentColorizeBoxed) {
+              schedulePointCloudColorization(0);
+            }
+            calculateAndBroadcastBoxEdgeContacts();
+            updateOrthoClippingPlanes(void 0, true);
+          }, 60);
         }
       };
       window.addEventListener(
@@ -6879,12 +9251,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           el.addEventListener(
             "pointerdown",
             () => {
-              var _a, _b, _c, _d, _e, _f, _g;
+              var _a, _b, _c;
               isCanvasInteracting = true;
               try {
                 const store = getReduxStore();
-                const canvas2 = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-                const activeId = ((_d = canvas2 == null ? void 0 : canvas2.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
+                const activeId = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.activatedStateClientID;
                 if (activeId !== null && activeId !== void 0) {
                   updateLockedTrackId(Number(activeId));
                 }
@@ -6928,7 +9299,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             if (keyDebounceTimer) clearTimeout(keyDebounceTimer);
             keyDebounceTimer = setTimeout(() => {
               keyDebounceTimer = null;
-              applyPointCloudColorizationInMainWorld();
+              schedulePointCloudColorization(0);
+              calculateAndBroadcastBoxEdgeContacts();
             }, 60);
           }
         },
@@ -6948,135 +9320,464 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       isCanvasAutoSelectAttached = true;
       setupCanvasInteractiveWatcher();
-      canvasContainers.forEach((container) => {
-        container.addEventListener("pointerup", () => {
-          setTimeout(() => {
-            var _a, _b, _c, _d, _e, _f, _g;
-            try {
-              const currentStore = getReduxStore() || store;
-              const canvas2 = (_c = (_b = (_a = currentStore == null ? void 0 : currentStore.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-              const activeId = ((_d = canvas2 == null ? void 0 : canvas2.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = currentStore == null ? void 0 : currentStore.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
-              if (activeId !== null && activeId !== void 0) {
-                updateLockedTrackId(Number(activeId));
-                const details = extractObjectDetails(Number(activeId));
-                window.dispatchEvent(
-                  new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-                    detail: { clientId: Number(activeId), details }
-                  })
-                );
-                if (currentColorizeBoxed) {
-                  applyPointCloudColorizationInMainWorld();
+      function transformVectorInverseEulerLocal(v, rx = 0, ry = 0, rz = 0) {
+        const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
+        const x1 = v.x * cosZ + v.y * sinZ;
+        const y1 = -v.x * sinZ + v.y * cosZ;
+        const z1 = v.z;
+        const cosY = Math.cos(ry), sinY = Math.sin(ry);
+        const x2 = x1 * cosY - z1 * sinY;
+        const y2 = y1;
+        const z2 = x1 * sinY + z1 * cosY;
+        const cosX = Math.cos(rx), sinX = Math.sin(rx);
+        const x3 = x2;
+        const y3 = y2 * cosX + z2 * sinX;
+        const z3 = -y2 * sinX + z2 * cosX;
+        return { x: x3, y: y3, z: z3 };
+      }
+      function intersectRayWithOBBLocal(ray, box, padding = 0.15) {
+        if (box.l <= 0 || box.w <= 0 || box.h <= 0) return null;
+        const hx = box.l / 2 + padding;
+        const hy = box.w / 2 + padding;
+        const hz = box.h / 2 + padding;
+        const P = {
+          x: ray.origin.x - box.x,
+          y: ray.origin.y - box.y,
+          z: ray.origin.z - box.z
+        };
+        const D = ray.direction;
+        const rx = box.roll || 0;
+        const ry = box.pitch || 0;
+        const rz = box.yaw || 0;
+        const Ploc = transformVectorInverseEulerLocal(P, rx, ry, rz);
+        const Dloc = transformVectorInverseEulerLocal(D, rx, ry, rz);
+        let tMin = -Infinity;
+        let tMax = Infinity;
+        if (Math.abs(Dloc.x) > 1e-7) {
+          let t1 = (-hx - Ploc.x) / Dloc.x;
+          let t2 = (hx - Ploc.x) / Dloc.x;
+          if (t1 > t2) {
+            const t = t1;
+            t1 = t2;
+            t2 = t;
+          }
+          tMin = Math.max(tMin, t1);
+          tMax = Math.min(tMax, t2);
+          if (tMin > tMax) return null;
+        } else if (Math.abs(Ploc.x) > hx) {
+          return null;
+        }
+        if (Math.abs(Dloc.y) > 1e-7) {
+          let t1 = (-hy - Ploc.y) / Dloc.y;
+          let t2 = (hy - Ploc.y) / Dloc.y;
+          if (t1 > t2) {
+            const t = t1;
+            t1 = t2;
+            t2 = t;
+          }
+          tMin = Math.max(tMin, t1);
+          tMax = Math.min(tMax, t2);
+          if (tMin > tMax) return null;
+        } else if (Math.abs(Ploc.y) > hy) {
+          return null;
+        }
+        if (Math.abs(Dloc.z) > 1e-7) {
+          let t1 = (-hz - Ploc.z) / Dloc.z;
+          let t2 = (hz - Ploc.z) / Dloc.z;
+          if (t1 > t2) {
+            const t = t1;
+            t1 = t2;
+            t2 = t;
+          }
+          tMin = Math.max(tMin, t1);
+          tMax = Math.min(tMax, t2);
+          if (tMin > tMax) return null;
+        } else if (Math.abs(Ploc.z) > hz) {
+          return null;
+        }
+        if (tMax < 0) return null;
+        return tMin >= 0 ? tMin : tMax;
+      }
+      let fastDoubleRaycaster = null;
+      function findObjectUnderPointer(clientX, clientY) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
+        try {
+          const curStore = getReduxStore() || store;
+          const canvas = (_c = (_b = (_a = curStore == null ? void 0 : curStore.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+          const views = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views;
+          if (!views) return null;
+          let activeView = views.perspective;
+          let activeCam = activeView == null ? void 0 : activeView.camera;
+          let activeRenderer = activeView == null ? void 0 : activeView.renderer;
+          let targetCanvas = (activeRenderer == null ? void 0 : activeRenderer.domElement) || null;
+          const orthoKeys = ["top", "side", "front"];
+          for (const name of orthoKeys) {
+            const v = views[name];
+            const dom = (_e = v == null ? void 0 : v.renderer) == null ? void 0 : _e.domElement;
+            if (dom) {
+              const r = dom.getBoundingClientRect();
+              if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+                activeView = v;
+                activeCam = v.camera;
+                activeRenderer = v.renderer;
+                targetCanvas = dom;
+                break;
+              }
+            }
+          }
+          if (!targetCanvas) {
+            targetCanvas = document.querySelector(".cvat-canvas3d-perspective canvas") || document.querySelector(".cvat-canvas-container canvas");
+          }
+          if (!activeCam || !targetCanvas) return null;
+          const rect = targetCanvas.getBoundingClientRect();
+          if (rect.width <= 0 || rect.height <= 0) return null;
+          const mouseX = (clientX - rect.left) / rect.width * 2 - 1;
+          const mouseY = -((clientY - rect.top) / rect.height) * 2 + 1;
+          const winThree = window.THREE || ((_f = canvas == null ? void 0 : canvas.view) == null ? void 0 : _f.THREE);
+          if (!winThree) return null;
+          if (!fastDoubleRaycaster && typeof winThree.Raycaster === "function") {
+            fastDoubleRaycaster = new winThree.Raycaster();
+          }
+          if (!fastDoubleRaycaster) return null;
+          fastDoubleRaycaster.setFromCamera({ x: mouseX, y: mouseY }, activeCam);
+          const ray = fastDoubleRaycaster.ray;
+          if (!ray || !ray.origin || !ray.direction) return null;
+          const drawnObjects = ((_g = canvas == null ? void 0 : canvas.view) == null ? void 0 : _g.drawnObjects) || {};
+          const states = ((_j = (_i = (_h = curStore == null ? void 0 : curStore.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.annotations) == null ? void 0 : _j.states) || [];
+          let bestHitDist = Infinity;
+          let bestUiId = null;
+          let bestPos = null;
+          const checkedIds = /* @__PURE__ */ new Set();
+          for (const k of Object.keys(drawnObjects)) {
+            const item = drawnObjects[k];
+            const data = item == null ? void 0 : item.data;
+            if (!data || data.outside) continue;
+            const uiId = Number(k);
+            if (isNaN(uiId) || uiId <= 0) continue;
+            checkedIds.add(uiId);
+            const pts = extractLivePointsFromDrawnAndState(item, null) || data.points;
+            if (!pts || !Array.isArray(pts) || pts.length < 9) continue;
+            const box = {
+              x: pts[0],
+              y: pts[1],
+              z: pts[2],
+              roll: pts[3] || 0,
+              pitch: pts[4] || 0,
+              yaw: pts[5] || 0,
+              l: pts[6],
+              w: pts[7],
+              h: pts[8]
+            };
+            const hitDist = intersectRayWithOBBLocal(ray, box, 0.15);
+            if (hitDist !== null && hitDist < bestHitDist) {
+              bestHitDist = hitDist;
+              bestUiId = uiId;
+              bestPos = { x: pts[0], y: pts[1], z: pts[2] };
+            }
+          }
+          for (const st of states) {
+            if (!st || st.outside || st.shapeType !== "cuboid") continue;
+            const uiId = Number(st.clientID ?? st.id);
+            if (isNaN(uiId) || uiId <= 0 || checkedIds.has(uiId)) continue;
+            checkedIds.add(uiId);
+            const pts = st.points;
+            if (!pts || !Array.isArray(pts) || pts.length < 9) continue;
+            const box = {
+              x: pts[0],
+              y: pts[1],
+              z: pts[2],
+              roll: pts[3] || 0,
+              pitch: pts[4] || 0,
+              yaw: pts[5] || 0,
+              l: pts[6],
+              w: pts[7],
+              h: pts[8]
+            };
+            const hitDist = intersectRayWithOBBLocal(ray, box, 0.15);
+            if (hitDist !== null && hitDist < bestHitDist) {
+              bestHitDist = hitDist;
+              bestUiId = uiId;
+              bestPos = { x: pts[0], y: pts[1], z: pts[2] };
+            }
+          }
+          if (bestUiId !== null && bestPos !== null) {
+            return { uiId: bestUiId, pos: bestPos };
+          }
+          try {
+            const cuboidMeshes = [];
+            const meshToIdMap = /* @__PURE__ */ new Map();
+            for (const k of Object.keys(drawnObjects)) {
+              const item = drawnObjects[k];
+              const uiId = Number(k);
+              if (item == null ? void 0 : item.cuboid) {
+                const cand = item.cuboid.perspective || item.cuboid;
+                if (cand) {
+                  cuboidMeshes.push(cand);
+                  meshToIdMap.set(cand, uiId);
                 }
               }
-            } catch (e) {
             }
-          }, 80);
-        });
+            if (cuboidMeshes.length > 0) {
+              const intersects = fastDoubleRaycaster.intersectObjects(cuboidMeshes, true);
+              if (intersects && intersects.length > 0) {
+                const firstHit = intersects[0];
+                let curObj = firstHit.object;
+                while (curObj) {
+                  if (meshToIdMap.has(curObj)) {
+                    const uiId = meshToIdMap.get(curObj);
+                    const d = (_k = drawnObjects[String(uiId)]) == null ? void 0 : _k.data;
+                    const pos = d && Array.isArray(d.points) ? { x: d.points[0], y: d.points[1], z: d.points[2] } : void 0;
+                    return { uiId, pos: pos || { x: firstHit.point.x, y: firstHit.point.y, z: firstHit.point.z } };
+                  }
+                  curObj = curObj.parent;
+                }
+              }
+            }
+          } catch (_) {
+          }
+          try {
+            let bestScreenDist = 32;
+            let screenMatchId = null;
+            let screenMatchPos = null;
+            for (const id of checkedIds) {
+              const drawn = drawnObjects[String(id)];
+              const pts = extractLivePointsFromDrawnAndState(drawn, null) || ((_l = drawn == null ? void 0 : drawn.data) == null ? void 0 : _l.points);
+              if (!pts || !Array.isArray(pts) || pts.length < 3) continue;
+              const cx = pts[0], cy = pts[1], cz = pts[2];
+              const tempV = new winThree.Vector3(cx, cy, cz);
+              tempV.project(activeCam);
+              if (tempV.z >= -1 && tempV.z <= 1) {
+                const screenX = (tempV.x + 1) / 2 * rect.width + rect.left;
+                const screenY = (-tempV.y + 1) / 2 * rect.height + rect.top;
+                const d = Math.hypot(clientX - screenX, clientY - screenY);
+                if (d < bestScreenDist) {
+                  bestScreenDist = d;
+                  screenMatchId = id;
+                  screenMatchPos = { x: cx, y: cy, z: cz };
+                }
+              }
+            }
+            if (screenMatchId !== null && screenMatchPos !== null) {
+              return { uiId: screenMatchId, pos: screenMatchPos };
+            }
+          } catch (_) {
+          }
+          return null;
+        } catch (err) {
+          console.warn("[CVAT 3D Suite] Lỗi findObjectUnderPointer:", err);
+          return null;
+        }
+      }
+      function activateAndGhimObjectImmediately(uiId, targetPos) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o;
+        if (uiId === null || uiId === void 0 || isNaN(uiId) || uiId <= 0) return;
+        console.log(`[CVAT 3D Suite] ⚡ DOUBLE-CLICK: KÍCH HOẠT TỨC THÌ & GHIM TÂM XE #${uiId}!`);
+        lastActiveTrackId = uiId;
+        lastDispatchedActiveId = uiId;
+        updateLockedTrackId(uiId);
+        center3DViewOnObject(uiId, targetPos);
+        const details = extractObjectDetails(uiId);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+            detail: { clientId: uiId, details, isHover: false, isDoubleClick: true }
+          })
+        );
+        if (currentColorizeBoxed) {
+          schedulePointCloudColorization(0);
+        }
+        calculateAndBroadcastBoxEdgeContacts();
+        updateOrthoClippingPlanes(details);
+        try {
+          const curStore = getReduxStore() || store;
+          const canvas = (_c = (_b = (_a = curStore == null ? void 0 : curStore.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+          if (canvas && typeof canvas.activate === "function") {
+            const curCanvasActive = ((_d = canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = curStore == null ? void 0 : curStore.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
+            if (Number(curCanvasActive) !== uiId) {
+              canvas.activate(uiId);
+              if (typeof canvas.render === "function") {
+                canvas.render();
+              }
+            }
+          }
+          if (curStore && typeof curStore.dispatch === "function") {
+            const currentStoreActiveId = ((_j = (_i = (_h = curStore.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.annotations) == null ? void 0 : _j.activatedStateClientID) ?? ((_o = (_n = (_m = (_l = (_k = curStore.getState()) == null ? void 0 : _k.annotation) == null ? void 0 : _l.canvas) == null ? void 0 : _m.instance) == null ? void 0 : _n.view) == null ? void 0 : _o.activatedElementID);
+            if (Number(currentStoreActiveId) !== uiId) {
+              curStore.dispatch({
+                type: "ACTIVATE_OBJECT",
+                payload: { activatedStateClientID: uiId, activatedElementID: uiId }
+              });
+            }
+          }
+        } catch (_) {
+        }
+        syncSidebarItemHighlight(uiId);
+      }
+      let lastHandledDblClickTime = 0;
+      function handle3DCanvasDoubleClick(e) {
+        if (isFrameTransitioning) return;
+        const now = Date.now();
+        if (now - lastHandledDblClickTime < 240) return;
+        lastHandledDblClickTime = now;
+        const hit = findObjectUnderPointer(e.clientX, e.clientY);
+        if (hit && hit.uiId > 0) {
+          activateAndGhimObjectImmediately(hit.uiId, hit.pos);
+          try {
+            e.stopPropagation();
+          } catch (_) {
+          }
+        }
+      }
+      document.addEventListener(
+        "dblclick",
+        (e) => {
+          if (isFrameTransitioning) return;
+          const target = e.target;
+          if (!target) return;
+          if (target.closest("input, textarea, button, select, #cvat-3d-suite-panel, .cvat-3d-suite-modal")) {
+            return;
+          }
+          const canvasContainer = target.closest(
+            ".cvat-canvas-container, .cvat-canvas3d-perspective, .cvat-canvas3d-orthographic-view, .cvat-canvas3d-topview, .cvat-canvas3d-sideview, .cvat-canvas3d-frontview"
+          );
+          if (canvasContainer || target.tagName === "CANVAS") {
+            handle3DCanvasDoubleClick(e);
+          }
+        },
+        { capture: true }
+      );
+      let fastDblLastTime = 0;
+      let fastDblLastX = 0;
+      let fastDblLastY = 0;
+      canvasContainers.forEach((container) => {
+        container.addEventListener(
+          "pointerup",
+          (e) => {
+            if (isFrameTransitioning) return;
+            if (e.button !== 0) return;
+            const now = Date.now();
+            const dt = now - fastDblLastTime;
+            const dx = Math.abs(e.clientX - fastDblLastX);
+            const dy = Math.abs(e.clientY - fastDblLastY);
+            fastDblLastTime = now;
+            fastDblLastX = e.clientX;
+            fastDblLastY = e.clientY;
+            if (dt >= 40 && dt <= 320 && dx <= 8 && dy <= 8) {
+              handle3DCanvasDoubleClick(e);
+              return;
+            }
+            setTimeout(() => {
+              var _a, _b, _c;
+              if (isFrameTransitioning) return;
+              try {
+                const currentStore = getReduxStore() || store;
+                const activeId = (_c = (_b = (_a = currentStore == null ? void 0 : currentStore.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.activatedStateClientID;
+                if (activeId !== null && activeId !== void 0) {
+                  const numId = Number(activeId);
+                  if (numId > 0) {
+                    updateLockedTrackId(numId);
+                    triggerFocusOnObject(numId, true);
+                  }
+                }
+              } catch (err) {
+              }
+            }, 80);
+          },
+          { capture: true }
+        );
       });
       document.addEventListener("click", (e) => {
+        if (isFrameTransitioning) return;
         const target = e.target;
         const sidebarItem = target.closest(
-          "[class*='cvat-objects-sidebar-state-item']"
+          "[class*='cvat-objects-sidebar-state-item'], [class*='cvat-objects-sidebar-states-list-item'], [data-cvat-state-item-id]"
         );
         if (sidebarItem) {
           setTimeout(() => {
-            const match = (sidebarItem.id || sidebarItem.innerText || "").match(/#?(\d+)/);
-            if (match) {
-              const id = parseInt(match[1], 10);
-              updateLockedTrackId(id);
-              const details = extractObjectDetails(id);
-              window.dispatchEvent(
-                new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-                  detail: { clientId: id, details }
-                })
-              );
-              if (currentColorizeBoxed) {
-                applyPointCloudColorizationInMainWorld();
-              }
-            }
-          }, 60);
-        }
-      });
-      let focusTriggerDebounceTimer = null;
-      function triggerFocusOnObject(id, forceCenter = true) {
-        if (id === null || id === void 0 || isNaN(id) || id <= 0) return;
-        if (id === lastActiveTrackId && id === persistentActiveTrackId) return;
-        if (focusTriggerDebounceTimer) clearTimeout(focusTriggerDebounceTimer);
-        focusTriggerDebounceTimer = setTimeout(() => {
-          var _a, _b, _c, _d, _e, _f, _g;
-          focusTriggerDebounceTimer = null;
-          if (id === lastActiveTrackId && id === persistentActiveTrackId) return;
-          console.log(`[CVAT 3D Suite] Tự động FOCUS vào xe #${id} (3D, Top, Side, Front)`);
-          lastActiveTrackId = id;
-          updateLockedTrackId(id);
-          if (forceCenter) {
-            center3DViewOnObject(id);
-          }
-          const details = extractObjectDetails(id);
-          window.dispatchEvent(
-            new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-              detail: { clientId: id, details, isHover: true }
-            })
-          );
-          if (currentColorizeBoxed) {
-            applyPointCloudColorizationInMainWorld();
-          }
-          try {
-            const store2 = getReduxStore();
-            const canvas2 = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-            if (canvas2 && typeof canvas2.activate === "function") {
-              const curActive = ((_d = canvas2.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
-              if (curActive !== id) {
-                canvas2.activate(id);
-                if (typeof canvas2.render === "function") {
-                  canvas2.render();
-                }
-              }
-            }
-            if (store2 && typeof store2.dispatch === "function") {
-              store2.dispatch({
-                type: "ACTIVATE_OBJECT",
-                payload: { activatedStateClientID: id, activatedElementID: id }
-              });
-            }
-          } catch (_) {
-          }
-          try {
-            const sidebarItem = document.querySelector(`#cvat-objects-sidebar-state-item-${id}`) || document.querySelector(`[data-cvat-state-item-id="${id}"]`) || document.querySelector(`[class*="cvat-objects-sidebar-state-item"][id*="${id}"]`);
-            if (sidebarItem) {
-              sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
-              const allItems = document.querySelectorAll("[class*='cvat-objects-sidebar-state-item']");
-              allItems.forEach((el) => el.classList.remove("cvat-objects-sidebar-state-item-active", "selected"));
-              sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
-            }
-          } catch (_) {
-          }
-        }, 35);
-      }
-      document.addEventListener(
-        "mouseover",
-        (e) => {
-          const target = e.target;
-          if (!target) return;
-          const sidebarItem = target.closest(
-            "[class*='cvat-objects-sidebar-state-item'], [class*='cvat-objects-sidebar-states-list-item'], [data-cvat-state-item-id]"
-          );
-          if (sidebarItem) {
+            var _a;
+            if (isFrameTransitioning) return;
             let id = null;
             const dataId = sidebarItem.getAttribute("data-cvat-state-item-id") || sidebarItem.getAttribute("data-item-id");
             if (dataId && /^\d+$/.test(dataId)) {
               id = parseInt(dataId, 10);
             } else {
-              const match = (sidebarItem.id || sidebarItem.innerText || sidebarItem.textContent || "").match(/#?(\d+)/);
-              if (match) id = parseInt(match[1], 10);
+              const idAttr = sidebarItem.id || ((_a = sidebarItem.closest("[id*='cvat-objects-sidebar-state-item-']")) == null ? void 0 : _a.id) || "";
+              const directMatch = idAttr.match(/cvat-objects-sidebar-state-item-(\d+)/);
+              if (directMatch) {
+                id = parseInt(directMatch[1], 10);
+              } else {
+                const textMatch = (sidebarItem.innerText || sidebarItem.textContent || "").match(/#(\d+)/);
+                if (textMatch) id = parseInt(textMatch[1], 10);
+              }
             }
-            if (id && id > 0 && id !== lastActiveTrackId) {
+            if (id && id > 0) {
+              updateLockedTrackId(id);
               triggerFocusOnObject(id, true);
             }
+          }, 60);
+        }
+      });
+      let focusTriggerDebounceTimer = null;
+      let isTriggeringFocus = false;
+      let lastDispatchedActiveId = null;
+      function triggerFocusOnObject(id, forceCenter = true) {
+        if (id === null || id === void 0 || isNaN(id) || id <= 0) return;
+        if (isTriggeringFocus) return;
+        if (id !== lastDispatchedActiveId) {
+          lastDispatchedActiveId = id;
+          const details = extractObjectDetails(id);
+          window.dispatchEvent(
+            new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+              detail: { clientId: id, details, isHover: false }
+            })
+          );
+          calculateAndBroadcastBoxEdgeContacts();
+        }
+        if (id === lastActiveTrackId && id === persistentActiveTrackId && !forceCenter) return;
+        lastActiveTrackId = id;
+        updateLockedTrackId(id);
+        if (focusTriggerDebounceTimer) clearTimeout(focusTriggerDebounceTimer);
+        focusTriggerDebounceTimer = setTimeout(() => {
+          var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o;
+          focusTriggerDebounceTimer = null;
+          isTriggeringFocus = true;
+          try {
+            if (forceCenter) {
+              center3DViewOnObject(id);
+            }
+            if (currentColorizeBoxed) {
+              schedulePointCloudColorization(0);
+            }
+            calculateAndBroadcastBoxEdgeContacts();
+            updateOrthoClippingPlanes();
+            try {
+              const store2 = getReduxStore();
+              const canvas = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+              if (canvas && typeof canvas.activate === "function") {
+                const curCanvasActive = ((_d = canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
+                if (Number(curCanvasActive) !== id) {
+                  canvas.activate(id);
+                  if (typeof canvas.render === "function") {
+                    canvas.render();
+                  }
+                }
+              }
+              if (store2 && typeof store2.dispatch === "function") {
+                const currentStoreActiveId = ((_j = (_i = (_h = store2.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.annotations) == null ? void 0 : _j.activatedStateClientID) ?? ((_o = (_n = (_m = (_l = (_k = store2.getState()) == null ? void 0 : _k.annotation) == null ? void 0 : _l.canvas) == null ? void 0 : _m.instance) == null ? void 0 : _n.view) == null ? void 0 : _o.activatedElementID);
+                if (Number(currentStoreActiveId) !== id) {
+                  store2.dispatch({
+                    type: "ACTIVATE_OBJECT",
+                    payload: { activatedStateClientID: id, activatedElementID: id }
+                  });
+                }
+              }
+            } catch (_) {
+            }
+            syncSidebarItemHighlight(id);
+          } finally {
+            isTriggeringFocus = false;
           }
-        },
-        { passive: true }
-      );
+        }, 15);
+      }
       let lastObservedSidebarId = null;
       let sidebarObserverDebounce = null;
       function attachSidebarActiveObserver() {
@@ -7085,13 +9786,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           if (!sidebarEl || sidebarEl.__cvat_sidebar_observer_attached__) return;
           sidebarEl.__cvat_sidebar_observer_attached__ = true;
           const observer = new MutationObserver(() => {
+            if (isFrameTransitioning) return;
             if (sidebarObserverDebounce) return;
             sidebarObserverDebounce = setTimeout(() => {
-              var _a;
+              var _a, _b, _c, _d, _e;
               sidebarObserverDebounce = null;
+              if (isFrameTransitioning) return;
               try {
                 const activeItem = document.querySelector(
-                  ".cvat-objects-sidebar-state-active-element, [class*='cvat-objects-sidebar-state-active-element'], [class*='state-active-element'], [id*='cvat-objects-sidebar-state-item-'][class*='active'], .cvat-objects-sidebar-state-item-active, .cvat-objects-sidebar-state-item.selected, [class*='sidebar-state-item-active'], [class*='sidebar-state-item--active'], [class*='state-item-activated'], [class*='state-item-highlighted'], [class*='state-item--highlighted'], [data-cvat-state-item-id][class*='active'], [data-cvat-state-item-id][class*='selected'], [data-cvat-state-item-id][class*='highlighted']"
+                  ".cvat-objects-sidebar-state-item-active, .cvat-objects-sidebar-state-item.selected, [class*='sidebar-state-item-active'], [data-cvat-state-item-id][class*='selected']"
                 );
                 if (activeItem) {
                   let id = null;
@@ -7108,62 +9811,28 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                       if (match) id = parseInt(match[1], 10);
                     }
                   }
-                  if (id && id > 0 && id !== lastObservedSidebarId && id !== lastActiveTrackId) {
-                    lastObservedSidebarId = id;
-                    console.log(`[CVAT 3D Suite] Thanh bên cạnh vừa đổi sang xe #${id} -> FOCUS NGAY!`);
-                    triggerFocusOnObject(id, true);
+                  if (id && id > 0 && id !== lastObservedSidebarId) {
+                    const curReduxActive = (_e = (_d = (_c = (_b = getReduxStore()) == null ? void 0 : _b.getState()) == null ? void 0 : _c.annotation) == null ? void 0 : _d.annotations) == null ? void 0 : _e.activatedStateClientID;
+                    if (Number(curReduxActive) === id && id !== lastActiveTrackId) {
+                      lastObservedSidebarId = id;
+                      lastActiveTrackId = id;
+                      updateLockedTrackId(id);
+                    }
                   }
                 }
               } catch (_) {
               }
-            }, 25);
+            }, 60);
           });
           observer.observe(sidebarEl, {
             attributes: true,
-            attributeFilter: ["class", "style", "data-cvat-state-item-id"],
+            attributeFilter: ["class", "data-cvat-state-item-id"],
             subtree: true
           });
         } catch (_) {
         }
       }
       attachSidebarActiveObserver();
-      setInterval(attachSidebarActiveObserver, 2e3);
-      let windowPointerThrottle = null;
-      window.addEventListener(
-        "pointermove",
-        () => {
-          if (windowPointerThrottle) return;
-          windowPointerThrottle = setTimeout(() => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
-            windowPointerThrottle = null;
-            try {
-              const store2 = getReduxStore();
-              const canvas2 = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-              const view = canvas2 == null ? void 0 : canvas2.view;
-              const activeId = (view == null ? void 0 : view.activatedElementID) ?? (view == null ? void 0 : view.hoveredElementID) ?? ((_f = (_e = (_d = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.annotations) == null ? void 0 : _f.activatedStateClientID) ?? ((_i = (_h = (_g = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _g.annotation) == null ? void 0 : _h.annotations) == null ? void 0 : _i.highlightedClientID);
-              if (activeId !== null && activeId !== void 0 && Number(activeId) > 0 && Number(activeId) !== lastActiveTrackId) {
-                triggerFocusOnObject(Number(activeId), true);
-                return;
-              }
-              const activeEl = document.querySelector(
-                ".cvat-objects-sidebar-state-active-element, [class*='state-active-element'], [class*='sidebar-state-item-active']"
-              );
-              if (activeEl) {
-                const idAttr = activeEl.id || ((_j = activeEl.closest("[id*='cvat-objects-sidebar-state-item-']")) == null ? void 0 : _j.id) || "";
-                const match = idAttr.match(/cvat-objects-sidebar-state-item-(\d+)/) || idAttr.match(/#?(\d+)/);
-                if (match) {
-                  const idNum = parseInt(match[1], 10);
-                  if (idNum > 0 && idNum !== lastActiveTrackId) {
-                    triggerFocusOnObject(idNum, true);
-                  }
-                }
-              }
-            } catch (_) {
-            }
-          }, 35);
-        },
-        { passive: true }
-      );
       try {
         const store2 = getReduxStore();
         if (store2) {
@@ -7174,33 +9843,134 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           let activeDebounceTimer = null;
           let dirtyDebounceTimer = null;
           let pointsDebounceTimer = null;
+          let lastFingerprintCalcTime = 0;
+          let fingerprintThrottleTimer = null;
+          const doComputeFingerprint = (states) => {
+            const isMouseDown = typeof window !== "undefined" && window.__cvat_mouse_down__;
+            if (isCanvasInteracting || isMouseDown || isFrameTransitioning) return;
+            let currentPointsFingerprint = "";
+            for (let i = 0; i < states.length; i++) {
+              const st = states[i];
+              if (st && Array.isArray(st.points) && st.points.length >= 9 && !st.outside) {
+                const p = st.points;
+                currentPointsFingerprint += `${st.clientID}:${Math.round(p[0] * 50)},${Math.round(p[1] * 50)},${Math.round(p[2] * 50)},${Math.round(p[5] * 50)},${Math.round(p[6] * 50)},${Math.round(p[7] * 50)},${Math.round(p[8] * 50)}|`;
+              }
+            }
+            if (currentPointsFingerprint !== prevPointsFingerprint) {
+              const isInit = prevPointsFingerprint === "";
+              prevPointsFingerprint = currentPointsFingerprint;
+              if (!isInit && !isCanvasInteracting && !isMouseDown && !isFrameTransitioning) {
+                if (pointsDebounceTimer) clearTimeout(pointsDebounceTimer);
+                pointsDebounceTimer = setTimeout(() => {
+                  var _a, _b, _c;
+                  pointsDebounceTimer = null;
+                  if (isFrameTransitioning) return;
+                  schedulePointCloudColorization(0);
+                  calculateAndBroadcastBoxEdgeContacts();
+                  try {
+                    const store3 = getReduxStore();
+                    const activeId = ((_c = (_b = (_a = store3 == null ? void 0 : store3.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.activatedStateClientID) ?? lastActiveTrackId;
+                    if (activeId !== null && activeId !== void 0 && !isNaN(Number(activeId))) {
+                      const numId = Number(activeId);
+                      const details = extractObjectDetails(numId);
+                      if (details) {
+                        window.dispatchEvent(
+                          new CustomEvent("CVAT_EXT_RES_LIVE_TRANSFORM_CHANGED", {
+                            detail: { clientId: numId, details }
+                          })
+                        );
+                      }
+                    }
+                  } catch (_) {
+                  }
+                }, 50);
+              }
+            }
+          };
+          const checkPointsFingerprintThrottled = (states) => {
+            const isMouseDown = typeof window !== "undefined" && window.__cvat_mouse_down__;
+            if (isCanvasInteracting || isMouseDown || isFrameTransitioning) return;
+            const now = Date.now();
+            const elapsed = now - lastFingerprintCalcTime;
+            if (elapsed >= 200) {
+              lastFingerprintCalcTime = now;
+              if (fingerprintThrottleTimer) {
+                clearTimeout(fingerprintThrottleTimer);
+                fingerprintThrottleTimer = null;
+              }
+              doComputeFingerprint(states);
+            } else if (!fingerprintThrottleTimer) {
+              fingerprintThrottleTimer = setTimeout(() => {
+                var _a, _b, _c, _d;
+                fingerprintThrottleTimer = null;
+                lastFingerprintCalcTime = Date.now();
+                const latestStates = ((_d = (_c = (_b = (_a = getReduxStore()) == null ? void 0 : _a.getState()) == null ? void 0 : _b.annotation) == null ? void 0 : _c.annotations) == null ? void 0 : _d.states) || states;
+                doComputeFingerprint(latestStates);
+              }, 200 - elapsed);
+            }
+          };
           store2.subscribe(() => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
             try {
               const anno = (_a = store2.getState()) == null ? void 0 : _a.annotation;
-              const curActiveId = ((_b = anno == null ? void 0 : anno.annotations) == null ? void 0 : _b.activatedStateClientID) ?? ((_c = canvas == null ? void 0 : canvas.view) == null ? void 0 : _c.activatedElementID) ?? ((_d = anno == null ? void 0 : anno.annotations) == null ? void 0 : _d.highlightedClientID);
-              const curStatesLen = ((_f = (_e = anno == null ? void 0 : anno.annotations) == null ? void 0 : _e.states) == null ? void 0 : _f.length) || 0;
-              const curFrame = ((_h = (_g = anno == null ? void 0 : anno.player) == null ? void 0 : _g.frame) == null ? void 0 : _h.number) ?? ((_j = (_i = anno == null ? void 0 : anno.job) == null ? void 0 : _i.instance) == null ? void 0 : _j.frame);
+              const canvas = (_b = anno == null ? void 0 : anno.canvas) == null ? void 0 : _b.instance;
+              const curActiveId = ((_c = anno == null ? void 0 : anno.annotations) == null ? void 0 : _c.activatedStateClientID) ?? null;
+              const curStatesLen = ((_e = (_d = anno == null ? void 0 : anno.annotations) == null ? void 0 : _d.states) == null ? void 0 : _e.length) || 0;
+              const curFrame = ((_g = (_f = anno == null ? void 0 : anno.player) == null ? void 0 : _f.frame) == null ? void 0 : _g.number) ?? ((_i = (_h = anno == null ? void 0 : anno.job) == null ? void 0 : _h.instance) == null ? void 0 : _i.frame);
               if (curFrame !== void 0 && curFrame !== null && curFrame !== prevFrame) {
                 const oldFrame = prevFrame;
                 prevFrame = curFrame;
                 prevPointsFingerprint = "";
+                lastFingerprintCalcTime = 0;
+                lastDispatchedActiveId = null;
+                if (frameTransitionTimer) {
+                  clearTimeout(frameTransitionTimer);
+                  frameTransitionTimer = null;
+                }
+                if (lockOnActiveTimer) {
+                  clearTimeout(lockOnActiveTimer);
+                  lockOnActiveTimer = null;
+                }
+                if (singleFrameColorizeTimer) {
+                  clearTimeout(singleFrameColorizeTimer);
+                  singleFrameColorizeTimer = null;
+                }
+                if (colorizeRafId) {
+                  cancelAnimationFrame(colorizeRafId);
+                  colorizeRafId = null;
+                }
+                if (activeDebounceTimer) {
+                  clearTimeout(activeDebounceTimer);
+                  activeDebounceTimer = null;
+                }
+                if (dirtyDebounceTimer) {
+                  clearTimeout(dirtyDebounceTimer);
+                  dirtyDebounceTimer = null;
+                }
+                installGlobalThreeRaycastGuard();
+                hookAllScenes();
                 isFrameTransitioning = true;
-                if (frameTransitionTimer) clearTimeout(frameTransitionTimer);
                 frameTransitionTimer = setTimeout(() => {
                   isFrameTransitioning = false;
                   frameTransitionTimer = null;
-                }, 700);
+                }, 120);
+                if (currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI) {
+                  setTimeout(() => updateOrthoClippingPlanes(void 0, false), 80);
+                }
                 scheduleSingleFrameColorizationAndGround(curFrame, 180);
+                window.dispatchEvent(
+                  new CustomEvent("CVAT_EXT_RES_FRAME_CHANGED", {
+                    detail: { frame: curFrame, prevFrame: oldFrame }
+                  })
+                );
                 if (oldFrame !== null) {
-                  window.dispatchEvent(
-                    new CustomEvent("CVAT_EXT_RES_FRAME_CHANGED", {
-                      detail: { frame: curFrame, prevFrame: oldFrame }
-                    })
-                  );
                   const activeIdToLock = persistentActiveTrackId !== null ? persistentActiveTrackId : curActiveId !== null && curActiveId !== void 0 ? Number(curActiveId) : lastActiveTrackId;
                   if (activeIdToLock !== null && !isNaN(activeIdToLock)) {
-                    lockOnActiveObjectAtFrame(activeIdToLock, curFrame);
+                    if (lockOnActiveTimer) clearTimeout(lockOnActiveTimer);
+                    lockOnActiveTimer = setTimeout(() => {
+                      lockOnActiveTimer = null;
+                      lockOnActiveObjectAtFrame(activeIdToLock, curFrame, 0);
+                    }, 60);
                   }
                 }
               }
@@ -7208,53 +9978,62 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 prevActiveId = curActiveId;
                 if (curActiveId !== null && curActiveId !== void 0) {
                   const idNum = Number(curActiveId);
+                  if (isFrameTransitioning) {
+                    if (persistentActiveTrackId !== null) {
+                      const curStates = ((_j = anno == null ? void 0 : anno.annotations) == null ? void 0 : _j.states) || [];
+                      const st = curStates.find((s) => Number(s.clientID) === idNum);
+                      const tid = st ? st.parentID ?? st.trackID ?? ((_k = st.parent) == null ? void 0 : _k.clientID) ?? st.clientID : null;
+                      if (tid === null || Number(tid) !== Number(persistentActiveTrackId)) {
+                        return;
+                      }
+                    } else {
+                      return;
+                    }
+                  }
                   lastActiveTrackId = idNum;
+                  currentActiveTrackId = idNum;
+                  lastDispatchedActiveId = idNum;
                   if (!isFrameTransitioning) {
                     updateLockedTrackId(idNum);
                   }
+                  const details = extractObjectDetails(idNum);
+                  window.dispatchEvent(
+                    new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+                      detail: { clientId: idNum, trackId: persistentActiveTrackId, details, isHover: false }
+                    })
+                  );
                   if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
                   activeDebounceTimer = setTimeout(() => {
                     activeDebounceTimer = null;
                     triggerFocusOnObject(idNum, true);
-                  }, 35);
+                  }, 15);
                 } else {
+                  if (isFrameTransitioning) return;
                   lastActiveTrackId = null;
                   persistentActiveTrackId = null;
+                  currentActiveTrackId = -1;
+                  lastDispatchedActiveId = null;
+                  syncSidebarItemHighlight(null);
                   if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
                   activeDebounceTimer = setTimeout(() => {
                     activeDebounceTimer = null;
+                    if (isFrameTransitioning) return;
                     window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_OBJECT_DEACTIVATED"));
-                    applyPointCloudColorizationInMainWorld();
-                  }, 80);
+                    schedulePointCloudColorization(0);
+                    updateOrthoClippingPlanes();
+                  }, 40);
                 }
               }
-              const states = ((_k = anno == null ? void 0 : anno.annotations) == null ? void 0 : _k.states) || [];
-              let currentPointsFingerprint = "";
-              for (let i = 0; i < states.length; i++) {
-                const st = states[i];
-                if (st && Array.isArray(st.points) && st.points.length >= 9 && !st.outside) {
-                  const p = st.points;
-                  currentPointsFingerprint += `${st.clientID}:${Math.round(p[0] * 50)},${Math.round(p[1] * 50)},${Math.round(p[2] * 50)},${Math.round(p[5] * 50)},${Math.round(p[6] * 50)},${Math.round(p[7] * 50)},${Math.round(p[8] * 50)}|`;
-                }
-              }
-              if (currentPointsFingerprint !== prevPointsFingerprint) {
-                const isInit = prevPointsFingerprint === "";
-                prevPointsFingerprint = currentPointsFingerprint;
-                if (!isInit) {
-                  if (pointsDebounceTimer) clearTimeout(pointsDebounceTimer);
-                  pointsDebounceTimer = setTimeout(() => {
-                    pointsDebounceTimer = null;
-                    applyPointCloudColorizationInMainWorld();
-                  }, 50);
-                }
-              }
+              const states = ((_l = anno == null ? void 0 : anno.annotations) == null ? void 0 : _l.states) || [];
+              checkPointsFingerprintThrottled(states);
               if (curStatesLen !== prevStatesLen) {
                 prevStatesLen = curStatesLen;
                 if (dirtyDebounceTimer) clearTimeout(dirtyDebounceTimer);
                 dirtyDebounceTimer = setTimeout(() => {
                   dirtyDebounceTimer = null;
+                  if (isFrameTransitioning) return;
                   window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS_DIRTY"));
-                  applyPointCloudColorizationInMainWorld();
+                  schedulePointCloudColorization(0);
                 }, 400);
               }
             } catch (err) {
@@ -7264,7 +10043,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       } catch (sErr) {
       }
       window.addEventListener("CVAT_EXT_REQ_ACTIVATE_OBJECT", (e) => {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o;
         const { clientId, pos } = e.detail || {};
         if (clientId === void 0 || clientId === null) return;
         const numId = Number(clientId);
@@ -7272,35 +10051,29 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         updateLockedTrackId(numId);
         try {
           const store2 = getReduxStore();
-          const canvas2 = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-          if (canvas2 && typeof canvas2.activate === "function") {
-            const curActive = ((_d = canvas2.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
+          const canvas = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+          if (canvas && typeof canvas.activate === "function") {
+            const curActive = ((_d = canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
             if (curActive !== numId) {
-              canvas2.activate(numId);
-              if (typeof canvas2.render === "function") {
-                canvas2.render();
+              canvas.activate(numId);
+              if (typeof canvas.render === "function") {
+                canvas.render();
               }
             }
           }
           if (store2 && typeof store2.dispatch === "function") {
             try {
-              store2.dispatch({
-                type: "ACTIVATE_OBJECT",
-                payload: { activatedStateClientID: numId, activatedElementID: numId }
-              });
+              const currentStoreActiveId = ((_j = (_i = (_h = store2.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.annotations) == null ? void 0 : _j.activatedStateClientID) ?? ((_o = (_n = (_m = (_l = (_k = store2.getState()) == null ? void 0 : _k.annotation) == null ? void 0 : _l.canvas) == null ? void 0 : _m.instance) == null ? void 0 : _n.view) == null ? void 0 : _o.activatedElementID);
+              if (Number(currentStoreActiveId) !== numId) {
+                store2.dispatch({
+                  type: "ACTIVATE_OBJECT",
+                  payload: { activatedStateClientID: numId, activatedElementID: numId }
+                });
+              }
             } catch (_) {
             }
           }
-          try {
-            const sidebarItem = document.querySelector(`#cvat-objects-sidebar-state-item-${numId}`) || document.querySelector(`[data-cvat-state-item-id="${numId}"]`) || document.querySelector(`[class*="cvat-objects-sidebar-state-item"][id*="${numId}"]`);
-            if (sidebarItem) {
-              sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
-              const allItems = document.querySelectorAll("[class*='cvat-objects-sidebar-state-item']");
-              allItems.forEach((el) => el.classList.remove("cvat-objects-sidebar-state-item-active", "selected"));
-              sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
-            }
-          } catch (_) {
-          }
+          syncSidebarItemHighlight(numId);
           center3DViewOnObject(numId, pos);
         } catch (err) {
         }
@@ -7326,10 +10099,29 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           center3DViewOnObject(Number(clientId), pos);
         }
       });
+      window.addEventListener("CVAT_EXT_REQ_SET_ORTHO_SLICING", (e) => {
+        const cfg = e.detail;
+        if (cfg && typeof cfg === "object") {
+          currentOrthoSlicing = { ...currentOrthoSlicing, ...cfg };
+          try {
+            localStorage.setItem("cvat_3d_ortho_slicing", JSON.stringify(currentOrthoSlicing));
+          } catch (_) {
+          }
+          updateOrthoClippingPlanes();
+          window.dispatchEvent(
+            new CustomEvent("CVAT_EXT_RES_ORTHO_SLICING", { detail: { config: currentOrthoSlicing } })
+          );
+        }
+      });
+      window.addEventListener("CVAT_EXT_REQ_GET_ORTHO_SLICING", () => {
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_ORTHO_SLICING", { detail: { config: currentOrthoSlicing } })
+        );
+      });
     }
     setTimeout(() => setupCanvasAutoSelect(), 1500);
     window.addEventListener("CVAT_EXT_REQ_FRAME_TRACKS", async (e) => {
-      var _a, _b, _c;
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u;
       const { jobId, frame } = e.detail || {};
       try {
         let job = await getActiveJobInstance(jobId);
@@ -7342,10 +10134,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             annotations = [];
           }
         } else {
-          const store = getReduxStore();
-          const reduxStates = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.states;
-          if (Array.isArray(reduxStates) && reduxStates.length > 0) {
-            annotations = reduxStates;
+          const store2 = getReduxStore();
+          const reduxStates2 = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.states;
+          if (Array.isArray(reduxStates2) && reduxStates2.length > 0) {
+            annotations = reduxStates2;
           } else {
             window.dispatchEvent(
               new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS", {
@@ -7355,13 +10147,55 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             return;
           }
         }
-        const list = annotations.filter((s) => s && s.shapeType === "cuboid" && Array.isArray(s.points) && s.points.length >= 9 && typeof s.clientID === "number").map((s) => {
-          const p = s.points;
+        const store = getReduxStore();
+        const canvas = (_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.canvas) == null ? void 0 : _f.instance;
+        const drawnObjects = ((_g = canvas == null ? void 0 : canvas.view) == null ? void 0 : _g.drawnObjects) || {};
+        const reduxStates = ((_j = (_i = (_h = store == null ? void 0 : store.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.annotations) == null ? void 0 : _j.states) || [];
+        const stateMap = /* @__PURE__ */ new Map();
+        if (Array.isArray(annotations)) {
+          for (const a of annotations) {
+            if (a && typeof a.clientID === "number") stateMap.set(a.clientID, a);
+          }
+        }
+        const curF = ((_n = (_m = (_l = (_k = store == null ? void 0 : store.getState()) == null ? void 0 : _k.annotation) == null ? void 0 : _l.player) == null ? void 0 : _m.frame) == null ? void 0 : _n.number) ?? ((_r = (_q = (_p = (_o = store == null ? void 0 : store.getState()) == null ? void 0 : _o.annotation) == null ? void 0 : _p.job) == null ? void 0 : _q.instance) == null ? void 0 : _r.frame);
+        if (curF === frame && !isFrameTransitioning) {
+          for (const s of reduxStates) {
+            if (s && typeof s.clientID === "number") {
+              if (typeof s.frame === "number" && s.frame !== frame) continue;
+              if (!stateMap.has(s.clientID)) {
+                stateMap.set(s.clientID, s);
+              }
+            }
+          }
+          for (const key of Object.keys(drawnObjects)) {
+            const idNum = Number(key);
+            if (!isNaN(idNum) && !stateMap.has(idNum)) {
+              const item = drawnObjects[key];
+              if (item == null ? void 0 : item.data) {
+                if (typeof item.data.frame === "number" && item.data.frame !== frame) continue;
+                stateMap.set(idNum, {
+                  ...item.data,
+                  clientID: idNum,
+                  shapeType: "cuboid"
+                });
+              }
+            }
+          }
+        }
+        const list = [];
+        for (const [cId, s] of stateMap.entries()) {
+          if (!s || s.shapeType !== "cuboid" || s.outside) continue;
+          const drawn = drawnObjects[String(cId)];
+          const p = extractLivePointsFromDrawnAndState(drawn, s);
+          if (!p || p.length < 9) continue;
           const resolved = resolveLabelName(s);
-          return {
-            uiId: s.clientID,
-            // SỐ CLIENT_ID HIỂN THỊ CHUẨN XÁC 100% TRÊN GIAO DIỆN!
-            serverId: s.serverID,
+          const persistentTid = s.parentID ?? s.trackID ?? ((_s = s.parent) == null ? void 0 : _s.clientID) ?? ((_t = drawn == null ? void 0 : drawn.data) == null ? void 0 : _t.parentID) ?? ((_u = drawn == null ? void 0 : drawn.data) == null ? void 0 : _u.trackID) ?? cId;
+          list.push({
+            uiId: cId,
+            // SỐ CLIENT_ID HIỂN THỊ CHUẨN XÁC 100% TRÊN GIAO DIỆN TẠI FRAME NÀY!
+            trackId: Number(persistentTid),
+            // SỐ TRACK_ID BỀN VỮNG TOÀN CỤC XUYÊN SUỐT CÁC FRAME!
+            serverId: s.serverID || null,
             // SỐ SERVER_ID LƯU DƯỚI CƠ SỞ DỮ LIỆU
             label: resolved.name,
             color: resolved.color,
@@ -7372,8 +10206,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             l: Number(p[6].toFixed(2)),
             w: Number(p[7].toFixed(2)),
             h: Number(p[8].toFixed(2))
-          };
-        });
+          });
+        }
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS", {
             detail: { success: true, frame, list }
@@ -7388,6 +10222,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     });
     window.addEventListener("CVAT_EXT_REQ_GET_TRACK_ALL_FRAMES", async (e) => {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
       const { jobId, uiId, serverId } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
@@ -7397,9 +10232,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const parentTrack = await findTrackInJob(job, uiId, serverId);
         const trackLabel = resolveLabelName(parentTrack).name;
         if (parentTrack) {
-          const shapes = toArray(parentTrack.shapes || parentTrack.keyframes);
+          const shapes = toArray(parentTrack.shapes || parentTrack.keyframes || parentTrack._shapes);
           for (const sh of shapes) {
-            if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
+            if (sh && (sh.shapeType === "cuboid" || sh.type === "cuboid" || Array.isArray(sh.points)) && Array.isArray(sh.points) && sh.points.length >= 9) {
               framesMap.set(sh.frame, {
                 frame: sh.frame,
                 isKeyframe: true,
@@ -7410,28 +10245,27 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             }
           }
         }
-        const startF = typeof job.startFrame === "number" ? job.startFrame : 0;
-        const stopF = typeof job.stopFrame === "number" ? job.stopFrame : startF + 100;
-        for (let f = startF; f <= stopF; f++) {
-          try {
-            const states = await job.annotations.get(f);
-            if (Array.isArray(states)) {
-              const st = states.find(
-                (s) => s.clientID === uiId || serverId && s.serverID === serverId
-              );
-              if (st && Array.isArray(st.points) && st.points.length >= 9) {
-                const existing = framesMap.get(f);
-                framesMap.set(f, {
-                  frame: f,
-                  isKeyframe: existing ? existing.isKeyframe : !!st.keyframe,
-                  outside: !!st.outside,
-                  points: [...st.points],
-                  label: resolveLabelName(st).name || trackLabel
-                });
-              }
-            }
-          } catch (e2) {
+        try {
+          const store = getReduxStore();
+          const curStates = ((_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.states) || [];
+          const curSt = curStates.find(
+            (s) => Number(s.clientID) === Number(uiId) || serverId && Number(s.serverID) === Number(serverId)
+          );
+          const canvas = (_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.canvas) == null ? void 0 : _f.instance;
+          const drawn = (_h = (_g = canvas == null ? void 0 : canvas.view) == null ? void 0 : _g.drawnObjects) == null ? void 0 : _h[String(uiId)];
+          const livePts = extractLivePointsFromDrawnAndState(drawn, curSt);
+          if (livePts && livePts.length >= 9) {
+            const curF = ((_l = (_k = (_j = (_i = store == null ? void 0 : store.getState()) == null ? void 0 : _i.annotation) == null ? void 0 : _j.player) == null ? void 0 : _k.frame) == null ? void 0 : _l.number) ?? (typeof job.frame === "number" ? job.frame : 0);
+            const existing = framesMap.get(curF);
+            framesMap.set(curF, {
+              frame: curF,
+              isKeyframe: existing ? existing.isKeyframe : !!(curSt == null ? void 0 : curSt.keyframe),
+              outside: !!(curSt == null ? void 0 : curSt.outside),
+              points: livePts,
+              label: (curSt ? resolveLabelName(curSt).name : null) || trackLabel
+            });
           }
+        } catch (_) {
         }
         const framesList = Array.from(framesMap.values()).sort((a, b) => a.frame - b.frame);
         window.dispatchEvent(
@@ -7448,19 +10282,18 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     });
     window.addEventListener("CVAT_EXT_REQ_GET_ALL_JOB_TRACKS_WITH_SHAPES", async (e) => {
-      var _a, _b, _c, _d, _e, _f;
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p;
       const { jobId } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
         if (!job) throw new Error("Không tìm thấy Job Instance của CVAT");
         const rawTracks = getJobTrackCollection(job);
-        const startF = typeof job.startFrame === "number" ? job.startFrame : 0;
-        const stopF = typeof job.stopFrame === "number" ? job.stopFrame : startF + 100;
         const trackMap = /* @__PURE__ */ new Map();
         for (const t of rawTracks) {
-          if (!t.clientID) continue;
+          if (!t || typeof t.clientID !== "number") continue;
+          if (trackMap.has(t.clientID)) continue;
           const shList = toArray(t.shapes || t.keyframes);
-          const shapes = shList.filter((s) => s.shapeType === "cuboid" && Array.isArray(s.points) && s.points.length >= 9).map((s) => ({
+          const shapes = shList.filter((s) => s && s.shapeType === "cuboid" && Array.isArray(s.points) && s.points.length >= 9).map((s) => ({
             type: "cuboid",
             frame: s.frame,
             points: [...s.points],
@@ -7469,50 +10302,102 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             z_order: s.zOrder || 0,
             rotation: 0
           }));
+          const resolved = resolveLabelName(t);
           trackMap.set(t.clientID, {
             id: t.clientID,
             clientID: t.clientID,
             serverID: t.serverID || null,
             labelId: ((_a = t.label) == null ? void 0 : _a.id) || 1,
-            labelName: ((_b = t.label) == null ? void 0 : _b.name) || "Car",
-            labelColor: ((_c = t.label) == null ? void 0 : _c.color) || "#38bdf8",
+            labelName: resolved.name || ((_b = t.label) == null ? void 0 : _b.name) || "Car",
+            labelColor: resolved.color || ((_c = t.label) == null ? void 0 : _c.color) || "#38bdf8",
             shapes
           });
         }
-        for (let f = startF; f <= stopF; f++) {
-          try {
-            const states = await job.annotations.get(f);
-            if (Array.isArray(states)) {
-              for (const st of states) {
-                if (st.shapeType !== "cuboid" || !Array.isArray(st.points) || st.points.length < 9) continue;
-                let t = trackMap.get(st.clientID);
-                if (!t) {
-                  t = {
-                    id: st.clientID,
-                    clientID: st.clientID,
-                    serverID: st.serverID || null,
-                    labelId: ((_d = st.label) == null ? void 0 : _d.id) || 1,
-                    labelName: ((_e = st.label) == null ? void 0 : _e.name) || "Car",
-                    labelColor: ((_f = st.label) == null ? void 0 : _f.color) || "#38bdf8",
-                    shapes: []
-                  };
-                  trackMap.set(st.clientID, t);
-                }
-                if (st.keyframe && !t.shapes.some((s) => s.frame === f)) {
-                  t.shapes.push({
-                    type: "cuboid",
-                    frame: f,
-                    points: [...st.points],
-                    outside: !!st.outside,
-                    occluded: !!st.occluded,
-                    z_order: st.zOrder || 0,
-                    rotation: 0
-                  });
+        if (trackMap.size === 0) {
+          const startF = typeof job.startFrame === "number" ? job.startFrame : 0;
+          const stopF = typeof job.stopFrame === "number" ? job.stopFrame : startF + 50;
+          const maxScanFrames = Math.min(stopF, startF + 80);
+          for (let f = startF; f <= maxScanFrames; f++) {
+            try {
+              const states = await job.annotations.get(f);
+              if (Array.isArray(states)) {
+                for (const st of states) {
+                  if (st.shapeType !== "cuboid" || !Array.isArray(st.points) || st.points.length < 9) continue;
+                  let t = trackMap.get(st.clientID);
+                  if (!t) {
+                    const resolved = resolveLabelName(st);
+                    t = {
+                      id: st.clientID,
+                      clientID: st.clientID,
+                      serverID: st.serverID || null,
+                      labelId: ((_d = st.label) == null ? void 0 : _d.id) || 1,
+                      labelName: resolved.name || "Car",
+                      labelColor: resolved.color || "#38bdf8",
+                      shapes: []
+                    };
+                    trackMap.set(st.clientID, t);
+                  }
+                  if (st.keyframe && !t.shapes.some((s) => s.frame === f)) {
+                    t.shapes.push({
+                      type: "cuboid",
+                      frame: f,
+                      points: [...st.points],
+                      outside: !!st.outside,
+                      occluded: !!st.occluded,
+                      z_order: st.zOrder || 0,
+                      rotation: 0
+                    });
+                  }
                 }
               }
+            } catch (e2) {
             }
-          } catch (e2) {
           }
+        }
+        try {
+          const store = getReduxStore();
+          const canvas = (_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.canvas) == null ? void 0 : _g.instance;
+          const drawnObjects = ((_h = canvas == null ? void 0 : canvas.view) == null ? void 0 : _h.drawnObjects) || {};
+          const reduxStates = ((_k = (_j = (_i = store == null ? void 0 : store.getState()) == null ? void 0 : _i.annotation) == null ? void 0 : _j.annotations) == null ? void 0 : _k.states) || [];
+          const curF = ((_o = (_n = (_m = (_l = store == null ? void 0 : store.getState()) == null ? void 0 : _l.annotation) == null ? void 0 : _m.player) == null ? void 0 : _n.frame) == null ? void 0 : _o.number) ?? (typeof job.frame === "number" ? job.frame : 0);
+          for (const st of reduxStates) {
+            if (!st || st.shapeType !== "cuboid" || typeof st.clientID !== "number") continue;
+            const cId = st.clientID;
+            const drawn = drawnObjects[String(cId)];
+            const livePoints = extractLivePointsFromDrawnAndState(drawn, st);
+            if (livePoints) {
+              let t = trackMap.get(cId);
+              if (!t) {
+                const resolved = resolveLabelName(st);
+                t = {
+                  id: cId,
+                  clientID: cId,
+                  serverID: st.serverID || null,
+                  labelId: ((_p = st.label) == null ? void 0 : _p.id) || 1,
+                  labelName: resolved.name || "Car",
+                  labelColor: resolved.color || "#38bdf8",
+                  shapes: []
+                };
+                trackMap.set(cId, t);
+              }
+              const existingShapeIdx = t.shapes.findIndex((s) => s.frame === curF);
+              const liveShape = {
+                type: "cuboid",
+                frame: curF,
+                points: livePoints,
+                outside: !!st.outside,
+                occluded: !!st.occluded,
+                z_order: st.zOrder || 0,
+                rotation: 0
+              };
+              if (existingShapeIdx >= 0) {
+                t.shapes[existingShapeIdx] = liveShape;
+              } else {
+                t.shapes.push(liveShape);
+              }
+            }
+          }
+        } catch (_) {
         }
         const result = Array.from(trackMap.values()).map((t) => {
           t.shapes.sort((a, b) => a.frame - b.frame);
@@ -7531,6 +10416,123 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         );
       }
     });
+    window.addEventListener("CVAT_EXT_REQ_EXPORT_JOB_DATUMARO_DATA", async (e) => {
+      var _a, _b, _c, _d, _e;
+      const { jobId } = e.detail || {};
+      try {
+        const job = await getActiveJobInstance(jobId);
+        if (!job) throw new Error("Không tìm thấy Job Instance của CVAT");
+        const startFrame = typeof job.startFrame === "number" ? job.startFrame : 0;
+        const stopFrame = typeof job.stopFrame === "number" ? job.stopFrame : startFrame;
+        const labels = [];
+        const jobLabels = job.labels || ((_a = job.task) == null ? void 0 : _a.labels) || [];
+        if (Array.isArray(jobLabels)) {
+          for (const l of jobLabels) {
+            if (l && l.name) {
+              labels.push({ name: String(l.name), id: l.id });
+            }
+          }
+        }
+        const items = [];
+        let annIdCounter = 1;
+        const BATCH_SIZE = 25;
+        for (let bStart = startFrame; bStart <= stopFrame; bStart += BATCH_SIZE) {
+          const bEnd = Math.min(stopFrame, bStart + BATCH_SIZE - 1);
+          const batchPromises = [];
+          for (let f = bStart; f <= bEnd; f++) {
+            batchPromises.push(
+              Promise.resolve(job.annotations.get(f)).then(
+                (states) => ({ f, states: Array.isArray(states) ? states : [] }),
+                () => ({ f, states: [] })
+              )
+            );
+          }
+          const batchResults = await Promise.all(batchPromises);
+          batchResults.sort((a, b) => a.f - b.f);
+          for (const { f, states } of batchResults) {
+            const annotations = [];
+            if (Array.isArray(states)) {
+              for (const st of states) {
+                if (!st || st.shapeType !== "cuboid" || !Array.isArray(st.points) || st.points.length < 9) {
+                  continue;
+                }
+                const isOutside = st.outside === true || ((_b = st.attributes) == null ? void 0 : _b.outside) === true || ((_c = st.attributes) == null ? void 0 : _c.outside) === "true";
+                if (isOutside) {
+                  continue;
+                }
+                const pos = [Number(st.points[0]), Number(st.points[1]), Number(st.points[2])];
+                const rot = [Number(st.points[3]), Number(st.points[4]), Number(st.points[5])];
+                const scale = [
+                  Math.abs(Number(st.points[6])),
+                  Math.abs(Number(st.points[7])),
+                  Math.abs(Number(st.points[8]))
+                ];
+                let labelId = 0;
+                const labelName = ((_d = st.label) == null ? void 0 : _d.name) || (typeof st.labelId === "number" ? (_e = labels.find((l) => l.id === st.labelId)) == null ? void 0 : _e.name : null) || "car";
+                const existingLabelIdx = labels.findIndex((l) => l.name === labelName);
+                if (existingLabelIdx >= 0) {
+                  labelId = existingLabelIdx;
+                } else {
+                  labelId = labels.length;
+                  labels.push({ name: labelName });
+                }
+                const parentTrackId = st.parentID ?? st.trackID ?? (st.parent && (st.parent.clientID ?? st.parent.id));
+                const rawClient = typeof parentTrackId === "number" ? parentTrackId : typeof st.clientID === "number" ? st.clientID : 1;
+                const datumaroTrackId = Math.max(0, rawClient - 1);
+                annotations.push({
+                  type: "cuboid_3d",
+                  id: annIdCounter++,
+                  label_id: labelId,
+                  position: pos,
+                  rotation: rot,
+                  scale,
+                  attributes: {
+                    track_id: datumaroTrackId,
+                    outside: false,
+                    keyframe: !!st.keyframe,
+                    ...st.attributes || {}
+                  }
+                });
+              }
+            }
+            items.push({
+              id: `frame_${String(f).padStart(6, "0")}`,
+              attr: { frame: f },
+              annotations
+            });
+          }
+        }
+        const datumaroDataset = {
+          dm_format_version: "1.0",
+          categories: {
+            label: {
+              labels: labels.map((l) => ({ name: l.name }))
+            }
+          },
+          items
+        };
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_EXPORT_JOB_DATUMARO_DATA", {
+            detail: {
+              success: true,
+              dataset: datumaroDataset,
+              totalFrames: stopFrame - startFrame + 1,
+              jobId
+            }
+          })
+        );
+      } catch (err) {
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_EXPORT_JOB_DATUMARO_DATA", {
+            detail: {
+              success: false,
+              error: (err == null ? void 0 : err.message) || String(err),
+              jobId
+            }
+          })
+        );
+      }
+    });
     window.addEventListener("CVAT_EXT_REQ_UPDATE_LIVE_BOX", async (e) => {
       const { jobId, frame, uiId, serverId, points, isFinal } = e.detail || {};
       try {
@@ -7542,6 +10544,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             if (isFinal && typeof target.save === "function") {
               try {
                 await target.save();
+                markCvatSaveButtonUnsaved(job);
               } catch (sErr) {
                 console.warn("[CVAT 3D Suite] Cảnh báo target.save trong UPDATE_LIVE_BOX:", sErr);
               }
@@ -7649,21 +10652,85 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     });
     window.addEventListener("CVAT_EXT_REQ_JUMP_FRAME", (e) => {
+      var _a, _b, _c, _d, _e;
       try {
         const { frame } = e.detail || {};
-        if (typeof frame !== "number") return;
+        if (typeof frame !== "number" || isNaN(frame) || frame < 0) return;
         const store = getReduxStore();
-        if (store) {
-          try {
-            store.dispatch({ type: "CHANGE_FRAME", payload: { frame } });
-          } catch (err) {
+        const currentStoreFrame = (_d = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.player) == null ? void 0 : _c.frame) == null ? void 0 : _d.number;
+        if (currentStoreFrame === frame) return;
+        const frameInput = document.querySelector(
+          ".cvat-player-frame-selector input, input.cvat-player-frame-selector, input[aria-label='Frame selector']"
+        );
+        if (frameInput) {
+          const fiberKey = Object.keys(frameInput).find(
+            (k) => k.startsWith("__reactProps$") || k.startsWith("__reactEventHandlers$")
+          );
+          let handled = false;
+          if (fiberKey) {
+            const props = frameInput[fiberKey];
+            if (typeof (props == null ? void 0 : props.onPressEnter) === "function") {
+              try {
+                props.onPressEnter({
+                  target: { value: String(frame) },
+                  currentTarget: { value: String(frame) },
+                  preventDefault: () => {
+                  },
+                  stopPropagation: () => {
+                  }
+                });
+                handled = true;
+              } catch (_) {
+              }
+            } else if (typeof (props == null ? void 0 : props.onChange) === "function") {
+              try {
+                props.onChange(frame);
+                handled = true;
+              } catch (_) {
+              }
+            }
+          }
+          if (!handled) {
+            const nativeInputValueSetter = (_e = Object.getOwnPropertyDescriptor(
+              window.HTMLInputElement.prototype,
+              "value"
+            )) == null ? void 0 : _e.set;
+            if (nativeInputValueSetter) {
+              nativeInputValueSetter.call(frameInput, String(frame));
+            } else {
+              frameInput.value = String(frame);
+            }
+            frameInput.dispatchEvent(new Event("change", { bubbles: true }));
+            frameInput.dispatchEvent(
+              new KeyboardEvent("keydown", {
+                key: "Enter",
+                code: "Enter",
+                keyCode: 13,
+                which: 13,
+                bubbles: true,
+                cancelable: true
+              })
+            );
           }
         }
-        const frameInput = document.querySelector("input.cvat-player-frame-selector");
-        if (frameInput) {
-          frameInput.value = String(frame);
-          frameInput.dispatchEvent(new Event("change", { bubbles: true }));
-          frameInput.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", keyCode: 13, bubbles: true }));
+        if (store) {
+          setTimeout(() => {
+            var _a2, _b2, _c2, _d2, _e2, _f, _g, _h, _i, _j;
+            try {
+              const checkState = (_a2 = store.getState) == null ? void 0 : _a2.call(store);
+              if ((_d2 = (_c2 = (_b2 = checkState == null ? void 0 : checkState.annotation) == null ? void 0 : _b2.player) == null ? void 0 : _c2.frame) == null ? void 0 : _d2.fetching) {
+                const curF = ((_g = (_f = (_e2 = checkState == null ? void 0 : checkState.annotation) == null ? void 0 : _e2.player) == null ? void 0 : _f.frame) == null ? void 0 : _g.number) ?? frame;
+                store.dispatch({
+                  type: "CHANGE_FRAME_SUCCESS",
+                  payload: {
+                    number: curF,
+                    data: ((_j = (_i = (_h = checkState == null ? void 0 : checkState.annotation) == null ? void 0 : _h.player) == null ? void 0 : _i.frame) == null ? void 0 : _j.data) || null
+                  }
+                });
+              }
+            } catch (_) {
+            }
+          }, 1e3);
         }
       } catch (e2) {
         console.warn("[CVAT 3D Suite] Lỗi Jump Frame:", e2);
@@ -7728,7 +10795,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             });
           }
         }
-        const res = fitYawToLaneIntensity(
+        const fitLaneFn = window.fitYawToLaneIntensity || (typeof fitYawToLaneIntensity !== "undefined" ? fitYawToLaneIntensity : void 0);
+        if (!fitLaneFn) {
+          throw new Error("Hàm fitYawToLaneIntensity chưa sẵn sàng trên window");
+        }
+        const res = fitLaneFn(
           ptsWithIntensity,
           curX,
           curY,
@@ -7780,7 +10851,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             console.warn("[CVAT 3D Suite] Lỗi áp dụng Yaw theo làn cho toàn track:", tErr);
           }
         }
-        markCvatSaveButtonUnsaved();
+        markCvatSaveButtonUnsaved(job);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_SNAP_YAW_TO_LANE", {
             detail: {
@@ -7860,7 +10931,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             console.warn("[CVAT 3D Suite] Lưu Yaw cho các frame khác trong track:", tErr);
           }
         }
-        markCvatSaveButtonUnsaved();
+        markCvatSaveButtonUnsaved(job);
         const newYawDeg = Math.round(newYaw * 180 / Math.PI);
         console.log(`[CVAT 3D Suite] Đã cập nhật xe #${uiId} sang Yaw: ${newYawDeg}° (Three.js Realtime: ${threeUpdated})`);
         window.dispatchEvent(
@@ -7974,7 +11045,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             console.warn("[CVAT 3D Suite] Lưu các frame khác trong track:", tErr);
           }
         }
-        markCvatSaveButtonUnsaved();
+        markCvatSaveButtonUnsaved(job);
         const scopeText = applyToTrack ? `toàn bộ track (từ Frame #${startF} ➔ #${stopF}, ${trackCount} frames, Realtime)` : `chỉ frame #${frame}`;
         const msg = `Đã cập nhật xe #${uiId} kích thước ${l}x${w}x${h2}m cho ${scopeText}`;
         console.log(`[CVAT 3D Suite] ${msg} (Three.js Re-rendered Realtime)`);
@@ -7998,7 +11069,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       window.dispatchEvent(new CustomEvent("CVAT_EXT_REQ_UPDATE_DIMENSIONS", { detail }));
     });
     window.addEventListener("CVAT_EXT_REQ_SNAP_GROUND", async (e) => {
-      const { jobId, frame, uiId, serverId, mode, deltaCm, deltaDeg, curbHeight, targetGroundZ: _targetGroundZ, applyToTrack } = e.detail || {};
+      const { jobId, frame, uiId, serverId, mode, deltaCm, deltaDeg, curbHeight, targetGroundZ: _targetGroundZ, applyToTrack, category, attributes } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
@@ -8009,6 +11080,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const curRx = newPoints[3] || 0;
         const curRy = newPoints[4] || 0;
         const curRz = newPoints[5] || 0;
+        const curL = newPoints[6] || 4.6;
         const curW = newPoints[7] || 1.85;
         const curH = newPoints[8] || 1.45;
         let newZ = curZ;
@@ -8016,51 +11088,135 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         let newRotY = curRy;
         let msg = "";
         if (mode === "road") {
-          const curL = newPoints[6] || 4.6;
-          const curW2 = newPoints[7] || 1.85;
-          const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW2 / 2, curH / 2, false, false);
-          if (groundInfo.isFallbackZeroGround || groundInfo.groundPointsCount < 10) {
-            const baseZ = groundInfo.groundZ !== null ? groundInfo.groundZ : curZ - curH / 2;
+          if (category === "pedestrian") {
+            const lidar = getSceneLidarPoints();
+            let baseGroundZ = curZ - curH / 2;
+            let pitchDeg = 0;
+            let rollDeg = 0;
+            if (lidar && lidar.count > 0) {
+              const pts = [];
+              const r = 1;
+              const rSq = r * r;
+              const maxZ = baseGroundZ + 0.35;
+              const minZ = baseGroundZ - 1;
+              for (let i = 0; i < lidar.count; i++) {
+                const pz = lidar.array[i * 3 + 2];
+                if (pz > maxZ || pz < minZ) continue;
+                const px = lidar.array[i * 3];
+                const py = lidar.array[i * 3 + 1];
+                const dx = px - curX;
+                const dy = py - curY;
+                if (dx * dx + dy * dy <= rSq) {
+                  pts.push({ x: px, y: py, z: pz });
+                }
+              }
+              if (pts.length >= 3) {
+                const footPts = pts.filter((p) => {
+                  const dx = p.x - curX;
+                  const dy = p.y - curY;
+                  return dx * dx + dy * dy <= 0.45 * 0.45;
+                });
+                if (footPts.length >= 3) {
+                  footPts.sort((a, b) => a.z - b.z);
+                  baseGroundZ = footPts[Math.max(0, Math.floor(footPts.length * 0.15))].z;
+                }
+                const slopeFn = window.estimateGroundSlopeInRadius || (typeof estimateGroundSlopeInRadius !== "undefined" ? estimateGroundSlopeInRadius : void 0);
+                const slope = slopeFn ? slopeFn(pts, curX, curY, curZ, 1, 0.35, baseGroundZ) : { pitchDeg: 0, rollDeg: 0, pitchRad: 0, rollRad: 0 };
+                pitchDeg = slope.pitchDeg;
+                rollDeg = slope.rollDeg;
+              }
+            }
             newRotX = 0;
             newRotY = 0;
-            newZ = Number((baseZ + curH / 2).toFixed(3));
-            if (Math.abs(newZ - curZ) > 0.5) {
-              newZ = curZ;
+            newZ = Number((baseGroundZ + curH / 2).toFixed(3));
+            msg = `Đã ghim Người #${uiId} bám sàn: Z=${newZ}m (Khóa thẳng Roll=0°, Pitch=0°, Dốc địa hình 1m: ${pitchDeg}°/${rollDeg}°)`;
+          } else if (category === "cyclist") {
+            const lidar = getSceneLidarPoints();
+            let baseGroundZ = curZ - curH / 2;
+            let pitchDeg = 0;
+            let pitchRad = 0;
+            if (lidar && lidar.count > 0) {
+              const pts = [];
+              const r = 1.5;
+              const rSq = r * r;
+              const maxZ = baseGroundZ + 0.35;
+              const minZ = baseGroundZ - 1;
+              for (let i = 0; i < lidar.count; i++) {
+                const pz = lidar.array[i * 3 + 2];
+                if (pz > maxZ || pz < minZ) continue;
+                const px = lidar.array[i * 3];
+                const py = lidar.array[i * 3 + 1];
+                const dx = px - curX;
+                const dy = py - curY;
+                if (dx * dx + dy * dy <= rSq) {
+                  pts.push({ x: px, y: py, z: pz });
+                }
+              }
+              if (pts.length >= 3) {
+                const wheelPts = pts.filter((p) => {
+                  const dx = p.x - curX;
+                  const dy = p.y - curY;
+                  return dx * dx + dy * dy <= Math.pow(curL / 2 + 0.2, 2);
+                });
+                if (wheelPts.length >= 3) {
+                  wheelPts.sort((a, b) => a.z - b.z);
+                  baseGroundZ = wheelPts[Math.max(0, Math.floor(wheelPts.length * 0.15))].z;
+                }
+                const slopeFn = window.estimateGroundSlopeInRadius || (typeof estimateGroundSlopeInRadius !== "undefined" ? estimateGroundSlopeInRadius : void 0);
+                const slope = slopeFn ? slopeFn(pts, curX, curY, curZ, 1.5, 0.35, baseGroundZ) : { pitchDeg: 0, rollDeg: 0, pitchRad: 0, rollRad: 0 };
+                pitchDeg = slope.pitchDeg;
+                pitchRad = slope.pitchRad;
+              }
             }
-            msg = `Point mặt đất ít (${groundInfo.groundPointsCount} điểm) ➔ Khóa chuẩn 0° phẳng (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
-          } else if (groundInfo.groundZ !== null) {
-            const cosPitch = Math.cos(groundInfo.pitchRad);
-            const cosRoll = Math.cos(groundInfo.rollRad);
-            newRotY = groundInfo.pitchRad;
-            if (groundInfo.isHalfCurb) {
-              newRotX = groundInfo.rollRad;
-              newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch * cosRoll).toFixed(3));
-              const sideText = groundInfo.halfCurbSide === "left" ? "bên TRÁI" : "bên PHẢI";
-              msg = `Đã tự động nhận diện xe #${uiId} gác lề ${sideText} (Bậc vỉa hè: +${groundInfo.curbHeightCm}cm, Nghiêng Front Roll: ${groundInfo.rollDeg}°, Tâm Z: ${newZ}m)`;
-            } else if (groundInfo.isCurbGround) {
-              newRotX = 0;
-              newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch).toFixed(3));
-              msg = `Đã tự động nhận diện xe #${uiId} đỗ trên nền vỉa hè (+${groundInfo.curbHeightCm || 15}cm so với Ego, Khóa Roll 0°, Tâm Z: ${newZ}m)`;
-            } else {
-              newRotX = groundInfo.rollRad;
-              newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch * cosRoll).toFixed(3));
-              msg = `Đã ghim đáy xe #${uiId} bám sát mặt đường (Z: ${newZ}m, Roll: ${groundInfo.rollDeg}°, Pitch: ${groundInfo.pitchDeg}°)`;
-            }
+            newRotX = 0;
+            newRotY = pitchRad;
+            newZ = Number((baseGroundZ + curH / 2 * Math.cos(pitchRad)).toFixed(3));
+            msg = `Đã ghim Xe 2 bánh #${uiId} bám mặt đường: Z=${newZ}m (Pitch=${pitchDeg}°, Khóa Roll=0° đứng thẳng)`;
           } else {
-            newRotX = 0;
-            newRotY = 0;
-            newZ = curZ;
-            msg = `Không có điểm mặt đất ➔ Khóa chuẩn 0° phẳng (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
+            const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW / 2, curH / 2, false, false);
+            if (groundInfo.isFallbackZeroGround || groundInfo.groundPointsCount < 10) {
+              const baseZ = groundInfo.groundZ !== null ? groundInfo.groundZ : curZ - curH / 2;
+              newRotX = 0;
+              newRotY = 0;
+              newZ = Number((baseZ + curH / 2).toFixed(3));
+              if (Math.abs(newZ - curZ) > 0.5) {
+                newZ = curZ;
+              }
+              msg = `Point mặt đất ít (${groundInfo.groundPointsCount} điểm) ➔ Khóa chuẩn 0° phẳng (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
+            } else if (groundInfo.groundZ !== null) {
+              const cosPitch = Math.cos(groundInfo.pitchRad);
+              const cosRoll = Math.cos(groundInfo.rollRad);
+              newRotY = groundInfo.pitchRad;
+              if (groundInfo.isHalfCurb) {
+                newRotX = groundInfo.rollRad;
+                newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch * cosRoll).toFixed(3));
+                const sideText = groundInfo.halfCurbSide === "left" ? "bên TRÁI" : "bên PHẢI";
+                msg = `Đã tự động nhận diện xe #${uiId} gác lề ${sideText} (Bậc vỉa hè: +${groundInfo.curbHeightCm}cm, Nghiêng Front Roll: ${groundInfo.rollDeg}°, Tâm Z: ${newZ}m)`;
+              } else if (groundInfo.isCurbGround) {
+                newRotX = 0;
+                newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch).toFixed(3));
+                msg = `Đã tự động nhận diện xe #${uiId} đỗ trên nền vỉa hè (+${groundInfo.curbHeightCm || 15}cm so với Ego, Khóa Roll 0°, Tâm Z: ${newZ}m)`;
+              } else {
+                newRotX = groundInfo.rollRad;
+                newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch * cosRoll).toFixed(3));
+                msg = `Đã ghim đáy xe #${uiId} bám sát mặt đường (Z: ${newZ}m, Roll: ${groundInfo.rollDeg}°, Pitch: ${groundInfo.pitchDeg}°)`;
+              }
+            } else {
+              newRotX = 0;
+              newRotY = 0;
+              newZ = curZ;
+              msg = `Không có điểm mặt đất ➔ Khóa chuẩn 0° phẳng (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
+            }
           }
         } else if (mode === "curb") {
-          const curL = newPoints[6] || 4.6;
-          const autoCurb = detectCurbStepAndRollInMainWorld(curX, curY, curZ, curRz, curL / 2, curW / 2, curW);
+          const curL2 = newPoints[6] || 4.6;
+          const autoCurb = detectCurbStepAndRollInMainWorld(curX, curY, curZ, curRz, curL2 / 2, curW / 2, curW);
           const offset = curbHeight !== void 0 ? curbHeight : autoCurb.hasCurb ? autoCurb.curbHeight : 0.15;
           newZ = Number((curZ + offset).toFixed(3));
           msg = autoCurb.hasCurb ? `Đã tự động nhận diện nền vỉa hè cao +${autoCurb.curbHeightCm}cm từ LiDAR ➔ Z: ${newZ}m` : `Đã nâng đáy xe #${uiId} lên nền vỉa hè (+${Math.round(offset * 100)}cm ➔ Z: ${newZ}m)`;
         } else if (mode === "half_curb") {
-          const curL = newPoints[6] || 4.6;
-          const autoCurb = detectCurbStepAndRollInMainWorld(curX, curY, curZ, curRz, curL / 2, curW / 2, curW);
+          const curL2 = newPoints[6] || 4.6;
+          const autoCurb = detectCurbStepAndRollInMainWorld(curX, curY, curZ, curRz, curL2 / 2, curW / 2, curW);
           if (autoCurb.hasCurb && autoCurb.side !== "none") {
             newRotX = autoCurb.rollRad;
             const deltaZ = autoCurb.deltaCenterZ;
@@ -8082,17 +11238,29 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           newZ = Number((curZ + dCm / 100).toFixed(3));
           msg = `Đã vi chỉnh cao độ xe #${uiId} (${dCm > 0 ? "+" : ""}${dCm}cm ➔ Z: ${newZ}m)`;
         } else if (mode === "micro_adjust_pitch") {
-          const dDeg = deltaDeg !== void 0 ? deltaDeg : 0.5;
-          const dRad = dDeg * Math.PI / 180;
-          newRotY = Number((curRy + dRad).toFixed(5));
-          const pitchDeg = Number((newRotY * 180 / Math.PI).toFixed(2));
-          msg = `Đã vi chỉnh dốc Side xe #${uiId} (${dDeg > 0 ? "+" : ""}${dDeg}° ➔ Pitch: ${pitchDeg}°)`;
+          if (category === "pedestrian") {
+            newRotX = 0;
+            newRotY = 0;
+            msg = `Người đi bộ #${uiId} luôn khóa thẳng đứng (Roll=0°, Pitch=0° tuyệt đối)`;
+          } else {
+            const dDeg = deltaDeg !== void 0 ? deltaDeg : 0.5;
+            const dRad = dDeg * Math.PI / 180;
+            newRotY = Number((curRy + dRad).toFixed(5));
+            const pitchDeg = Number((newRotY * 180 / Math.PI).toFixed(2));
+            msg = `Đã vi chỉnh dốc Side xe #${uiId} (${dDeg > 0 ? "+" : ""}${dDeg}° ➔ Pitch: ${pitchDeg}°)`;
+          }
         } else if (mode === "micro_adjust_roll") {
-          const dDeg = deltaDeg !== void 0 ? deltaDeg : 0.5;
-          const dRad = dDeg * Math.PI / 180;
-          newRotX = Number((curRx + dRad).toFixed(5));
-          const rollDeg = Number((newRotX * 180 / Math.PI).toFixed(2));
-          msg = `Đã vi chỉnh nghiêng Front xe #${uiId} (${dDeg > 0 ? "+" : ""}${dDeg}° ➔ Roll: ${rollDeg}°)`;
+          if (category === "pedestrian") {
+            newRotX = 0;
+            newRotY = 0;
+            msg = `Người đi bộ #${uiId} luôn khóa thẳng đứng (Roll=0°, Pitch=0° tuyệt đối)`;
+          } else {
+            const dDeg = deltaDeg !== void 0 ? deltaDeg : 0.5;
+            const dRad = dDeg * Math.PI / 180;
+            newRotX = Number((curRx + dRad).toFixed(5));
+            const rollDeg = Number((newRotX * 180 / Math.PI).toFixed(2));
+            msg = `Đã vi chỉnh nghiêng Front xe #${uiId} (${dDeg > 0 ? "+" : ""}${dDeg}° ➔ Roll: ${rollDeg}°)`;
+          }
         } else if (mode === "reset_slope") {
           newRotX = 0;
           newRotY = 0;
@@ -8109,6 +11277,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (applyToTrack) {
           try {
             const deltaZ = newZ - curZ;
+            const dRadPitch = mode === "micro_adjust_pitch" ? (deltaDeg !== void 0 ? deltaDeg : 0.5) * Math.PI / 180 : 0;
+            const dRadRoll = mode === "micro_adjust_roll" ? (deltaDeg !== void 0 ? deltaDeg : 0.5) * Math.PI / 180 : 0;
             const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
             if (parentTrack) {
               const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || parentTrack._shapes);
@@ -8116,8 +11286,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
                   const pts = [...sh.points];
                   pts[2] = Number((pts[2] + deltaZ).toFixed(3));
-                  pts[3] = newRotX;
-                  pts[4] = newRotY;
+                  if (category === "pedestrian") {
+                    pts[3] = 0;
+                    pts[4] = 0;
+                  } else if (mode === "micro_adjust_pitch") {
+                    pts[4] = Number(((pts[4] || 0) + dRadPitch).toFixed(5));
+                  } else if (mode === "micro_adjust_roll") {
+                    pts[3] = Number(((pts[3] || 0) + dRadRoll).toFixed(5));
+                  } else {
+                    pts[3] = newRotX;
+                    pts[4] = newRotY;
+                  }
                   sh.points = pts;
                   if (typeof sh.save === "function") {
                     await sh.save();
@@ -8129,7 +11308,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           } catch (tErr) {
             console.warn("[CVAT 3D Suite] Lỗi snap ground cho toàn track:", tErr);
           }
-          msg += ` (Đã ghim toàn bộ ${framesSnapped} frames trong track)`;
+          msg += ` (Đã cập nhật toàn bộ ${framesSnapped} frames trong track)`;
         }
         updateThreeJsCuboid(
           uiId,
@@ -8138,7 +11317,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           void 0,
           { rx: newRotX, ry: newRotY, rz: curRz }
         );
-        markCvatSaveButtonUnsaved();
+        markCvatSaveButtonUnsaved(job);
         console.log(`[CVAT 3D Suite] ${msg} (Three.js Side/Front Re-rendered Realtime)`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_SNAP_GROUND", {
@@ -8241,7 +11420,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             console.warn("[CVAT 3D Suite] Lưu các frame khác trong track:", tErr);
           }
         }
-        markCvatSaveButtonUnsaved();
+        markCvatSaveButtonUnsaved(job);
         const scopeText = applyToTrack ? `toàn bộ track (từ Frame #${startF} ➔ #${stopF}, ${trackCount} frames, Realtime)` : `chỉ frame #${frame}`;
         const modeText = resolvedMode === "tight" ? "ôm sát cụm điểm" : "chuẩn catalog";
         const msg = `Đã fit box xe #${uiId} ${modeText} (${fit.pointsCount} điểm LiDAR, Ground: ${fit.detectedGroundZ}m, ${fit.newL}x${fit.newW}x${fit.newH}m cho ${scopeText})`;
@@ -8383,7 +11562,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           void 0,
           { rx: newRotX, ry: newRotY, rz: curYaw }
         );
-        markCvatSaveButtonUnsaved();
+        markCvatSaveButtonUnsaved(job);
         const msg = `Đã căn hộp ôm trọn cụm điểm (${bodyPts.length} điểm), bám dốc mặt đường (Pitch: ${groundInfo.pitchDeg}°, Roll: ${groundInfo.rollDeg}°) và BẢO TOÀN 100% kích thước chuẩn ${curL}x${curW}x${curH}m`;
         console.log(`[CVAT 3D Suite] ${msg}`);
         window.dispatchEvent(
@@ -8418,6 +11597,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+        const targetBox = {
+          c: [target.points[0], target.points[1], target.points[2]],
+          s: [target.points[6], target.points[7], target.points[8]],
+          r: [target.points[3] || 0, target.points[4] || 0, target.points[5] || 0]
+        };
         const fit = fitBoxToEgoRayAndGroundInMainWorld(
           target.points,
           egoPos || { x: 0, y: 0, z: 0 },
@@ -8448,7 +11632,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           { l: fit.newL, w: fit.newW, h: fit.newH },
           { rx: fit.rollRad, ry: fit.pitchRad, rz: newYaw }
         );
-        markCvatSaveButtonUnsaved();
+        markCvatSaveButtonUnsaved(job);
         let trackCount = 1;
         if (applyToTrack === true && job) {
           try {
@@ -8518,6 +11702,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+        const targetBox = {
+          c: [target.points[0], target.points[1], target.points[2]],
+          s: [target.points[6], target.points[7], target.points[8]],
+          r: [target.points[3] || 0, target.points[4] || 0, target.points[5] || 0]
+        };
         const fit = fitPedestrianInMainWorld(target.points, { headBuffer, egoPos, step });
         if (fit.pointsCount === 0) {
           throw new Error(`Không tìm thấy điểm LiDAR nào thuộc người #${uiId}`);
@@ -8604,7 +11793,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           { l: fit.newL, w: fit.newW, h: fit.newH },
           { rx: 0, ry: 0, rz: newPoints[5] }
         );
-        markCvatSaveButtonUnsaved();
+        markCvatSaveButtonUnsaved(job);
         console.log(`[CVAT 3D Suite] ${fit.message}`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_FIT_PEDESTRIAN", {
@@ -8641,6 +11830,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
+        const targetBox = {
+          c: [target.points[0], target.points[1], target.points[2]],
+          s: [target.points[6], target.points[7], target.points[8]],
+          r: [target.points[3] || 0, target.points[4] || 0, target.points[5] || 0]
+        };
         const fit = fitCyclistInMainWorld(target.points, { headBuffer, egoPos, step });
         if (fit.pointsCount === 0) {
           throw new Error(`Không tìm thấy điểm LiDAR nào thuộc xe 2 bánh #${uiId}`);
@@ -8727,7 +11921,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           { l: fit.newL, w: fit.newW, h: fit.newH },
           { rx: 0, ry: 0, rz: newPoints[5] }
         );
-        markCvatSaveButtonUnsaved();
+        markCvatSaveButtonUnsaved(job);
         console.log(`[CVAT 3D Suite] ${fit.message}`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_FIT_CYCLIST", {
@@ -8759,7 +11953,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         );
       }
     });
-    function fitBoxWithPadding5cm(points) {
+    function fitBoxWithPadding5cm(points, attributes) {
       const cx = points[0];
       const cy = points[1];
       const cz = points[2];
@@ -8809,9 +12003,18 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const zList = finalPts.map((p) => p.z).sort((a, b) => a - b);
       const zRoof = zList[Math.floor(zList.length * 0.95)];
       const measuredH = Math.max(0.4, Math.min(4, Number((zRoof - groundZ).toFixed(3))));
-      const newL = Number((measuredL + 0.1).toFixed(2));
-      const newW = Number((measuredW + 0.1).toFixed(2));
-      const newH = Number((measuredH + 0.05).toFixed(2));
+      let rawL = Number((measuredL + 0.1).toFixed(2));
+      let rawW = Number((measuredW + 0.1).toFixed(2));
+      let rawH = Number((measuredH + 0.05).toFixed(2));
+      const isLargeVehicle = Boolean(
+        (attributes == null ? void 0 : attributes.is_large) || (attributes == null ? void 0 : attributes.truck) || (attributes == null ? void 0 : attributes.bus) || (attributes == null ? void 0 : attributes.vehicle_type) === "truck" || (attributes == null ? void 0 : attributes.vehicle_type) === "bus"
+      );
+      const minL = 3.2, maxL = isLargeVehicle ? 12 : 5.5;
+      const minW = 1.6, maxW = isLargeVehicle ? 2.6 : 2.2;
+      const minH = 1.45, maxH = isLargeVehicle ? 3.6 : 1.9;
+      const newL = Number(Math.max(minL, Math.min(maxL, rawL)).toFixed(2));
+      const newW = Number(Math.max(minW, Math.min(maxW, rawW)).toFixed(2));
+      const newH = Number(Math.max(minH, Math.min(maxH, rawH)).toFixed(2));
       const newZ = Number((groundZ + newH / 2).toFixed(3));
       return {
         newL,
@@ -8826,11 +12029,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       };
     }
     window.addEventListener("CVAT_EXT_REQ_FIT_CURRENT_BOX", async (e) => {
-      const { jobId, frame, uiId, serverId, applyToTrack = false } = e.detail || {};
+      const { jobId, frame, uiId, serverId, applyToTrack = false, attributes } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
-        const fit = fitBoxWithPadding5cm(target.points);
+        const fit = fitBoxWithPadding5cm(target.points, attributes);
         const newPoints = [...target.points];
         newPoints[2] = fit.newZ;
         newPoints[6] = fit.newL;
@@ -8870,7 +12073,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           { l: fit.newL, w: fit.newW, h: fit.newH },
           { rx: newPoints[3] || 0, ry: newPoints[4] || 0, rz: newPoints[5] }
         );
-        markCvatSaveButtonUnsaved();
+        markCvatSaveButtonUnsaved(job);
         const scopeText = applyToTrack ? `toàn bộ ${framesSynced} frames trong track` : `frame #${frame}`;
         const msg = `Đã Fit Box với padding 5cm (L=${fit.newL}m, W=${fit.newW}m, H=${fit.newH}m, ${fit.pointsCount} điểm LiDAR) cho ${scopeText}`;
         console.log(`[CVAT 3D Suite] ${msg}`);
@@ -8979,9 +12182,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           throw new Error(`Không tìm thấy Track hoặc Shape #${uiId} trong toàn bộ Job`);
         }
         const store = getReduxStore();
-        const canvas2 = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        if (canvas2 && canvas2.view && canvas2.view.drawnObjects) {
-          const drawnItem = canvas2.view.drawnObjects[String(uiId)];
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (canvas && canvas.view && canvas.view.drawnObjects) {
+          const drawnItem = canvas.view.drawnObjects[String(uiId)];
           if (drawnItem) {
             if (drawnItem.data) {
               drawnItem.data.outside = !!outside;
@@ -8996,11 +12199,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               if (typeof drawnItem.cuboid.visible === "boolean") drawnItem.cuboid.visible = isVis;
             }
           }
-          const activeId = (_d = canvas2.view) == null ? void 0 : _d.activatedElementID;
+          const activeId = (_d = canvas.view) == null ? void 0 : _d.activatedElementID;
           if (outside && (Number(activeId) === Number(uiId) || String(activeId) === String(uiId))) {
-            if (typeof canvas2.activate === "function") {
+            if (typeof canvas.activate === "function") {
               try {
-                canvas2.activate(null);
+                canvas.activate(null);
               } catch (aErr) {
               }
             }
@@ -9016,9 +12219,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         } catch (rErr) {
         }
-        markCvatSaveButtonUnsaved();
-        if (canvas2 && typeof canvas2.render === "function") {
-          canvas2.render();
+        markCvatSaveButtonUnsaved(job);
+        if (canvas && typeof canvas.render === "function") {
+          canvas.render();
         }
         window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS_DIRTY"));
         const msg = `Đã đánh dấu ${outside ? "Outside (Ẩn)" : "Inside (Hiện)"} cho ${countModified} frame của xe #${uiId} (Realtime)`;
@@ -9125,9 +12328,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const currentBackup = trackShapesBackup == null ? void 0 : trackShapesBackup.find((b) => b.frame === currentFrame);
         if (currentBackup && currentBackup.outside !== void 0) {
           const store2 = getReduxStore();
-          const canvas3 = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-          if (canvas3 && canvas3.view && canvas3.view.drawnObjects) {
-            const drawnItem = canvas3.view.drawnObjects[String(uiId)];
+          const canvas2 = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+          if (canvas2 && canvas2.view && canvas2.view.drawnObjects) {
+            const drawnItem = canvas2.view.drawnObjects[String(uiId)];
             if (drawnItem) {
               drawnItem.data.outside = !!currentBackup.outside;
               if (drawnItem.cuboid) {
@@ -9141,11 +12344,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             }
           }
         }
-        markCvatSaveButtonUnsaved();
+        markCvatSaveButtonUnsaved(job);
         const store = getReduxStore();
-        const canvas2 = (_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.canvas) == null ? void 0 : _f.instance;
-        if (canvas2 && typeof canvas2.render === "function") {
-          canvas2.render();
+        const canvas = (_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.canvas) == null ? void 0 : _f.instance;
+        if (canvas && typeof canvas.render === "function") {
+          canvas.render();
         }
         const msg = `Đã hoàn tác (Pre) thành công trạng thái trước đó của xe #${uiId}`;
         console.log(`[CVAT 3D Suite] ${msg}`);
@@ -9217,7 +12420,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           { l: currentPts[6], w: currentPts[7], h: currentPts[8] },
           { rx: currentPts[3] || 0, ry: currentPts[4] || 0, rz: yaw }
         );
-        markCvatSaveButtonUnsaved();
+        markCvatSaveButtonUnsaved(job);
         const scopeText = applyToTrack ? `toàn bộ ${framesShifted} frames trong track` : `frame #${frame}`;
         const msg = `Đã vi chỉnh Center (${isWorld ? "Screen Space" : "Local"} ΔX: ${deltaXWorld > 0 ? "+" : ""}${(deltaXWorld * 100).toFixed(1)}cm, ΔY: ${deltaYWorld > 0 ? "+" : ""}${(deltaYWorld * 100).toFixed(1)}cm, ΔZ: ${deltaZ > 0 ? "+" : ""}${(deltaZ * 100).toFixed(1)}cm) cho ${scopeText}`;
         console.log(`[CVAT 3D Suite] ${msg}`);
@@ -9273,6 +12476,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const maxRoofZ = groundZ + 4;
         const searchHalfL = curL / 2 + 0.55;
         const searchHalfW = curW / 2 + 0.45;
+        const targetBox = {
+          c: [cx, cy, cz],
+          s: [curL, curW, curH],
+          r: [rx, ry, yaw]
+        };
         const rawBodyPts = [];
         for (let i = 0; i < count; i++) {
           const z = array[i * 3 + 2];
@@ -9362,7 +12570,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           { l: newL, w: newW, h: newH },
           { rx, ry, rz: yaw }
         );
-        markCvatSaveButtonUnsaved();
+        markCvatSaveButtonUnsaved(job);
         const scopeText = applyToTrack ? `toàn bộ ${framesSynced} frames trong track` : `frame #${frame}`;
         const msg = `Đã ${dimMessage} cho ${scopeText}`;
         console.log(`[CVAT 3D Suite] ${msg}`);
@@ -9437,28 +12645,59 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         })
       );
     });
-    window.addEventListener("CVAT_EXT_REQ_SET_GROUND_PLANE_VISIBLE", (e) => {
-      const { visible } = e.detail || {};
-      currentGroundPlaneVisible = !!visible;
-      if (typeof localStorage !== "undefined") {
-        try {
-          localStorage.setItem("cvat_3d_ground_plane_visible", String(currentGroundPlaneVisible));
-        } catch (_) {
-        }
+    window.addEventListener("CVAT_EXT_REQ_SET_CANVAS_THEME", (e) => {
+      const { theme } = e.detail || {};
+      if (theme === "light" || theme === "dark") {
+        currentCanvasTheme = theme;
       }
-      updateGroundPlaneMeshInMainWorld();
+      applyCanvasThemeInMainWorld(currentCanvasTheme);
+      applyPointCloudColorizationInMainWorld({
+        mode: currentPointColorMode,
+        colorizeBoxed: currentColorizeBoxed
+      });
       window.dispatchEvent(
-        new CustomEvent("CVAT_EXT_RES_SET_GROUND_PLANE_VISIBLE", {
-          detail: { success: true, visible: currentGroundPlaneVisible }
+        new CustomEvent("CVAT_EXT_RES_SET_CANVAS_THEME", {
+          detail: {
+            success: true,
+            theme: currentCanvasTheme
+          }
         })
       );
     });
-    window.addEventListener("CVAT_EXT_REQ_GET_GROUND_PLANE_VISIBLE", () => {
+    window.addEventListener("CVAT_EXT_REQ_GET_CANVAS_THEME", () => {
       window.dispatchEvent(
-        new CustomEvent("CVAT_EXT_RES_GET_GROUND_PLANE_VISIBLE", {
-          detail: { visible: currentGroundPlaneVisible }
+        new CustomEvent("CVAT_EXT_RES_GET_CANVAS_THEME", {
+          detail: {
+            theme: currentCanvasTheme
+          }
         })
       );
+    });
+    window.addEventListener("CVAT_EXT_REQ_SET_ORTHO_POINT_SIZE", (e) => {
+      const { size } = e.detail || {};
+      if (typeof size === "number" && size >= 1 && size <= 10) {
+        applyOrthoPointSize(size);
+      }
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_SET_ORTHO_POINT_SIZE", {
+          detail: {
+            success: true,
+            size: currentOrthoPointSize
+          }
+        })
+      );
+    });
+    window.addEventListener("CVAT_EXT_REQ_GET_ORTHO_POINT_SIZE", () => {
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_GET_ORTHO_POINT_SIZE", {
+          detail: {
+            size: currentOrthoPointSize
+          }
+        })
+      );
+    });
+    window.addEventListener("CVAT_EXT_REQ_CALCULATE_EDGE_CONTACTS", () => {
+      calculateAndBroadcastBoxEdgeContacts();
     });
     setTimeout(() => {
       var _a, _b, _c, _d;
@@ -9506,7 +12745,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
      * Khởi tạo cầu nối vào Main World của CVAT
      */
     static ensureMainWorldBridge() {
-      if (this.isBridgeInjected || window.__CVAT_3D_SUITE_INJECTED__ || document.getElementById("cvat-3d-suite-main-bridge")) {
+      if (this.isBridgeInjected || typeof window !== "undefined" && window.__CVAT_3D_SUITE_INJECTED__ || typeof document !== "undefined" && document.getElementById("cvat-3d-suite-main-bridge")) {
+        this.isBridgeInjected = true;
+        return;
+      }
+      if (typeof document === "undefined") {
         this.isBridgeInjected = true;
         return;
       }
@@ -9565,17 +12808,24 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
      * Tuyệt đối không quét mù quáng các input số khác (như frame step = 5) làm nhảy frame!
      */
     static getCurrentFrame() {
-      const frameInput = document.querySelector(
-        ".cvat-player-frame-selector input, input.cvat-player-frame-selector, input[aria-label='Frame selector']"
-      );
-      if (frameInput && frameInput.value !== void 0 && frameInput.value !== "") {
-        const val = parseInt(frameInput.value, 10);
-        if (!isNaN(val) && val >= 0) return val;
-      }
-      const urlParams = new URLSearchParams(window.location.search);
-      const frameParam = urlParams.get("frame");
-      if (frameParam && !isNaN(parseInt(frameParam, 10))) {
-        return parseInt(frameParam, 10);
+      try {
+        if (typeof document !== "undefined") {
+          const frameInput = document.querySelector(
+            ".cvat-player-frame-selector input, input.cvat-player-frame-selector, input[aria-label='Frame selector']"
+          );
+          if (frameInput && frameInput.value !== void 0 && frameInput.value !== "") {
+            const val = parseInt(frameInput.value, 10);
+            if (!isNaN(val) && val >= 0) return val;
+          }
+        }
+        if (typeof window !== "undefined" && window.location && window.location.search) {
+          const urlParams = new URLSearchParams(window.location.search);
+          const frameParam = urlParams.get("frame");
+          if (frameParam && !isNaN(parseInt(frameParam, 10))) {
+            return parseInt(frameParam, 10);
+          }
+        }
+      } catch (_) {
       }
       return 0;
     }
@@ -9613,6 +12863,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return this.cachedAnnotations || { tracks: [] };
     }
     /**
+     * Alias tương thích ngược cho fetchJobAnnotations.
+     */
+    static async getJobAnnotations(jobId, forceRefresh = false) {
+      return this.fetchJobAnnotations(jobId, forceRefresh);
+    }
+    /**
      * Lấy danh sách TẤT CẢ các Track ID CÓ MẶT TẠI FRAME HIỆN TẠI.
      * Ưu tiên 1: Main World Bridge (được phản hồi là trả về ngay, dù rỗng [] hay có xe).
      * Ưu tiên 2: window.cvat SDK nội bộ của trang web.
@@ -9620,11 +12876,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
      */
     static async getTracksInCurrentFrame(jobId, frame) {
       this.ensureMainWorldBridge();
-      const taskMatch = window.location.pathname.match(/\/tasks\/(\d+)/);
-      const taskId = taskMatch ? parseInt(taskMatch[1], 10) : null;
-      if (taskId) {
-        await this.fetchTaskLabels(taskId);
-      }
       const promise = new Promise((resolve) => {
         const timeout = setTimeout(() => resolve(null), 600);
         const onResponse = (e) => {
@@ -9798,7 +13049,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               deltaDeg: params == null ? void 0 : params.deltaDeg,
               curbHeight: params == null ? void 0 : params.curbHeight,
               targetGroundZ: params == null ? void 0 : params.targetGroundZ,
-              applyToTrack: (params == null ? void 0 : params.applyToTrack) ?? false
+              applyToTrack: (params == null ? void 0 : params.applyToTrack) ?? false,
+              category: params == null ? void 0 : params.category,
+              attributes: params == null ? void 0 : params.attributes
             }
           })
         );
@@ -10108,7 +13361,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
      * +10cm cho L, +10cm cho W, +5cm cho H (nóc xe, đáy bám sàn cố định).
      * Hỗ trợ đồng bộ toàn bộ track nếu applyToTrack = true.
      */
-    static async fitCurrentBox(jobId, uiId, serverId, applyToTrack = false) {
+    static async fitCurrentBox(jobId, uiId, serverId, applyToTrack = false, attributes) {
       this.ensureMainWorldBridge();
       const currentFrame = this.getCurrentFrame();
       const mwPromise = new Promise((resolve) => {
@@ -10125,7 +13378,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         window.addEventListener("CVAT_EXT_RES_FIT_CURRENT_BOX", onResponse);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_REQ_FIT_CURRENT_BOX", {
-            detail: { jobId, frame: currentFrame, uiId, serverId, applyToTrack }
+            detail: { jobId, frame: currentFrame, uiId, serverId, applyToTrack, attributes }
           })
         );
       });
@@ -10252,6 +13505,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           detail: { clientId: uiId, pos }
         })
       );
+    }
+    /**
+     * Kích hoạt đối tượng trên Three.js Canvas3D và đồng bộ Active Track ID
+     */
+    static activateObject(uiId, pos) {
+      this.activateCanvasTrack(uiId, pos);
+      this.setActiveTrackIdInMainWorld(uiId);
     }
     /**
      * Căn giữa và tập trung View 3D Three.js vào Track ID chỉ định (0ms Realtime)
@@ -10410,7 +13670,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     static async getAllJobTracksWithShapes(jobId) {
       this.ensureMainWorldBridge();
       const promise = new Promise((resolve) => {
-        const timeout = setTimeout(() => resolve([]), 3e3);
+        const timeout = setTimeout(() => resolve([]), 5e3);
         const onResponse = (e) => {
           clearTimeout(timeout);
           window.removeEventListener("CVAT_EXT_RES_GET_ALL_JOB_TRACKS_WITH_SHAPES", onResponse);
@@ -10423,6 +13683,31 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         window.addEventListener("CVAT_EXT_RES_GET_ALL_JOB_TRACKS_WITH_SHAPES", onResponse);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_REQ_GET_ALL_JOB_TRACKS_WITH_SHAPES", {
+            detail: { jobId }
+          })
+        );
+      });
+      return await promise;
+    }
+    /**
+     * Trích xuất toàn bộ Job kèm đầy đủ các frame nội suy theo định dạng chuẩn Datumaro 1.0 JSON
+     */
+    static async exportJobDatumaroData(jobId) {
+      this.ensureMainWorldBridge();
+      const promise = new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(null), 6e4);
+        const onResponse = (e) => {
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_EXPORT_JOB_DATUMARO_DATA", onResponse);
+          if (e.detail && e.detail.success && e.detail.dataset) {
+            resolve(e.detail.dataset);
+          } else {
+            resolve(null);
+          }
+        };
+        window.addEventListener("CVAT_EXT_RES_EXPORT_JOB_DATUMARO_DATA", onResponse);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_EXPORT_JOB_DATUMARO_DATA", {
             detail: { jobId }
           })
         );
@@ -10497,9 +13782,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return await promise;
     }
     /**
-     * Yêu cầu CVAT native nhảy timeline tới frame chỉ định
+     * Yêu cầu CVAT native nhảy timeline tới frame chỉ định (Kèm Same-Frame Guard)
      */
     static jumpToFrame(frame) {
+      if (typeof frame !== "number" || isNaN(frame) || frame < 0) return;
+      const current = this.getCurrentFrame();
+      if (current === frame) return;
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_REQ_JUMP_FRAME", {
           detail: { frame }
@@ -10845,24 +14133,123 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       });
     }
     /**
-     * Bật/Tắt hiển thị Mặt Sàn Polygon 3D Mờ (Mặt đường & Vỉa hè).
+     * Cấu hình Theme Giao diện Canvas 3D (Light: Nền Trắng + Điểm Đen ⇄ Dark: Nền Tối + Điểm Sáng).
      */
-    static async setGroundPlaneVisible(visible) {
+    static async setCanvasTheme(theme) {
       this.ensureMainWorldBridge();
       return new Promise((resolve) => {
-        const timeout = setTimeout(() => resolve(visible), 500);
+        const timeout = setTimeout(() => resolve({ success: true, theme }), 600);
+        const onRes = (e) => {
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_SET_CANVAS_THEME", onRes);
+          resolve(e.detail || { success: true, theme });
+        };
+        window.addEventListener("CVAT_EXT_RES_SET_CANVAS_THEME", onRes);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_SET_CANVAS_THEME", {
+            detail: { theme }
+          })
+        );
+      });
+    }
+    /**
+     * Truy vấn Theme Giao diện Canvas 3D hiện tại từ Main World ("light" | "dark").
+     */
+    static async getCanvasTheme() {
+      this.ensureMainWorldBridge();
+      return new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve("light"), 500);
         const onRes = (e) => {
           var _a;
           clearTimeout(timeout);
-          window.removeEventListener("CVAT_EXT_RES_SET_GROUND_PLANE_VISIBLE", onRes);
-          resolve(((_a = e.detail) == null ? void 0 : _a.visible) ?? visible);
+          window.removeEventListener("CVAT_EXT_RES_GET_CANVAS_THEME", onRes);
+          resolve(((_a = e.detail) == null ? void 0 : _a.theme) || "light");
         };
-        window.addEventListener("CVAT_EXT_RES_SET_GROUND_PLANE_VISIBLE", onRes);
+        window.addEventListener("CVAT_EXT_RES_GET_CANVAS_THEME", onRes);
+        window.dispatchEvent(new CustomEvent("CVAT_EXT_REQ_GET_CANVAS_THEME"));
+      });
+    }
+    /**
+     * Cấu hình Kích thước Hạt Điểm Mây LiDAR trên 3 Khung Nhìn 2D Trực Giao (Top, Side, Front).
+     * Mặc định: 3.5px (Nét rõ), Hỗ trợ xoay vòng: 2.0px / 3.5px / 5.0px.
+     */
+    static async setOrthoPointSize(size) {
+      this.ensureMainWorldBridge();
+      return new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve({ success: true, size }), 500);
+        const onRes = (e) => {
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_SET_ORTHO_POINT_SIZE", onRes);
+          resolve(e.detail || { success: true, size });
+        };
+        window.addEventListener("CVAT_EXT_RES_SET_ORTHO_POINT_SIZE", onRes);
         window.dispatchEvent(
-          new CustomEvent("CVAT_EXT_REQ_SET_GROUND_PLANE_VISIBLE", {
-            detail: { visible }
+          new CustomEvent("CVAT_EXT_REQ_SET_ORTHO_POINT_SIZE", {
+            detail: { size }
           })
         );
+      });
+    }
+    /**
+     * Truy vấn kích thước hạt điểm mây Ortho 2D hiện tại.
+     */
+    static async getOrthoPointSize() {
+      this.ensureMainWorldBridge();
+      return new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve(3.5), 500);
+        const onRes = (e) => {
+          var _a;
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_GET_ORTHO_POINT_SIZE", onRes);
+          resolve(((_a = e.detail) == null ? void 0 : _a.size) ?? 3.5);
+        };
+        window.addEventListener("CVAT_EXT_RES_GET_ORTHO_POINT_SIZE", onRes);
+        window.dispatchEvent(new CustomEvent("CVAT_EXT_REQ_GET_ORTHO_POINT_SIZE"));
+      });
+    }
+    /**
+     * Yêu cầu Main World tính toán và phát lại Cảnh Báo Viền Chạm Point (Edge Contact HUD) cho Active Box.
+     */
+    static requestEdgeContactsCalculation() {
+      this.ensureMainWorldBridge();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("CVAT_EXT_REQ_CALCULATE_EDGE_CONTACTS"));
+      }
+    }
+    /**
+     * Cập nhật cấu hình tính năng Lát cắt (Depth Slicing) & Lọc mặt đất/ROI trực tiếp lên Three.js Views.
+     */
+    static setOrthoSlicing(config) {
+      this.ensureMainWorldBridge();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_REQ_SET_ORTHO_SLICING", { detail: config })
+        );
+      }
+    }
+    /**
+     * Lấy cấu hình Lát cắt hiện tại từ Main World.
+     */
+    static async getOrthoSlicing() {
+      this.ensureMainWorldBridge();
+      return new Promise((resolve) => {
+        if (typeof window === "undefined") {
+          resolve({ enabled: false, slab: 0.5, hideGround: true, isolateROI: false });
+          return;
+        }
+        const timeout = setTimeout(() => {
+          resolve({ enabled: false, slab: 0.5, hideGround: true, isolateROI: false });
+        }, 500);
+        const onRes = (e) => {
+          var _a;
+          clearTimeout(timeout);
+          window.removeEventListener("CVAT_EXT_RES_ORTHO_SLICING", onRes);
+          resolve(
+            ((_a = e.detail) == null ? void 0 : _a.config) || { enabled: false, slab: 0.5, hideGround: true, isolateROI: false }
+          );
+        };
+        window.addEventListener("CVAT_EXT_RES_ORTHO_SLICING", onRes);
+        window.dispatchEvent(new CustomEvent("CVAT_EXT_REQ_GET_ORTHO_SLICING"));
       });
     }
   }
@@ -10880,6 +14267,1937 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   // CONTEXT IMAGES FETCHER + INLINE ZIP PARSER
   // ===========================================================================
   __publicField(CVATBridge, "contextImageCache", null);
+  const DEFAULT_DATUMARO_QA_CONFIG = {
+    class_groups: {
+      vehicle: ["vehicle", "vehicles", "car", "truck", "bus", "van", "suv", "sedan", "pickup", "minibus"],
+      two_wheel: [
+        "two_wheel",
+        "two_wheels",
+        "two_wheeler",
+        "twowheel",
+        "twowheels",
+        "motorbike",
+        "motorcycle",
+        "bicycle",
+        "bike"
+      ],
+      pedestrian: ["pedestrian", "pedestrians", "person", "human", "people"]
+    },
+    size_limits: {
+      vehicle: { length: [3.2, 5.5], width: [1.6, 2.2], height: [1.5, 1.9] },
+      two_wheel: { length: [1.5, 2], width: [0.6, 0.9], height: [1.5, 1.8] },
+      pedestrian: { length: [0.65, 1], width: [0.65, 1], height: [1.2, 1.9] }
+    },
+    size_over_hint: {
+      vehicle: "có thể là xe bus/truck"
+    },
+    size_eps: 1e-3,
+    scale_sync_groups: ["vehicle"],
+    scale_sync_tol: 0.01,
+    z_min: -3,
+    z_max: 3,
+    rotation_unit: "rad",
+    max_rotation_jump_deg: 75,
+    max_frame_gap: 1,
+    rotation_check_groups: ["vehicle", "two_wheel", "pedestrian"],
+    overlap_allowed: {
+      vehicle: 0,
+      two_wheel: 0.5,
+      pedestrian: 0.5
+    },
+    overlap_metric: "iou",
+    overlap_min_area: 1e-3,
+    max_distance: 100,
+    min_lidar_points_near: 3,
+    min_lidar_points_far: 1,
+    ground_hover_max: 0.1,
+    ground_sink_max: -0.06,
+    motion_speed_threshold: 0.4,
+    motion_cos_threshold: -0.5,
+    minLidarPointsNear: 3,
+    minLidarPointsFar: 1,
+    groundHoverMax: 0.1,
+    groundSinkMax: -0.06,
+    motionSpeedThreshold: 0.4,
+    motionCosThreshold: -0.5,
+    track_id_offset: 1,
+    default_input: ""
+  };
+  ({
+    ...DEFAULT_DATUMARO_QA_CONFIG,
+    classGroups: DEFAULT_DATUMARO_QA_CONFIG.class_groups,
+    sizeLimits: DEFAULT_DATUMARO_QA_CONFIG.size_limits,
+    sizeOverHint: DEFAULT_DATUMARO_QA_CONFIG.size_over_hint,
+    sizeEps: DEFAULT_DATUMARO_QA_CONFIG.size_eps,
+    scaleSyncGroups: DEFAULT_DATUMARO_QA_CONFIG.scale_sync_groups,
+    scaleSyncTol: DEFAULT_DATUMARO_QA_CONFIG.scale_sync_tol,
+    zMin: DEFAULT_DATUMARO_QA_CONFIG.z_min,
+    zMax: DEFAULT_DATUMARO_QA_CONFIG.z_max,
+    rotationUnit: DEFAULT_DATUMARO_QA_CONFIG.rotation_unit,
+    maxRotationJumpDeg: DEFAULT_DATUMARO_QA_CONFIG.max_rotation_jump_deg,
+    maxFrameGap: DEFAULT_DATUMARO_QA_CONFIG.max_frame_gap,
+    rotationCheckGroups: DEFAULT_DATUMARO_QA_CONFIG.rotation_check_groups,
+    overlapAllowed: DEFAULT_DATUMARO_QA_CONFIG.overlap_allowed,
+    overlapMetric: DEFAULT_DATUMARO_QA_CONFIG.overlap_metric,
+    overlapMinArea: DEFAULT_DATUMARO_QA_CONFIG.overlap_min_area,
+    maxDistance: DEFAULT_DATUMARO_QA_CONFIG.max_distance
+  });
+  const CHECKS_LIST = [
+    { key: "scale", name: "Scale không đồng bộ", code: "S" },
+    { key: "size", name: "Kích thước ngoài ngưỡng", code: "K" },
+    { key: "z", name: "Z ngoài ngưỡng", code: "Z" },
+    { key: "rot", name: "Đổi hướng đột ngột", code: "H" },
+    { key: "overlap", name: "Chồng lấn", code: "O" },
+    { key: "dist", name: "Quá xa", code: "D" },
+    { key: "empty_box", name: "Box rỗng / Quá ít điểm", code: "L1" },
+    { key: "ground_mismatch", name: "Lệch mặt đất", code: "L2" },
+    { key: "motion_mismatch", name: "Ngược hướng di chuyển", code: "L3" }
+  ];
+  const CHECK_NAME = {
+    scale: "Scale không đồng bộ",
+    size: "Kích thước ngoài ngưỡng",
+    z: "Z ngoài ngưỡng",
+    rot: "Đổi hướng đột ngột",
+    overlap: "Chồng lấn",
+    dist: "Quá xa",
+    empty_box: "Box rỗng / Quá ít điểm",
+    ground_mismatch: "Lệch mặt đất",
+    motion_mismatch: "Ngược hướng di chuyển"
+  };
+  const CHECK_CODE = {
+    scale: "S",
+    size: "K",
+    z: "Z",
+    rot: "H",
+    overlap: "O",
+    dist: "D",
+    empty_box: "L1",
+    ground_mismatch: "L2",
+    motion_mismatch: "L3"
+  };
+  function rectCorners(x, y, l, w, yaw) {
+    const c = Math.cos(yaw);
+    const s = Math.sin(yaw);
+    const hl = l / 2;
+    const hw = w / 2;
+    return [
+      [x + hl * c - hw * s, y + hl * s + hw * c],
+      [x - hl * c - hw * s, y - hl * s + hw * c],
+      [x - hl * c + hw * s, y - hl * s - hw * c],
+      [x + hl * c + hw * s, y + hl * s - hw * c]
+    ];
+  }
+  function polyArea(pts) {
+    if (pts.length < 3) return 0;
+    let a = 0;
+    const n = pts.length;
+    for (let i = 0; i < n; i++) {
+      const x1 = pts[i][0];
+      const y1 = pts[i][1];
+      const x2 = pts[(i + 1) % n][0];
+      const y2 = pts[(i + 1) % n][1];
+      a += x1 * y2 - x2 * y1;
+    }
+    return Math.abs(a) / 2;
+  }
+  function clipConvex(subject, clipper) {
+    function inside(p, a, b) {
+      return (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]) >= -1e-12;
+    }
+    function intersect(p, q, a, b) {
+      const x1 = p[0], y1 = p[1], x2 = q[0], y2 = q[1];
+      const x3 = a[0], y3 = a[1], x4 = b[0], y4 = b[1];
+      const den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+      if (Math.abs(den) < 1e-15) {
+        return q;
+      }
+      const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
+      return [x1 + t * (x2 - x1), y1 + t * (y2 - y1)];
+    }
+    let out = [...subject];
+    const n = clipper.length;
+    for (let i = 0; i < n; i++) {
+      const a = clipper[i];
+      const b = clipper[(i + 1) % n];
+      const inp = out;
+      out = [];
+      if (inp.length === 0) break;
+      let s = inp[inp.length - 1];
+      for (const e of inp) {
+        if (inside(e, a, b)) {
+          if (!inside(s, a, b)) {
+            out.push(intersect(s, e, a, b));
+          }
+          out.push(e);
+        } else if (inside(s, a, b)) {
+          out.push(intersect(s, e, a, b));
+        }
+        s = e;
+      }
+    }
+    return out;
+  }
+  function bevOverlap(a, b) {
+    const la = a.scale[0], wa = a.scale[1], lb = b.scale[0], wb = b.scale[1];
+    const ra = 0.5 * Math.hypot(la, wa);
+    const rb = 0.5 * Math.hypot(lb, wb);
+    if (Math.hypot(a.pos[0] - b.pos[0], a.pos[1] - b.pos[1]) > ra + rb) {
+      return { intersectionArea: 0, iou: 0, ioa: 0 };
+    }
+    const pa = rectCorners(a.pos[0], a.pos[1], la, wa, a.yaw);
+    const pb = rectCorners(b.pos[0], b.pos[1], lb, wb, b.yaw);
+    const interPts = clipConvex(pa, pb);
+    const inter = interPts.length >= 3 ? polyArea(interPts) : 0;
+    const areaA = la * wa;
+    const areaB = lb * wb;
+    const union = areaA + areaB - inter;
+    const iou = union > 0 ? inter / union : 0;
+    const minArea = Math.min(areaA, areaB);
+    const ioa = minArea > 0 ? inter / minArea : 0;
+    return {
+      intersectionArea: inter,
+      iou,
+      ioa
+    };
+  }
+  function countPointsInsideBox(box, points) {
+    const cosYaw = Math.cos(-box.yaw);
+    const sinYaw = Math.sin(-box.yaw);
+    const hl = box.l / 2;
+    const hw = box.w / 2;
+    const hh = box.h / 2;
+    let count = 0;
+    if (points instanceof Float32Array) {
+      const total = Math.floor(points.length / 3);
+      for (let i = 0; i < total; i++) {
+        const px = points[i * 3];
+        const py = points[i * 3 + 1];
+        const pz = points[i * 3 + 2];
+        const dx = px - box.x;
+        const dy = py - box.y;
+        const dz = pz - box.z;
+        if (Math.abs(dz) > hh) continue;
+        const lx = dx * cosYaw - dy * sinYaw;
+        const ly = dx * sinYaw + dy * cosYaw;
+        if (Math.abs(lx) <= hl && Math.abs(ly) <= hw) {
+          count++;
+        }
+      }
+    } else if (Array.isArray(points)) {
+      for (const p of points) {
+        const dx = p.x - box.x;
+        const dy = p.y - box.y;
+        const dz = p.z - box.z;
+        if (Math.abs(dz) > hh) continue;
+        const lx = dx * cosYaw - dy * sinYaw;
+        const ly = dx * sinYaw + dy * cosYaw;
+        if (Math.abs(lx) <= hl && Math.abs(ly) <= hw) {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+  function checkEmptyOrSparseBox(obj, points, cfg) {
+    if (!points) return null;
+    const box = {
+      x: obj.x,
+      y: obj.y,
+      z: obj.z,
+      l: obj.l,
+      w: obj.w,
+      h: obj.h,
+      yaw: obj.yaw
+    };
+    const pointCount = countPointsInsideBox(box, points);
+    const dist = Math.hypot(obj.x, obj.y);
+    const minNear = cfg.min_lidar_points_near ?? cfg.minLidarPointsNear ?? 3;
+    const minFar = cfg.min_lidar_points_far ?? cfg.minLidarPointsFar ?? 1;
+    const minRequired = dist < 35 ? minNear : minFar;
+    if (pointCount < minRequired) {
+      const isZero = pointCount === 0;
+      return {
+        id: `${obj.trackId}_${obj.frame}_empty_box`,
+        frame: obj.frame,
+        trackId: obj.trackId,
+        label: obj.label,
+        check: "empty_box",
+        symbol: "L1",
+        name: isZero ? "Box rỗng (0 điểm LiDAR)" : "Quá ít điểm LiDAR",
+        severity: isZero ? "error" : "warning",
+        detail: isZero ? `Box hoàn toàn không có điểm LiDAR nào bên trong (cự ly ${dist.toFixed(1)}m), có thể là box ảo/ma hoặc gán nhầm vị trí` : `Chỉ có ${pointCount} điểm LiDAR trong box (ngưỡng tối thiểu ${minRequired} điểm ở cự ly ${dist.toFixed(1)}m)`,
+        value: `${pointCount} điểm`,
+        ref: `≥ ${minRequired} điểm`
+      };
+    }
+    return null;
+  }
+  function checkGroundMismatch(obj, points, cfg) {
+    if (!points) return null;
+    const box = {
+      x: obj.x,
+      y: obj.y,
+      z: obj.z,
+      l: obj.l,
+      w: obj.w,
+      h: obj.h,
+      yaw: obj.yaw
+    };
+    const groundInfo = computeGroundSlopesAndZ(
+      points,
+      box.x,
+      box.y,
+      box.z,
+      box.yaw,
+      box.l / 2,
+      box.w / 2,
+      box.z + box.h / 2
+    );
+    if (!groundInfo || !groundInfo.isValidGround || groundInfo.groundZ === null) {
+      return null;
+    }
+    const groundZ = groundInfo.groundZ;
+    const baseZ = obj.z - obj.h / 2;
+    const deltaZ = baseZ - groundZ;
+    const hoverMax = cfg.ground_hover_max ?? cfg.groundHoverMax ?? 0.1;
+    const sinkMax = cfg.ground_sink_max ?? cfg.groundSinkMax ?? -0.06;
+    if (deltaZ > hoverMax) {
+      return {
+        id: `${obj.trackId}_${obj.frame}_ground_hover`,
+        frame: obj.frame,
+        trackId: obj.trackId,
+        label: obj.label,
+        check: "ground_mismatch",
+        symbol: "L2",
+        name: "Box bay lơ lửng trên mặt đất",
+        severity: "warning",
+        detail: `Đáy box cao hơn mặt đất LiDAR thực tế ${(deltaZ * 100).toFixed(1)}cm (Z đáy ${baseZ.toFixed(2)}m vs Z đất ${groundZ.toFixed(2)}m)`,
+        value: `+${(deltaZ * 100).toFixed(1)} cm`,
+        ref: `≤ +${(hoverMax * 100).toFixed(0)} cm`
+      };
+    } else if (deltaZ < sinkMax) {
+      return {
+        id: `${obj.trackId}_${obj.frame}_ground_sink`,
+        frame: obj.frame,
+        trackId: obj.trackId,
+        label: obj.label,
+        check: "ground_mismatch",
+        symbol: "L2",
+        name: "Box lún âm dưới mặt đất",
+        severity: "warning",
+        detail: `Đáy box chìm dưới mặt đất LiDAR thực tế ${(Math.abs(deltaZ) * 100).toFixed(1)}cm (Z đáy ${baseZ.toFixed(2)}m vs Z đất ${groundZ.toFixed(2)}m)`,
+        value: `${(deltaZ * 100).toFixed(1)} cm`,
+        ref: `≥ ${(sinkMax * 100).toFixed(0)} cm`
+      };
+    }
+    return null;
+  }
+  function checkMotionYawMismatch(prevObj, curObj, cfg) {
+    const maxGap = cfg.max_frame_gap ?? cfg.maxFrameGap ?? 1;
+    if (curObj.frame - prevObj.frame > maxGap) {
+      return null;
+    }
+    const vx = curObj.x - prevObj.x;
+    const vy = curObj.y - prevObj.y;
+    const speed = Math.hypot(vx, vy);
+    const minSpeed = cfg.motion_speed_threshold ?? cfg.motionSpeedThreshold ?? 0.4;
+    if (speed < minSpeed) {
+      return null;
+    }
+    const dirX = vx / speed;
+    const dirY = vy / speed;
+    const yawX = Math.cos(curObj.yaw);
+    const yawY = Math.sin(curObj.yaw);
+    const dot = dirX * yawX + dirY * yawY;
+    const cosThreshold = cfg.motion_cos_threshold ?? cfg.motionCosThreshold ?? -0.5;
+    if (dot < cosThreshold) {
+      const angleDeg = Math.acos(Math.max(-1, Math.min(1, dot))) * (180 / Math.PI);
+      return {
+        id: `${curObj.trackId}_${curObj.frame}_motion_mismatch`,
+        frame: curObj.frame,
+        trackId: curObj.trackId,
+        label: curObj.label,
+        check: "motion_mismatch",
+        symbol: "L3",
+        name: "Đầu xe quay ngược hướng di chuyển",
+        severity: "error",
+        detail: `Xe đang tiến với tốc độ ${speed.toFixed(2)}m/frame nhưng góc đầu xe lệch ${angleDeg.toFixed(0)}° so với hướng di chuyển (nhiều khả năng bị lật ngược đầu 180°)`,
+        value: `${angleDeg.toFixed(0)}°`,
+        ref: `< 90°`
+      };
+    }
+    return null;
+  }
+  const AXES = ["length", "width", "height"];
+  function deepMerge(base, override) {
+    const out = JSON.parse(JSON.stringify(base));
+    for (const [k, v] of Object.entries(override || {})) {
+      if (v !== void 0) {
+        if (typeof v === "object" && v !== null && !Array.isArray(v) && typeof out[k] === "object") {
+          out[k] = deepMerge(out[k], v);
+        } else {
+          out[k] = v;
+        }
+      }
+    }
+    return out;
+  }
+  function normName(s) {
+    return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  }
+  function detectObjectCategory(label) {
+    const raw = String(label || "").trim();
+    if (!raw) return "car";
+    const l = raw.toLowerCase();
+    const spaced = l.replace(/[\s_\-\.\/]+/g, " ").trim();
+    const unaccented = spaced.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "d");
+    const compact = unaccented.replace(/\s+/g, "");
+    const isPedMatch = /\b(ped|peds|pedestrian|pedestrians|person|persons|people|human|humans|walker|walkers|walking|child|children|kid|kids|baby|babies|infant|infants|toddler|toddlers|stroller|strollers|pram|prams|bystander|bystanders|jogger|joggers|runner|runners)\b/i.test(spaced) || unaccented.includes("pedestrian") || unaccented.includes("nguoi di bo") || unaccented.includes("khach bo hanh") || unaccented.includes("bo hanh") || compact.includes("nguoidibo") || unaccented.includes("nguoi") && !unaccented.includes("lai") && !unaccented.includes("may") || (l.startsWith("ped_") || l.startsWith("ped-") || l.startsWith("ped.") || l === "ped" || l === "peds") && !l.includes("moped");
+    if (isPedMatch && !l.includes("moped")) {
+      return "pedestrian";
+    }
+    const isTwoWheelCombo = /(?:two|tow|2)[\s_\-\.]*(?:wheels?|wheelers?|wheeled|whels?)/i.test(l) || compact.includes("twowheel") || compact.includes("towwheel") || compact.includes("twowhel") || compact.includes("towwhel") || compact.includes("2wheel");
+    const isCyclistMatch = isTwoWheelCombo || /\b(cyclist|cyclists|cycling|cycle|cycles|bicycle|bicycles|bike|bikes|biking|motorcycle|motorcycles|motorbike|motorbikes|motobike|motobikes|moto|motos|scooter|scooters|moped|mopeds|rider|riders|tricycle|trike)\b/i.test(spaced) || compact.includes("motorcycle") || compact.includes("motorbike") || compact.includes("motobike") || compact.includes("moped") || compact.includes("scooter") || compact.includes("escooter") || compact.includes("ebike") || unaccented.includes("xe may") || compact.includes("xemay") || unaccented.includes("xe dap") || compact.includes("xedap") || unaccented.includes("xe 2 banh") || compact.includes("xe2banh") || unaccented.includes("xe hai banh") || compact.includes("xehaibanh");
+    if (isCyclistMatch) {
+      return "cyclist";
+    }
+    return "car";
+  }
+  function classify(label, lookup) {
+    const n = normName(label);
+    if (lookup[n]) return lookup[n];
+    if (n.endsWith("s") && lookup[n.slice(0, -1)]) {
+      return lookup[n.slice(0, -1)];
+    }
+    return null;
+  }
+  function classifyLabelGroup(label, cfg = DEFAULT_DATUMARO_QA_CONFIG) {
+    const classGroups = cfg.class_groups || cfg.classGroups || DEFAULT_DATUMARO_QA_CONFIG.class_groups;
+    const lookup = {};
+    for (const [grp2, names] of Object.entries(classGroups)) {
+      lookup[normName(grp2)] = grp2;
+      for (const n of names) {
+        lookup[normName(n)] = grp2;
+      }
+    }
+    const grp = classify(label, lookup);
+    if (grp === "vehicle" || grp === "two_wheel" || grp === "pedestrian") {
+      return grp;
+    }
+    const detected = detectObjectCategory(label);
+    if (detected === "pedestrian") return "pedestrian";
+    if (detected === "cyclist") return "two_wheel";
+    if (detected === "car") {
+      const norm = normName(label);
+      if (norm.includes("car") || norm.includes("truck") || norm.includes("bus") || norm.includes("van") || norm.includes("vehicle") || norm.includes("suv")) {
+        return "vehicle";
+      }
+    }
+    return "other";
+  }
+  function compressFrames(frames) {
+    const fs = Array.from(new Set(frames)).sort((a, b) => a - b);
+    if (fs.length === 0) return "";
+    const parts = [];
+    let i = 0;
+    while (i < fs.length) {
+      let j = i;
+      while (j + 1 < fs.length && fs[j + 1] === fs[j] + 1) {
+        j += 1;
+      }
+      parts.push(i === j ? String(fs[i]) : `${fs[i]}-${fs[j]}`);
+      i = j + 1;
+    }
+    return parts.join(", ");
+  }
+  function fmtSize(s) {
+    return `${s[0].toFixed(2)} x ${s[1].toFixed(2)} x ${s[2].toFixed(2)}`;
+  }
+  function formatSize(l, w, h2) {
+    return `${l.toFixed(2)} x ${w.toFixed(2)} x ${h2.toFixed(2)}`;
+  }
+  function frameOf(item, idx) {
+    const attr = (item == null ? void 0 : item.attr) || {};
+    if (attr.frame !== void 0 && attr.frame !== null) {
+      const parsed = parseInt(String(attr.frame), 10);
+      if (!isNaN(parsed)) return parsed;
+    }
+    const idStr = String((item == null ? void 0 : item.id) || "");
+    const m = idStr.match(/(\d+)(?!.*\d)/);
+    if (m) {
+      const parsed = parseInt(m[1], 10);
+      if (!isNaN(parsed)) return parsed;
+    }
+    return idx;
+  }
+  function displayTrackId(tid, offset) {
+    try {
+      const s = String(tid ?? "").trim();
+      if (/^-?\d+$/.test(s)) {
+        return String(parseInt(s, 10) + offset);
+      }
+      return s;
+    } catch (_) {
+      return String(tid);
+    }
+  }
+  function calcAngleDiffDeg(a, b) {
+    const twoPi = 2 * Math.PI;
+    let rem = (b - a + Math.PI) % twoPi;
+    if (rem < 0) rem += twoPi;
+    const d = rem - Math.PI;
+    return Math.abs(d * (180 / Math.PI));
+  }
+  class DatumaroObj {
+    constructor(frame, item_id, ann_id, track, has_track, label, group, pos, rot, scale) {
+      __publicField(this, "frame");
+      __publicField(this, "item_id");
+      __publicField(this, "ann_id");
+      __publicField(this, "track");
+      __publicField(this, "has_track");
+      __publicField(this, "label");
+      __publicField(this, "group");
+      __publicField(this, "pos");
+      __publicField(this, "rot");
+      __publicField(this, "scale");
+      this.frame = frame;
+      this.item_id = item_id;
+      this.ann_id = ann_id;
+      this.track = track;
+      this.has_track = has_track;
+      this.label = label;
+      this.group = group;
+      this.pos = pos;
+      this.rot = rot;
+      this.scale = scale;
+    }
+    get yaw() {
+      return this.rot[2];
+    }
+  }
+  function buildLookup(cfg) {
+    const lookup = {};
+    for (const [grp, names] of Object.entries(cfg.class_groups)) {
+      lookup[normName(grp)] = grp;
+      for (const n of names) {
+        lookup[normName(n)] = grp;
+      }
+    }
+    return lookup;
+  }
+  function loadObjects(data, cfg = DEFAULT_DATUMARO_QA_CONFIG) {
+    var _a, _b;
+    if (!data || typeof data !== "object") {
+      throw new Error("Dữ liệu đầu vào không phải là đối tượng JSON Datumaro hợp lệ");
+    }
+    const version = String(data.dm_format_version || "") || "(không có)";
+    const labels = (((_b = (_a = data.categories) == null ? void 0 : _a.label) == null ? void 0 : _b.labels) || []).map(
+      (c) => (c == null ? void 0 : c.name) || ""
+    );
+    const lookup = buildLookup(cfg);
+    const objs = [];
+    const issues = [];
+    const unknownLabels = /* @__PURE__ */ new Map();
+    const frameItems = {};
+    let nItems = 0;
+    const items = Array.isArray(data.items) ? data.items : [];
+    for (let idx = 0; idx < items.length; idx++) {
+      const item = items[idx];
+      nItems += 1;
+      const frame = frameOf(item, idx);
+      const itemId = String((item == null ? void 0 : item.id) ?? "");
+      frameItems[frame] = itemId;
+      const annotations = Array.isArray(item == null ? void 0 : item.annotations) ? item.annotations : [];
+      for (const ann of annotations) {
+        if ((ann == null ? void 0 : ann.type) !== "cuboid_3d") {
+          continue;
+        }
+        const attrs = (ann == null ? void 0 : ann.attributes) || {};
+        if (attrs.outside) {
+          continue;
+        }
+        const annId = (ann == null ? void 0 : ann.id) ?? "";
+        let pos;
+        let rot;
+        let scl;
+        try {
+          if (!Array.isArray(ann.position) || !Array.isArray(ann.rotation) || !Array.isArray(ann.scale)) {
+            throw new Error("cần đủ position, rotation, scale dạng mảng");
+          }
+          pos = [Number(ann.position[0]), Number(ann.position[1]), Number(ann.position[2])];
+          rot = [Number(ann.rotation[0]), Number(ann.rotation[1]), Number(ann.rotation[2])];
+          scl = [
+            Math.abs(Number(ann.scale[0])),
+            Math.abs(Number(ann.scale[1])),
+            Math.abs(Number(ann.scale[2]))
+          ];
+          if (pos.some(isNaN) || rot.some(isNaN) || scl.some(isNaN) || pos.length < 3 || rot.length < 3 || scl.length < 3) {
+            throw new Error("cần đủ 3 giá trị số hợp lệ");
+          }
+        } catch (e) {
+          issues.push({
+            kind: "Cuboid lỗi",
+            frame,
+            item_id: itemId,
+            ann_id: annId,
+            detail: `position/rotation/scale không hợp lệ: ${(e == null ? void 0 : e.message) || e}`
+          });
+          continue;
+        }
+        if (cfg.rotation_unit === "deg") {
+          rot = [
+            rot[0] * Math.PI / 180,
+            rot[1] * Math.PI / 180,
+            rot[2] * Math.PI / 180
+          ];
+        }
+        const lid = ann.label_id;
+        const label = typeof lid === "number" && lid >= 0 && lid < labels.length ? labels[lid] : `label_${lid}`;
+        const group = classify(label, lookup);
+        if (group === null) {
+          unknownLabels.set(label, (unknownLabels.get(label) || 0) + 1);
+        }
+        const tid = attrs.track_id;
+        const hasTrack = tid !== void 0 && tid !== null && String(tid).trim() !== "";
+        const track = hasTrack ? displayTrackId(tid, cfg.track_id_offset) : `(no_track)#${annId}@${frame}`;
+        if (!hasTrack) {
+          issues.push({
+            kind: "Thiếu track_id",
+            frame,
+            item_id: itemId,
+            ann_id: annId,
+            detail: `label=${label}`
+          });
+        }
+        objs.push(
+          new DatumaroObj(
+            frame,
+            itemId,
+            annId,
+            track,
+            hasTrack,
+            label,
+            group,
+            pos,
+            rot,
+            scl
+          )
+        );
+      }
+    }
+    for (const [lb, n] of unknownLabels.entries()) {
+      issues.push({
+        kind: "Class không nhận dạng",
+        frame: "",
+        item_id: "",
+        ann_id: "",
+        detail: `label '${lb}' (${n} obj) không thuộc nhóm nào trong class_groups -> bỏ qua các kiểm tra theo class`
+      });
+    }
+    const seen = /* @__PURE__ */ new Map();
+    for (const o of objs) {
+      if (o.has_track) {
+        const key = `${o.frame}__${o.track}`;
+        const arr = seen.get(key) || [];
+        arr.push(o);
+        seen.set(key, arr);
+      }
+    }
+    for (const [key, lst] of seen.entries()) {
+      if (lst.length > 1) {
+        const [fStr, tr] = key.split("__");
+        issues.push({
+          kind: "track_id trùng trong 1 frame",
+          frame: parseInt(fStr, 10),
+          item_id: lst[0].item_id,
+          ann_id: lst.map((x) => x.ann_id).join(","),
+          detail: `track ${tr} xuất hiện ${lst.length} lần trong frame`
+        });
+      }
+    }
+    const uniqueTracks = new Set(objs.filter((o) => o.has_track).map((o) => o.track));
+    const meta = {
+      version,
+      n_items: nItems,
+      n_objs: objs.length,
+      frame_items: frameItems,
+      n_tracks: uniqueTracks.size
+    };
+    return { objs, issues, meta };
+  }
+  function groupTracks(objs) {
+    const tracks = /* @__PURE__ */ new Map();
+    for (const o of objs) {
+      const arr = tracks.get(o.track) || [];
+      arr.push(o);
+      tracks.set(o.track, arr);
+    }
+    for (const lst of tracks.values()) {
+      lst.sort((a, b) => a.frame - b.frame);
+    }
+    return tracks;
+  }
+  function rec(o, check, detail, value = "", ref = "", other = "") {
+    return {
+      frame: o.frame,
+      item_id: o.item_id,
+      track: o.track,
+      label: o.label,
+      check,
+      detail,
+      value,
+      ref,
+      other
+    };
+  }
+  function fmtSigned(val) {
+    const rounded = val.toFixed(2);
+    if (rounded === "-0.00" || rounded === "0.00") return "+0.00";
+    return val > 0 ? `+${rounded}` : rounded;
+  }
+  function checkScaleSync(tracks, cfg) {
+    const recs = [];
+    const tol = cfg.scale_sync_tol + 1e-9;
+    for (const [, fullLst] of tracks.entries()) {
+      const lst = fullLst.filter((o) => o.group && cfg.scale_sync_groups.includes(o.group));
+      if (lst.length < 2) continue;
+      const ref = [0, 1, 2].map((a) => {
+        const sortedVals = lst.map((o) => o.scale[a]).sort((x, y) => x - y);
+        return sortedVals[Math.floor(lst.length / 2)];
+      });
+      for (const o of lst) {
+        const d = [o.scale[0] - ref[0], o.scale[1] - ref[1], o.scale[2] - ref[2]];
+        if (Math.abs(d[0]) > tol || Math.abs(d[1]) > tol || Math.abs(d[2]) > tol) {
+          recs.push(
+            rec(
+              o,
+              "scale",
+              `Scale lệch so với kích thước chuẩn của track (chênh L ${fmtSigned(d[0])}, W ${fmtSigned(d[1])}, H ${fmtSigned(d[2])} m)`,
+              fmtSize(o.scale),
+              fmtSize(ref)
+            )
+          );
+        }
+      }
+    }
+    return recs;
+  }
+  function checkSize(objs, cfg) {
+    const eps = cfg.size_eps;
+    const recs = [];
+    for (const o of objs) {
+      if (!o.group) continue;
+      const lim = cfg.size_limits[o.group];
+      if (!lim) continue;
+      const parts = [];
+      let over = false;
+      let under = false;
+      for (let ai = 0; ai < 3; ai++) {
+        const axisName = AXES[ai];
+        const [lo, hi] = lim[axisName];
+        const v = o.scale[ai];
+        const capAxis = axisName.charAt(0).toUpperCase() + axisName.slice(1);
+        if (v > hi + eps) {
+          parts.push(`${capAxis} ${v.toFixed(2)} > ${hi}`);
+          over = true;
+        } else if (v < lo - eps) {
+          parts.push(`${capAxis} ${v.toFixed(2)} < ${lo}`);
+          under = true;
+        }
+      }
+      if (parts.length === 0) continue;
+      const hint = cfg.size_over_hint[o.group];
+      const notes = [];
+      if (over) {
+        notes.push("lớn hơn ngưỡng - " + (hint ? hint : "cần kiểm tra kích thước"));
+      }
+      if (under) {
+        notes.push("nhỏ hơn ngưỡng - cần kiểm tra kích thước");
+      }
+      const ref = `L ${lim.length[0]}~${lim.length[1]}, W ${lim.width[0]}~${lim.width[1]}, H ${lim.height[0]}~${lim.height[1]}`;
+      recs.push(
+        rec(
+          o,
+          "size",
+          `${parts.join("; ")} (${notes.join("; ")})`,
+          fmtSize(o.scale),
+          ref
+        )
+      );
+    }
+    return recs;
+  }
+  function checkZ(objs, cfg) {
+    const recs = [];
+    for (const o of objs) {
+      const z = o.pos[2];
+      let d = "";
+      if (z > cfg.z_max) {
+        d = `z = ${z.toFixed(2)} > ${cfg.z_max}: obj cao hơn mặt đường`;
+      } else if (z < cfg.z_min) {
+        d = `z = ${z.toFixed(2)} < ${cfg.z_min}: obj thấp hơn mặt đường`;
+      } else {
+        continue;
+      }
+      recs.push(
+        rec(
+          o,
+          "z",
+          d,
+          Math.round(z * 1e3) / 1e3,
+          `${cfg.z_min} ~ ${cfg.z_max}`
+        )
+      );
+    }
+    return recs;
+  }
+  function checkRotation(tracks, cfg) {
+    const recs = [];
+    const thr = cfg.max_rotation_jump_deg;
+    const gap = cfg.max_frame_gap;
+    for (const [, fullLst] of tracks.entries()) {
+      const lst = fullLst.filter((o) => o.group && cfg.rotation_check_groups.includes(o.group));
+      for (let i = 0; i < lst.length - 1; i++) {
+        const prev = lst[i];
+        const cur = lst[i + 1];
+        if (cur.frame - prev.frame > gap) {
+          continue;
+        }
+        const d = calcAngleDiffDeg(prev.yaw, cur.yaw);
+        if (d > thr) {
+          const prevDeg = prev.yaw * 180 / Math.PI;
+          const curDeg = cur.yaw * 180 / Math.PI;
+          recs.push(
+            rec(
+              cur,
+              "rot",
+              `Obj thay đổi hướng đột ngột ${d.toFixed(1)}° (yaw ${prevDeg.toFixed(1)}° ở frame ${prev.frame} -> ${curDeg.toFixed(1)}° ở frame ${cur.frame})`,
+              Math.round(d * 100) / 100,
+              `≤ ${thr}°`
+            )
+          );
+        }
+      }
+    }
+    return recs;
+  }
+  function checkOverlap(objs, cfg) {
+    const byFrame = /* @__PURE__ */ new Map();
+    for (const o of objs) {
+      if (o.group && o.group in cfg.overlap_allowed) {
+        const arr = byFrame.get(o.frame) || [];
+        arr.push(o);
+        byFrame.set(o.frame, arr);
+      }
+    }
+    const metric = (cfg.overlap_metric || "iou").toLowerCase();
+    const recs = [];
+    for (const [, lst] of byFrame.entries()) {
+      const n = lst.length;
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          const a = lst[i];
+          const b = lst[j];
+          const { intersectionArea: inter, iou, ioa } = bevOverlap(a, b);
+          if (inter < cfg.overlap_min_area) {
+            continue;
+          }
+          const allowedA = cfg.overlap_allowed[a.group] ?? 0;
+          const allowedB = cfg.overlap_allowed[b.group] ?? 0;
+          const allowed = Math.min(allowedA, allowedB);
+          const val = metric === "ioa" ? ioa : iou;
+          if (allowed > 0 && val <= allowed) {
+            continue;
+          }
+          const rule = allowed <= 0 ? "Không cho phép chồng lấn" : `Cho phép tối đa ${(allowed * 100).toFixed(0)}% (${metric.toUpperCase()})`;
+          const stats = `IoU ${iou.toFixed(3)}, IoA ${ioa.toFixed(3)}, diện tích giao ${inter.toFixed(3)} m²`;
+          recs.push(
+            rec(
+              a,
+              "overlap",
+              `Chồng lấn với track ${b.track} (${b.label}): ${stats}`,
+              Math.round(val * 1e4) / 1e4,
+              rule,
+              b.track
+            )
+          );
+          recs.push(
+            rec(
+              b,
+              "overlap",
+              `Chồng lấn với track ${a.track} (${a.label}): ${stats}`,
+              Math.round(val * 1e4) / 1e4,
+              rule,
+              a.track
+            )
+          );
+        }
+      }
+    }
+    return recs;
+  }
+  function checkDistance(objs, cfg) {
+    const recs = [];
+    const lim = cfg.max_distance;
+    for (const o of objs) {
+      const d = Math.sqrt(o.pos[0] * o.pos[0] + o.pos[1] * o.pos[1] + o.pos[2] * o.pos[2]);
+      if (d > lim) {
+        recs.push(
+          rec(
+            o,
+            "dist",
+            `Cách gốc tọa độ ${d.toFixed(2)} m (> ${lim} m): obj ở quá xa, cần kiểm tra`,
+            Math.round(d * 100) / 100,
+            `≤ ${lim} m`
+          )
+        );
+      }
+    }
+    return recs;
+  }
+  function sortTrackKey(a, b) {
+    const sa = String(a).trim();
+    const sb = String(b).trim();
+    const isNumA = /^\d+$/.test(sa);
+    const isNumB = /^\d+$/.test(sb);
+    if (isNumA && isNumB) {
+      return parseInt(sa, 10) - parseInt(sb, 10);
+    }
+    if (isNumA && !isNumB) return -1;
+    if (!isNumA && isNumB) return 1;
+    return sa.localeCompare(sb);
+  }
+  function runChecks(objs, issues, cfg) {
+    const tracks = groupTracks(objs);
+    return {
+      scale: checkScaleSync(tracks, cfg),
+      size: checkSize(objs, cfg),
+      z: checkZ(objs, cfg),
+      rot: checkRotation(tracks, cfg),
+      overlap: checkOverlap(objs, cfg),
+      dist: checkDistance(objs, cfg),
+      issues
+    };
+  }
+  function generateDatumaroQAReport(objs, issues, meta, cfg = DEFAULT_DATUMARO_QA_CONFIG, inPath = "in-memory-cvat-job.json") {
+    var _a, _b;
+    const results = runChecks(objs, issues, cfg);
+    const orderMap = {
+      scale: 0,
+      size: 1,
+      z: 2,
+      rot: 3,
+      overlap: 4,
+      dist: 5
+    };
+    const codeOrderMap = {
+      S: 0,
+      K: 1,
+      Z: 2,
+      H: 3,
+      O: 4,
+      D: 5
+    };
+    const rawRecs = [
+      ...results.scale,
+      ...results.size,
+      ...results.z,
+      ...results.rot,
+      ...results.overlap,
+      ...results.dist
+    ];
+    rawRecs.sort((a, b) => {
+      const tCmp = sortTrackKey(a.track, b.track);
+      if (tCmp !== 0) return tCmp;
+      if (a.frame !== b.frame) return a.frame - b.frame;
+      return (orderMap[a.check] ?? 99) - (orderMap[b.check] ?? 99);
+    });
+    const presence = /* @__PURE__ */ new Map();
+    const labelOf = /* @__PURE__ */ new Map();
+    const frameSet = /* @__PURE__ */ new Set();
+    if (meta == null ? void 0 : meta.frame_items) {
+      for (const f of Object.keys(meta.frame_items)) {
+        frameSet.add(parseInt(f, 10));
+      }
+    }
+    const objsPerFrame = /* @__PURE__ */ new Map();
+    for (const o of objs) {
+      let pr = presence.get(o.track);
+      if (!pr) {
+        pr = /* @__PURE__ */ new Set();
+        presence.set(o.track, pr);
+      }
+      pr.add(o.frame);
+      if (!labelOf.has(o.track)) {
+        labelOf.set(o.track, o.label);
+      }
+      frameSet.add(o.frame);
+      objsPerFrame.set(o.frame, (objsPerFrame.get(o.frame) || 0) + 1);
+    }
+    for (const r of rawRecs) {
+      frameSet.add(r.frame);
+    }
+    const allFrames = Array.from(frameSet).sort((a, b) => a - b);
+    const byTrackMap = /* @__PURE__ */ new Map();
+    const trackN = /* @__PURE__ */ new Map();
+    const byFrameMap = /* @__PURE__ */ new Map();
+    const frameN = /* @__PURE__ */ new Map();
+    const frameTracks = /* @__PURE__ */ new Map();
+    const codesMap = /* @__PURE__ */ new Map();
+    for (const r of rawRecs) {
+      const t = r.track;
+      const f = r.frame;
+      const k = r.check;
+      let trChecks = byTrackMap.get(t);
+      if (!trChecks) {
+        trChecks = /* @__PURE__ */ new Map();
+        byTrackMap.set(t, trChecks);
+      }
+      let fSet = trChecks.get(k);
+      if (!fSet) {
+        fSet = /* @__PURE__ */ new Set();
+        trChecks.set(k, fSet);
+      }
+      fSet.add(f);
+      trackN.set(t, (trackN.get(t) || 0) + 1);
+      frameN.set(f, (frameN.get(f) || 0) + 1);
+      let frTrs = frameTracks.get(f);
+      if (!frTrs) {
+        frTrs = /* @__PURE__ */ new Set();
+        frameTracks.set(f, frTrs);
+      }
+      frTrs.add(t);
+      const tfKey = `${t}__${f}`;
+      let cSet = codesMap.get(tfKey);
+      if (!cSet) {
+        cSet = /* @__PURE__ */ new Set();
+        codesMap.set(tfKey, cSet);
+      }
+      cSet.add(CHECK_CODE[k]);
+      let frChecks = byFrameMap.get(f);
+      if (!frChecks) {
+        frChecks = /* @__PURE__ */ new Map();
+        byFrameMap.set(f, frChecks);
+      }
+      let frItems = frChecks.get(k);
+      if (!frItems) {
+        frItems = [];
+        frChecks.set(k, frItems);
+      }
+      if (k === "overlap") {
+        const pair = [String(t), String(r.other)].sort(sortTrackKey).join("&");
+        if (!frItems.includes(pair)) {
+          frItems.push(pair);
+        }
+      } else if (!frItems.includes(String(t))) {
+        frItems.push(String(t));
+      }
+    }
+    const byTrackRows = [];
+    const sortedTrackKeys = Array.from(byTrackMap.keys()).sort(sortTrackKey);
+    for (const t of sortedTrackKeys) {
+      const prArr = Array.from(presence.get(t) || []).sort((a, b) => a - b);
+      const trChecks = byTrackMap.get(t);
+      const checkFrames = {};
+      const allIssueFrames = /* @__PURE__ */ new Set();
+      for (const { key } of CHECKS_LIST) {
+        const fs = trChecks.get(key);
+        if (fs && fs.size > 0) {
+          checkFrames[key] = `${compressFrames(fs)} (${fs.size})`;
+          for (const frameNum of fs) allIssueFrames.add(frameNum);
+        } else {
+          checkFrames[key] = "";
+        }
+      }
+      byTrackRows.push({
+        track: t,
+        label: labelOf.get(t) || "",
+        presenceCount: prArr.length,
+        firstFrame: prArr.length > 0 ? prArr[0] : null,
+        lastFrame: prArr.length > 0 ? prArr[prArr.length - 1] : null,
+        totalIssues: trackN.get(t) || 0,
+        issueFramesCount: allIssueFrames.size,
+        checkFrames
+      });
+    }
+    const byFrameRows = [];
+    const sortedFrames = Array.from(byFrameMap.keys()).sort((a, b) => a - b);
+    for (const f of sortedFrames) {
+      const frChecks = byFrameMap.get(f);
+      const checkTracks = {};
+      for (const { key } of CHECKS_LIST) {
+        const items = frChecks.get(key) || [];
+        if (key === "overlap") {
+          const sortedItems = [...items].sort((p1, p2) => {
+            const [a1, b1] = p1.split("&");
+            const [a2, b2] = p2.split("&");
+            const c1 = sortTrackKey(a1, a2);
+            return c1 !== 0 ? c1 : sortTrackKey(b1, b2);
+          });
+          checkTracks[key] = sortedItems.join("; ");
+        } else {
+          const sortedItems = [...items].sort(sortTrackKey);
+          checkTracks[key] = sortedItems.join(", ");
+        }
+      }
+      byFrameRows.push({
+        frame: f,
+        itemId: ((_a = meta == null ? void 0 : meta.frame_items) == null ? void 0 : _a[f]) || "",
+        objCount: objsPerFrame.get(f) || 0,
+        totalIssues: frameN.get(f) || 0,
+        issueTracksCount: ((_b = frameTracks.get(f)) == null ? void 0 : _b.size) || 0,
+        checkTracks
+      });
+    }
+    const matrixRows = [];
+    const allMatrixTrackKeys = Array.from(
+      /* @__PURE__ */ new Set([...presence.keys(), ...byTrackMap.keys()])
+    ).sort(sortTrackKey);
+    for (const t of allMatrixTrackKeys) {
+      const cells = {};
+      const presSet = presence.get(t) || /* @__PURE__ */ new Set();
+      for (const f of allFrames) {
+        const tfKey = `${t}__${f}`;
+        const cs = codesMap.get(tfKey);
+        if (cs && cs.size > 0) {
+          const sortedCodes = Array.from(cs).sort(
+            (c1, c2) => (codeOrderMap[c1] ?? 99) - (codeOrderMap[c2] ?? 99)
+          );
+          cells[f] = {
+            present: true,
+            codes: sortedCodes,
+            severity: cs.size >= 2 ? "error" : "warning"
+          };
+        } else if (presSet.has(f)) {
+          cells[f] = {
+            present: true,
+            codes: [],
+            severity: "clean"
+          };
+        } else {
+          cells[f] = {
+            present: false,
+            codes: [],
+            severity: "clean"
+          };
+        }
+      }
+      matrixRows.push({
+        track: t,
+        label: labelOf.get(t) || "",
+        totalIssues: trackN.get(t) || 0,
+        cells
+      });
+    }
+    const off = cfg.track_id_offset;
+    const trackOffsetInfo = off !== 0 ? `= track_id trong JSON + ${off} (khớp số thứ tự trên CVAT)` : `= track_id trong JSON`;
+    const checkStats = CHECKS_LIST.map(({ key, name, code }) => {
+      const rs = results[key] || [];
+      const trSet = new Set(rs.map((r) => r.track));
+      const frSet = new Set(rs.map((r) => r.frame));
+      return {
+        key,
+        name,
+        code,
+        issueCount: rs.length,
+        trackCount: trSet.size,
+        frameCount: frSet.size
+      };
+    });
+    const now = /* @__PURE__ */ new Date();
+    const runTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+    const summary = {
+      inPath,
+      runTime,
+      version: meta.version,
+      nItems: meta.n_items,
+      nObjs: meta.n_objs,
+      nTracks: meta.n_tracks,
+      trackOffsetInfo,
+      checkStats,
+      dataIssueCount: results.issues.length,
+      activeConfig: cfg
+    };
+    return {
+      meta,
+      results,
+      allIssues: rawRecs,
+      dataIssues: results.issues,
+      byTrack: byTrackRows,
+      byFrame: byFrameRows,
+      matrix: {
+        allFrames,
+        rows: matrixRows
+      },
+      summary
+    };
+  }
+  function escapeCsvField(val) {
+    if (val === null || val === void 0) return "";
+    const s = String(val);
+    if (s.includes(",") || s.includes('"') || s.includes("\n") || s.includes("\r")) {
+      return `"${s.replace(/"/g, '""')}"`;
+    }
+    return s;
+  }
+  function escapeTsvField(val) {
+    if (val === null || val === void 0) return "";
+    return String(val).replace(/\t/g, " ").replace(/[\r\n]+/g, " ");
+  }
+  function exportReportToCsv(report, sheet = "All_Issues") {
+    const BOM = "\uFEFF";
+    let content = "";
+    if (sheet === "All_Issues") {
+      const headers = [
+        "Frame",
+        "Item ID",
+        "Track ID",
+        "Class",
+        "Loại kiểm tra",
+        "Mô tả",
+        "Giá trị",
+        "Ngưỡng / Chuẩn",
+        "Track liên quan"
+      ];
+      const lines = [headers.map(escapeCsvField).join(",")];
+      for (const r of report.allIssues) {
+        lines.push(
+          [
+            r.frame,
+            r.item_id,
+            r.track,
+            r.label,
+            CHECK_NAME[r.check] || r.check,
+            r.detail,
+            r.value,
+            r.ref,
+            r.other
+          ].map(escapeCsvField).join(",")
+        );
+      }
+      content = lines.join("\r\n");
+    } else if (sheet === "By_Track") {
+      const headers = [
+        "Track ID",
+        "Class",
+        "Số frame có mặt",
+        "Frame đầu",
+        "Frame cuối",
+        "Tổng số issue",
+        "Số frame có issue",
+        ...CHECKS_LIST.map((c) => c.name)
+      ];
+      const lines = [headers.map(escapeCsvField).join(",")];
+      for (const t of report.byTrack) {
+        lines.push(
+          [
+            t.track,
+            t.label,
+            t.presenceCount,
+            t.firstFrame ?? "",
+            t.lastFrame ?? "",
+            t.totalIssues,
+            t.issueFramesCount,
+            ...CHECKS_LIST.map((c) => t.checkFrames[c.key] || "")
+          ].map(escapeCsvField).join(",")
+        );
+      }
+      content = lines.join("\r\n");
+    } else if (sheet === "By_Frame") {
+      const headers = [
+        "Frame",
+        "Item ID",
+        "Số obj trong frame",
+        "Tổng số issue",
+        "Số track có issue",
+        ...CHECKS_LIST.map((c) => c.name)
+      ];
+      const lines = [headers.map(escapeCsvField).join(",")];
+      for (const f of report.byFrame) {
+        lines.push(
+          [
+            f.frame,
+            f.itemId,
+            f.objCount,
+            f.totalIssues,
+            f.issueTracksCount,
+            ...CHECKS_LIST.map((c) => f.checkTracks[c.key] || "")
+          ].map(escapeCsvField).join(",")
+        );
+      }
+      content = lines.join("\r\n");
+    } else if (sheet === "Matrix") {
+      const allFrames = report.matrix.allFrames;
+      const headers = ["Track ID", "Class", "Tổng số issue", ...allFrames.map(String)];
+      const lines = [headers.map(escapeCsvField).join(",")];
+      for (const r of report.matrix.rows) {
+        const row = [r.track, r.label, r.totalIssues];
+        for (const f of allFrames) {
+          const cell = r.cells[f];
+          if (!cell || !cell.present) {
+            row.push("");
+          } else if (cell.codes.length === 0) {
+            row.push("OK");
+          } else {
+            row.push(cell.codes.join(""));
+          }
+        }
+        lines.push(row.map(escapeCsvField).join(","));
+      }
+      content = lines.join("\r\n");
+    } else if (sheet === "Data_Issues") {
+      const headers = ["Loại", "Frame", "Item ID", "Annotation ID", "Chi tiết"];
+      const lines = [headers.map(escapeCsvField).join(",")];
+      for (const i of report.dataIssues) {
+        lines.push(
+          [i.kind, i.frame, i.item_id, i.ann_id, i.detail].map(escapeCsvField).join(",")
+        );
+      }
+      content = lines.join("\r\n");
+    } else if (sheet === "Summary") {
+      const lines = [
+        "BÁO CÁO KIỂM TRA CHẤT LƯỢNG DỮ LIỆU 3D (Datumaro)",
+        "",
+        `File đầu vào,${escapeCsvField(report.summary.inPath)}`,
+        `Thời gian chạy,${escapeCsvField(report.summary.runTime)}`,
+        `dm_format_version,${escapeCsvField(report.summary.version)}`,
+        `Số frame (item),${report.summary.nItems}`,
+        `Số cuboid_3d,${report.summary.nObjs}`,
+        `Số track id,${report.summary.nTracks}`,
+        `Track ID hiển thị,${escapeCsvField(report.summary.trackOffsetInfo)}`,
+        "",
+        "Kiểm tra,Ký hiệu (Matrix),Số issue (track x frame),Số track bị ảnh hưởng,Số frame bị ảnh hưởng"
+      ];
+      for (const s of report.summary.checkStats) {
+        lines.push(
+          [s.name, s.code, s.issueCount, s.trackCount, s.frameCount].map(escapeCsvField).join(",")
+        );
+      }
+      lines.push(
+        `Lỗi dữ liệu (Data_Issues),,${report.summary.dataIssueCount},,`
+      );
+      content = lines.join("\r\n");
+    }
+    return BOM + content;
+  }
+  function exportReportToTsv(report, sheet = "All_Issues") {
+    if (sheet === "All_Issues") {
+      const headers = [
+        "Frame",
+        "Item ID",
+        "Track ID",
+        "Class",
+        "Loại kiểm tra",
+        "Mô tả",
+        "Giá trị",
+        "Ngưỡng / Chuẩn",
+        "Track liên quan"
+      ];
+      const lines = [headers.join("	")];
+      for (const r of report.allIssues) {
+        lines.push(
+          [
+            r.frame,
+            r.item_id,
+            r.track,
+            r.label,
+            CHECK_NAME[r.check] || r.check,
+            r.detail,
+            r.value,
+            r.ref,
+            r.other
+          ].map(escapeTsvField).join("	")
+        );
+      }
+      return lines.join("\n");
+    } else if (sheet === "By_Track") {
+      const headers = [
+        "Track ID",
+        "Class",
+        "Số frame có mặt",
+        "Frame đầu",
+        "Frame cuối",
+        "Tổng số issue",
+        "Số frame có issue",
+        ...CHECKS_LIST.map((c) => c.name)
+      ];
+      const lines = [headers.join("	")];
+      for (const t of report.byTrack) {
+        lines.push(
+          [
+            t.track,
+            t.label,
+            t.presenceCount,
+            t.firstFrame ?? "",
+            t.lastFrame ?? "",
+            t.totalIssues,
+            t.issueFramesCount,
+            ...CHECKS_LIST.map((c) => t.checkFrames[c.key] || "")
+          ].map(escapeTsvField).join("	")
+        );
+      }
+      return lines.join("\n");
+    } else if (sheet === "By_Frame") {
+      const headers = [
+        "Frame",
+        "Item ID",
+        "Số obj trong frame",
+        "Tổng số issue",
+        "Số track có issue",
+        ...CHECKS_LIST.map((c) => c.name)
+      ];
+      const lines = [headers.join("	")];
+      for (const f of report.byFrame) {
+        lines.push(
+          [
+            f.frame,
+            f.itemId,
+            f.objCount,
+            f.totalIssues,
+            f.issueTracksCount,
+            ...CHECKS_LIST.map((c) => f.checkTracks[c.key] || "")
+          ].map(escapeTsvField).join("	")
+        );
+      }
+      return lines.join("\n");
+    } else if (sheet === "Matrix") {
+      const allFrames = report.matrix.allFrames;
+      const headers = ["Track ID", "Class", "Tổng số issue", ...allFrames.map(String)];
+      const lines = [headers.join("	")];
+      for (const r of report.matrix.rows) {
+        const row = [r.track, r.label, r.totalIssues];
+        for (const f of allFrames) {
+          const cell = r.cells[f];
+          if (!cell || !cell.present) {
+            row.push("");
+          } else if (cell.codes.length === 0) {
+            row.push("OK");
+          } else {
+            row.push(cell.codes.join(""));
+          }
+        }
+        lines.push(row.map(escapeTsvField).join("	"));
+      }
+      return lines.join("\n");
+    } else if (sheet === "Data_Issues") {
+      const headers = ["Loại", "Frame", "Item ID", "Annotation ID", "Chi tiết"];
+      const lines = [headers.join("	")];
+      for (const i of report.dataIssues) {
+        lines.push(
+          [i.kind, i.frame, i.item_id, i.ann_id, i.detail].map(escapeTsvField).join("	")
+        );
+      }
+      return lines.join("\n");
+    }
+    return exportReportToCsv(report, sheet).replace(/\uFEFF/, "").replace(/,/g, "	");
+  }
+  class QCEngine {
+    constructor(cfg = {}) {
+      __publicField(this, "config");
+      this.config = deepMerge(DEFAULT_DATUMARO_QA_CONFIG, cfg);
+    }
+    getConfig() {
+      return this.config;
+    }
+    setConfig(cfg) {
+      this.config = deepMerge(this.config, cfg);
+    }
+    /**
+     * Kiểm tra tính hợp lệ của 1 đối tượng đơn lẻ trong context của Track và Frame hiện tại
+     * (Dùng cho FloatingPanel.ts real-time live preview)
+     */
+    checkSingleObject(obj, trackObjects, currentFrameObjects = [], lidarPoints) {
+      const issues = [];
+      const checks = {
+        scale: { passed: true, severity: "clean", message: "Đồng bộ kích thước đạt chuẩn" },
+        size: { passed: true, severity: "clean", message: "Kích thước trong catalog" },
+        z: { passed: true, severity: "clean", message: "Cao độ Z bình thường" },
+        rot: { passed: true, severity: "clean", message: "Góc quay mượt mà" },
+        overlap: { passed: true, severity: "clean", message: "Không chồng lấn" },
+        dist: { passed: true, severity: "clean", message: "Cự ly an toàn" },
+        data: { passed: true, severity: "clean", message: "Cấu trúc dữ liệu hợp lệ" },
+        empty_box: {
+          passed: true,
+          severity: "clean",
+          message: lidarPoints ? "Mật độ mây điểm LiDAR tốt" : "Chưa có mây điểm để kiểm tra"
+        },
+        ground_mismatch: {
+          passed: true,
+          severity: "clean",
+          message: lidarPoints ? "Đáy xe bám sát mặt đường thực tế" : "Chưa có mây điểm để kiểm tra"
+        },
+        motion_mismatch: {
+          passed: true,
+          severity: "clean",
+          message: "Đầu xe xuôi theo hướng di chuyển"
+        }
+      };
+      const scaleIssues = this.checkScaleSync(trackObjects);
+      const myScaleIssue = scaleIssues.find((iss) => iss.frame === obj.frame);
+      if (myScaleIssue) {
+        issues.push(myScaleIssue);
+        checks.scale = {
+          passed: false,
+          severity: myScaleIssue.severity,
+          message: myScaleIssue.detail,
+          value: myScaleIssue.value,
+          ref: myScaleIssue.ref
+        };
+      }
+      const sizeIssue = this.checkSizeRange(obj);
+      if (sizeIssue) {
+        issues.push(sizeIssue);
+        checks.size = {
+          passed: false,
+          severity: sizeIssue.severity,
+          message: sizeIssue.detail,
+          value: sizeIssue.value,
+          ref: sizeIssue.ref
+        };
+      }
+      const zIssue = this.checkZRange(obj);
+      if (zIssue) {
+        issues.push(zIssue);
+        checks.z = {
+          passed: false,
+          severity: zIssue.severity,
+          message: zIssue.detail,
+          value: zIssue.value,
+          ref: zIssue.ref
+        };
+      }
+      const sortedTrack = [...trackObjects].sort((a, b) => a.frame - b.frame);
+      const myIdx = sortedTrack.findIndex((o) => o.frame === obj.frame);
+      if (myIdx > 0) {
+        const prev = sortedTrack[myIdx - 1];
+        const rotIssue = this.checkRotationJump(prev, obj);
+        if (rotIssue) {
+          issues.push(rotIssue);
+          checks.rot = {
+            passed: false,
+            severity: rotIssue.severity,
+            message: rotIssue.detail,
+            value: rotIssue.value,
+            ref: rotIssue.ref
+          };
+        }
+        const motionIssue = checkMotionYawMismatch(prev, obj, this.config);
+        if (motionIssue) {
+          issues.push(motionIssue);
+          checks.motion_mismatch = {
+            passed: false,
+            severity: motionIssue.severity,
+            message: motionIssue.detail,
+            value: motionIssue.value,
+            ref: motionIssue.ref
+          };
+        }
+      }
+      if (currentFrameObjects.length > 1) {
+        const frameOverlaps = this.checkFrameOverlaps(currentFrameObjects);
+        const myOverlap = frameOverlaps.find(
+          (iss) => iss.trackId === obj.trackId && iss.frame === obj.frame
+        );
+        if (myOverlap) {
+          issues.push(myOverlap);
+          checks.overlap = {
+            passed: false,
+            severity: myOverlap.severity,
+            message: myOverlap.detail,
+            value: myOverlap.value,
+            ref: myOverlap.ref
+          };
+        }
+      }
+      const distIssue = this.checkDistance(obj);
+      if (distIssue) {
+        issues.push(distIssue);
+        checks.dist = {
+          passed: false,
+          severity: distIssue.severity,
+          message: distIssue.detail,
+          value: distIssue.value,
+          ref: distIssue.ref
+        };
+      }
+      if (lidarPoints) {
+        const emptyIssue = checkEmptyOrSparseBox(obj, lidarPoints, this.config);
+        if (emptyIssue) {
+          issues.push(emptyIssue);
+          checks.empty_box = {
+            passed: false,
+            severity: emptyIssue.severity,
+            message: emptyIssue.detail,
+            value: emptyIssue.value,
+            ref: emptyIssue.ref
+          };
+        }
+        const groundIssue = checkGroundMismatch(obj, lidarPoints, this.config);
+        if (groundIssue) {
+          issues.push(groundIssue);
+          checks.ground_mismatch = {
+            passed: false,
+            severity: groundIssue.severity,
+            message: groundIssue.detail,
+            value: groundIssue.value,
+            ref: groundIssue.ref
+          };
+        }
+      }
+      const hasError = issues.some((iss) => iss.severity === "error");
+      const hasWarning = issues.some((iss) => iss.severity === "warning");
+      const overallStatus = hasError ? "error" : hasWarning ? "warning" : "clean";
+      return {
+        trackId: obj.trackId,
+        frame: obj.frame,
+        label: obj.label,
+        group: obj.group,
+        overallStatus,
+        issues,
+        checks
+      };
+    }
+    checkScaleSync(trackObjects) {
+      const validObjs = trackObjects.filter(
+        (o) => !o.outside && o.group && this.config.scale_sync_groups.includes(o.group)
+      );
+      if (validObjs.length < 2) return [];
+      const tol = this.config.scale_sync_tol + 1e-9;
+      const ref = [0, 1, 2].map((a) => {
+        const prop = a === 0 ? "l" : a === 1 ? "w" : "h";
+        const sorted = validObjs.map((o) => o[prop]).sort((x, y) => x - y);
+        return sorted[Math.floor(validObjs.length / 2)];
+      });
+      const issues = [];
+      for (const o of validObjs) {
+        const dl = o.l - ref[0];
+        const dw = o.w - ref[1];
+        const dh = o.h - ref[2];
+        if (Math.abs(dl) > tol || Math.abs(dw) > tol || Math.abs(dh) > tol) {
+          issues.push({
+            id: `${o.trackId}_${o.frame}_scale`,
+            frame: o.frame,
+            trackId: o.trackId,
+            label: o.label,
+            check: "scale",
+            symbol: "S",
+            name: "Scale không đồng bộ",
+            severity: "error",
+            detail: `Scale lệch so với kích thước chuẩn của track (chênh L ${fmtSigned(dl)}, W ${fmtSigned(dw)}, H ${fmtSigned(dh)} m)`,
+            value: formatSize(o.l, o.w, o.h),
+            ref: formatSize(ref[0], ref[1], ref[2])
+          });
+        }
+      }
+      return issues;
+    }
+    checkSizeRange(obj) {
+      if (obj.outside || !obj.group) return null;
+      const lim = this.config.size_limits[obj.group];
+      if (!lim) return null;
+      const eps = this.config.size_eps;
+      const parts = [];
+      let over = false;
+      let under = false;
+      if (obj.l > lim.length[1] + eps) {
+        parts.push(`Dài (L) ${obj.l.toFixed(2)} > ${lim.length[1]}`);
+        over = true;
+      } else if (obj.l < lim.length[0] - eps) {
+        parts.push(`Dài (L) ${obj.l.toFixed(2)} < ${lim.length[0]}`);
+        under = true;
+      }
+      if (obj.w > lim.width[1] + eps) {
+        parts.push(`Rộng (W) ${obj.w.toFixed(2)} > ${lim.width[1]}`);
+        over = true;
+      } else if (obj.w < lim.width[0] - eps) {
+        parts.push(`Rộng (W) ${obj.w.toFixed(2)} < ${lim.width[0]}`);
+        under = true;
+      }
+      if (obj.h > lim.height[1] + eps) {
+        parts.push(`Cao (H) ${obj.h.toFixed(2)} > ${lim.height[1]}`);
+        over = true;
+      } else if (obj.h < lim.height[0] - eps) {
+        parts.push(`Cao (H) ${obj.h.toFixed(2)} < ${lim.height[0]}`);
+        under = true;
+      }
+      if (parts.length === 0) return null;
+      const hint = this.config.size_over_hint[obj.group];
+      const notes = [];
+      if (over) {
+        notes.push("lớn hơn ngưỡng - " + (hint ? hint : "cần kiểm tra kích thước"));
+      }
+      if (under) {
+        notes.push("nhỏ hơn ngưỡng - cần kiểm tra kích thước");
+      }
+      return {
+        id: `${obj.trackId}_${obj.frame}_size`,
+        frame: obj.frame,
+        trackId: obj.trackId,
+        label: obj.label,
+        check: "size",
+        symbol: "K",
+        name: "Kích thước ngoài ngưỡng",
+        severity: "warning",
+        detail: `${parts.join("; ")} (${notes.join("; ")})`,
+        value: formatSize(obj.l, obj.w, obj.h),
+        ref: `L ${lim.length[0]}~${lim.length[1]}, W ${lim.width[0]}~${lim.width[1]}, H ${lim.height[0]}~${lim.height[1]}`
+      };
+    }
+    checkZRange(obj) {
+      if (obj.outside) return null;
+      let detail = "";
+      if (obj.z > this.config.z_max) {
+        detail = `z = ${obj.z.toFixed(2)} > ${this.config.z_max}: obj cao hơn mặt đường`;
+      } else if (obj.z < this.config.z_min) {
+        detail = `z = ${obj.z.toFixed(2)} < ${this.config.z_min}: obj thấp hơn mặt đường`;
+      } else {
+        return null;
+      }
+      return {
+        id: `${obj.trackId}_${obj.frame}_z`,
+        frame: obj.frame,
+        trackId: obj.trackId,
+        label: obj.label,
+        check: "z",
+        symbol: "Z",
+        name: "Z ngoài ngưỡng",
+        severity: "warning",
+        detail,
+        value: `${obj.z.toFixed(2)}m`,
+        ref: `${this.config.z_min} ~ ${this.config.z_max}`
+      };
+    }
+    checkRotationJump(prev, cur) {
+      if (prev.outside || cur.outside) return null;
+      if (cur.frame - prev.frame > this.config.max_frame_gap) return null;
+      if (!cur.group || !this.config.rotation_check_groups.includes(cur.group)) return null;
+      const d = calcAngleDiffDeg(prev.yaw, cur.yaw);
+      if (d > this.config.max_rotation_jump_deg) {
+        const prevDeg = prev.yaw * 180 / Math.PI;
+        const curDeg = cur.yaw * 180 / Math.PI;
+        return {
+          id: `${cur.trackId}_${cur.frame}_rot`,
+          frame: cur.frame,
+          trackId: cur.trackId,
+          label: cur.label,
+          check: "rot",
+          symbol: "H",
+          name: "Đổi hướng đột ngột",
+          severity: "error",
+          detail: `Obj thay đổi hướng đột ngột ${d.toFixed(1)}° (yaw ${prevDeg.toFixed(1)}° ở frame ${prev.frame} -> ${curDeg.toFixed(1)}° ở frame ${cur.frame})`,
+          value: `${d.toFixed(1)}°`,
+          ref: `≤ ${this.config.max_rotation_jump_deg}°`
+        };
+      }
+      return null;
+    }
+    checkFrameOverlaps(frameObjs) {
+      const validObjs = frameObjs.filter(
+        (o) => !o.outside && o.group && o.group in this.config.overlap_allowed
+      );
+      const issues = [];
+      const metric = (this.config.overlap_metric || "iou").toLowerCase();
+      for (let i = 0; i < validObjs.length; i++) {
+        for (let j = i + 1; j < validObjs.length; j++) {
+          const a = validObjs[i];
+          const b = validObjs[j];
+          const { intersectionArea: inter, iou, ioa } = bevOverlap(
+            { pos: [a.x, a.y, a.z], scale: [a.l, a.w, a.h], yaw: a.yaw },
+            { pos: [b.x, b.y, b.z], scale: [b.l, b.w, b.h], yaw: b.yaw }
+          );
+          if (inter < this.config.overlap_min_area) continue;
+          const allowedA = this.config.overlap_allowed[a.group] ?? 0;
+          const allowedB = this.config.overlap_allowed[b.group] ?? 0;
+          const allowed = Math.min(allowedA, allowedB);
+          const val = metric === "ioa" ? ioa : iou;
+          if (allowed > 0 && val <= allowed) continue;
+          const rule = allowed <= 0 ? "Không cho phép chồng lấn" : `Cho phép tối đa ${(allowed * 100).toFixed(0)}% (${metric.toUpperCase()})`;
+          const stats = `IoU ${iou.toFixed(3)}, IoA ${ioa.toFixed(3)}, diện tích giao ${inter.toFixed(3)} m²`;
+          issues.push({
+            id: `${a.trackId}_${a.frame}_overlap_${b.trackId}`,
+            frame: a.frame,
+            trackId: a.trackId,
+            label: a.label,
+            check: "overlap",
+            symbol: "O",
+            name: "Chồng lấn",
+            severity: "error",
+            detail: `Chồng lấn với Track #${b.trackId} (${b.label}): ${stats}`,
+            value: `${(val * 100).toFixed(1)}%`,
+            ref: rule,
+            otherTrackId: b.trackId
+          });
+          issues.push({
+            id: `${b.trackId}_${b.frame}_overlap_${a.trackId}`,
+            frame: b.frame,
+            trackId: b.trackId,
+            label: b.label,
+            check: "overlap",
+            symbol: "O",
+            name: "Chồng lấn",
+            severity: "error",
+            detail: `Chồng lấn với Track #${a.trackId} (${a.label}): ${stats}`,
+            value: `${(val * 100).toFixed(1)}%`,
+            ref: rule,
+            otherTrackId: a.trackId
+          });
+        }
+      }
+      return issues;
+    }
+    checkDistance(obj) {
+      if (obj.outside) return null;
+      const d = Math.sqrt(obj.x * obj.x + obj.y * obj.y + obj.z * obj.z);
+      if (d > this.config.max_distance) {
+        return {
+          id: `${obj.trackId}_${obj.frame}_dist`,
+          frame: obj.frame,
+          trackId: obj.trackId,
+          label: obj.label,
+          check: "dist",
+          symbol: "D",
+          name: "Quá xa",
+          severity: "info",
+          detail: `Cách gốc tọa độ ${d.toFixed(2)} m (> ${this.config.max_distance} m): obj ở quá xa, cần kiểm tra`,
+          value: `${d.toFixed(1)}m`,
+          ref: `≤ ${this.config.max_distance} m`
+        };
+      }
+      return null;
+    }
+    /**
+     * Chạy toàn bộ kiểm định cho Job từ mảng QCObjectInstance[]
+     */
+    runFullJobQC(dataset) {
+      const validDataset = dataset.filter((o) => !o.outside);
+      const objs = validDataset.map(
+        (o) => new DatumaroObj(
+          o.frame,
+          `frame_${o.frame}`,
+          o.trackId,
+          String(o.trackId),
+          true,
+          o.label,
+          o.group,
+          [o.x, o.y, o.z],
+          [0, 0, o.yaw],
+          [o.l, o.w, o.h]
+        )
+      );
+      const frameItems = {};
+      for (const d of dataset) {
+        frameItems[d.frame] = `frame_${d.frame}`;
+      }
+      const report = generateDatumaroQAReport(
+        objs,
+        [],
+        {
+          version: "1.0",
+          n_items: Object.keys(frameItems).length,
+          n_objs: objs.length,
+          n_tracks: new Set(dataset.map((d) => d.trackId)).size,
+          frame_items: frameItems
+        },
+        this.config
+      );
+      const allIssues = report.allIssues.map((r) => {
+        const isErr = r.check === "scale" || r.check === "rot" || r.check === "overlap";
+        const isWarn = r.check === "size" || r.check === "z";
+        const sev = isErr ? "error" : isWarn ? "warning" : "info";
+        return {
+          id: `${r.track}_${r.frame}_${r.check}`,
+          frame: r.frame,
+          trackId: parseInt(r.track, 10) || 0,
+          label: r.label,
+          check: r.check,
+          symbol: CHECK_CODE[r.check] || "!",
+          name: CHECK_NAME[r.check] || r.check,
+          severity: sev,
+          detail: r.detail,
+          value: String(r.value),
+          ref: r.ref,
+          otherTrackId: r.other ? parseInt(r.other, 10) || null : null
+        };
+      });
+      const summaryByCheck = {};
+      for (const s of report.summary.checkStats) {
+        summaryByCheck[s.key] = {
+          count: s.issueCount,
+          tracksCount: s.trackCount,
+          framesCount: s.frameCount
+        };
+      }
+      const byTrack = {};
+      for (const t of report.byTrack) {
+        const tid = parseInt(t.track, 10);
+        if (!isNaN(tid)) {
+          byTrack[tid] = {
+            trackId: tid,
+            label: t.label,
+            issues: allIssues.filter((i) => i.trackId === tid),
+            framesWithIssues: []
+          };
+        }
+      }
+      const byFrame = {};
+      for (const f of report.byFrame) {
+        byFrame[f.frame] = {
+          frame: f.frame,
+          issues: allIssues.filter((i) => i.frame === f.frame),
+          tracksWithIssues: []
+        };
+      }
+      const matrix = {};
+      for (const r of report.matrix.rows) {
+        const tid = parseInt(r.track, 10);
+        if (isNaN(tid)) continue;
+        matrix[tid] = {};
+        for (const [fStr, cell] of Object.entries(r.cells)) {
+          const f = parseInt(fStr, 10);
+          matrix[tid][f] = {
+            hasObject: cell.present,
+            issues: allIssues.filter((i) => i.trackId === tid && i.frame === f),
+            severity: cell.severity,
+            symbols: cell.codes
+          };
+        }
+      }
+      const totalTracks = report.meta.n_tracks;
+      const totalFrames = report.meta.n_items;
+      const totalObjects = report.meta.n_objs;
+      const totalIssues = allIssues.length;
+      const errorIssues = allIssues.filter((i) => i.severity === "error").length;
+      const warnIssues = allIssues.filter((i) => i.severity === "warning").length;
+      const infoIssues = allIssues.filter((i) => i.severity === "info").length;
+      const framesWithIssues = new Set(allIssues.map((i) => i.frame));
+      const tracksWithIssues = new Set(allIssues.map((i) => i.trackId));
+      const cleanFramesCount = Math.max(0, totalFrames - framesWithIssues.size);
+      const cleanTracksCount = Math.max(0, totalTracks - tracksWithIssues.size);
+      let penalty = errorIssues * 5 + warnIssues * 2 + infoIssues * 0.5;
+      const maxPenalty = Math.max(1, totalObjects * 3);
+      const healthScore = Math.max(0, Math.min(100, Math.round(100 - penalty / maxPenalty * 100)));
+      return {
+        timestamp: Date.now(),
+        totalTracks,
+        totalFrames,
+        totalObjects,
+        totalIssues,
+        healthScore,
+        cleanFramesCount,
+        cleanTracksCount,
+        criticalIssuesCount: errorIssues,
+        warningIssuesCount: warnIssues,
+        infoIssuesCount: infoIssues,
+        summaryByCheck,
+        allIssues,
+        byTrack,
+        byFrame,
+        matrix,
+        framesList: report.matrix.allFrames,
+        tracksList: report.matrix.rows.map((r) => parseInt(r.track, 10)).filter((n) => !isNaN(n))
+      };
+    }
+  }
   const CAR_PRESETS = [
     {
       id: "compact_car",
@@ -11075,13 +16393,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     let candidates = STANDARD_VEHICLE_CATALOG;
     if (labelHint) {
       const hint = labelHint.toLowerCase();
+      const detected = detectObjectCategory(labelHint);
       if (hint.includes("bus")) {
         candidates = STANDARD_VEHICLE_CATALOG.filter((c) => c.category === "bus");
       } else if (hint.includes("truck")) {
         candidates = STANDARD_VEHICLE_CATALOG.filter((c) => c.category === "truck");
-      } else if (hint.includes("pedestrian")) {
+      } else if (detected === "pedestrian") {
         candidates = STANDARD_VEHICLE_CATALOG.filter((c) => c.category === "pedestrian");
-      } else if (hint.includes("cycl") || hint.includes("moto")) {
+      } else if (detected === "cyclist") {
         candidates = STANDARD_VEHICLE_CATALOG.filter((c) => c.category === "cycle");
       } else if (hint.includes("car") || hint.includes("vehicle")) {
         candidates = STANDARD_VEHICLE_CATALOG.filter(
@@ -11126,3280 +16445,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       isCustomRefined: true
     };
   }
-  class TrackState {
-    constructor(data) {
-      __publicField(this, "uiId");
-      __publicField(this, "serverId");
-      __publicField(this, "labelId");
-      __publicField(this, "labelName");
-      __publicField(this, "labelColor");
-      __publicField(this, "shapes", []);
-      __publicField(this, "undoStack", []);
-      __publicField(this, "redoStack", []);
-      __publicField(this, "dirty", false);
-      __publicField(this, "originalShapesJson", "");
-      this.uiId = data.clientID;
-      this.serverId = data.serverID;
-      this.labelId = data.labelId;
-      this.labelName = data.labelName || `Label #${data.labelId}`;
-      this.labelColor = data.labelColor || "#38bdf8";
-      this.load(data.shapes);
-    }
-    load(shapes) {
-      this.shapes = JSON.parse(JSON.stringify(shapes)).sort(
-        (a, b) => a.frame - b.frame
-      );
-      this.originalShapesJson = JSON.stringify(this.shapes);
-      this.undoStack = [];
-      this.redoStack = [];
-      this.dirty = false;
-    }
-    get firstFrame() {
-      return this.shapes.length > 0 ? this.shapes[0].frame : 0;
-    }
-    get lastFrame() {
-      return this.shapes.length > 0 ? this.shapes[this.shapes.length - 1].frame : 0;
-    }
-    keyframeIndex(frame) {
-      return this.shapes.findIndex((s) => s.frame === frame);
-    }
-    /**
-     * Lấy vị trí Box3D tại frame bất kỳ (nội suy tuyến tính nếu nằm giữa các keyframes).
-     */
-    at(frame) {
-      if (this.shapes.length === 0) return null;
-      let left = null;
-      let right = null;
-      for (const s of this.shapes) {
-        if (s.frame <= frame) {
-          left = s;
-        } else {
-          right = s;
-          break;
-        }
-      }
-      if (left && left.frame === frame) {
-        return {
-          points: left.points.slice(),
-          box: pointsToBox(left.points),
-          keyframe: true,
-          outside: !!left.outside
-        };
-      }
-      if (left && right) {
-        const offset = (frame - left.frame) / (right.frame - left.frame);
-        const points = interpolatePoints$1(left.points, right.points, offset);
-        return {
-          points,
-          box: pointsToBox(points),
-          keyframe: false,
-          outside: !!left.outside
-        };
-      }
-      const single = left || right;
-      if (!single) return null;
-      return {
-        points: single.points.slice(),
-        box: pointsToBox(single.points),
-        keyframe: single.frame === frame,
-        outside: single === right ? true : !!single.outside
-      };
-    }
-    /**
-     * Lưu snapshot vào undo stack trước khi thực hiện chỉnh sửa.
-     */
-    snapshot() {
-      this.undoStack.push(JSON.parse(JSON.stringify(this.shapes)));
-      if (this.undoStack.length > 200) {
-        this.undoStack.shift();
-      }
-      this.redoStack = [];
-    }
-    /**
-     * Hoàn tác thao tác gần nhất (Undo).
-     */
-    undo() {
-      if (this.undoStack.length === 0) return false;
-      this.redoStack.push(JSON.parse(JSON.stringify(this.shapes)));
-      this.shapes = this.undoStack.pop();
-      this.dirty = JSON.stringify(this.shapes) !== this.originalShapesJson;
-      return true;
-    }
-    /**
-     * Làm lại thao tác vừa hoàn tác (Redo).
-     */
-    redo() {
-      if (this.redoStack.length === 0) return false;
-      this.undoStack.push(JSON.parse(JSON.stringify(this.shapes)));
-      this.shapes = this.redoStack.pop();
-      this.dirty = true;
-      return true;
-    }
-    /**
-     * Ghi đè box vào frame cụ thể.
-     * Nếu frame đó chưa là keyframe thì tự động tạo keyframe mới tại frame đó.
-     */
-    setBox(frame, box) {
-      const idx = this.keyframeIndex(frame);
-      if (idx >= 0) {
-        this.shapes[idx].points = boxToPoints(box, this.shapes[idx].points);
-      } else {
-        const pos = this.at(frame);
-        const basePoints = pos ? pos.points : this.shapes[0].points;
-        const newPoints = boxToPoints(box, basePoints);
-        const newShape = {
-          type: "cuboid",
-          frame,
-          points: newPoints,
-          outside: false,
-          occluded: false,
-          z_order: 0,
-          rotation: 0,
-          attributes: []
-        };
-        this.shapes.push(newShape);
-        this.shapes.sort((a, b) => a.frame - b.frame);
-      }
-      this.dirty = true;
-    }
-    /**
-     * Bật/tắt trạng thái Outside tại một frame (phím tắt O).
-     */
-    setOutside(frame, outside) {
-      const idx = this.keyframeIndex(frame);
-      if (idx >= 0) {
-        this.shapes[idx].outside = outside;
-      } else {
-        const pos = this.at(frame);
-        if (!pos) return;
-        this.shapes.push({
-          type: "cuboid",
-          frame,
-          points: pos.points.slice(),
-          outside,
-          occluded: false,
-          z_order: 0,
-          rotation: 0,
-          attributes: []
-        });
-        this.shapes.sort((a, b) => a.frame - b.frame);
-      }
-      this.dirty = true;
-    }
-    /**
-     * Xóa một keyframe tại frame cụ thể (khóa bảo vệ không cho xóa keyframe đầu tiên).
-     */
-    deleteKeyframe(frame) {
-      const idx = this.keyframeIndex(frame);
-      if (idx <= 0) return false;
-      this.shapes.splice(idx, 1);
-      this.dirty = true;
-      return true;
-    }
-  }
-  class JobAnnotationStore {
-    constructor(jobId) {
-      __publicField(this, "jobId");
-      __publicField(this, "tracks", /* @__PURE__ */ new Map());
-      // key: uiId
-      __publicField(this, "history", []);
-      // Lưu danh sách uiId của các thao tác để Undo toàn cục
-      __publicField(this, "redoHistory", []);
-      this.jobId = jobId;
-    }
-    setTracks(trackList) {
-      this.tracks.clear();
-      for (const t of trackList) {
-        this.tracks.set(t.clientID, new TrackState(t));
-      }
-      this.history = [];
-      this.redoHistory = [];
-    }
-    getTrack(uiId) {
-      return this.tracks.get(uiId);
-    }
-    getAllTracks() {
-      return [...this.tracks.values()].sort((a, b) => a.uiId - b.uiId);
-    }
-    getDirtyTracks() {
-      return this.getAllTracks().filter((t) => t.dirty);
-    }
-    /**
-     * Tạo snapshot cho một hoặc nhiều track trước khi chỉnh sửa.
-     */
-    snapshot(uiIds) {
-      for (const id of uiIds) {
-        const t = this.tracks.get(id);
-        if (t) t.snapshot();
-      }
-      this.history.push(uiIds.slice());
-      this.redoHistory = [];
-    }
-    undo() {
-      const ids = this.history.pop();
-      if (!ids || ids.length === 0) return false;
-      for (const id of ids) {
-        const t = this.tracks.get(id);
-        if (t) t.undo();
-      }
-      this.redoHistory.push(ids);
-      return true;
-    }
-    redo() {
-      const ids = this.redoHistory.pop();
-      if (!ids || ids.length === 0) return false;
-      for (const id of ids) {
-        const t = this.tracks.get(id);
-        if (t) t.redo();
-      }
-      this.history.push(ids);
-      return true;
-    }
-    /**
-     * Đánh dấu đã lưu thành công (reset cờ dirty về false).
-     */
-    markSaved() {
-      for (const t of this.tracks.values()) {
-        t.dirty = false;
-      }
-    }
-  }
-  const VIEWS_DEF = {
-    top: { u: "ex", v: "ey", d: "ez", ui: 0, vi: 1, di: 2 },
-    side: { u: "ex", v: "ez", d: "ey", ui: 0, vi: 2, di: 1 },
-    front: { u: "ey", v: "ez", d: "ex", ui: 1, vi: 2, di: 0 }
-  };
-  const HANDLE_RADIUS = 7;
-  class OrthoInteractionEngine {
-    /**
-     * Tính tỷ lệ điểm ảnh trên mét (Pixels Per Meter - PPM).
-     */
-    static calculatePpm(cell, w, h2, refSize, globalViewZoom, isContextMode = true) {
-      const V = VIEWS_DEF[cell.view];
-      const fitFactor = isContextMode ? 2.6 : 1.7;
-      const k = Math.min(
-        w / (Math.max(0.3, refSize[V.ui]) * fitFactor),
-        h2 / (Math.max(0.3, refSize[V.vi]) * fitFactor)
-      );
-      return k * (globalViewZoom[cell.view] || 1) * (cell.zoom || 1);
-    }
-    /**
-     * Trích xuất camera state cố định trong phiên kéo để tránh giật hình.
-     */
-    static getCamera(cell, box) {
-      const ax = axes(box.r);
-      return {
-        c: [box.c[0], box.c[1], box.c[2]],
-        ax,
-        half: [box.s[0] / 2, box.s[1] / 2, box.s[2] / 2],
-        pan: [cell.pan[0], cell.pan[1]]
-      };
-    }
-    /**
-     * Chuyển tọa độ thế giới (world x, y, z) sang tọa độ pixel trong Canvas.
-     */
-    static project(p, cam, view, rect, ppm) {
-      const V = VIEWS_DEF[view];
-      const w = subVec$1(p, cam.c);
-      return [
-        rect.w / 2 + cam.pan[0] + dotVec$1(w, cam.ax[V.u]) * ppm,
-        rect.h / 2 + cam.pan[1] - dotVec$1(w, cam.ax[V.v]) * ppm
-      ];
-    }
-    /**
-     * Chuyển tọa độ pixel trong Canvas về tọa độ thế giới (world) trên mặt phẳng cắt đi qua tâm.
-     */
-    static unproject(px, py, cam, view, rect, ppm) {
-      const V = VIEWS_DEF[view];
-      const u = (px - rect.w / 2 - cam.pan[0]) / ppm;
-      const v = -(py - rect.h / 2 - cam.pan[1]) / ppm;
-      return addVec$1(
-        cam.c,
-        addVec$1(scaleVec$1(cam.ax[V.u], u), scaleVec$1(cam.ax[V.v], v))
-      );
-    }
-    /**
-     * Tính toán vị trí các tay cầm (Handles): 4 góc đỏ, 4 cạnh giữa trắng, chấm vàng xoay.
-     */
-    static calculateHandles(box, cam, view, rect, ppm) {
-      const V = VIEWS_DEF[view];
-      const ax = axes(box.r);
-      const h2 = [box.s[0] / 2, box.s[1] / 2, box.s[2] / 2];
-      const P = (a, b) => {
-        const q = [0, 0, 0];
-        q[V.ui] = a * h2[V.ui];
-        q[V.vi] = b * h2[V.vi];
-        const worldP = localToWorld(q, box.c, ax);
-        return this.project(worldP, cam, view, rect, ppm);
-      };
-      const list = [];
-      for (const a of [-1, 0, 1]) {
-        for (const b of [-1, 0, 1]) {
-          if (a === 0 && b === 0) continue;
-          list.push({ kind: "resize", a, b, p: P(a, b) });
-        }
-      }
-      const center = P(0, 0);
-      const top = P(0, 1);
-      const dx = top[0] - center[0];
-      const dy = top[1] - center[1];
-      const len = Math.hypot(dx, dy) || 1;
-      const rot = [
-        top[0] + dx / len * 22,
-        top[1] + dy / len * 22
-      ];
-      return { list, center, top, rot, P };
-    }
-    /**
-     * Nhận diện phần tử mà chuột click trúng (Hit-Test).
-     */
-    static hitTest(mx, my, cell, box, rect, ppm, allowTilt = false) {
-      const cam = this.getCamera(cell, box);
-      const hs = this.calculateHandles(box, cam, cell.view, rect, ppm);
-      const canRotate = cell.view === "top" || allowTilt;
-      if (canRotate && Math.hypot(mx - hs.rot[0], my - hs.rot[1]) <= HANDLE_RADIUS + 2) {
-        return { kind: "rotate", box, cam, rect, ppm, hs };
-      }
-      let bestHd = null;
-      for (const hd of hs.list) {
-        const d = Math.hypot(mx - hd.p[0], my - hd.p[1]);
-        if (d <= HANDLE_RADIUS && (!bestHd || d < bestHd.d)) {
-          bestHd = { ...hd, d };
-        }
-      }
-      if (bestHd) {
-        return {
-          kind: "resize",
-          a: bestHd.a,
-          b: bestHd.b,
-          box,
-          cam,
-          rect,
-          ppm,
-          hs
-        };
-      }
-      const V = VIEWS_DEF[cell.view];
-      const ax = axes(box.r);
-      const p = this.unproject(mx, my, cam, cell.view, rect, ppm);
-      const q = worldToLocal(p, box.c, ax);
-      const hu = box.s[V.ui] / 2;
-      const hv = box.s[V.vi] / 2;
-      const tol = 5 / ppm;
-      const inU = Math.abs(q[V.ui]) <= hu + tol;
-      const inV = Math.abs(q[V.vi]) <= hv + tol;
-      if (inV && Math.abs(Math.abs(q[V.ui]) - hu) <= tol) {
-        return {
-          kind: "resize",
-          a: Math.sign(q[V.ui]) || 1,
-          b: 0,
-          box,
-          cam,
-          rect,
-          ppm,
-          hs
-        };
-      }
-      if (inU && Math.abs(Math.abs(q[V.vi]) - hv) <= tol) {
-        return {
-          kind: "resize",
-          a: 0,
-          b: Math.sign(q[V.vi]) || 1,
-          box,
-          cam,
-          rect,
-          ppm,
-          hs
-        };
-      }
-      if (Math.abs(q[V.ui]) < hu && Math.abs(q[V.vi]) < hv) {
-        return { kind: "move", box, cam, rect, ppm, hs };
-      }
-      return null;
-    }
-    /**
-     * Tính toán box mới khi người dùng đang kéo chuột (PointerMove).
-     */
-    static computeDragUpdate(session, mx, my, isShiftPressed = false) {
-      const { cell, kind, a, b, startBox, cam, rect, ppm, p0, ang0 } = session;
-      const V = VIEWS_DEF[cell.view];
-      const box = cloneBox(startBox);
-      const p = this.unproject(mx, my, cam, cell.view, rect, ppm);
-      if (kind === "move") {
-        const deltaWorld = subVec$1(p, p0);
-        box.c = addVec$1(startBox.c, deltaWorld);
-      } else if (kind === "resize") {
-        const ax = axes(startBox.r);
-        const q = worldToLocal(p, startBox.c, ax);
-        const shift = [0, 0, 0];
-        const axesToAdjust = [
-          [V.ui, a],
-          [V.vi, b]
-        ];
-        for (const [axis, sign] of axesToAdjust) {
-          if (!sign) continue;
-          const half = startBox.s[axis] / 2;
-          const newSize = Math.max(0.05, sign * q[axis] + half);
-          shift[axis] = sign * (newSize - startBox.s[axis]) / 2;
-          box.s[axis] = Number(newSize.toFixed(4));
-        }
-        box.c = localToWorld(shift, startBox.c, ax);
-      } else if (kind === "rotate") {
-        const center = this.project(startBox.c, cam, cell.view, rect, ppm);
-        const ang = Math.atan2(-(my - center[1]), mx - center[0]);
-        let delta = ang - ang0;
-        if (isShiftPressed) {
-          const step = Math.PI / 36;
-          delta = Math.round(delta / step) * step;
-        }
-        if (cell.view === "top") {
-          if (!startBox.r[0] && !startBox.r[1]) {
-            box.r[2] = startBox.r[2] + delta;
-          } else {
-            box.r = rotateLocal(startBox.r, 2, delta);
-          }
-        } else if (cell.view === "side") {
-          box.r = rotateLocal(startBox.r, 1, -delta);
-        } else {
-          box.r = rotateLocal(startBox.r, 0, delta);
-        }
-      }
-      return box;
-    }
-  }
-  class OrthoEditorPanel {
-    constructor(onBoxChange, onSelectFrame) {
-      __publicField(this, "container", null);
-      __publicField(this, "framesData", []);
-      __publicField(this, "activeFrame", -1);
-      __publicField(this, "onBoxChangeCallback", null);
-      __publicField(this, "onSelectFrameCallback", null);
-      // Lưu trữ trạng thái từng cell: key là `${frame}_${view}`
-      __publicField(this, "cells", /* @__PURE__ */ new Map());
-      __publicField(this, "globalZoom", { top: 1, side: 1, front: 1 });
-      __publicField(this, "pointSize", 2);
-      __publicField(this, "isContextMode", true);
-      __publicField(this, "slabThickness", 2);
-      __publicField(this, "activeDrag", null);
-      __publicField(this, "activePan", null);
-      __publicField(this, "resizeObserver", null);
-      this.onBoxChangeCallback = onBoxChange;
-      this.onSelectFrameCallback = onSelectFrame || null;
-      this.handleGlobalPointerMove = this.handleGlobalPointerMove.bind(this);
-      this.handleGlobalPointerUp = this.handleGlobalPointerUp.bind(this);
-    }
-    /**
-     * Khởi tạo container gắn vào DOM cha
-     */
-    mount(parentEl) {
-      this.container = document.createElement("div");
-      this.container.className = "ortho-multi-frame-panel-container";
-      this.container.style.display = "grid";
-      this.container.style.gridTemplateColumns = "repeat(5, minmax(0, 1fr))";
-      this.container.style.gap = "6px";
-      this.container.style.width = "100%";
-      this.container.style.height = "100%";
-      this.container.style.minHeight = "460px";
-      this.container.style.background = "#09090b";
-      this.container.style.padding = "6px";
-      this.container.style.boxSizing = "border-box";
-      this.container.style.borderRadius = "8px";
-      this.container.style.overflow = "hidden";
-      parentEl.appendChild(this.container);
-      window.addEventListener("pointermove", this.handleGlobalPointerMove);
-      window.addEventListener("pointerup", this.handleGlobalPointerUp);
-      if (typeof ResizeObserver !== "undefined") {
-        this.resizeObserver = new ResizeObserver(() => {
-          this.renderAll();
-        });
-        this.resizeObserver.observe(this.container);
-      }
-    }
-    unmount() {
-      window.removeEventListener("pointermove", this.handleGlobalPointerMove);
-      window.removeEventListener("pointerup", this.handleGlobalPointerUp);
-      if (this.resizeObserver) {
-        this.resizeObserver.disconnect();
-        this.resizeObserver = null;
-      }
-      if (this.container && this.container.parentNode) {
-        this.container.parentNode.removeChild(this.container);
-      }
-      this.container = null;
-      this.cells.clear();
-    }
-    /**
-     * Cập nhật danh sách 5 frames hiển thị và frame đang được chọn
-     */
-    setFrames(frames, activeFrame) {
-      this.framesData = frames;
-      this.activeFrame = activeFrame;
-      if (!this.container) return;
-      const colCount = Math.max(1, frames.length);
-      this.container.style.gridTemplateColumns = `repeat(${colCount}, minmax(0, 1fr))`;
-      const currentFrameKeys = frames.map((f) => f.frame).join(",");
-      const existingFrameKeys = this.container.getAttribute("data-frame-keys") || "";
-      if (currentFrameKeys !== existingFrameKeys) {
-        this.container.setAttribute("data-frame-keys", currentFrameKeys);
-        this.container.innerHTML = "";
-        this.cells.clear();
-        for (const fData of frames) {
-          const colEl = this.createFrameColumn(fData);
-          this.container.appendChild(colEl);
-        }
-      } else {
-        this.container.querySelectorAll(".frame-column-card").forEach((col) => {
-          const f = parseInt(col.dataset.frame || "-1", 10);
-          const isActive = f === this.activeFrame;
-          col.style.border = isActive ? "2px solid #2563eb" : "1px solid #1e293b";
-          col.style.boxShadow = isActive ? "0 0 10px rgba(37, 99, 235, 0.45)" : "none";
-          col.style.background = isActive ? "#0f172a" : "#020617";
-          const badgeActive = col.querySelector(".badge-active-indicator");
-          if (badgeActive) {
-            badgeActive.style.display = isActive ? "inline-block" : "none";
-          }
-        });
-      }
-      this.renderAll();
-    }
-    /**
-     * Tạo một cột hiển thị cho 1 frame (chứa Header + 3 Viewports: TOP, SIDE, FRONT)
-     */
-    createFrameColumn(fData) {
-      const f = fData.frame;
-      const isActive = f === this.activeFrame;
-      const col = document.createElement("div");
-      col.className = "frame-column-card";
-      col.dataset.frame = String(f);
-      col.style.display = "flex";
-      col.style.flexDirection = "column";
-      col.style.background = isActive ? "#0f172a" : "#020617";
-      col.style.border = isActive ? "2px solid #2563eb" : "1px solid #1e293b";
-      col.style.borderRadius = "6px";
-      col.style.overflow = "hidden";
-      col.style.position = "relative";
-      col.style.minWidth = "0";
-      col.style.minHeight = "0";
-      col.style.boxShadow = isActive ? "0 0 10px rgba(37, 99, 235, 0.45)" : "none";
-      col.style.transition = "border-color 0.15s, box-shadow 0.15s";
-      const header = document.createElement("div");
-      header.style.display = "flex";
-      header.style.alignItems = "center";
-      header.style.justifyContent = "space-between";
-      header.style.padding = "4px 8px";
-      header.style.background = isActive ? "#1e293b" : "#0b0f19";
-      header.style.borderBottom = "1px solid #1e293b";
-      header.style.cursor = "pointer";
-      header.title = `Click để chọn Frame #${f}`;
-      header.addEventListener("click", () => {
-        if (this.activeFrame !== f && this.onSelectFrameCallback) {
-          this.onSelectFrameCallback(f);
-        }
-      });
-      const l = fData.box.s[0].toFixed(2);
-      const w = fData.box.s[1].toFixed(2);
-      const h2 = fData.box.s[2].toFixed(2);
-      header.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 4px; overflow: hidden;">
-        <span style="font-size: 11px; font-weight: bold; font-family: monospace; color: ${isActive ? "#38bdf8" : "#94a3b8"};">#${f}</span>
-        <span style="
-          font-size: 9px;
-          font-weight: bold;
-          padding: 1px 4px;
-          border-radius: 3px;
-          background: ${fData.outside ? "#fee2e2" : "#ecfdf5"};
-          color: ${fData.outside ? "#dc2626" : "#059669"};
-        ">${fData.outside ? "OUT" : "KF"}</span>
-        <span class="badge-active-indicator" style="
-          display: ${isActive ? "inline-block" : "none"};
-          font-size: 8px;
-          font-weight: bold;
-          background: #2563eb;
-          color: white;
-          padding: 1px 4px;
-          border-radius: 3px;
-        ">ACTIVE</span>
-      </div>
-      <span style="font-size: 9px; color: #64748b; font-family: monospace;">${l}×${w}×${h2}</span>
-    `;
-      col.appendChild(header);
-      const viewsWrap = document.createElement("div");
-      viewsWrap.style.flex = "1";
-      viewsWrap.style.minHeight = "0";
-      viewsWrap.style.display = "grid";
-      viewsWrap.style.gridTemplateRows = "repeat(3, 1fr)";
-      viewsWrap.style.gap = "4px";
-      viewsWrap.style.padding = "4px";
-      viewsWrap.style.boxSizing = "border-box";
-      const viewTypes = ["top", "side", "front"];
-      for (const vType of viewTypes) {
-        const vEl = this.createViewportCell(f, vType);
-        viewsWrap.appendChild(vEl);
-      }
-      col.appendChild(viewsWrap);
-      return col;
-    }
-    /**
-     * Tạo ô Canvas cho một khung nhìn cụ thể của frame
-     */
-    createViewportCell(frame, view) {
-      const card = document.createElement("div");
-      card.style.position = "relative";
-      card.style.background = "#05070d";
-      card.style.border = "1px solid #1e293b";
-      card.style.borderRadius = "4px";
-      card.style.overflow = "hidden";
-      card.style.minWidth = "0";
-      card.style.minHeight = "0";
-      const canvas2 = document.createElement("canvas");
-      canvas2.style.width = "100%";
-      canvas2.style.height = "100%";
-      canvas2.style.display = "block";
-      canvas2.style.cursor = "crosshair";
-      card.appendChild(canvas2);
-      const labelBadge = document.createElement("span");
-      labelBadge.textContent = view.toUpperCase();
-      labelBadge.style.position = "absolute";
-      labelBadge.style.top = "2px";
-      labelBadge.style.left = "4px";
-      labelBadge.style.fontSize = "9px";
-      labelBadge.style.fontWeight = "bold";
-      labelBadge.style.fontFamily = "monospace";
-      labelBadge.style.color = "rgba(56, 189, 248, 0.75)";
-      labelBadge.style.pointerEvents = "none";
-      labelBadge.style.textShadow = "0 1px 2px #000";
-      card.appendChild(labelBadge);
-      const cellKey = `${frame}_${view}`;
-      const cellState = {
-        canvas: canvas2,
-        frame,
-        view,
-        zoom: 1,
-        pan: [0, 0]
-      };
-      this.cells.set(cellKey, cellState);
-      this.attachCanvasListeners(canvas2, cellKey, frame, view);
-      return card;
-    }
-    /**
-     * Vẽ lại toàn bộ 15 khung nhìn (5 frames x 3 views)
-     */
-    renderAll() {
-      for (const [key, cell] of this.cells.entries()) {
-        const fData = this.framesData.find((f) => f.frame === cell.frame);
-        if (fData) {
-          this.renderCell(cell, fData);
-        }
-      }
-    }
-    /**
-     * Vẽ 1 khung nhìn cụ thể
-     */
-    renderCell(cell, fData) {
-      const canvas2 = cell.canvas;
-      if (!canvas2) return;
-      const ctx = canvas2.getContext("2d");
-      if (!ctx) return;
-      const rect = canvas2.getBoundingClientRect();
-      const w = Math.max(10, Math.floor(rect.width));
-      const h2 = Math.max(10, Math.floor(rect.height));
-      if (canvas2.width !== w || canvas2.height !== h2) {
-        canvas2.width = w;
-        canvas2.height = h2;
-      }
-      const isActive = cell.frame === this.activeFrame;
-      ctx.fillStyle = isActive ? "#09090b" : "#020617";
-      ctx.fillRect(0, 0, w, h2);
-      const box = fData.box;
-      const refSize = [box.s[0], box.s[1], box.s[2]];
-      const ppm = OrthoInteractionEngine.calculatePpm(
-        cell,
-        w,
-        h2,
-        refSize,
-        this.globalZoom,
-        this.isContextMode
-      );
-      const cam = OrthoInteractionEngine.getCamera(cell, box);
-      this.drawSubtleGrid(ctx, cam, cell.view, { w, h: h2 }, ppm, isActive);
-      this.drawLidarPoints(ctx, cell, box, fData.points, cam, { w, h: h2 }, ppm);
-      this.drawBoundingBox(
-        ctx,
-        cell,
-        box,
-        fData.keyframe,
-        fData.outside,
-        fData.labelColor,
-        cam,
-        { w, h: h2 },
-        ppm,
-        isActive
-      );
-    }
-    drawSubtleGrid(ctx, cam, view, rect, ppm, isActive) {
-      ctx.strokeStyle = isActive ? "rgba(51, 65, 85, 0.4)" : "rgba(30, 41, 59, 0.3)";
-      ctx.lineWidth = 0.5;
-      const stepPixels = 1 * ppm;
-      if (stepPixels < 12) return;
-      const cx = rect.w / 2 + cam.pan[0];
-      const cy = rect.h / 2 + cam.pan[1];
-      ctx.beginPath();
-      for (let x = cx % stepPixels; x < rect.w; x += stepPixels) {
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, rect.h);
-      }
-      for (let y = cy % stepPixels; y < rect.h; y += stepPixels) {
-        ctx.moveTo(0, y);
-        ctx.lineTo(rect.w, y);
-      }
-      ctx.stroke();
-      ctx.strokeStyle = isActive ? "rgba(56, 189, 248, 0.3)" : "rgba(56, 189, 248, 0.15)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(cx, 0);
-      ctx.lineTo(cx, rect.h);
-      ctx.moveTo(0, cy);
-      ctx.lineTo(rect.w, cy);
-      ctx.stroke();
-    }
-    drawLidarPoints(ctx, cell, box, pts, cam, rect, ppm) {
-      if (!pts || pts.length === 0) return;
-      const V = VIEWS_DEF[cell.view];
-      const ax = cam.ax;
-      const c = box.c;
-      const half = [box.s[0] / 2 + 0.04, box.s[1] / 2 + 0.04, box.s[2] / 2 + 0.04];
-      const slab = this.slabThickness;
-      const hd = cam.half[V.di];
-      const totalPoints = pts.length / 3;
-      for (let i = 0; i < totalPoints; i++) {
-        const px = pts[i * 3];
-        const py = pts[i * 3 + 1];
-        const pz = pts[i * 3 + 2];
-        const dx = px - cam.c[0];
-        const dy = py - cam.c[1];
-        const dz = pz - cam.c[2];
-        const depth = dx * cam.ax[V.d][0] + dy * cam.ax[V.d][1] + dz * cam.ax[V.d][2];
-        if (depth < -hd - slab || depth > hd + slab) continue;
-        const screenP = OrthoInteractionEngine.project([px, py, pz], cam, cell.view, rect, ppm);
-        if (screenP[0] < -8 || screenP[0] > rect.w + 8 || screenP[1] < -8 || screenP[1] > rect.h + 8) {
-          continue;
-        }
-        const bx = px - c[0];
-        const by = py - c[1];
-        const bz = pz - c[2];
-        const qx = Math.abs(bx * ax.ex[0] + by * ax.ex[1] + bz * ax.ex[2]);
-        const qy = Math.abs(bx * ax.ey[0] + by * ax.ey[1] + bz * ax.ey[2]);
-        const qz = Math.abs(bx * ax.ez[0] + by * ax.ez[1] + bz * ax.ez[2]);
-        const isInside = qx <= half[0] && qy <= half[1] && qz <= half[2];
-        ctx.fillStyle = isInside ? "#38bdf8" : "rgba(148, 163, 184, 0.4)";
-        ctx.fillRect(screenP[0] - 1, screenP[1] - 1, this.pointSize, this.pointSize);
-      }
-    }
-    drawBoundingBox(ctx, cell, box, keyframe, outside, labelColor, cam, rect, ppm, isActive) {
-      const corners = boxCorners(box).map(
-        (p) => OrthoInteractionEngine.project(p, cam, cell.view, rect, ppm)
-      );
-      ctx.lineWidth = isActive ? 1.8 : 1.2;
-      ctx.strokeStyle = outside ? "#64748b" : labelColor || "#38bdf8";
-      ctx.setLineDash(keyframe ? [] : [4, 4]);
-      ctx.beginPath();
-      for (const [i, j] of BOX_EDGES) {
-        ctx.moveTo(corners[i][0], corners[i][1]);
-        ctx.lineTo(corners[j][0], corners[j][1]);
-      }
-      ctx.stroke();
-      ctx.setLineDash([]);
-      if (outside) return;
-      const hs = OrthoInteractionEngine.calculateHandles(box, cam, cell.view, rect, ppm);
-      if (cell.view === "top") {
-        const front = hs.P(1, 0);
-        ctx.strokeStyle = "#ef4444";
-        ctx.lineWidth = isActive ? 2.2 : 1.5;
-        ctx.beginPath();
-        ctx.moveTo(hs.center[0], hs.center[1]);
-        ctx.lineTo(front[0], front[1]);
-        ctx.stroke();
-        const dx = front[0] - hs.center[0];
-        const dy = front[1] - hs.center[1];
-        const len = Math.hypot(dx, dy);
-        if (len > 8) {
-          const ux = dx / len;
-          const uy = dy / len;
-          const arrowLen = 8;
-          const arrowW = 4;
-          ctx.fillStyle = "#ef4444";
-          ctx.beginPath();
-          ctx.moveTo(front[0], front[1]);
-          ctx.lineTo(front[0] - ux * arrowLen - uy * arrowW, front[1] - uy * arrowLen + ux * arrowW);
-          ctx.lineTo(front[0] - ux * arrowLen + uy * arrowW, front[1] - uy * arrowLen - ux * arrowW);
-          ctx.closePath();
-          ctx.fill();
-        }
-      }
-      if (isActive) {
-        if (cell.view === "top") {
-          ctx.strokeStyle = "#38bdf8";
-          ctx.lineWidth = 1.2;
-          ctx.beginPath();
-          ctx.moveTo(hs.top[0], hs.top[1]);
-          ctx.lineTo(hs.rot[0], hs.rot[1]);
-          ctx.stroke();
-          ctx.fillStyle = "#fbbf24";
-          ctx.beginPath();
-          ctx.arc(hs.rot[0], hs.rot[1], 5.5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = "#09090b";
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
-        }
-        for (const hd of hs.list) {
-          const isCorner = hd.a !== 0 && hd.b !== 0;
-          ctx.fillStyle = isCorner ? "#ef4444" : "#ffffff";
-          ctx.fillRect(hd.p[0] - 3.5, hd.p[1] - 3.5, 7, 7);
-          ctx.strokeStyle = "#09090b";
-          ctx.lineWidth = 1;
-          ctx.strokeRect(hd.p[0] - 3.5, hd.p[1] - 3.5, 7, 7);
-        }
-      }
-    }
-    /**
-     * Gắn sự kiện chuột trên từng Canvas
-     */
-    attachCanvasListeners(canvas2, cellKey, frame, view) {
-      canvas2.addEventListener("pointerdown", (e) => {
-        if (frame !== this.activeFrame) {
-          if (this.onSelectFrameCallback) {
-            this.onSelectFrameCallback(frame);
-          }
-          return;
-        }
-        const cell = this.cells.get(cellKey);
-        const fData = this.framesData.find((f) => f.frame === frame);
-        if (!cell || !fData) return;
-        const rect = canvas2.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
-        if (e.button === 2 || e.altKey) {
-          e.preventDefault();
-          this.activePan = {
-            key: cellKey,
-            startX: e.clientX,
-            startY: e.clientY,
-            pan0: [...cell.pan]
-          };
-          canvas2.style.cursor = "grabbing";
-          return;
-        }
-        if (e.button !== 0) return;
-        const box = fData.box;
-        const refSize = [box.s[0], box.s[1], box.s[2]];
-        const ppm = OrthoInteractionEngine.calculatePpm(
-          cell,
-          rect.width,
-          rect.height,
-          refSize,
-          this.globalZoom,
-          this.isContextMode
-        );
-        const hit = OrthoInteractionEngine.hitTest(
-          mx,
-          my,
-          cell,
-          box,
-          { w: rect.width, h: rect.height },
-          ppm,
-          false
-        );
-        if (hit) {
-          e.preventDefault();
-          canvas2.setPointerCapture(e.pointerId);
-          const cam = OrthoInteractionEngine.getCamera(cell, box);
-          const p0 = OrthoInteractionEngine.unproject(
-            mx,
-            my,
-            cam,
-            cell.view,
-            { w: rect.width, h: rect.height },
-            ppm
-          );
-          let ang0 = 0;
-          if (hit.kind === "rotate") {
-            const center = OrthoInteractionEngine.project(
-              box.c,
-              cam,
-              cell.view,
-              { w: rect.width, h: rect.height },
-              ppm
-            );
-            ang0 = Math.atan2(-(my - center[1]), mx - center[0]);
-          }
-          this.activeDrag = {
-            cell,
-            kind: hit.kind,
-            a: hit.a,
-            b: hit.b,
-            startBox: cloneBox(box),
-            cam,
-            rect: { w: rect.width, h: rect.height },
-            ppm,
-            p0,
-            ang0,
-            moved: false
-          };
-        }
-      });
-      canvas2.addEventListener("contextmenu", (e) => e.preventDefault());
-      canvas2.addEventListener(
-        "wheel",
-        (e) => {
-          e.preventDefault();
-          const cell = this.cells.get(cellKey);
-          if (!cell) return;
-          const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
-          cell.zoom = Math.max(0.2, Math.min(10, (cell.zoom || 1) * factor));
-          this.globalZoom[view] = cell.zoom;
-          this.renderAll();
-        },
-        { passive: false }
-      );
-    }
-    handleGlobalPointerMove(e) {
-      if (this.activePan) {
-        const cell = this.cells.get(this.activePan.key);
-        if (cell) {
-          const dx = e.clientX - this.activePan.startX;
-          const dy = e.clientY - this.activePan.startY;
-          cell.pan = [this.activePan.pan0[0] + dx, this.activePan.pan0[1] + dy];
-          this.renderAll();
-        }
-        return;
-      }
-      if (!this.activeDrag) return;
-      const drag = this.activeDrag;
-      const canvas2 = drag.cell.canvas;
-      const rect = canvas2.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-      const newBox = OrthoInteractionEngine.applyDrag(drag, mx, my, { lockBottom: true });
-      drag.moved = true;
-      const fData = this.framesData.find((f) => f.frame === this.activeFrame);
-      if (fData) {
-        fData.box = cloneBox(newBox);
-      }
-      this.renderAll();
-      if (this.onBoxChangeCallback) {
-        this.onBoxChangeCallback(newBox, true);
-      }
-    }
-    handleGlobalPointerUp(e) {
-      if (this.activePan) {
-        const cell = this.cells.get(this.activePan.key);
-        if (cell && cell.canvas) {
-          cell.canvas.style.cursor = "crosshair";
-        }
-        this.activePan = null;
-      }
-      if (!this.activeDrag) return;
-      const drag = this.activeDrag;
-      const canvas2 = drag.cell.canvas;
-      try {
-        canvas2.releasePointerCapture(e.pointerId);
-      } catch (err) {
-      }
-      const rect = canvas2.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-      const finalBox = OrthoInteractionEngine.applyDrag(drag, mx, my, { lockBottom: true });
-      this.activeDrag = null;
-      const fData = this.framesData.find((f) => f.frame === this.activeFrame);
-      if (fData) {
-        fData.box = cloneBox(finalBox);
-      }
-      this.renderAll();
-      if (this.onBoxChangeCallback) {
-        this.onBoxChangeCallback(finalBox, false);
-      }
-    }
-  }
-  class TrackPointManager {
-    constructor() {
-      __publicField(this, "activeTrackId", -1);
-      // Lưu trữ các điểm LiDAR thô (World coordinates) theo từng frame
-      __publicField(this, "framePointsCache", /* @__PURE__ */ new Map());
-      // Lưu trữ Box3D tương ứng tại frame đã lưu điểm để nội suy chuyển hệ tọa độ
-      __publicField(this, "frameBoxCache", /* @__PURE__ */ new Map());
-      __publicField(this, "isScanning", false);
-      __publicField(this, "abortScanFlag", false);
-    }
-    /**
-     * Đặt Track ID hiện tại. Nếu đổi xe khác thì reset cache
-     */
-    setActiveTrack(trackId) {
-      if (this.activeTrackId !== trackId) {
-        this.clear();
-        this.activeTrackId = trackId;
-      }
-    }
-    /**
-     * Xóa toàn bộ cache mây điểm
-     */
-    clear() {
-      this.abortScan();
-      this.framePointsCache.clear();
-      this.frameBoxCache.clear();
-    }
-    /**
-     * Lưu các điểm LiDAR của frame cụ thể vào cache
-     */
-    setFramePoints(frame, points, box) {
-      const arr = points instanceof Float32Array ? points : new Float32Array(points);
-      this.framePointsCache.set(frame, arr);
-      this.frameBoxCache.set(frame, {
-        c: [...box.c],
-        s: [...box.s],
-        r: [...box.r]
-      });
-    }
-    /**
-     * Lấy điểm LiDAR riêng của một frame
-     */
-    getFramePoints(frame) {
-      return this.framePointsCache.get(frame) || null;
-    }
-    /**
-     * Kiểm tra frame đã có mây điểm trong cache chưa
-     */
-    hasFrame(frame) {
-      return this.framePointsCache.has(frame);
-    }
-    /**
-     * Đếm tổng số frame đã được nạp mây điểm
-     */
-    get loadedFramesCount() {
-      return this.framePointsCache.size;
-    }
-    /**
-     * Lấy danh sách các frame đã có dữ liệu mây điểm
-     */
-    getLoadedFrames() {
-      return Array.from(this.framePointsCache.keys()).sort((a, b) => a - b);
-    }
-    /**
-     * Thuật toán GỘP MÂY ĐIỂM TOÀN TRACK (Dense Multi-Frame Accumulation):
-     * Biến đổi tọa độ các điểm từ mọi frame trong cache về hệ quy chiếu của box ở frame mục tiêu.
-     */
-    getAccumulatedPoints(currentFrame, targetBox) {
-      if (this.framePointsCache.size === 0) return null;
-      const targetAxes = axes(targetBox.r);
-      const totalAccumulated = [];
-      const maxTotalPoints = 65e3;
-      const curPts = this.framePointsCache.get(currentFrame);
-      if (curPts && curPts.length > 0) {
-        const curCount = curPts.length / 3;
-        for (let i = 0; i < curCount; i++) {
-          totalAccumulated.push(curPts[i * 3], curPts[i * 3 + 1], curPts[i * 3 + 2]);
-        }
-      }
-      for (const [f, pts] of this.framePointsCache.entries()) {
-        if (f === currentFrame) continue;
-        if (totalAccumulated.length / 3 >= maxTotalPoints) break;
-        const srcBox = this.frameBoxCache.get(f);
-        if (!srcBox) continue;
-        const srcAxes = axes(srcBox.r);
-        const ptCount = pts.length / 3;
-        const step = ptCount > 3e3 ? 2 : 1;
-        for (let i = 0; i < ptCount; i += step) {
-          if (totalAccumulated.length / 3 >= maxTotalPoints) break;
-          const wx = pts[i * 3];
-          const wy = pts[i * 3 + 1];
-          const wz = pts[i * 3 + 2];
-          const localP = worldToLocal([wx, wy, wz], srcBox.c, srcAxes);
-          const targetWorldP = localToWorld(localP, targetBox.c, targetAxes);
-          totalAccumulated.push(targetWorldP[0], targetWorldP[1], targetWorldP[2]);
-        }
-      }
-      if (totalAccumulated.length === 0) return null;
-      return new Float32Array(totalAccumulated);
-    }
-    /**
-     * Quét tự động tải toàn bộ curpoint của toàn track:
-     * Duyệt qua dải frame của track, lấy ROI point cloud từ Three.js scene và nạp vào cache.
-     */
-    async scanTrackCurpoints(track2, onProgress, onComplete) {
-      if (this.isScanning) return;
-      this.isScanning = true;
-      this.abortScanFlag = false;
-      const shapes = [...track2.shapes].sort((a, b) => a.frame - b.frame);
-      if (shapes.length === 0) {
-        this.isScanning = false;
-        onComplete(false, 0);
-        return;
-      }
-      const firstF = shapes[0].frame;
-      const lastF = shapes[shapes.length - 1].frame;
-      const framesToScan = [];
-      for (let f = firstF; f <= lastF; f++) {
-        const pos = track2.at(f);
-        if (pos && !pos.outside) {
-          framesToScan.push(f);
-        }
-      }
-      const total = framesToScan.length;
-      let loaded = 0;
-      for (let i = 0; i < total; i++) {
-        if (this.abortScanFlag) {
-          break;
-        }
-        const f = framesToScan[i];
-        const pos = track2.at(f);
-        if (!pos) continue;
-        onProgress(i + 1, total, f);
-        if (this.framePointsCache.has(f)) {
-          loaded++;
-          continue;
-        }
-        try {
-          CVATBridge.jumpToFrame(f);
-          await new Promise((res) => setTimeout(res, 160));
-          if (this.abortScanFlag) break;
-          const diag = Math.hypot(pos.box.s[0], pos.box.s[1]);
-          const radius = Math.max(3.2, diag / 2 + 1.2);
-          const rawPoints = await CVATBridge.getRoiLidarPoints(pos.box.c, radius, 12e3);
-          if (rawPoints && rawPoints.length > 0) {
-            this.setFramePoints(f, rawPoints, pos.box);
-            loaded++;
-          }
-        } catch (err) {
-          console.warn(`[CVAT 3D Suite] Lỗi khi tải điểm LiDAR frame #${f}:`, err);
-        }
-      }
-      this.isScanning = false;
-      onComplete(!this.abortScanFlag, loaded);
-    }
-    /**
-     * Hủy tiến trình quét tự động
-     */
-    abortScan() {
-      if (this.isScanning) {
-        this.abortScanFlag = true;
-        this.isScanning = false;
-      }
-    }
-    get isScanActive() {
-      return this.isScanning;
-    }
-  }
-  function float32ToVec3Array(arr) {
-    const count = Math.floor(arr.length / 3);
-    const res = [];
-    for (let i = 0; i < count; i++) {
-      res.push({ x: arr[i * 3], y: arr[i * 3 + 1], z: arr[i * 3 + 2] });
-    }
-    return res;
-  }
-  class TrackStudioModal {
-    constructor() {
-      __publicField(this, "overlay", null);
-      __publicField(this, "currentCtx", null);
-      __publicField(this, "currentTab", "active_track");
-      __publicField(this, "activeTrackId", 0);
-      __publicField(this, "store", null);
-      __publicField(this, "allJobTracks", []);
-      __publicField(this, "selectedFrame", 0);
-      __publicField(this, "isSaving", false);
-      // Thành phần 3D Ortho Editor và Mây Điểm
-      __publicField(this, "orthoEditor", null);
-      __publicField(this, "pointManager", new TrackPointManager());
-      __publicField(this, "showAllPoints", false);
-      __publicField(this, "applyToAllFrames", false);
-      __publicField(this, "isPlaying", false);
-      __publicField(this, "playInterval", null);
-      this.createOverlay();
-      this.attachGlobalHotkeys();
-    }
-    async open(ctx, activeTrackId, _activeServerId, allJobTracks = []) {
-      this.currentCtx = ctx;
-      this.activeTrackId = activeTrackId;
-      this.allJobTracks = allJobTracks;
-      this.selectedFrame = CVATBridge.getCurrentFrame();
-      this.currentTab = "active_track";
-      this.pointManager.setActiveTrack(activeTrackId);
-      if (this.overlay) {
-        this.overlay.style.display = "flex";
-      }
-      await this.loadInitialData();
-    }
-    close() {
-      this.stopPlayback();
-      this.pointManager.abortScan();
-      if (this.orthoEditor) {
-        this.orthoEditor.unmount();
-        this.orthoEditor = null;
-      }
-      if (this.overlay) {
-        this.overlay.style.display = "none";
-      }
-    }
-    isOpen() {
-      return !!(this.overlay && this.overlay.style.display !== "none");
-    }
-    createOverlay() {
-      if (document.getElementById("cvat-3d-track-studio-modal")) return;
-      this.overlay = document.createElement("div");
-      this.overlay.id = "cvat-3d-track-studio-modal";
-      this.overlay.setAttribute("translate", "no");
-      this.overlay.classList.add("notranslate");
-      this.overlay.style.position = "fixed";
-      this.overlay.style.inset = "0";
-      this.overlay.style.zIndex = "999999";
-      this.overlay.style.background = "#ffffff";
-      this.overlay.style.color = "#09090b";
-      this.overlay.style.display = "none";
-      this.overlay.style.flexDirection = "column";
-      this.overlay.style.fontFamily = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-      this.overlay.style.userSelect = "none";
-      document.body.appendChild(this.overlay);
-    }
-    attachGlobalHotkeys() {
-      window.addEventListener(
-        "keydown",
-        (e) => {
-          if (!this.isOpen()) return;
-          if (e.key === "Escape") {
-            e.preventDefault();
-            this.close();
-            return;
-          }
-          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
-            e.preventDefault();
-            this.triggerCommitSave();
-            return;
-          }
-          if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "z") {
-            e.preventDefault();
-            this.triggerUndo();
-            return;
-          }
-          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y" || (e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z") {
-            e.preventDefault();
-            this.triggerRedo();
-            return;
-          }
-          const target = e.target;
-          if (target && (target.tagName === "INPUT" || target.tagName === "SELECT")) return;
-          if (e.code === "Space" && this.currentTab === "active_track") {
-            e.preventDefault();
-            this.togglePlayback();
-            return;
-          }
-          if ((e.key === "ArrowLeft" || e.key.toLowerCase() === "a") && this.currentTab === "active_track") {
-            e.preventDefault();
-            this.stepFrame(-1);
-            return;
-          }
-          if ((e.key === "ArrowRight" || e.key.toLowerCase() === "d") && this.currentTab === "active_track") {
-            e.preventDefault();
-            this.stepFrame(1);
-            return;
-          }
-          if (e.key.toLowerCase() === "o" && this.currentTab === "active_track") {
-            e.preventDefault();
-            this.toggleOutsideFrame(this.selectedFrame);
-            return;
-          }
-          if (e.key === "[" && this.currentTab === "active_track") {
-            e.preventDefault();
-            this.switchPrevTrack();
-            return;
-          }
-          if (e.key === "]" && this.currentTab === "active_track") {
-            e.preventDefault();
-            this.switchNextTrack();
-            return;
-          }
-        },
-        true
-      );
-    }
-    /**
-     * Tải toàn bộ dữ liệu Job từ Bridge vào in-memory store
-     */
-    async loadInitialData() {
-      var _a, _b;
-      if (!((_a = this.currentCtx) == null ? void 0 : _a.jobId)) return;
-      this.renderLoading();
-      try {
-        const tracksData = await CVATBridge.getAllJobTracksWithShapes(
-          this.currentCtx.jobId
-        );
-        this.store = new JobAnnotationStore(this.currentCtx.jobId);
-        this.store.setTracks(tracksData);
-        if (this.store.getAllTracks().length === 0 && this.allJobTracks.length > 0) {
-          const fallbackList = this.allJobTracks.map((t) => ({
-            id: t.uiId,
-            clientID: t.uiId,
-            serverID: t.serverId,
-            labelId: 1,
-            labelName: t.label,
-            labelColor: "#38bdf8",
-            shapes: [
-              {
-                type: "cuboid",
-                frame: CVATBridge.getCurrentFrame(),
-                points: [t.x, t.y, t.z, 0, 0, t.yawDeg * Math.PI / 180, t.l, t.w, t.h, 0, 0, 0, 0, 0, 0, 0],
-                outside: false
-              }
-            ]
-          }));
-          this.store.setTracks(fallbackList);
-        }
-        this.render();
-        if (this.currentTab === "active_track") {
-          this.updateOrthoEditorState(track);
-          await this.preloadPointsForVisibleFrames(track);
-        }
-      } catch (err) {
-        if (this.overlay) {
-          this.overlay.innerHTML = `
-          <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: #ef4444;">
-            <h3 style="margin: 0; font-size: 16px;">Không thể tải dữ liệu: ${err.message || err}</h3>
-            <button id="btn-close-error" style="background: #27272a; color: white; border: 1px solid rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 6px; cursor: pointer;">Đóng</button>
-          </div>
-        `;
-          (_b = this.overlay.querySelector("#btn-close-error")) == null ? void 0 : _b.addEventListener("click", () => this.close());
-        }
-      }
-    }
-    renderLoading() {
-      if (!this.overlay) return;
-      this.overlay.innerHTML = `
-      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: #ffffff;">
-        <div style="width: 36px; height: 36px; border: 3px solid #e2e8f0; border-top-color: #0284c7; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-        <span style="font-size: 13px; color: #64748b; font-family: monospace;">Đang đồng bộ dữ liệu xe từ Three.js CVAT native...</span>
-      </div>
-      <style>
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-      </style>
-    `;
-    }
-    render() {
-      if (!this.overlay || !this.currentCtx || !this.store) return;
-      const allTracks = this.store.getAllTracks();
-      const activeTrack = this.store.getTrack(this.activeTrackId) || allTracks[0];
-      const dirtyCount = this.store.getDirtyTracks().length;
-      this.overlay.innerHTML = `
-      <!-- 1. HEADER BAR CHUYÊN NGHIỆP -->
-      <div style="
-        background: #ffffff;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 8px 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        min-height: 48px;
-        box-sizing: border-box;
-      ">
-        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-          <!-- Badge Studio -->
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="background: #2563eb; color: white; padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;">ORTHO 3D STUDIO</span>
-            <span style="font-size: 13px; font-weight: bold; color: #09090b;">Job #${this.currentCtx.jobId}</span>
-          </div>
-
-          <!-- Tab Switcher -->
-          <div style="display: flex; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; padding: 2px;">
-            <button id="studio-tab-active" style="
-              border: none;
-              background: ${this.currentTab === "active_track" ? "#ffffff" : "transparent"};
-              color: ${this.currentTab === "active_track" ? "#09090b" : "#64748b"};
-              box-shadow: ${this.currentTab === "active_track" ? "0 1px 3px rgba(0,0,0,0.08)" : "none"};
-              padding: 4px 12px;
-              font-size: 11px;
-              font-weight: 600;
-              cursor: pointer;
-              border-radius: 4px;
-              transition: all 0.15s;
-            ">Duyệt Track (Xe #${this.activeTrackId})</button>
-
-            <button id="studio-tab-batch" style="
-              border: none;
-              background: ${this.currentTab === "batch_all" ? "#ffffff" : "transparent"};
-              color: ${this.currentTab === "batch_all" ? "#09090b" : "#64748b"};
-              box-shadow: ${this.currentTab === "batch_all" ? "0 1px 3px rgba(0,0,0,0.08)" : "none"};
-              padding: 4px 12px;
-              font-size: 11px;
-              font-weight: 600;
-              cursor: pointer;
-              border-radius: 4px;
-              transition: all 0.15s;
-            ">Tất Cả Track ID (${allTracks.length})</button>
-          </div>
-
-          <!-- Quick Track Selector Dropdown -->
-          <div style="display: flex; align-items: center; gap: 4px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px 6px;">
-            <span style="font-size: 11px; color: #64748b; font-weight: 600;">Track:</span>
-            <select id="studio-quick-track-select" style="
-              background: transparent;
-              border: none;
-              color: #0284c7;
-              font-size: 11px;
-              font-weight: bold;
-              cursor: pointer;
-              outline: none;
-              padding: 2px 4px;
-              max-width: 180px;
-            ">
-              ${allTracks.map(
-        (t) => `
-                <option value="${t.uiId}" ${t.uiId === this.activeTrackId ? "selected" : ""} style="background: #ffffff; color: #09090b;">
-                  #${t.uiId} · ${t.labelName} (${t.shapes.length}f)
-                </option>
-              `
-      ).join("")}
-            </select>
-            <button id="btn-quick-prev-track" title="Xe trước (phím [)" style="
-              background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 10px; padding: 2px 6px; border-radius: 4px; cursor: pointer;
-            ">◀</button>
-            <button id="btn-quick-next-track" title="Xe sau (phím ])" style="
-              background: #ffffff; border: 1px solid #cbd5e1; color: #334155; font-size: 10px; padding: 2px 6px; border-radius: 4px; cursor: pointer;
-            ">▶</button>
-          </div>
-
-          <!-- Undo / Redo Buttons -->
-          <div style="display: flex; align-items: center; gap: 3px;">
-            <button id="btn-studio-undo" title="Hoàn tác (Ctrl+Z)" style="
-              background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer;
-            ">↶ Undo</button>
-            <button id="btn-studio-redo" title="Làm lại (Ctrl+Y)" style="
-              background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer;
-            ">↷ Redo</button>
-          </div>
-        </div>
-
-        <!-- Right Action Controls -->
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <!-- Nút Lưu vào CVAT -->
-          <button id="btn-studio-commit-save" style="
-            background: ${dirtyCount > 0 ? "#ea580c" : "#059669"};
-            border: 1px solid ${dirtyCount > 0 ? "#ea580c" : "#059669"};
-            color: white;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 5px 14px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            box-shadow: 0 1px 4px ${dirtyCount > 0 ? "rgba(234, 88, 12, 0.2)" : "rgba(5, 150, 105, 0.2)"};
-            transition: all 0.2s;
-          ">
-            <span style="display: flex; align-items: center;">${ICONS.save}</span>
-            <span>${this.isSaving ? "Đang lưu..." : dirtyCount > 0 ? `Lưu vào CVAT (${dirtyCount} track)` : "Lưu vào CVAT"}</span>
-            <span style="font-size: 9px; opacity: 0.85; font-family: monospace;">(Ctrl+S)</span>
-          </button>
-
-          <!-- Nút Đóng -->
-          <button id="btn-studio-close" style="
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            color: #334155;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-          ">
-            <span style="display: flex; align-items: center;">${ICONS.close}</span>
-            <span>Đóng (Esc)</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- 2. NỘI DUNG CHÍNH (TAB 1 HOẶC TAB 2) -->
-      <div id="studio-main-content-area" style="flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden;">
-        ${this.currentTab === "active_track" ? this.renderActiveTrackHtml(activeTrack) : this.renderBatchAllHtml(allTracks)}
-      </div>
-    `;
-      this.attachHeaderListeners();
-      if (this.currentTab === "active_track") {
-        this.attachActiveTrackListeners(activeTrack);
-        this.mountOrthoEditor(activeTrack);
-      } else {
-        this.attachBatchAllListeners();
-      }
-    }
-    // =========================================================================
-    // TAB 2: ACTIVE TRACK ORTHOGRAPHIC STUDIO (TOP / SIDE / FRONT)
-    // =========================================================================
-    renderActiveTrackHtml(track2) {
-      if (!track2) {
-        return `
-        <div style="flex: 1; display: flex; align-items: center; justify-content: center; color: #71717a;">
-          Chưa chọn xe nào để duyệt. Vui lòng chuyển sang tab danh sách xe.
-        </div>
-      `;
-      }
-      const pos = track2.at(this.selectedFrame);
-      const box = pos ? pos.box : { c: [0, 0, 0], s: [4, 1.8, 1.5], r: [0, 0, 0] };
-      const yawDeg = Math.round(box.r[2] * 180 / Math.PI);
-      const sortedShapes = [...track2.shapes].sort((a, b) => a.frame - b.frame);
-      const firstF = sortedShapes.length > 0 ? sortedShapes[0].frame : 0;
-      const lastF = sortedShapes.length > 0 ? sortedShapes[sortedShapes.length - 1].frame : 0;
-      const filmstripCardsHtml = sortedShapes.map((sh) => {
-        const f = sh.frame;
-        const isSel = f === this.selectedFrame;
-        const pts = sh.points;
-        const l = (pts[6] || 0).toFixed(2);
-        const w = (pts[7] || 0).toFixed(2);
-        const h2 = (pts[8] || 0).toFixed(2);
-        return `
-          <div class="filmstrip-card ${isSel ? "active" : ""}" data-frame="${f}" style="
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: ${isSel ? "#eff6ff" : sh.outside ? "#f8fafc" : "#ffffff"};
-            border: 1.5px solid ${isSel ? "#2563eb" : sh.outside ? "#e2e8f0" : "#cbd5e1"};
-            border-radius: 6px;
-            padding: 4px 8px;
-            min-width: 68px;
-            cursor: pointer;
-            transition: all 0.12s;
-            box-shadow: ${isSel ? "0 2px 6px rgba(37, 99, 235, 0.2)" : "none"};
-          ">
-            <div style="display: flex; align-items: center; gap: 4px; width: 100%; justify-content: space-between;">
-              <span style="font-size: 11px; font-weight: bold; font-family: monospace; color: ${isSel ? "#1d4ed8" : "#0f172a"};">#${f}</span>
-              <span style="
-                font-size: 9px;
-                font-weight: bold;
-                padding: 1px 4px;
-                border-radius: 3px;
-                background: ${sh.outside ? "#fee2e2" : "#ecfdf5"};
-                color: ${sh.outside ? "#dc2626" : "#059669"};
-              ">${sh.outside ? "OUT" : "KF"}</span>
-            </div>
-            <span style="font-size: 10px; color: #64748b; font-family: monospace; margin-top: 2px;">${l}×${w}×${h2}</span>
-          </div>
-        `;
-      }).join("");
-      return `
-      <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #f8fafc;">
-        <!-- KHU VỰC TRÊN: 3 ORTHO VIEWS (75%) + SIDEBAR ĐIỀU KHIỂN & VI CHỈNH (25%) -->
-        <div style="flex: 1; min-height: 0; display: flex; gap: 8px; padding: 8px;">
-          <!-- Khung chứa 3 Canvas Trực Giao TOP / SIDE / FRONT -->
-          <div id="ortho-canvas-mount-point" style="flex: 1; min-width: 0; min-height: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);"></div>
-
-          <!-- Sidebar Điều Khiển Nhanh & Vi Chỉnh Số Liệu -->
-          <div style="
-            width: 280px;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            overflow-y: auto;
-            box-sizing: border-box;
-          ">
-            <!-- Thông tin Track & Frame Hiện Tại -->
-            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${track2.labelColor};"></span>
-                <span style="font-size: 13px; font-weight: bold; color: #09090b;">${track2.labelName} #${track2.uiId}</span>
-              </div>
-              <span style="font-size: 12px; font-weight: bold; font-family: monospace; color: #2563eb; background: #eff6ff; padding: 2px 6px; border-radius: 4px;">Frame #${this.selectedFrame}</span>
-            </div>
-
-            <!-- Tọa độ Tâm X, Y, Z -->
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px;">
-              <span style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">Tọa Độ Tâm (Center)</span>
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 4px;">
-                <div>
-                  <span style="font-size: 10px; color: #64748b;">X (dọc)</span>
-                  <input id="input-center-x" type="number" step="0.01" value="${box.c[0].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
-                </div>
-                <div>
-                  <span style="font-size: 10px; color: #64748b;">Y (ngang)</span>
-                  <input id="input-center-y" type="number" step="0.01" value="${box.c[1].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
-                </div>
-                <div>
-                  <span style="font-size: 10px; color: #64748b;">Z (cao)</span>
-                  <input id="input-center-z" type="number" step="0.01" value="${box.c[2].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
-                </div>
-              </div>
-
-              <!-- Nút Stepper vi chỉnh nhanh X/Y/Z -->
-              <div style="display: flex; gap: 4px; margin-top: 6px; justify-content: space-between;">
-                <button class="btn-step-move" data-axis="x" data-val="-0.02" style="font-size: 10px; padding: 2px 4px; background: white; border: 1px solid #cbd5e1; border-radius: 3px; cursor: pointer;">-2cm X</button>
-                <button class="btn-step-move" data-axis="x" data-val="0.02" style="font-size: 10px; padding: 2px 4px; background: white; border: 1px solid #cbd5e1; border-radius: 3px; cursor: pointer;">+2cm X</button>
-                <button class="btn-step-move" data-axis="y" data-val="-0.02" style="font-size: 10px; padding: 2px 4px; background: white; border: 1px solid #cbd5e1; border-radius: 3px; cursor: pointer;">-2cm Y</button>
-                <button class="btn-step-move" data-axis="y" data-val="0.02" style="font-size: 10px; padding: 2px 4px; background: white; border: 1px solid #cbd5e1; border-radius: 3px; cursor: pointer;">+2cm Y</button>
-              </div>
-            </div>
-
-            <!-- Kích thước L, W, H & Góc Yaw -->
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px;">
-              <span style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">Kích Thước & Hướng</span>
-              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 4px;">
-                <div>
-                  <span style="font-size: 10px; color: #64748b;">Dài L</span>
-                  <input id="input-dim-l" type="number" step="0.02" value="${box.s[0].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
-                </div>
-                <div>
-                  <span style="font-size: 10px; color: #64748b;">Rộng W</span>
-                  <input id="input-dim-w" type="number" step="0.02" value="${box.s[1].toFixed(2)}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
-                </div>
-                <div>
-                  <span style="font-size: 10px; color: #64748b;">Cao H</span>
-                  <input id="input-dim-h" type="number" step="0.02" value="${box.s[2].toFixed(2)}" title="Ground-Lock nở lên trên" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
-                </div>
-                <div>
-                  <span style="font-size: 10px; color: #64748b;">Yaw°</span>
-                  <input id="input-dim-yaw" type="number" step="1" value="${yawDeg}" style="width: 100%; font-size: 11px; padding: 3px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box;" />
-                </div>
-              </div>
-
-              <!-- Checkbox Áp dụng cho Toàn Track -->
-              <div style="margin-top: 8px; display: flex; align-items: center; gap: 6px;">
-                <input id="chk-apply-all-frames" type="checkbox" ${this.applyToAllFrames ? "checked" : ""} style="cursor: pointer;" />
-                <label for="chk-apply-all-frames" style="font-size: 11px; font-weight: 600; color: #0f172a; cursor: pointer;">Áp dụng cho Toàn Track</label>
-              </div>
-            </div>
-
-            <!-- Bộ Nút Auto-Fit Nhanh (GEMINI.md Standard) -->
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-              <span style="font-size: 10px; font-weight: bold; color: #64748b; text-transform: uppercase;">Căn Chỉnh Nhanh (Auto-Fit)</span>
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
-                <button id="btn-fit-top" title="Căn góc xoay Yaw ôm viền đón tia" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-size: 11px; font-weight: bold; padding: 5px; border-radius: 4px; cursor: pointer;">TOP</button>
-                <button id="btn-fit-side" title="Căn cản trước/sau trục X (giữ nguyên Z)" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-size: 11px; font-weight: bold; padding: 5px; border-radius: 4px; cursor: pointer;">SIDE</button>
-                <button id="btn-fit-front" title="Áp sát sườn đón tia laser trục Y (giữ nguyên Z)" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; font-size: 11px; font-weight: bold; padding: 5px; border-radius: 4px; cursor: pointer;">FRONT</button>
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 2px;">
-                <button id="btn-fit-ground" title="Ghim đáy xe bám sát mặt đất (Ground-Lock)" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 11px; font-weight: 600; padding: 5px; border-radius: 4px; cursor: pointer;">⇩ Ghim Đất</button>
-                <button id="btn-fit-flip-180" title="Lật ngược đầu xe 180°" style="background: #fffbeb; border: 1px solid #fde68a; color: #b45309; font-size: 11px; font-weight: 600; padding: 5px; border-radius: 4px; cursor: pointer;">🔄 Lật 180°</button>
-              </div>
-            </div>
-
-            <!-- Nút Toggle Outside tại Frame hiện tại -->
-            <button id="btn-toggle-outside-cur" style="
-              background: ${(pos == null ? void 0 : pos.outside) ? "#fee2e2" : "#f1f5f9"};
-              border: 1px solid ${(pos == null ? void 0 : pos.outside) ? "#fca5a5" : "#cbd5e1"};
-              color: ${(pos == null ? void 0 : pos.outside) ? "#dc2626" : "#334155"};
-              font-size: 11px;
-              font-weight: 600;
-              padding: 6px;
-              border-radius: 4px;
-              cursor: pointer;
-              margin-top: auto;
-            ">${(pos == null ? void 0 : pos.outside) ? "Đang Ẩn (Outside) - Bấm để Hiện" : "Đang Hiện - Bấm để Ẩn (Phím O)"}</button>
-          </div>
-        </div>
-
-        <!-- KHU VỰC DƯỚI: TIMELINE CONTROLS & DẢI PHIM FILMSTRIP TOÀN BỘ CÁC FRAME -->
-        <div style="
-          background: #ffffff;
-          border-top: 1px solid #e2e8f0;
-          padding: 8px 12px;
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        ">
-          <!-- Hàng 1: Bộ điều khiển Timeline & Mây điểm -->
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
-            <!-- Bộ điều khiển phát & chuyển frame -->
-            <div style="display: flex; align-items: center; gap: 4px;">
-              <button id="btn-timeline-prev5" title="Lùi 5 frames" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 4px 6px; border-radius: 4px; cursor: pointer;">◀◀ -5f</button>
-              <button id="btn-timeline-prev" title="Frame trước (phím A hoặc ◀)" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer;">◀ Prev</button>
-              <button id="btn-timeline-play" title="Phát lướt tự động (Space)" style="background: #2563eb; border: none; color: white; font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 4px; cursor: pointer;">${this.isPlaying ? "❚❚ Pause" : "▶ Play"}</button>
-              <button id="btn-timeline-next" title="Frame sau (phím D hoặc ▶)" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Next ▶</button>
-              <button id="btn-timeline-next5" title="Tiến 5 frames" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; font-size: 11px; padding: 4px 6px; border-radius: 4px; cursor: pointer;">+5f ▶▶</button>
-
-              <!-- Slider kéo nhanh frame -->
-              <div style="display: flex; align-items: center; gap: 6px; margin-left: 8px;">
-                <span style="font-size: 11px; color: #64748b; font-family: monospace;">f#${firstF}</span>
-                <input id="timeline-slider" type="range" min="${firstF}" max="${lastF}" value="${this.selectedFrame}" style="width: 180px; cursor: pointer;" />
-                <span style="font-size: 11px; color: #64748b; font-family: monospace;">f#${lastF}</span>
-              </div>
-            </div>
-
-            <!-- Tải Toàn Bộ Curpoint & Show All Point Cloud -->
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <!-- Nút Tải Toàn Bộ Curpoint -->
-              <button id="btn-scan-all-curpoints" style="
-                background: ${this.pointManager.isScanActive ? "#ea580c" : "#0284c7"};
-                border: 1px solid ${this.pointManager.isScanActive ? "#ea580c" : "#0284c7"};
-                color: white;
-                font-size: 11px;
-                font-weight: 600;
-                padding: 4px 10px;
-                border-radius: 5px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-                transition: all 0.15s;
-              ">
-                <span>📥</span>
-                <span id="lbl-scan-progress">${this.pointManager.isScanActive ? "Đang quét..." : "Tải Toàn Bộ Curpoint"}</span>
-              </button>
-
-              <!-- Toggle Xem Mây Điểm: Frame Này vs Gộp Toàn Track -->
-              <div style="display: flex; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 2px;">
-                <button id="btn-point-mode-single" style="
-                  border: none;
-                  background: ${!this.showAllPoints ? "#ffffff" : "transparent"};
-                  color: ${!this.showAllPoints ? "#0284c7" : "#64748b"};
-                  font-weight: ${!this.showAllPoints ? "bold" : "normal"};
-                  padding: 3px 8px;
-                  font-size: 10px;
-                  border-radius: 4px;
-                  cursor: pointer;
-                ">Frame Này</button>
-
-                <button id="btn-point-mode-all" style="
-                  border: none;
-                  background: ${this.showAllPoints ? "#059669" : "transparent"};
-                  color: ${this.showAllPoints ? "white" : "#64748b"};
-                  font-weight: ${this.showAllPoints ? "bold" : "normal"};
-                  padding: 3px 8px;
-                  font-size: 10px;
-                  border-radius: 4px;
-                  cursor: pointer;
-                ">Show All Point Cloud (${this.pointManager.loadedFramesCount}f)</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Hàng 2: Dải phim cuộn ngang Filmstrip (Hiển thị tất cả các frame của ID đó) -->
-          <div id="filmstrip-scroll-container" style="
-            display: flex;
-            gap: 6px;
-            overflow-x: auto;
-            padding: 4px 2px;
-            scroll-behavior: smooth;
-          ">
-            ${filmstripCardsHtml}
-          </div>
-        </div>
-      </div>
-    `;
-    }
-    /**
-     * Lấy dải 5 frames liên tiếp xung quanh frame đang chọn (Sliding Window)
-     */
-    getVisible5Frames(track2) {
-      const sortedShapes = [...track2.shapes].sort((a, b) => a.frame - b.frame);
-      const allFrames = sortedShapes.map((s) => s.frame);
-      if (allFrames.length === 0) return [this.selectedFrame];
-      if (allFrames.length <= 5) return allFrames;
-      const curIdx = allFrames.indexOf(this.selectedFrame);
-      const idx = curIdx >= 0 ? curIdx : 0;
-      let startIdx = idx - 2;
-      if (startIdx < 0) startIdx = 0;
-      if (startIdx + 5 > allFrames.length) startIdx = Math.max(0, allFrames.length - 5);
-      return allFrames.slice(startIdx, startIdx + 5);
-    }
-    /**
-     * Khởi tạo và gắn component 5 Frames x 3 Ortho Viewports vào DOM
-     */
-    mountOrthoEditor(track2) {
-      var _a;
-      const mountEl = (_a = this.overlay) == null ? void 0 : _a.querySelector("#ortho-canvas-mount-point");
-      if (!mountEl || !track2) return;
-      if (this.orthoEditor) {
-        this.orthoEditor.unmount();
-        this.orthoEditor = null;
-      }
-      this.orthoEditor = new OrthoEditorPanel(
-        (newBox, isLiveSync) => {
-          this.handleBoxChangedFromOrtho(track2, newBox, isLiveSync);
-        },
-        (frame) => {
-          this.selectFrame(frame);
-        }
-      );
-      this.orthoEditor.mount(mountEl);
-      this.updateOrthoEditorState(track2);
-      this.preloadPointsForVisibleFrames(track2);
-    }
-    /**
-     * Cập nhật Box và Point Cloud cho 5 Frames của OrthoEditor
-     */
-    updateOrthoEditorState(track2) {
-      if (!this.orthoEditor || !track2) return;
-      const visibleFrames = this.getVisible5Frames(track2);
-      const framesData = visibleFrames.map((f) => {
-        const pos = track2.at(f);
-        const box = pos ? pos.box : { c: [0, 0, 0], s: [4, 1.8, 1.5], r: [0, 0, 0] };
-        const keyframe = pos ? pos.keyframe : false;
-        const outside = pos ? pos.outside : false;
-        let points = null;
-        if (this.showAllPoints) {
-          points = this.pointManager.getAccumulatedPoints(f, box);
-        } else {
-          points = this.pointManager.getFramePoints(f);
-        }
-        return {
-          frame: f,
-          box,
-          keyframe,
-          outside,
-          labelColor: track2.labelColor,
-          points
-        };
-      });
-      this.orthoEditor.setFrames(framesData, this.selectedFrame);
-    }
-    /**
-     * Tự động tải trước mây điểm cho toàn bộ 5 frames đang hiển thị
-     */
-    async preloadPointsForVisibleFrames(track2) {
-      const visibleFrames = this.getVisible5Frames(track2);
-      let hasNewPoints = false;
-      for (const f of visibleFrames) {
-        if (!this.pointManager.hasFrame(f)) {
-          const pos = track2.at(f);
-          if (pos && !pos.outside) {
-            try {
-              const diag = Math.hypot(pos.box.s[0], pos.box.s[1]);
-              const radius = Math.max(3.5, diag / 2 + 1.2);
-              const pts = await CVATBridge.getRoiLidarPoints(pos.box.c, radius, 15e3);
-              if (pts && pts.length > 0) {
-                this.pointManager.setFramePoints(f, pts, pos.box);
-                hasNewPoints = true;
-              }
-            } catch (e) {
-              console.warn(`[CVAT 3D Studio] Không thể tải điểm frame #${f}:`, e);
-            }
-          }
-        }
-      }
-      if (hasNewPoints) {
-        this.updateOrthoEditorState(track2);
-      }
-    }
-    /**
-     * Tự động tải mây điểm cho frame hiện tại nếu chưa có trong cache
-     */
-    async loadPointsForCurrentFrame() {
-      if (!this.store) return;
-      const track2 = this.store.getTrack(this.activeTrackId);
-      if (!track2) return;
-      await this.preloadPointsForVisibleFrames(track2);
-    }
-    /**
-     * Xử lý khi người dùng tương tác kéo chuột chỉnh box trên Ortho Canvas (In-Memory Only)
-     */
-    handleBoxChangedFromOrtho(track2, newBox, isLiveSync) {
-      const f = this.selectedFrame;
-      if (isLiveSync) {
-        track2.setBox(f, newBox);
-        this.updateSidebarInputs(newBox);
-      } else {
-        track2.snapshot();
-        if (this.applyToAllFrames) {
-          this.applySizeToWholeTrack(track2.uiId, [newBox.s[0], newBox.s[1], newBox.s[2]]);
-        } else {
-          track2.setBox(f, newBox);
-        }
-        track2.dirty = true;
-        this.updateHeaderDirtyState();
-        this.updateOrthoEditorState(track2);
-      }
-    }
-    updateSidebarInputs(box) {
-      var _a, _b, _c, _d, _e, _f, _g;
-      const inpX = (_a = this.overlay) == null ? void 0 : _a.querySelector("#input-center-x");
-      const inpY = (_b = this.overlay) == null ? void 0 : _b.querySelector("#input-center-y");
-      const inpZ = (_c = this.overlay) == null ? void 0 : _c.querySelector("#input-center-z");
-      const inpL = (_d = this.overlay) == null ? void 0 : _d.querySelector("#input-dim-l");
-      const inpW = (_e = this.overlay) == null ? void 0 : _e.querySelector("#input-dim-w");
-      const inpH = (_f = this.overlay) == null ? void 0 : _f.querySelector("#input-dim-h");
-      const inpYaw = (_g = this.overlay) == null ? void 0 : _g.querySelector("#input-dim-yaw");
-      if (inpX) inpX.value = box.c[0].toFixed(2);
-      if (inpY) inpY.value = box.c[1].toFixed(2);
-      if (inpZ) inpZ.value = box.c[2].toFixed(2);
-      if (inpL) inpL.value = box.s[0].toFixed(2);
-      if (inpW) inpW.value = box.s[1].toFixed(2);
-      if (inpH) inpH.value = box.s[2].toFixed(2);
-      if (inpYaw) inpYaw.value = String(Math.round(box.r[2] * 180 / Math.PI));
-    }
-    updateHeaderDirtyState() {
-      var _a;
-      if (!this.store) return;
-      const dirtyCount = this.store.getDirtyTracks().length;
-      const btn = (_a = this.overlay) == null ? void 0 : _a.querySelector("#btn-studio-commit-save");
-      if (btn) {
-        btn.style.background = dirtyCount > 0 ? "#ea580c" : "#059669";
-        btn.style.borderColor = dirtyCount > 0 ? "#ea580c" : "#059669";
-        const span = btn.querySelector("span:nth-child(2)");
-        if (span) {
-          span.textContent = dirtyCount > 0 ? `Lưu vào CVAT (${dirtyCount} track)` : "Lưu vào CVAT";
-        }
-      }
-    }
-    attachActiveTrackListeners(track2) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
-      if (!this.overlay || !track2 || !this.store || !((_a = this.currentCtx) == null ? void 0 : _a.jobId)) return;
-      this.currentCtx.jobId;
-      this.overlay.querySelectorAll(".filmstrip-card").forEach((card) => {
-        card.addEventListener("click", () => {
-          const f = parseInt(card.dataset.frame || "0", 10);
-          this.selectFrame(f);
-        });
-      });
-      const slider = this.overlay.querySelector("#timeline-slider");
-      slider == null ? void 0 : slider.addEventListener("input", (e) => {
-        const f = parseInt(e.target.value, 10);
-        this.selectFrame(f, false);
-      });
-      (_b = this.overlay.querySelector("#btn-timeline-prev5")) == null ? void 0 : _b.addEventListener("click", () => {
-        this.stepFrame(-5);
-      });
-      (_c = this.overlay.querySelector("#btn-timeline-prev")) == null ? void 0 : _c.addEventListener("click", () => {
-        this.stepFrame(-1);
-      });
-      (_d = this.overlay.querySelector("#btn-timeline-next")) == null ? void 0 : _d.addEventListener("click", () => {
-        this.stepFrame(1);
-      });
-      (_e = this.overlay.querySelector("#btn-timeline-next5")) == null ? void 0 : _e.addEventListener("click", () => {
-        this.stepFrame(5);
-      });
-      (_f = this.overlay.querySelector("#btn-timeline-play")) == null ? void 0 : _f.addEventListener("click", () => {
-        this.togglePlayback();
-      });
-      const btnScan = this.overlay.querySelector("#btn-scan-all-curpoints");
-      btnScan == null ? void 0 : btnScan.addEventListener("click", () => {
-        var _a2;
-        if (this.pointManager.isScanActive) {
-          this.pointManager.abortScan();
-          return;
-        }
-        const lbl = (_a2 = this.overlay) == null ? void 0 : _a2.querySelector("#lbl-scan-progress");
-        this.pointManager.scanTrackCurpoints(
-          track2,
-          (cur, total, f) => {
-            if (lbl) lbl.textContent = `Đang tải: f#${f} (${cur}/${total})... [Hủy]`;
-            this.selectedFrame = f;
-            this.updateOrthoEditorState(track2);
-          },
-          (success, count) => {
-            if (lbl) lbl.textContent = success ? `Đã tải ${count} frames!` : "Tải Toàn Bộ Curpoint";
-            if (success) {
-              this.showAllPoints = true;
-              this.updatePointModeButtons();
-              this.updateOrthoEditorState(track2);
-            }
-          }
-        );
-      });
-      (_g = this.overlay.querySelector("#btn-point-mode-single")) == null ? void 0 : _g.addEventListener("click", () => {
-        this.showAllPoints = false;
-        this.updatePointModeButtons();
-        this.updateOrthoEditorState(track2);
-      });
-      (_h = this.overlay.querySelector("#btn-point-mode-all")) == null ? void 0 : _h.addEventListener("click", () => {
-        this.showAllPoints = true;
-        this.updatePointModeButtons();
-        this.updateOrthoEditorState(track2);
-      });
-      const chkAll = this.overlay.querySelector("#chk-apply-all-frames");
-      chkAll == null ? void 0 : chkAll.addEventListener("change", (e) => {
-        this.applyToAllFrames = e.target.checked;
-      });
-      const handleInputBoxChange = () => {
-        var _a2, _b2, _c2, _d2, _e2, _f2, _g2, _h2, _i2, _j2, _k2, _l2, _m2, _n2, _o;
-        const inpX = parseFloat(((_b2 = (_a2 = this.overlay) == null ? void 0 : _a2.querySelector("#input-center-x")) == null ? void 0 : _b2.value) || "0");
-        const inpY = parseFloat(((_d2 = (_c2 = this.overlay) == null ? void 0 : _c2.querySelector("#input-center-y")) == null ? void 0 : _d2.value) || "0");
-        const inpZ = parseFloat(((_f2 = (_e2 = this.overlay) == null ? void 0 : _e2.querySelector("#input-center-z")) == null ? void 0 : _f2.value) || "0");
-        const inpL = parseFloat(((_h2 = (_g2 = this.overlay) == null ? void 0 : _g2.querySelector("#input-dim-l")) == null ? void 0 : _h2.value) || "0");
-        const inpW = parseFloat(((_j2 = (_i2 = this.overlay) == null ? void 0 : _i2.querySelector("#input-dim-w")) == null ? void 0 : _j2.value) || "0");
-        const inpH = parseFloat(((_l2 = (_k2 = this.overlay) == null ? void 0 : _k2.querySelector("#input-dim-h")) == null ? void 0 : _l2.value) || "0");
-        const inpYaw = parseFloat(((_n2 = (_m2 = this.overlay) == null ? void 0 : _m2.querySelector("#input-dim-yaw")) == null ? void 0 : _n2.value) || "0");
-        if (inpL > 0 && inpW > 0 && inpH > 0) {
-          const curBox = (_o = track2.at(this.selectedFrame)) == null ? void 0 : _o.box;
-          const newBox = {
-            c: [inpX, inpY, inpZ],
-            s: [inpL, inpW, inpH],
-            r: curBox ? [curBox.r[0], curBox.r[1], inpYaw * Math.PI / 180] : [0, 0, inpYaw * Math.PI / 180]
-          };
-          this.handleBoxChangedFromOrtho(track2, newBox, false);
-          this.updateOrthoEditorState(track2);
-        }
-      };
-      [
-        "#input-center-x",
-        "#input-center-y",
-        "#input-center-z",
-        "#input-dim-l",
-        "#input-dim-w",
-        "#input-dim-h",
-        "#input-dim-yaw"
-      ].forEach((id) => {
-        var _a2, _b2;
-        (_b2 = (_a2 = this.overlay) == null ? void 0 : _a2.querySelector(id)) == null ? void 0 : _b2.addEventListener("change", handleInputBoxChange);
-      });
-      this.overlay.querySelectorAll(".btn-step-move").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const axis = btn.dataset.axis;
-          const val = parseFloat(btn.dataset.val || "0");
-          const curPos = track2.at(this.selectedFrame);
-          if (!curPos) return;
-          const newBox = cloneBox(curPos.box);
-          if (axis === "x") newBox.c[0] += val;
-          else if (axis === "y") newBox.c[1] += val;
-          else if (axis === "z") newBox.c[2] += val;
-          this.handleBoxChangedFromOrtho(track2, newBox, false);
-          this.updateOrthoEditorState(track2);
-          this.updateSidebarInputs(newBox);
-        });
-      });
-      (_i = this.overlay.querySelector("#btn-fit-top")) == null ? void 0 : _i.addEventListener("click", () => {
-        this.executeInMemoryFit("top");
-      });
-      (_j = this.overlay.querySelector("#btn-fit-side")) == null ? void 0 : _j.addEventListener("click", () => {
-        this.executeInMemoryFit("side");
-      });
-      (_k = this.overlay.querySelector("#btn-fit-front")) == null ? void 0 : _k.addEventListener("click", () => {
-        this.executeInMemoryFit("front");
-      });
-      (_l = this.overlay.querySelector("#btn-fit-ground")) == null ? void 0 : _l.addEventListener("click", () => {
-        this.executeInMemoryGroundSnap();
-      });
-      (_m = this.overlay.querySelector("#btn-fit-flip-180")) == null ? void 0 : _m.addEventListener("click", () => {
-        this.executeInMemoryFlip180();
-      });
-      (_n = this.overlay.querySelector("#btn-toggle-outside-cur")) == null ? void 0 : _n.addEventListener("click", () => {
-        this.toggleOutsideFrame(this.selectedFrame);
-      });
-    }
-    /**
-     * Chạy thuật toán Auto-Fit (TOP, SIDE, FRONT) trực tiếp In-Memory (Không ghi đè sang CVAT)
-     */
-    executeInMemoryFit(step) {
-      if (!this.store) return;
-      const track2 = this.store.getTrack(this.activeTrackId);
-      if (!track2) return;
-      const curPos = track2.at(this.selectedFrame);
-      if (!curPos) return;
-      const b = curPos.box;
-      const ptsArr = this.showAllPoints ? this.pointManager.getAccumulatedPoints(this.selectedFrame, b) : this.pointManager.getFramePoints(this.selectedFrame);
-      const pts = ptsArr ? float32ToVec3Array(ptsArr) : [];
-      if (pts.length > 0) {
-        track2.snapshot();
-        const fitRes = fitBoxToEgoRayAndGround(
-          pts,
-          b.c[0],
-          b.c[1],
-          b.c[2],
-          b.r[2],
-          b.s[0],
-          b.s[1],
-          b.s[2],
-          { x: 0, y: 0 },
-          { fitStep: step, preserveDimensions: true }
-        );
-        const newBox = {
-          c: [fitRes.newCenterX, fitRes.newCenterY, fitRes.newCenterZ],
-          s: [fitRes.newL, fitRes.newW, fitRes.newH],
-          r: [b.r[0], b.r[1], fitRes.newYaw]
-        };
-        if (this.applyToAllFrames) {
-          this.applySizeToWholeTrack(track2.uiId, [newBox.s[0], newBox.s[1], newBox.s[2]]);
-        } else {
-          track2.setBox(this.selectedFrame, newBox);
-        }
-        track2.dirty = true;
-        this.updateSidebarInputs(newBox);
-        this.updateOrthoEditorState(track2);
-        this.updateHeaderDirtyState();
-      }
-    }
-    /**
-     * Ghim đáy xe bám sát mặt đất In-Memory theo Footprint Ground Snap (Fallback Ego Z 0° nếu ít điểm)
-     */
-    executeInMemoryGroundSnap() {
-      if (!this.store) return;
-      const track2 = this.store.getTrack(this.activeTrackId);
-      if (!track2) return;
-      const curPos = track2.at(this.selectedFrame);
-      if (!curPos) return;
-      const b = curPos.box;
-      const ptsArr = this.pointManager.getFramePoints(this.selectedFrame);
-      const pts = ptsArr ? float32ToVec3Array(ptsArr) : [];
-      track2.snapshot();
-      const groundRes = computeGroundSlopesAndZ(
-        pts,
-        b.c[0],
-        b.c[1],
-        b.c[2],
-        b.r[2],
-        b.s[0] / 2,
-        b.s[1] / 2
-      );
-      const baseZ = groundRes.groundZ !== null ? groundRes.groundZ : -1.75;
-      const newBox = cloneBox(b);
-      newBox.r[0] = groundRes.rollRad;
-      newBox.r[1] = groundRes.pitchRad;
-      newBox.c[2] = Number(
-        (baseZ + b.s[2] / 2 * Math.cos(groundRes.pitchRad) * Math.cos(groundRes.rollRad)).toFixed(3)
-      );
-      track2.setBox(this.selectedFrame, newBox);
-      track2.dirty = true;
-      this.updateSidebarInputs(newBox);
-      this.updateOrthoEditorState(track2);
-      this.updateHeaderDirtyState();
-    }
-    /**
-     * Lật ngược đầu xe 180° In-Memory quanh trục Z
-     */
-    executeInMemoryFlip180() {
-      if (!this.store) return;
-      const track2 = this.store.getTrack(this.activeTrackId);
-      if (!track2) return;
-      const curPos = track2.at(this.selectedFrame);
-      if (!curPos) return;
-      track2.snapshot();
-      const rotated = rotateLocal(curPos.box, 0, 0);
-      track2.setBox(this.selectedFrame, rotated);
-      track2.dirty = true;
-      this.updateSidebarInputs(rotated);
-      this.updateOrthoEditorState(track2);
-      this.updateHeaderDirtyState();
-    }
-    updatePointModeButtons() {
-      var _a, _b;
-      const btnSingle = (_a = this.overlay) == null ? void 0 : _a.querySelector("#btn-point-mode-single");
-      const btnAll = (_b = this.overlay) == null ? void 0 : _b.querySelector("#btn-point-mode-all");
-      if (btnSingle && btnAll) {
-        btnSingle.style.background = !this.showAllPoints ? "#ffffff" : "transparent";
-        btnSingle.style.color = !this.showAllPoints ? "#0284c7" : "#64748b";
-        btnSingle.style.fontWeight = !this.showAllPoints ? "bold" : "normal";
-        btnAll.style.background = this.showAllPoints ? "#059669" : "transparent";
-        btnAll.style.color = this.showAllPoints ? "white" : "#64748b";
-        btnAll.style.fontWeight = this.showAllPoints ? "bold" : "normal";
-        btnAll.textContent = `Show All Point Cloud (${this.pointManager.loadedFramesCount}f)`;
-      }
-    }
-    async selectFrame(f, updateSlider = true) {
-      var _a, _b;
-      if (this.selectedFrame === f) return;
-      this.selectedFrame = f;
-      this.jumpToCVATFrame(f);
-      if (updateSlider) {
-        const slider = (_a = this.overlay) == null ? void 0 : _a.querySelector("#timeline-slider");
-        if (slider) slider.value = String(f);
-      }
-      (_b = this.overlay) == null ? void 0 : _b.querySelectorAll(".filmstrip-card").forEach((c) => {
-        const cardF = parseInt(c.dataset.frame || "-1", 10);
-        if (cardF === f) {
-          c.classList.add("active");
-          c.style.borderColor = "#2563eb";
-          c.style.background = "#eff6ff";
-          c.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-        } else {
-          c.classList.remove("active");
-          c.style.borderColor = "#cbd5e1";
-          c.style.background = "#ffffff";
-        }
-      });
-      if (!this.store) return;
-      const track2 = this.store.getTrack(this.activeTrackId);
-      if (!track2) return;
-      const pos = track2.at(f);
-      if (pos) {
-        this.updateSidebarInputs(pos.box);
-      }
-      this.updateOrthoEditorState(track2);
-      await this.preloadPointsForVisibleFrames(track2);
-    }
-    stepFrame(delta) {
-      if (!this.store) return;
-      const track2 = this.store.getTrack(this.activeTrackId);
-      if (!track2 || track2.shapes.length === 0) return;
-      const frames = track2.shapes.map((s) => s.frame).sort((a, b) => a - b);
-      const curIdx = frames.indexOf(this.selectedFrame);
-      if (curIdx >= 0) {
-        const nextIdx = Math.max(0, Math.min(frames.length - 1, curIdx + delta));
-        this.selectFrame(frames[nextIdx]);
-      } else {
-        this.selectFrame(frames[0]);
-      }
-    }
-    togglePlayback() {
-      if (this.isPlaying) {
-        this.stopPlayback();
-      } else {
-        this.startPlayback();
-      }
-    }
-    startPlayback() {
-      var _a;
-      this.isPlaying = true;
-      const btn = (_a = this.overlay) == null ? void 0 : _a.querySelector("#btn-timeline-play");
-      if (btn) btn.textContent = "❚❚ Pause";
-      this.playInterval = setInterval(() => {
-        if (!this.store) return;
-        const track2 = this.store.getTrack(this.activeTrackId);
-        if (!track2 || track2.shapes.length === 0) return;
-        const frames = track2.shapes.map((s) => s.frame).sort((a, b) => a - b);
-        const curIdx = frames.indexOf(this.selectedFrame);
-        const nextIdx = curIdx + 1 >= frames.length ? 0 : curIdx + 1;
-        this.selectFrame(frames[nextIdx]);
-      }, 250);
-    }
-    stopPlayback() {
-      var _a;
-      this.isPlaying = false;
-      if (this.playInterval) {
-        clearInterval(this.playInterval);
-        this.playInterval = null;
-      }
-      const btn = (_a = this.overlay) == null ? void 0 : _a.querySelector("#btn-timeline-play");
-      if (btn) btn.textContent = "▶ Play";
-    }
-    async refreshCurrentFrameAfterFit() {
-      var _a;
-      if (!((_a = this.currentCtx) == null ? void 0 : _a.jobId)) return;
-      await this.loadInitialData();
-    }
-    // =========================================================================
-    // TAB 1: BATCH SIZE MANAGER
-    // =========================================================================
-    renderBatchAllHtml(allTracks) {
-      const rowsHtml = allTracks.map((t) => {
-        const sizes = t.shapes.map((s) => s.points.slice(6, 9));
-        const medL = this.median(sizes.map((s) => s[0]));
-        const medW = this.median(sizes.map((s) => s[1]));
-        const medH = this.median(sizes.map((s) => s[2]));
-        return `
-          <tr style="border-bottom: 1px solid #f1f5f9;">
-            <td style="padding: 10px 14px; font-weight: bold;">
-              <span style="color: ${t.labelColor};">#${t.uiId}</span> · ${t.labelName}
-            </td>
-            <td style="padding: 10px 14px; font-family: monospace;">${t.firstFrame} ➔ ${t.lastFrame} (${t.shapes.length}f)</td>
-            <td style="padding: 10px 14px; font-family: monospace; font-weight: bold; color: #0284c7;">
-              ${medL.toFixed(2)} × ${medW.toFixed(2)} × ${medH.toFixed(2)}m
-            </td>
-            <td style="padding: 10px 14px; text-align: right;">
-              <button class="btn-jump-track-studio" data-tid="${t.uiId}" style="
-                background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 4px; cursor: pointer;
-              ">Mở Studio ➔</button>
-            </td>
-          </tr>
-        `;
-      }).join("");
-      return `
-      <div style="flex: 1; overflow: auto; padding: 16px 20px; background: #ffffff;">
-        <h3 style="margin: 0 0 12px 0; font-size: 14px; color: #09090b;">Danh Sách Kích Thước Tất Cả Track Trong Job</h3>
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
-          <thead>
-            <tr style="border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 11px; background: #f8fafc;">
-              <th style="padding: 8px 14px;">Track ID & Nhãn</th>
-              <th style="padding: 8px 14px;">Vòng Đời Frames</th>
-              <th style="padding: 8px 14px;">Kích Thước Trung Vị (L × W × H)</th>
-              <th style="padding: 8px 14px; text-align: right;">Hành Động</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
-      </div>
-    `;
-    }
-    attachBatchAllListeners() {
-      if (!this.overlay) return;
-      this.overlay.querySelectorAll(".btn-jump-track-studio").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const tid = parseInt(btn.dataset.tid || "0", 10);
-          if (tid) this.switchActiveTrack(tid);
-        });
-      });
-    }
-    // =========================================================================
-    // CÁC HÀM ĐIỀU HƯỚNG & HỖ TRỢ TOÀN CỤC
-    // =========================================================================
-    attachHeaderListeners() {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i;
-      if (!this.overlay) return;
-      (_a = this.overlay.querySelector("#studio-tab-active")) == null ? void 0 : _a.addEventListener("click", () => {
-        this.currentTab = "active_track";
-        this.render();
-      });
-      (_b = this.overlay.querySelector("#studio-tab-batch")) == null ? void 0 : _b.addEventListener("click", () => {
-        this.currentTab = "batch_all";
-        this.render();
-      });
-      (_c = this.overlay.querySelector("#studio-quick-track-select")) == null ? void 0 : _c.addEventListener("change", (e) => {
-        const select = e.target;
-        const tid = parseInt(select.value, 10);
-        if (!isNaN(tid)) this.switchActiveTrack(tid);
-      });
-      (_d = this.overlay.querySelector("#btn-quick-prev-track")) == null ? void 0 : _d.addEventListener("click", () => {
-        this.switchPrevTrack();
-      });
-      (_e = this.overlay.querySelector("#btn-quick-next-track")) == null ? void 0 : _e.addEventListener("click", () => {
-        this.switchNextTrack();
-      });
-      (_f = this.overlay.querySelector("#btn-studio-undo")) == null ? void 0 : _f.addEventListener("click", () => {
-        this.triggerUndo();
-      });
-      (_g = this.overlay.querySelector("#btn-studio-redo")) == null ? void 0 : _g.addEventListener("click", () => {
-        this.triggerRedo();
-      });
-      (_h = this.overlay.querySelector("#btn-studio-close")) == null ? void 0 : _h.addEventListener("click", () => {
-        this.close();
-      });
-      (_i = this.overlay.querySelector("#btn-studio-commit-save")) == null ? void 0 : _i.addEventListener("click", () => {
-        this.triggerCommitSave();
-      });
-    }
-    triggerUndo() {
-      if (!this.store) return;
-      const track2 = this.store.getTrack(this.activeTrackId);
-      if (track2 && track2.undo()) {
-        track2.dirty = true;
-        this.render();
-        this.updateHeaderDirtyState();
-      }
-    }
-    triggerRedo() {
-      if (!this.store) return;
-      const track2 = this.store.getTrack(this.activeTrackId);
-      if (track2 && track2.redo()) {
-        track2.dirty = true;
-        this.render();
-        this.updateHeaderDirtyState();
-      }
-    }
-    switchActiveTrack(newTrackId) {
-      this.stopPlayback();
-      this.activeTrackId = newTrackId;
-      this.pointManager.setActiveTrack(newTrackId);
-      this.currentTab = "active_track";
-      if (this.store) {
-        const track2 = this.store.getTrack(newTrackId);
-        if (track2 && track2.shapes.length > 0) {
-          this.selectedFrame = track2.shapes[0].frame;
-        }
-      }
-      this.render();
-      this.loadPointsForCurrentFrame();
-    }
-    switchPrevTrack() {
-      if (!this.store) return;
-      const tracks = this.store.getAllTracks();
-      const idx = tracks.findIndex((t) => t.uiId === this.activeTrackId);
-      if (idx > 0) {
-        this.switchActiveTrack(tracks[idx - 1].uiId);
-      }
-    }
-    switchNextTrack() {
-      if (!this.store) return;
-      const tracks = this.store.getAllTracks();
-      const idx = tracks.findIndex((t) => t.uiId === this.activeTrackId);
-      if (idx >= 0 && idx < tracks.length - 1) {
-        this.switchActiveTrack(tracks[idx + 1].uiId);
-      }
-    }
-    jumpToCVATFrame(frame) {
-      try {
-        const frameInput = document.querySelector("input.cvat-player-frame-selector");
-        if (frameInput) {
-          frameInput.value = String(frame);
-          frameInput.dispatchEvent(new Event("change", { bubbles: true }));
-          frameInput.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", keyCode: 13, bubbles: true }));
-        }
-        CVATBridge.jumpToFrame(frame);
-      } catch (e) {
-        console.warn("[CVAT 3D Studio] Chuyển frame:", e);
-      }
-    }
-    toggleOutsideFrame(frame) {
-      if (!this.store) return;
-      const track2 = this.store.getTrack(this.activeTrackId);
-      if (!track2) return;
-      const sh = track2.shapes.find((s) => s.frame === frame);
-      if (sh) {
-        track2.snapshot();
-        sh.outside = !sh.outside;
-        track2.dirty = true;
-        this.render();
-      }
-    }
-    applySizeToWholeTrack(trackId, newSize) {
-      var _a, _b;
-      if (!this.store || !((_a = this.currentCtx) == null ? void 0 : _a.jobId)) return;
-      const track2 = this.store.getTrack(trackId);
-      if (!track2) return;
-      for (const sh of track2.shapes) {
-        if (!sh.outside) {
-          const curBox = (_b = track2.at(sh.frame)) == null ? void 0 : _b.box;
-          if (curBox) {
-            const updatedBox = resizeKeepBottom(curBox, newSize);
-            sh.points[0] = updatedBox.c[0];
-            sh.points[1] = updatedBox.c[1];
-            sh.points[2] = updatedBox.c[2];
-          }
-          sh.points[6] = newSize[0];
-          sh.points[7] = newSize[1];
-          sh.points[8] = newSize[2];
-        }
-      }
-      track2.dirty = true;
-      this.updateHeaderDirtyState();
-      this.updateOrthoEditorState(track2);
-    }
-    async triggerCommitSave() {
-      var _a;
-      if (!((_a = this.currentCtx) == null ? void 0 : _a.jobId) || !this.store || this.isSaving) return;
-      this.isSaving = true;
-      this.updateHeaderDirtyState();
-      try {
-        const dirtyTracks = this.store.getDirtyTracks();
-        for (const track2 of dirtyTracks) {
-          for (const sh of track2.shapes) {
-            if (!sh.outside && sh.points) {
-              await CVATBridge.updateLiveBox(
-                this.currentCtx.jobId,
-                sh.frame,
-                track2.uiId,
-                track2.serverId,
-                sh.points,
-                true
-              );
-            }
-          }
-        }
-        const res = await CVATBridge.commitSave(this.currentCtx.jobId);
-        if (res && res.success) {
-          for (const t of this.store.getAllTracks()) {
-            t.dirty = false;
-          }
-        }
-      } catch (e) {
-        console.error("[CVAT 3D Studio] Lỗi lưu vào CVAT:", e);
-      } finally {
-        this.isSaving = false;
-        this.updateHeaderDirtyState();
-        this.render();
-      }
-    }
-    median(arr) {
-      if (arr.length === 0) return 0;
-      const sorted = [...arr].sort((a, b) => a - b);
-      const mid = Math.floor(sorted.length / 2);
-      return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-    }
-  }
-  const DEFAULT_QC_CONFIG = {
-    classGroups: {
-      vehicle: ["vehicle", "vehicles", "car", "truck", "bus", "van", "suv", "sedan", "pickup", "minibus"],
-      two_wheel: ["two_wheel", "two_wheels", "two_wheeler", "twowheel", "twowheels", "motorbike", "motorcycle", "bicycle", "bike"],
-      pedestrian: ["pedestrian", "pedestrians", "person", "human", "people"]
-    },
-    sizeLimits: {
-      vehicle: { length: [3.2, 5.5], width: [1.6, 2.2], height: [1.5, 1.9] },
-      two_wheel: { length: [1.5, 2], width: [0.6, 0.9], height: [1.5, 1.8] },
-      pedestrian: { length: [0.65, 1], width: [0.65, 1], height: [1.2, 1.9] }
-    },
-    sizeOverHint: {
-      vehicle: "có thể là xe bus/truck"
-    },
-    sizeEps: 1e-3,
-    scaleSyncGroups: ["vehicle"],
-    scaleSyncTol: 0.01,
-    zMin: -3,
-    zMax: 3,
-    maxRotationJumpDeg: 75,
-    maxFrameGap: 1,
-    rotationCheckGroups: ["vehicle", "two_wheel", "pedestrian"],
-    overlapAllowed: {
-      vehicle: 0,
-      two_wheel: 0.5,
-      pedestrian: 0.5
-    },
-    overlapMetric: "iou",
-    overlapMinArea: 1e-3,
-    maxDistance: 100,
-    minLidarPointsNear: 3,
-    minLidarPointsFar: 1,
-    groundHoverMax: 0.1,
-    groundSinkMax: -0.06,
-    motionSpeedThreshold: 0.4,
-    motionCosThreshold: -0.5
-  };
-  function getRotatedRectCorners(x, y, l, w, yaw) {
-    const c = Math.cos(yaw);
-    const s = Math.sin(yaw);
-    const hl = l / 2;
-    const hw = w / 2;
-    return [
-      { x: x + hl * c - hw * s, y: y + hl * s + hw * c },
-      { x: x - hl * c - hw * s, y: y - hl * s + hw * c },
-      { x: x - hl * c + hw * s, y: y - hl * s - hw * c },
-      { x: x + hl * c + hw * s, y: y + hl * s - hw * c }
-    ];
-  }
-  function polygonArea(pts) {
-    if (pts.length < 3) return 0;
-    let area = 0;
-    for (let i = 0; i < pts.length; i++) {
-      const p1 = pts[i];
-      const p2 = pts[(i + 1) % pts.length];
-      area += p1.x * p2.y - p2.x * p1.y;
-    }
-    return Math.abs(area) / 2;
-  }
-  function clipConvexPolygon(subject, clipper) {
-    const isInside = (p, a, b) => {
-      return (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x) >= -1e-12;
-    };
-    const computeIntersection = (p, q, a, b) => {
-      const x1 = p.x;
-      const y1 = p.y;
-      const x2 = q.x;
-      const y2 = q.y;
-      const x3 = a.x;
-      const y3 = a.y;
-      const x4 = b.x;
-      const y4 = b.y;
-      const den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-      if (Math.abs(den) < 1e-15) {
-        return q;
-      }
-      const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
-      return {
-        x: x1 + t * (x2 - x1),
-        y: y1 + t * (y2 - y1)
-      };
-    };
-    let outputList = [...subject];
-    for (let i = 0; i < clipper.length; i++) {
-      const a = clipper[i];
-      const b = clipper[(i + 1) % clipper.length];
-      const inputList = outputList;
-      outputList = [];
-      if (inputList.length === 0) break;
-      let s = inputList[inputList.length - 1];
-      for (const e of inputList) {
-        if (isInside(e, a, b)) {
-          if (!isInside(s, a, b)) {
-            outputList.push(computeIntersection(s, e, a, b));
-          }
-          outputList.push(e);
-        } else if (isInside(s, a, b)) {
-          outputList.push(computeIntersection(s, e, a, b));
-        }
-        s = e;
-      }
-    }
-    return outputList;
-  }
-  function computeBevOverlap(boxA, boxB) {
-    const ra = 0.5 * Math.hypot(boxA.l, boxA.w);
-    const rb = 0.5 * Math.hypot(boxB.l, boxB.w);
-    const centerDist = Math.hypot(boxA.x - boxB.x, boxA.y - boxB.y);
-    if (centerDist > ra + rb) {
-      return { intersectionArea: 0, iou: 0, ioa: 0 };
-    }
-    const polyA = getRotatedRectCorners(boxA.x, boxA.y, boxA.l, boxA.w, boxA.yaw);
-    const polyB = getRotatedRectCorners(boxB.x, boxB.y, boxB.l, boxB.w, boxB.yaw);
-    const interPts = clipConvexPolygon(polyA, polyB);
-    const interArea = interPts.length >= 3 ? polygonArea(interPts) : 0;
-    const areaA = boxA.l * boxA.w;
-    const areaB = boxB.l * boxB.w;
-    const unionArea = areaA + areaB - interArea;
-    const iou = unionArea > 0 ? interArea / unionArea : 0;
-    const minArea = Math.min(areaA, areaB);
-    const ioa = minArea > 0 ? interArea / minArea : 0;
-    return {
-      intersectionArea: interArea,
-      iou,
-      ioa
-    };
-  }
-  function countPointsInsideBox(box, points) {
-    const cosYaw = Math.cos(-box.yaw);
-    const sinYaw = Math.sin(-box.yaw);
-    const hl = box.l / 2;
-    const hw = box.w / 2;
-    const hh = box.h / 2;
-    let count = 0;
-    if (points instanceof Float32Array) {
-      const total = Math.floor(points.length / 3);
-      for (let i = 0; i < total; i++) {
-        const px = points[i * 3];
-        const py = points[i * 3 + 1];
-        const pz = points[i * 3 + 2];
-        const dx = px - box.x;
-        const dy = py - box.y;
-        const dz = pz - box.z;
-        if (Math.abs(dz) > hh) continue;
-        const lx = dx * cosYaw - dy * sinYaw;
-        const ly = dx * sinYaw + dy * cosYaw;
-        if (Math.abs(lx) <= hl && Math.abs(ly) <= hw) {
-          count++;
-        }
-      }
-    } else {
-      for (const p of points) {
-        const dx = p.x - box.x;
-        const dy = p.y - box.y;
-        const dz = p.z - box.z;
-        if (Math.abs(dz) > hh) continue;
-        const lx = dx * cosYaw - dy * sinYaw;
-        const ly = dx * sinYaw + dy * cosYaw;
-        if (Math.abs(lx) <= hl && Math.abs(ly) <= hw) {
-          count++;
-        }
-      }
-    }
-    return count;
-  }
-  function checkEmptyOrSparseBox(obj, points, cfg) {
-    if (!points) return null;
-    const box = {
-      x: obj.x,
-      y: obj.y,
-      z: obj.z,
-      l: obj.l,
-      w: obj.w,
-      h: obj.h,
-      yaw: obj.yaw
-    };
-    const pointCount = countPointsInsideBox(box, points);
-    const dist = Math.hypot(obj.x, obj.y);
-    const minRequired = dist < 35 ? cfg.minLidarPointsNear : cfg.minLidarPointsFar;
-    if (pointCount < minRequired) {
-      const isZero = pointCount === 0;
-      return {
-        id: `${obj.trackId}_${obj.frame}_empty_box`,
-        frame: obj.frame,
-        trackId: obj.trackId,
-        label: obj.label,
-        check: "empty_box",
-        symbol: "L1",
-        name: isZero ? "Box rỗng (0 điểm LiDAR)" : "Quá ít điểm LiDAR",
-        severity: isZero ? "error" : "warning",
-        detail: isZero ? `Box hoàn toàn không có điểm LiDAR nào bên trong (cự ly ${dist.toFixed(1)}m), có thể là box ảo/ma hoặc gán nhầm vị trí` : `Chỉ có ${pointCount} điểm LiDAR trong box (ngưỡng tối thiểu ${minRequired} điểm ở cự ly ${dist.toFixed(1)}m)`,
-        value: `${pointCount} điểm`,
-        ref: `≥ ${minRequired} điểm`
-      };
-    }
-    return null;
-  }
-  function checkGroundMismatch(obj, points, cfg) {
-    if (!points) return null;
-    const box = {
-      x: obj.x,
-      y: obj.y,
-      z: obj.z,
-      l: obj.l,
-      w: obj.w,
-      h: obj.h,
-      yaw: obj.yaw,
-      pitch: 0,
-      roll: 0
-    };
-    const groundInfo = computeGroundSlopesAndZ(box, points);
-    if (!groundInfo || !groundInfo.isValidGround) {
-      return null;
-    }
-    const baseZ = obj.z - obj.h / 2;
-    const deltaZ = baseZ - groundInfo.groundZ;
-    if (deltaZ > cfg.groundHoverMax) {
-      return {
-        id: `${obj.trackId}_${obj.frame}_ground_hover`,
-        frame: obj.frame,
-        trackId: obj.trackId,
-        label: obj.label,
-        check: "ground_mismatch",
-        symbol: "L2",
-        name: "Box bay lơ lửng trên mặt đất",
-        severity: "warning",
-        detail: `Đáy box cao hơn mặt đất LiDAR thực tế ${(deltaZ * 100).toFixed(1)}cm (Z đáy ${baseZ.toFixed(2)}m vs Z đất ${groundInfo.groundZ.toFixed(2)}m)`,
-        value: `+${(deltaZ * 100).toFixed(1)} cm`,
-        ref: `≤ +${(cfg.groundHoverMax * 100).toFixed(0)} cm`
-      };
-    } else if (deltaZ < cfg.groundSinkMax) {
-      return {
-        id: `${obj.trackId}_${obj.frame}_ground_sink`,
-        frame: obj.frame,
-        trackId: obj.trackId,
-        label: obj.label,
-        check: "ground_mismatch",
-        symbol: "L2",
-        name: "Box lún âm dưới mặt đất",
-        severity: "warning",
-        detail: `Đáy box chìm dưới mặt đất LiDAR thực tế ${(Math.abs(deltaZ) * 100).toFixed(1)}cm (Z đáy ${baseZ.toFixed(2)}m vs Z đất ${groundInfo.groundZ.toFixed(2)}m)`,
-        value: `${(deltaZ * 100).toFixed(1)} cm`,
-        ref: `≥ ${(cfg.groundSinkMax * 100).toFixed(0)} cm`
-      };
-    }
-    return null;
-  }
-  function checkMotionYawMismatch(prevObj, curObj, cfg) {
-    if (curObj.frame - prevObj.frame > cfg.maxFrameGap) {
-      return null;
-    }
-    const vx = curObj.x - prevObj.x;
-    const vy = curObj.y - prevObj.y;
-    const speed = Math.hypot(vx, vy);
-    if (speed < cfg.motionSpeedThreshold) {
-      return null;
-    }
-    const dirX = vx / speed;
-    const dirY = vy / speed;
-    const yawX = Math.cos(curObj.yaw);
-    const yawY = Math.sin(curObj.yaw);
-    const dot = dirX * yawX + dirY * yawY;
-    if (dot < cfg.motionCosThreshold) {
-      const angleDeg = Math.acos(Math.max(-1, Math.min(1, dot))) * (180 / Math.PI);
-      return {
-        id: `${curObj.trackId}_${curObj.frame}_motion_mismatch`,
-        frame: curObj.frame,
-        trackId: curObj.trackId,
-        label: curObj.label,
-        check: "motion_mismatch",
-        symbol: "L3",
-        name: "Đầu xe quay ngược hướng di chuyển",
-        severity: "error",
-        detail: `Xe đang tiến với tốc độ ${speed.toFixed(2)}m/frame nhưng góc đầu xe lệch ${angleDeg.toFixed(0)}° so với hướng di chuyển (nhiều khả năng bị lật ngược đầu 180°)`,
-        value: `${angleDeg.toFixed(0)}°`,
-        ref: `< 90°`
-      };
-    }
-    return null;
-  }
-  function normalizeLabelName(label) {
-    return String(label || "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
-  }
-  function classifyLabelGroup(label, cfg = DEFAULT_QC_CONFIG) {
-    const norm = normalizeLabelName(label);
-    for (const [group, names] of Object.entries(cfg.classGroups)) {
-      if (group === norm) return group;
-      for (const n of names) {
-        const normN = normalizeLabelName(n);
-        if (norm === normN || norm.endsWith("s") && norm.slice(0, -1) === normN) {
-          return group;
-        }
-      }
-    }
-    return "other";
-  }
-  function calcAngleDiffDeg(yawA, yawB) {
-    let diff = (yawB - yawA + Math.PI) % (2 * Math.PI) - Math.PI;
-    if (diff < -Math.PI) diff += 2 * Math.PI;
-    return Math.abs(diff * (180 / Math.PI));
-  }
-  function formatSize(l, w, h2) {
-    return `${l.toFixed(2)} x ${w.toFixed(2)} x ${h2.toFixed(2)}`;
-  }
-  class QCEngine {
-    constructor(customConfig) {
-      __publicField(this, "config");
-      this.config = { ...DEFAULT_QC_CONFIG, ...customConfig || {} };
-    }
-    getConfig() {
-      return this.config;
-    }
-    setConfig(cfg) {
-      this.config = { ...this.config, ...cfg };
-    }
-    /**
-     * S: Kiểm tra đồng bộ scale giữa các frame của 1 track
-     */
-    checkScaleSync(trackObjects) {
-      const issues = [];
-      if (trackObjects.length < 2) return issues;
-      const first = trackObjects[0];
-      const group = first.group;
-      if (!this.config.scaleSyncGroups.includes(group)) {
-        return issues;
-      }
-      const sortedL = trackObjects.map((o) => o.l).sort((a, b) => a - b);
-      const sortedW = trackObjects.map((o) => o.w).sort((a, b) => a - b);
-      const sortedH = trackObjects.map((o) => o.h).sort((a, b) => a - b);
-      const midIdx = Math.floor(trackObjects.length / 2);
-      const refL = sortedL[midIdx];
-      const refW = sortedW[midIdx];
-      const refH = sortedH[midIdx];
-      const refStr = formatSize(refL, refW, refH);
-      const tol = this.config.scaleSyncTol + 1e-9;
-      for (const obj of trackObjects) {
-        const dl = obj.l - refL;
-        const dw = obj.w - refW;
-        const dh = obj.h - refH;
-        if (Math.abs(dl) > tol || Math.abs(dw) > tol || Math.abs(dh) > tol) {
-          const parts = [];
-          if (Math.abs(dl) > tol) parts.push(`L ${dl > 0 ? "+" : ""}${dl.toFixed(2)}m`);
-          if (Math.abs(dw) > tol) parts.push(`W ${dw > 0 ? "+" : ""}${dw.toFixed(2)}m`);
-          if (Math.abs(dh) > tol) parts.push(`H ${dh > 0 ? "+" : ""}${dh.toFixed(2)}m`);
-          issues.push({
-            id: `${obj.trackId}_${obj.frame}_scale`,
-            frame: obj.frame,
-            trackId: obj.trackId,
-            label: obj.label,
-            check: "scale",
-            symbol: "S",
-            name: "Scale không đồng bộ",
-            severity: "error",
-            detail: `Kích thước lệch so với chuẩn trung vị của track (${parts.join(", ")})`,
-            value: formatSize(obj.l, obj.w, obj.h),
-            ref: refStr
-          });
-        }
-      }
-      return issues;
-    }
-    /**
-     * K: Kiểm tra kích thước ngoài catalog class
-     */
-    checkSizeRange(obj) {
-      const limits = this.config.sizeLimits[obj.group];
-      if (!limits) return null;
-      const eps = this.config.sizeEps;
-      const parts = [];
-      let isOver = false;
-      let isUnder = false;
-      if (obj.l > limits.length[1] + eps) {
-        parts.push(`Dài (L) ${obj.l.toFixed(2)} > ${limits.length[1]}`);
-        isOver = true;
-      } else if (obj.l < limits.length[0] - eps) {
-        parts.push(`Dài (L) ${obj.l.toFixed(2)} < ${limits.length[0]}`);
-        isUnder = true;
-      }
-      if (obj.w > limits.width[1] + eps) {
-        parts.push(`Rộng (W) ${obj.w.toFixed(2)} > ${limits.width[1]}`);
-        isOver = true;
-      } else if (obj.w < limits.width[0] - eps) {
-        parts.push(`Rộng (W) ${obj.w.toFixed(2)} < ${limits.width[0]}`);
-        isUnder = true;
-      }
-      if (obj.h > limits.height[1] + eps) {
-        parts.push(`Cao (H) ${obj.h.toFixed(2)} > ${limits.height[1]}`);
-        isOver = true;
-      } else if (obj.h < limits.height[0] - eps) {
-        parts.push(`Cao (H) ${obj.h.toFixed(2)} < ${limits.height[0]}`);
-        isUnder = true;
-      }
-      if (parts.length === 0) return null;
-      const hint = this.config.sizeOverHint[obj.group];
-      const notes = [];
-      if (isOver) notes.push("lớn hơn ngưỡng" + (hint ? ` - ${hint}` : ""));
-      if (isUnder) notes.push("nhỏ hơn ngưỡng");
-      const ref = `L ${limits.length[0]}~${limits.length[1]}, W ${limits.width[0]}~${limits.width[1]}, H ${limits.height[0]}~${limits.height[1]}`;
-      return {
-        id: `${obj.trackId}_${obj.frame}_size`,
-        frame: obj.frame,
-        trackId: obj.trackId,
-        label: obj.label,
-        check: "size",
-        symbol: "K",
-        name: "Kích thước ngoài ngưỡng",
-        severity: "warning",
-        detail: `${parts.join("; ")} (${notes.join("; ")})`,
-        value: formatSize(obj.l, obj.w, obj.h),
-        ref
-      };
-    }
-    /**
-     * Z: Kiểm tra Z ngoài khoảng [-3, 3]
-     */
-    checkZRange(obj) {
-      if (obj.z > this.config.zMax) {
-        return {
-          id: `${obj.trackId}_${obj.frame}_z_max`,
-          frame: obj.frame,
-          trackId: obj.trackId,
-          label: obj.label,
-          check: "z",
-          symbol: "Z",
-          name: "Z cao hơn mặt đường",
-          severity: "warning",
-          detail: `Tâm z = ${obj.z.toFixed(2)}m > ${this.config.zMax}m (obj bay lơ lửng)`,
-          value: `${obj.z.toFixed(2)} m`,
-          ref: `≤ ${this.config.zMax} m`
-        };
-      } else if (obj.z < this.config.zMin) {
-        return {
-          id: `${obj.trackId}_${obj.frame}_z_min`,
-          frame: obj.frame,
-          trackId: obj.trackId,
-          label: obj.label,
-          check: "z",
-          symbol: "Z",
-          name: "Z thấp hơn mặt đường",
-          severity: "warning",
-          detail: `Tâm z = ${obj.z.toFixed(2)}m < ${this.config.zMin}m (obj chìm sâu dưới đất)`,
-          value: `${obj.z.toFixed(2)} m`,
-          ref: `≥ ${this.config.zMin} m`
-        };
-      }
-      return null;
-    }
-    /**
-     * H: Kiểm tra nhảy Yaw đột ngột giữa 2 frame liền kề
-     */
-    checkRotationJump(prevObj, curObj) {
-      if (curObj.frame - prevObj.frame > this.config.maxFrameGap) {
-        return null;
-      }
-      if (!this.config.rotationCheckGroups.includes(curObj.group)) {
-        return null;
-      }
-      const diffDeg = calcAngleDiffDeg(prevObj.yaw, curObj.yaw);
-      if (diffDeg > this.config.maxRotationJumpDeg) {
-        return {
-          id: `${curObj.trackId}_${curObj.frame}_rot`,
-          frame: curObj.frame,
-          trackId: curObj.trackId,
-          label: curObj.label,
-          check: "rot",
-          symbol: "H",
-          name: "Đổi hướng đột ngột (Yaw Jump)",
-          severity: "error",
-          detail: `Hướng xe nhảy đột ngột ${diffDeg.toFixed(1)}° giữa frame ${prevObj.frame} (${prevObj.yawDeg.toFixed(0)}°) và frame ${curObj.frame} (${curObj.yawDeg.toFixed(0)}°)`,
-          value: `${diffDeg.toFixed(1)}°`,
-          ref: `≤ ${this.config.maxRotationJumpDeg}°`
-        };
-      }
-      return null;
-    }
-    /**
-     * D: Kiểm tra khoảng cách quá 100m
-     */
-    checkDistance(obj) {
-      const dist = Math.sqrt(obj.x * obj.x + obj.y * obj.y + obj.z * obj.z);
-      if (dist > this.config.maxDistance) {
-        return {
-          id: `${obj.trackId}_${obj.frame}_dist`,
-          frame: obj.frame,
-          trackId: obj.trackId,
-          label: obj.label,
-          check: "dist",
-          symbol: "D",
-          name: "Quá xa gốc tọa độ (> 100m)",
-          severity: "info",
-          detail: `Tâm cách gốc tọa độ ${dist.toFixed(1)}m (> ${this.config.maxDistance}m): cự ly xa, cần kiểm tra kỹ mây điểm`,
-          value: `${dist.toFixed(1)} m`,
-          ref: `≤ ${this.config.maxDistance} m`
-        };
-      }
-      return null;
-    }
-    /**
-     * O: Kiểm tra chồng lấn BEV giữa các object trong cùng frame
-     */
-    checkFrameOverlaps(frameObjects) {
-      const issues = [];
-      const n = frameObjects.length;
-      if (n < 2) return issues;
-      for (let i = 0; i < n; i++) {
-        for (let j = i + 1; j < n; j++) {
-          const a = frameObjects[i];
-          const b = frameObjects[j];
-          const allowedA = this.config.overlapAllowed[a.group] ?? 0;
-          const allowedB = this.config.overlapAllowed[b.group] ?? 0;
-          const allowed = Math.min(allowedA, allowedB);
-          const overlap = computeBevOverlap(a, b);
-          if (overlap.intersectionArea < this.config.overlapMinArea) {
-            continue;
-          }
-          const metricVal = this.config.overlapMetric === "ioa" ? overlap.ioa : overlap.iou;
-          if (allowed > 0 && metricVal <= allowed) {
-            continue;
-          }
-          const ruleText = allowed <= 0 ? "Không cho phép chồng lấn" : `Cho phép tối đa ${(allowed * 100).toFixed(0)}%`;
-          const statsText = `IoU ${(overlap.iou * 100).toFixed(1)}%, diện tích giao ${overlap.intersectionArea.toFixed(3)}m²`;
-          issues.push({
-            id: `${a.trackId}_${a.frame}_overlap_${b.trackId}`,
-            frame: a.frame,
-            trackId: a.trackId,
-            label: a.label,
-            check: "overlap",
-            symbol: "O",
-            name: "Chồng lấn đối tượng",
-            severity: "error",
-            detail: `Chồng lấn với Track #${b.trackId} (${b.label}): ${statsText}`,
-            value: `${(metricVal * 100).toFixed(1)}%`,
-            ref: ruleText,
-            otherTrackId: b.trackId
-          });
-          issues.push({
-            id: `${b.trackId}_${b.frame}_overlap_${a.trackId}`,
-            frame: b.frame,
-            trackId: b.trackId,
-            label: b.label,
-            check: "overlap",
-            symbol: "O",
-            name: "Chồng lấn đối tượng",
-            severity: "error",
-            detail: `Chồng lấn với Track #${a.trackId} (${a.label}): ${statsText}`,
-            value: `${(metricVal * 100).toFixed(1)}%`,
-            ref: ruleText,
-            otherTrackId: a.trackId
-          });
-        }
-      }
-      return issues;
-    }
-    /**
-     * Kiểm tra nhanh cho một đối tượng được chọn (Quick Focus Mode)
-     */
-    checkSingleObject(obj, allTrackFrames, currentFrameObjects, lidarPoints) {
-      const issues = [];
-      const sizeIssue = this.checkSizeRange(obj);
-      if (sizeIssue) issues.push(sizeIssue);
-      const zIssue = this.checkZRange(obj);
-      if (zIssue) issues.push(zIssue);
-      const distIssue = this.checkDistance(obj);
-      if (distIssue) issues.push(distIssue);
-      const scaleIssues = this.checkScaleSync(allTrackFrames);
-      const thisScaleIssue = scaleIssues.find((iss) => iss.frame === obj.frame);
-      if (thisScaleIssue) issues.push(thisScaleIssue);
-      const sortedTrack = [...allTrackFrames].sort((a, b) => a.frame - b.frame);
-      const curIdx = sortedTrack.findIndex((o) => o.frame === obj.frame);
-      let rotIssue = null;
-      let motionIssue = null;
-      if (curIdx > 0) {
-        const prev = sortedTrack[curIdx - 1];
-        rotIssue = this.checkRotationJump(prev, obj);
-        if (rotIssue) issues.push(rotIssue);
-        motionIssue = checkMotionYawMismatch(prev, obj, this.config);
-        if (motionIssue) issues.push(motionIssue);
-      }
-      const overlapIssues = this.checkFrameOverlaps(currentFrameObjects);
-      const thisOverlapIssues = overlapIssues.filter((iss) => iss.trackId === obj.trackId);
-      issues.push(...thisOverlapIssues);
-      let emptyIssue = null;
-      let groundIssue = null;
-      if (lidarPoints) {
-        emptyIssue = checkEmptyOrSparseBox(obj, lidarPoints, this.config);
-        if (emptyIssue) issues.push(emptyIssue);
-        groundIssue = checkGroundMismatch(obj, lidarPoints, this.config);
-        if (groundIssue) issues.push(groundIssue);
-      }
-      const checksSummary = {
-        scale: {
-          passed: !thisScaleIssue,
-          severity: thisScaleIssue ? thisScaleIssue.severity : "clean",
-          message: thisScaleIssue ? thisScaleIssue.detail : "Kích thước đồng bộ qua các frame",
-          value: formatSize(obj.l, obj.w, obj.h)
-        },
-        size: {
-          passed: !sizeIssue,
-          severity: sizeIssue ? sizeIssue.severity : "clean",
-          message: sizeIssue ? sizeIssue.detail : "Kích thước trong giới hạn Catalog",
-          value: formatSize(obj.l, obj.w, obj.h)
-        },
-        z: {
-          passed: !zIssue,
-          severity: zIssue ? zIssue.severity : "clean",
-          message: zIssue ? zIssue.detail : "Cao độ Z hợp lệ (-3m ~ +3m)",
-          value: `${obj.z.toFixed(2)} m`
-        },
-        rot: {
-          passed: !rotIssue,
-          severity: rotIssue ? rotIssue.severity : "clean",
-          message: rotIssue ? rotIssue.detail : "Hướng xe mượt mà, không bị lật",
-          value: `${obj.yawDeg.toFixed(0)}°`
-        },
-        overlap: {
-          passed: thisOverlapIssues.length === 0,
-          severity: thisOverlapIssues.length > 0 ? "error" : "clean",
-          message: thisOverlapIssues.length > 0 ? thisOverlapIssues[0].detail : "Không bị đè / chồng lấn với xe khác"
-        },
-        dist: {
-          passed: !distIssue,
-          severity: distIssue ? distIssue.severity : "clean",
-          message: distIssue ? distIssue.detail : "Khoảng cách trong tầm LiDAR (< 100m)",
-          value: `${Math.hypot(obj.x, obj.y, obj.z).toFixed(1)} m`
-        },
-        data: {
-          passed: true,
-          severity: "clean",
-          message: "Cấu trúc dữ liệu hợp lệ"
-        },
-        empty_box: {
-          passed: !emptyIssue,
-          severity: emptyIssue ? emptyIssue.severity : "clean",
-          message: emptyIssue ? emptyIssue.detail : lidarPoints ? "Mật độ mây điểm LiDAR tốt" : "Chưa có mây điểm để kiểm tra"
-        },
-        ground_mismatch: {
-          passed: !groundIssue,
-          severity: groundIssue ? groundIssue.severity : "clean",
-          message: groundIssue ? groundIssue.detail : lidarPoints ? "Đáy xe bám sát mặt đường thực tế" : "Chưa có mây điểm để kiểm tra"
-        },
-        motion_mismatch: {
-          passed: !motionIssue,
-          severity: motionIssue ? motionIssue.severity : "clean",
-          message: motionIssue ? motionIssue.detail : "Đầu xe xuôi theo hướng di chuyển"
-        }
-      };
-      let overallStatus = "clean";
-      if (issues.some((i) => i.severity === "error")) {
-        overallStatus = "error";
-      } else if (issues.some((i) => i.severity === "warning")) {
-        overallStatus = "warning";
-      }
-      return {
-        trackId: obj.trackId,
-        frame: obj.frame,
-        label: obj.label,
-        group: obj.group,
-        overallStatus,
-        issues,
-        checks: checksSummary
-      };
-    }
-    /**
-     * Quét toàn bộ Job và tổng hợp kết quả (Full Job QC Report)
-     */
-    runFullJobQC(allObjects, currentLidarPoints, currentFrameNum) {
-      var _a, _b, _c;
-      const allIssues = [];
-      const tracksMap = /* @__PURE__ */ new Map();
-      const framesMap = /* @__PURE__ */ new Map();
-      for (const obj of allObjects) {
-        if (!tracksMap.has(obj.trackId)) tracksMap.set(obj.trackId, []);
-        tracksMap.get(obj.trackId).push(obj);
-        if (!framesMap.has(obj.frame)) framesMap.set(obj.frame, []);
-        framesMap.get(obj.frame).push(obj);
-      }
-      for (const [, trackObjs] of tracksMap.entries()) {
-        trackObjs.sort((a, b) => a.frame - b.frame);
-        const scaleIssues = this.checkScaleSync(trackObjs);
-        allIssues.push(...scaleIssues);
-        for (let i = 1; i < trackObjs.length; i++) {
-          const prev = trackObjs[i - 1];
-          const cur = trackObjs[i];
-          const rotIssue = this.checkRotationJump(prev, cur);
-          if (rotIssue) allIssues.push(rotIssue);
-          const motionIssue = checkMotionYawMismatch(prev, cur, this.config);
-          if (motionIssue) allIssues.push(motionIssue);
-        }
-      }
-      for (const [, frameObjs] of framesMap.entries()) {
-        const overlapIssues = this.checkFrameOverlaps(frameObjs);
-        allIssues.push(...overlapIssues);
-      }
-      for (const obj of allObjects) {
-        const sizeIssue = this.checkSizeRange(obj);
-        if (sizeIssue) allIssues.push(sizeIssue);
-        const zIssue = this.checkZRange(obj);
-        if (zIssue) allIssues.push(zIssue);
-        const distIssue = this.checkDistance(obj);
-        if (distIssue) allIssues.push(distIssue);
-        if (currentLidarPoints && obj.frame === currentFrameNum) {
-          const emptyIssue = checkEmptyOrSparseBox(obj, currentLidarPoints, this.config);
-          if (emptyIssue) allIssues.push(emptyIssue);
-          const groundIssue = checkGroundMismatch(obj, currentLidarPoints, this.config);
-          if (groundIssue) allIssues.push(groundIssue);
-        }
-      }
-      const summaryByCheck = {
-        scale: { count: 0, tracksCount: 0, framesCount: 0 },
-        size: { count: 0, tracksCount: 0, framesCount: 0 },
-        z: { count: 0, tracksCount: 0, framesCount: 0 },
-        rot: { count: 0, tracksCount: 0, framesCount: 0 },
-        overlap: { count: 0, tracksCount: 0, framesCount: 0 },
-        dist: { count: 0, tracksCount: 0, framesCount: 0 },
-        data: { count: 0, tracksCount: 0, framesCount: 0 },
-        empty_box: { count: 0, tracksCount: 0, framesCount: 0 },
-        ground_mismatch: { count: 0, tracksCount: 0, framesCount: 0 },
-        motion_mismatch: { count: 0, tracksCount: 0, framesCount: 0 }
-      };
-      const byTrack = {};
-      const byFrame = {};
-      const matrix = {};
-      const framesList = Array.from(framesMap.keys()).sort((a, b) => a - b);
-      const tracksList = Array.from(tracksMap.keys()).sort((a, b) => a - b);
-      for (const t of tracksList) {
-        matrix[t] = {};
-        const label = ((_b = (_a = tracksMap.get(t)) == null ? void 0 : _a[0]) == null ? void 0 : _b.label) || "Object";
-        byTrack[t] = { trackId: t, label, issues: [], framesWithIssues: [] };
-        for (const f of framesList) {
-          const hasObj = ((_c = tracksMap.get(t)) == null ? void 0 : _c.some((o) => o.frame === f)) || false;
-          matrix[t][f] = {
-            hasObject: hasObj,
-            issues: [],
-            severity: "clean",
-            symbols: []
-          };
-        }
-      }
-      for (const f of framesList) {
-        byFrame[f] = { frame: f, issues: [], tracksWithIssues: [] };
-      }
-      for (const iss of allIssues) {
-        summaryByCheck[iss.check].count++;
-        if (byTrack[iss.trackId]) {
-          byTrack[iss.trackId].issues.push(iss);
-          if (!byTrack[iss.trackId].framesWithIssues.includes(iss.frame)) {
-            byTrack[iss.trackId].framesWithIssues.push(iss.frame);
-          }
-        }
-        if (byFrame[iss.frame]) {
-          byFrame[iss.frame].issues.push(iss);
-          if (!byFrame[iss.frame].tracksWithIssues.includes(iss.trackId)) {
-            byFrame[iss.frame].tracksWithIssues.push(iss.trackId);
-          }
-        }
-        if (matrix[iss.trackId] && matrix[iss.trackId][iss.frame]) {
-          const cell = matrix[iss.trackId][iss.frame];
-          cell.issues.push(iss);
-          if (!cell.symbols.includes(iss.symbol)) {
-            cell.symbols.push(iss.symbol);
-          }
-          if (cell.issues.some((i) => i.severity === "error")) {
-            cell.severity = "error";
-          } else if (cell.severity !== "error") {
-            cell.severity = "warning";
-          }
-        }
-      }
-      for (const checkKey of Object.keys(summaryByCheck)) {
-        const checkIssues = allIssues.filter((i) => i.check === checkKey);
-        const uniqueTracks = new Set(checkIssues.map((i) => i.trackId));
-        const uniqueFrames = new Set(checkIssues.map((i) => i.frame));
-        summaryByCheck[checkKey].tracksCount = uniqueTracks.size;
-        summaryByCheck[checkKey].framesCount = uniqueFrames.size;
-      }
-      return {
-        timestamp: Date.now(),
-        totalTracks: tracksList.length,
-        totalFrames: framesList.length,
-        totalObjects: allObjects.length,
-        totalIssues: allIssues.length,
-        summaryByCheck,
-        allIssues,
-        byTrack,
-        byFrame,
-        matrix,
-        framesList,
-        tracksList
-      };
-    }
-  }
   class QCStudioModal {
     constructor() {
       __publicField(this, "overlay", null);
       __publicField(this, "currentCtx", null);
-      __publicField(this, "engine", new QCEngine());
       __publicField(this, "report", null);
+      __publicField(this, "rawDataset", null);
+      __publicField(this, "config", { ...DEFAULT_DATUMARO_QA_CONFIG });
       __publicField(this, "isLoading", false);
-      // Trạng thái giao diện
-      __publicField(this, "currentTab", "matrix");
-      __publicField(this, "selectedClassFilter", "all");
+      __publicField(this, "loadedFileName", "");
+      // Trạng thái bộ lọc giao diện
+      __publicField(this, "currentTab", "summary");
       __publicField(this, "selectedCheckFilter", "all");
       __publicField(this, "searchKeyword", "");
       this.createOverlay();
@@ -14413,7 +16469,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (this.overlay) {
         this.overlay.style.display = "flex";
       }
-      await this.scanJob();
+      if (!this.report) {
+        await this.scanJobFromCVAT();
+      } else {
+        this.render();
+      }
     }
     close() {
       if (this.overlay) {
@@ -14421,7 +16481,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
     createOverlay() {
-      if (document.getElementById("cvat-3d-qc-studio-modal")) return;
+      if (document.getElementById("cvat-3d-qc-studio-modal")) {
+        this.overlay = document.getElementById("cvat-3d-qc-studio-modal");
+        return;
+      }
       this.overlay = document.createElement("div");
       this.overlay.id = "cvat-3d-qc-studio-modal";
       this.overlay.setAttribute("translate", "no");
@@ -14434,10 +16497,70 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.overlay.style.display = "none";
       this.overlay.style.alignItems = "center";
       this.overlay.style.justifyContent = "center";
-      this.overlay.style.padding = "24px";
+      this.overlay.style.padding = "20px";
       this.overlay.style.fontFamily = "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
       this.overlay.style.userSelect = "none";
       document.body.appendChild(this.overlay);
+      this.overlay.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.showDropOverlay(true);
+      });
+      this.overlay.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.target === this.overlay || e.relatedTarget === null) {
+          this.showDropOverlay(false);
+        }
+      });
+      this.overlay.addEventListener("drop", (e) => {
+        var _a;
+        e.preventDefault();
+        e.stopPropagation();
+        this.showDropOverlay(false);
+        const files = (_a = e.dataTransfer) == null ? void 0 : _a.files;
+        if (files && files.length > 0) {
+          const file = files[0];
+          if (file.name.toLowerCase().endsWith(".json") || file.type === "application/json") {
+            this.loadJsonFile(file);
+          } else {
+            this.showToast("Vui lòng chỉ thả file định dạng JSON (.json)!");
+          }
+        }
+      });
+    }
+    showDropOverlay(show) {
+      if (!this.overlay) return;
+      let dropZone = this.overlay.querySelector("#qc-drop-zone-overlay");
+      if (show) {
+        if (!dropZone) {
+          dropZone = document.createElement("div");
+          dropZone.id = "qc-drop-zone-overlay";
+          dropZone.style.position = "absolute";
+          dropZone.style.inset = "16px";
+          dropZone.style.zIndex = "1000000";
+          dropZone.style.background = "rgba(240, 249, 255, 0.95)";
+          dropZone.style.border = "3px dashed #0284c7";
+          dropZone.style.borderRadius = "16px";
+          dropZone.style.display = "flex";
+          dropZone.style.flexDirection = "column";
+          dropZone.style.alignItems = "center";
+          dropZone.style.justifyContent = "center";
+          dropZone.style.color = "#0369a1";
+          dropZone.style.pointerEvents = "none";
+          dropZone.innerHTML = `
+          <div style="margin-bottom: 12px;">${ICONS.database}</div>
+          <div style="font-size: 18px; font-weight: 700; margin-bottom: 6px;">Thả file JSON Datumaro vào đây</div>
+          <div style="font-size: 13px; color: #0284c7;">Hệ thống sẽ tự động phân tích và chạy 6 bài kiểm định chất lượng</div>
+        `;
+          this.overlay.appendChild(dropZone);
+        }
+        dropZone.style.display = "flex";
+      } else {
+        if (dropZone) {
+          dropZone.style.display = "none";
+        }
+      }
     }
     attachGlobalHotkeys() {
       window.addEventListener("keydown", (e) => {
@@ -14448,58 +16571,118 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       });
     }
     /**
-     * Quét toàn bộ Job và tổng hợp báo cáo QC
+     * Quét tự động toàn bộ Job từ CVAT
      */
-    async scanJob() {
+    async scanJobFromCVAT() {
       var _a;
       if (!((_a = this.currentCtx) == null ? void 0 : _a.jobId)) return;
       this.isLoading = true;
-      this.renderLoading();
+      this.loadedFileName = `CVAT Job #${this.currentCtx.jobId}`;
+      this.renderLoading("Đang trích xuất toàn bộ Job từ CVAT (kể cả frame nội suy)...");
       try {
-        const tracksData = await CVATBridge.getAllJobTracksWithShapes(this.currentCtx.jobId);
-        let curPoints = null;
-        try {
-          const rawPoints = await CVATBridge.getLidarPointsFromScene();
-          if (rawPoints && Array.isArray(rawPoints)) {
-            curPoints = new Float32Array(rawPoints);
-          }
-        } catch (_) {
+        let dataset = await CVATBridge.exportJobDatumaroData(this.currentCtx.jobId);
+        if (!dataset || !Array.isArray(dataset.items) || dataset.items.length === 0) {
+          const tracksData = await CVATBridge.getAllJobTracksWithShapes(this.currentCtx.jobId);
+          dataset = this.convertTracksToDatumaro(tracksData);
         }
-        const curFrame = CVATBridge.getCurrentFrame();
-        const allObjects = [];
-        for (const t of tracksData) {
-          const group = classifyLabelGroup(t.labelName, this.engine.getConfig());
-          for (const s of t.shapes) {
-            if (s.outside) continue;
-            if (!Array.isArray(s.points) || s.points.length < 9) continue;
-            const p = s.points;
-            allObjects.push({
-              frame: s.frame,
-              trackId: t.clientID,
-              label: t.labelName,
-              group,
-              x: p[0],
-              y: p[1],
-              z: p[2],
-              yaw: p[5],
-              yawDeg: p[5] * 180 / Math.PI,
-              l: p[6],
-              w: p[7],
-              h: p[8],
-              outside: s.outside
-            });
-          }
-        }
-        this.report = this.engine.runFullJobQC(allObjects, curPoints, curFrame);
+        this.rawDataset = dataset;
+        this.processDataset(dataset, this.loadedFileName);
       } catch (err) {
         console.error("[QCStudioModal] Lỗi khi quét Job:", err);
+        this.showToast(`Lỗi khi quét Job: ${(err == null ? void 0 : err.message) || err}`);
       } finally {
         this.isLoading = false;
         this.render();
       }
     }
-    renderLoading() {
-      var _a;
+    /**
+     * Xử lý file JSON được người dùng nạp vào
+     */
+    loadJsonFile(file) {
+      this.isLoading = true;
+      this.loadedFileName = file.name;
+      this.renderLoading(`Đang đọc file ${file.name}...`);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        var _a;
+        try {
+          const text = (_a = e.target) == null ? void 0 : _a.result;
+          const dataset = JSON.parse(text);
+          this.rawDataset = dataset;
+          this.processDataset(dataset, file.name);
+        } catch (err) {
+          alert(`Không thể đọc file JSON: ${(err == null ? void 0 : err.message) || err}`);
+        } finally {
+          this.isLoading = false;
+          this.render();
+        }
+      };
+      reader.onerror = () => {
+        this.isLoading = false;
+        alert("Đã xảy ra lỗi khi đọc file từ đĩa");
+        this.render();
+      };
+      reader.readAsText(file);
+    }
+    processDataset(dataset, sourceName) {
+      const { objs, issues, meta } = loadObjects(dataset, this.config);
+      this.report = generateDatumaroQAReport(objs, issues, meta, this.config, sourceName);
+    }
+    convertTracksToDatumaro(tracksData) {
+      const labelsMap = /* @__PURE__ */ new Map();
+      const labelsList = [];
+      const frameItemsMap = /* @__PURE__ */ new Map();
+      let annCounter = 1;
+      for (const t of tracksData) {
+        const labelName = t.labelName || "car";
+        if (!labelsMap.has(labelName)) {
+          labelsMap.set(labelName, labelsList.length);
+          labelsList.push({ name: labelName });
+        }
+        const labelId = labelsMap.get(labelName);
+        const tid = typeof t.clientID === "number" ? Math.max(0, t.clientID - 1) : 0;
+        for (const s of t.shapes || []) {
+          if (!Array.isArray(s.points) || s.points.length < 9) continue;
+          if (s.outside) continue;
+          const p = s.points;
+          const ann = {
+            type: "cuboid_3d",
+            id: annCounter++,
+            label_id: labelId,
+            position: [Number(p[0]), Number(p[1]), Number(p[2])],
+            rotation: [Number(p[3]), Number(p[4]), Number(p[5])],
+            scale: [Math.abs(Number(p[6])), Math.abs(Number(p[7])), Math.abs(Number(p[8]))],
+            attributes: {
+              track_id: tid,
+              outside: false,
+              keyframe: !!s.keyframe
+            }
+          };
+          const list = frameItemsMap.get(s.frame) || [];
+          list.push(ann);
+          frameItemsMap.set(s.frame, list);
+        }
+      }
+      const items = [];
+      const sortedFrames = Array.from(frameItemsMap.keys()).sort((a, b) => a - b);
+      for (const f of sortedFrames) {
+        items.push({
+          id: `frame_${String(f).padStart(6, "0")}`,
+          attr: { frame: f },
+          annotations: frameItemsMap.get(f) || []
+        });
+      }
+      return {
+        dm_format_version: "1.0",
+        categories: {
+          label: {
+            labels: labelsList
+          }
+        },
+        items
+      };
+    }
+    renderLoading(message) {
       if (!this.overlay) return;
       this.overlay.innerHTML = `
       <div style="
@@ -14509,30 +16692,40 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         text-align: center;
         color: #0f172a;
+        border: 1px solid #e2e8f0;
       ">
-        <div style="margin-bottom: 16px; color: #0284c7;">
+        <div style="margin-bottom: 16px; color: #0284c7; display: flex; justify-content: center;">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
         </div>
-        <div style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">Đang quét toàn diện chất lượng Job #${((_a = this.currentCtx) == null ? void 0 : _a.jobId) || ""}...</div>
-        <div style="font-size: 12px; color: #64748b;">Đang đối chiếu Scale, Kích thước, Đổi hướng Yaw, Chồng lấn BEV và Mây điểm LiDAR</div>
+        <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px;">${message}</div>
+        <div style="font-size: 12px; color: #64748b;">Thuật toán Datumaro QA đang chạy (Scale, Size, Z, Rotation, Overlap, Distance)</div>
         <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
       </div>
     `;
     }
     render() {
-      var _a;
       if (!this.overlay) return;
       if (!this.report) {
-        this.overlay.innerHTML = `<div style="background: #ffffff; padding: 24px; border-radius: 8px;">Không thể tạo báo cáo QC.</div>`;
+        this.overlay.innerHTML = `
+        <div style="background: #ffffff; padding: 32px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">Chưa có dữ liệu kiểm định</div>
+          <button id="qc-re-scan-btn" style="padding: 8px 16px; background: #0284c7; color: #ffffff; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">
+            Quét Lại Từ CVAT
+          </button>
+        </div>
+      `;
+        const btn = this.overlay.querySelector("#qc-re-scan-btn");
+        btn == null ? void 0 : btn.addEventListener("click", () => this.scanJobFromCVAT());
         return;
       }
       const rep = this.report;
-      const isClean = rep.totalIssues === 0;
+      const totalIssues = rep.allIssues.length;
+      const isClean = totalIssues === 0 && rep.dataIssues.length === 0;
       this.overlay.innerHTML = `
       <div style="
-        width: 95vw;
-        height: 90vh;
-        max-width: 1400px;
+        width: 96vw;
+        height: 92vh;
+        max-width: 1440px;
         background: #ffffff;
         border-radius: 12px;
         border: 1px solid #e2e8f0;
@@ -14555,8 +16748,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           <!-- TIÊU ĐỀ & TRẠNG THÁI TỔNG THỂ -->
           <div style="display: flex; align-items: center; gap: 12px;">
             <div style="
-              width: 32px;
-              height: 32px;
+              width: 34px;
+              height: 34px;
               border-radius: 8px;
               background: ${isClean ? "#ecfdf5" : "#fef2f2"};
               color: ${isClean ? "#059669" : "#dc2626"};
@@ -14568,7 +16761,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             </div>
             <div>
               <div style="font-size: 14px; font-weight: 700; color: #09090b; display: flex; align-items: center; gap: 8px;">
-                CVAT 3D QC Studio · Job #${((_a = this.currentCtx) == null ? void 0 : _a.jobId) || ""}
+                CVAT 3D QC Studio · ${this.loadedFileName}
                 <span style="
                   font-size: 11px;
                   font-weight: 600;
@@ -14578,497 +16771,558 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                   color: ${isClean ? "#059669" : "#dc2626"};
                   border: 1px solid ${isClean ? "#a7f3d0" : "#fecaca"};
                 ">
-                  ${isClean ? "ĐẠT CHUẨN 100%" : `${rep.totalIssues} CẢNH BÁO / LỖI`}
+                  ${isClean ? "ĐẠT CHUẨN 100%" : `${totalIssues} ISSUES`}
                 </span>
+                ${rep.dataIssues.length > 0 ? `<span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; background: #fffbeb; color: #b45309; border: 1px solid #fde68a;">${rep.dataIssues.length} DATA ISSUES</span>` : ""}
               </div>
-              <div style="font-size: 11px; color: #64748b; margin-top: 1px;">
-                Kiểm định ${rep.totalTracks} Tracks · ${rep.totalFrames} Frames · ${rep.totalObjects} Cuboids
+              <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                Định dạng: Datumaro ${rep.meta.version} · ${rep.meta.n_tracks} Tracks · ${rep.meta.n_items} Frames · ${rep.meta.n_objs} Cuboids
               </div>
             </div>
           </div>
 
-          <!-- THỐNG KÊ COUNTER THEO TỪNG MÃ LỖI -->
-          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-            ${this.renderCounterBadge("S", "Scale lệch", rep.summaryByCheck.scale.count, "#ea580c", "#fff7ed", "#ffedd5")}
-            ${this.renderCounterBadge("K", "Kích thước", rep.summaryByCheck.size.count, "#d97706", "#fffbeb", "#fef3c7")}
-            ${this.renderCounterBadge("Z", "Cao độ Z", rep.summaryByCheck.z.count, "#7c3aed", "#faf5ff", "#f3e8ff")}
-            ${this.renderCounterBadge("H", "Lật Yaw", rep.summaryByCheck.rot.count, "#dc2626", "#fef2f2", "#fee2e2")}
-            ${this.renderCounterBadge("O", "Chồng lấn", rep.summaryByCheck.overlap.count, "#dc2626", "#fef2f2", "#fee2e2")}
-            ${this.renderCounterBadge("D", "Quá xa", rep.summaryByCheck.dist.count, "#475569", "#f8fafc", "#e2e8f0")}
-            ${this.renderCounterBadge("L1", "Box rỗng", rep.summaryByCheck.empty_box.count, "#b45309", "#fffbeb", "#fef3c7")}
-            ${this.renderCounterBadge("L2", "Lệch đất", rep.summaryByCheck.ground_mismatch.count, "#0891b2", "#ecfeff", "#cffafe")}
-            ${this.renderCounterBadge("L3", "Ngược hướng", rep.summaryByCheck.motion_mismatch.count, "#e11d48", "#fff1f2", "#ffe4e6")}
-          </div>
-
-          <!-- NÚT THAO TÁC HEADER -->
+          <!-- NHÓM NÚT HÀNH ĐỘNG -->
           <div style="display: flex; align-items: center; gap: 8px;">
-            <button id="btn-qc-rescan" style="
-              display: flex;
-              align-items: center;
-              gap: 6px;
-              padding: 6px 12px;
-              border-radius: 6px;
-              border: 1px solid #cbd5e1;
-              background: #f8fafc;
-              color: #334155;
-              font-size: 12px;
-              font-weight: 600;
-              cursor: pointer;
+            <input type="file" id="qc-json-file-input" accept=".json" style="display: none;" />
+            <button id="qc-open-file-btn" style="
+              display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600;
+              background: #ffffff; color: #334155; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer;
             ">
-              ${ICONS.refresh} Quét lại
+              ${ICONS.database} Nạp File JSON
             </button>
-            <button id="btn-qc-close" style="
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              width: 28px;
-              height: 28px;
-              border-radius: 6px;
-              border: 1px solid #cbd5e1;
-              background: #f8fafc;
-              color: #64748b;
-              cursor: pointer;
+
+            <button id="qc-rescan-job-btn" style="
+              display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600;
+              background: #0284c7; color: #ffffff; border: none; border-radius: 6px; cursor: pointer;
+            ">
+              ${ICONS.refresh} Quét Lại Job
+            </button>
+
+            <button id="qc-download-csv-btn" style="
+              display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600;
+              background: #059669; color: #ffffff; border: none; border-radius: 6px; cursor: pointer;
+            ">
+              ${ICONS.download} Xuất CSV Excel
+            </button>
+
+            <button id="qc-copy-tsv-btn" style="
+              display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600;
+              background: #ffffff; color: #059669; border: 1px solid #059669; border-radius: 6px; cursor: pointer;
+            ">
+              ${ICONS.copy} Copy TSV
+            </button>
+
+            <button id="qc-close-btn" style="
+              width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+              background: transparent; color: #64748b; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer;
             ">
               ${ICONS.close}
             </button>
           </div>
         </div>
 
-        <!-- TOOLBAR: TABS & BỘ LỌC -->
+        <!-- 6 TAB NAVIGATION -->
         <div style="
-          padding: 8px 20px;
+          display: flex;
+          align-items: center;
+          padding: 0 20px;
           background: #f8fafc;
           border-bottom: 1px solid #e2e8f0;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 12px;
+          gap: 4px;
         ">
-          <!-- TABS SWITCHER -->
-          <div style="display: flex; align-items: center; gap: 4px; background: #e2e8f0; padding: 3px; border-radius: 8px;">
-            <button class="qc-tab-btn" data-tab="matrix" style="
-              display: flex; align-items: center; gap: 6px;
-              padding: 5px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; cursor: pointer;
-              background: ${this.currentTab === "matrix" ? "#ffffff" : "transparent"};
-              color: ${this.currentTab === "matrix" ? "#0f172a" : "#64748b"};
-              box-shadow: ${this.currentTab === "matrix" ? "0 1px 2px rgba(0,0,0,0.05)" : "none"};
-            ">
-              ${ICONS.matrix} Ma Trận Track × Frame
-            </button>
-            <button class="qc-tab-btn" data-tab="by_track" style="
-              display: flex; align-items: center; gap: 6px;
-              padding: 5px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; cursor: pointer;
-              background: ${this.currentTab === "by_track" ? "#ffffff" : "transparent"};
-              color: ${this.currentTab === "by_track" ? "#0f172a" : "#64748b"};
-              box-shadow: ${this.currentTab === "by_track" ? "0 1px 2px rgba(0,0,0,0.05)" : "none"};
-            ">
-              ${ICONS.listCheck} Xem Theo Track
-            </button>
-            <button class="qc-tab-btn" data-tab="all_issues" style="
-              display: flex; align-items: center; gap: 6px;
-              padding: 5px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; cursor: pointer;
-              background: ${this.currentTab === "all_issues" ? "#ffffff" : "transparent"};
-              color: ${this.currentTab === "all_issues" ? "#0f172a" : "#64748b"};
-              box-shadow: ${this.currentTab === "all_issues" ? "0 1px 2px rgba(0,0,0,0.05)" : "none"};
-            ">
-              ${ICONS.alertCircle} Danh Sách Toàn Bộ Lỗi (${rep.totalIssues})
-            </button>
+          ${this.renderTabBtn("summary", "Summary (Tổng Quan)", ICONS.activity, 0)}
+          ${this.renderTabBtn("by_track", "By Track", ICONS.listCheck, rep.byTrack.length)}
+          ${this.renderTabBtn("by_frame", "By Frame", ICONS.ruler, rep.byFrame.length)}
+          ${this.renderTabBtn("matrix", "Matrix (Ma Trận 2D)", ICONS.matrix, totalIssues)}
+          ${this.renderTabBtn("all_issues", "All Issues (Chi Tiết)", ICONS.filter, totalIssues)}
+          ${this.renderTabBtn("data_issues", "Data Issues", ICONS.shieldAlert, rep.dataIssues.length)}
+        </div>
+
+        <!-- TAB CONTENT CONTAINER -->
+        <div id="qc-tab-content" style="
+          flex: 1;
+          overflow: auto;
+          background: #ffffff;
+          padding: 20px;
+        ">
+          ${this.renderActiveTabContent()}
+        </div>
+      </div>
+    `;
+      this.attachEvents();
+    }
+    renderTabBtn(tabId, title, iconSvg, badgeCount) {
+      const isActive = this.currentTab === tabId;
+      return `
+      <button class="qc-tab-btn" data-tab="${tabId}" style="
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 14px;
+        font-size: 12px;
+        font-weight: ${isActive ? "700" : "500"};
+        color: ${isActive ? "#0284c7" : "#64748b"};
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid ${isActive ? "#0284c7" : "transparent"};
+        cursor: pointer;
+        transition: all 0.15s ease;
+      ">
+        ${iconSvg}
+        <span>${title}</span>
+        ${badgeCount > 0 ? `<span style="
+                font-size: 10px;
+                padding: 1px 6px;
+                border-radius: 10px;
+                background: ${isActive ? "#e0f2fe" : "#e2e8f0"};
+                color: ${isActive ? "#0369a1" : "#475569"};
+                font-weight: 600;
+              ">${badgeCount}</span>` : ""}
+      </button>
+    `;
+    }
+    renderActiveTabContent() {
+      if (!this.report) return "";
+      switch (this.currentTab) {
+        case "summary":
+          return this.renderSummaryTab();
+        case "by_track":
+          return this.renderByTrackTab();
+        case "by_frame":
+          return this.renderByFrameTab();
+        case "matrix":
+          return this.renderMatrixTab();
+        case "all_issues":
+          return this.renderAllIssuesTab();
+        case "data_issues":
+          return this.renderDataIssuesTab();
+        default:
+          return "";
+      }
+    }
+    // ==========================================================================
+    // TAB 1: SUMMARY
+    // ==========================================================================
+    renderSummaryTab() {
+      const rep = this.report;
+      const sum = rep.summary;
+      return `
+      <div style="max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
+        <!-- THÔNG TIN CHUNG -->
+        <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+          <div style="padding: 10px 16px; background: #1F4E78; color: #ffffff; font-weight: 700; font-size: 13px;">
+            BÁO CÁO KIỂM TRA CHẤT LƯỢNG DỮ LIỆU 3D (Datumaro QA)
           </div>
-
-          <!-- BỘ LỌC VÀ TÌM KIẾM -->
-          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <!-- Lọc Class -->
-            <select id="qc-filter-class" style="
-              font-size: 12px; padding: 5px 8px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155;
-            ">
-              <option value="all" ${this.selectedClassFilter === "all" ? "selected" : ""}>Tất cả Class</option>
-              <option value="vehicle" ${this.selectedClassFilter === "vehicle" ? "selected" : ""}>Ô tô (Vehicle)</option>
-              <option value="two_wheel" ${this.selectedClassFilter === "two_wheel" ? "selected" : ""}>Xe 2 bánh</option>
-              <option value="pedestrian" ${this.selectedClassFilter === "pedestrian" ? "selected" : ""}>Người đi bộ</option>
-            </select>
-
-            <!-- Lọc Loại lỗi -->
-            <select id="qc-filter-check" style="
-              font-size: 12px; padding: 5px 8px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155;
-            ">
-              <option value="all" ${this.selectedCheckFilter === "all" ? "selected" : ""}>Tất cả loại lỗi</option>
-              <option value="scale" ${this.selectedCheckFilter === "scale" ? "selected" : ""}>[S] Scale không đồng bộ</option>
-              <option value="size" ${this.selectedCheckFilter === "size" ? "selected" : ""}>[K] Kích thước ngoài Catalog</option>
-              <option value="z" ${this.selectedCheckFilter === "z" ? "selected" : ""}>[Z] Z ngoài khoảng mặt đường</option>
-              <option value="rot" ${this.selectedCheckFilter === "rot" ? "selected" : ""}>[H] Đổi hướng Yaw đột ngột</option>
-              <option value="overlap" ${this.selectedCheckFilter === "overlap" ? "selected" : ""}>[O] Chồng lấn đối tượng</option>
-              <option value="dist" ${this.selectedCheckFilter === "dist" ? "selected" : ""}>[D] Quá xa (> 100m)</option>
-              <option value="empty_box" ${this.selectedCheckFilter === "empty_box" ? "selected" : ""}>[L1] Box rỗng / Quá ít điểm</option>
-              <option value="ground_mismatch" ${this.selectedCheckFilter === "ground_mismatch" ? "selected" : ""}>[L2] Lệch mây điểm mặt đất</option>
-              <option value="motion_mismatch" ${this.selectedCheckFilter === "motion_mismatch" ? "selected" : ""}>[L3] Ngược hướng di chuyển</option>
-            </select>
-
-            <!-- Tìm kiếm -->
-            <input id="qc-search-kw" type="text" placeholder="Tìm #Track hoặc Frame..." value="${this.searchKeyword}" style="
-              font-size: 12px; padding: 5px 10px; border-radius: 6px; border: 1px solid #cbd5e1; width: 160px; outline: none;
-            " />
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; padding: 16px; background: #ffffff;">
+            <div><strong style="color: #64748b;">Nguồn / File:</strong> <span style="font-weight: 600; color: #09090b;">${sum.inPath}</span></div>
+            <div><strong style="color: #64748b;">Thời gian chạy:</strong> <span>${sum.runTime}</span></div>
+            <div><strong style="color: #64748b;">Phiên bản Datumaro:</strong> <span>${sum.version}</span></div>
+            <div><strong style="color: #64748b;">Số Frame (Items):</strong> <span>${sum.nItems}</span></div>
+            <div><strong style="color: #64748b;">Số Cuboid 3D:</strong> <span>${sum.nObjs}</span></div>
+            <div><strong style="color: #64748b;">Số Track ID:</strong> <span>${sum.nTracks}</span></div>
+            <div><strong style="color: #64748b;">Track ID Hiển Thị:</strong> <span>${sum.trackOffsetInfo}</span></div>
           </div>
         </div>
 
-        <!-- MAIN VIEW CONTAINER -->
-        <div style="flex: 1; overflow: auto; background: #ffffff; position: relative;">
-          ${this.currentTab === "matrix" ? this.renderMatrixView(rep) : ""}
-          ${this.currentTab === "by_track" ? this.renderByTrackView(rep) : ""}
-          ${this.currentTab === "all_issues" ? this.renderAllIssuesView(rep) : ""}
+        <!-- BẢNG THỐNG KÊ 6 BÀI KIỂM ĐỊNH -->
+        <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+          <div style="padding: 10px 16px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: 700; font-size: 13px; color: #0f172a;">
+            Thống Kê Theo Từng Bài Kiểm Tra
+          </div>
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 12px;">
+            <thead>
+              <tr style="background: #1F4E78; color: #ffffff;">
+                <th style="padding: 8px 12px; border: 1px solid #cbd5e1;">Kiểm tra</th>
+                <th style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: center;">Ký hiệu (Matrix)</th>
+                <th style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: right;">Số issue (track × frame)</th>
+                <th style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: right;">Số track bị ảnh hưởng</th>
+                <th style="padding: 8px 12px; border: 1px solid #cbd5e1; text-align: right;">Số frame bị ảnh hưởng</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sum.checkStats.map(
+        (s, idx) => `
+                <tr style="background: ${idx % 2 === 0 ? "#ffffff" : "#f8fafc"};">
+                  <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 600;">${s.name}</td>
+                  <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: center; font-weight: 700; color: #0284c7;">${s.code}</td>
+                  <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: right; font-weight: ${s.issueCount > 0 ? "700" : "400"}; color: ${s.issueCount > 0 ? "#dc2626" : "#475569"};">${s.issueCount}</td>
+                  <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: right;">${s.trackCount}</td>
+                  <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: right;">${s.frameCount}</td>
+                </tr>
+              `
+      ).join("")}
+              <tr style="background: #fffbeb;">
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 600; color: #b45309;">Lỗi dữ liệu (Data_Issues)</td>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: center; font-weight: 700; color: #b45309;">!</td>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: right; font-weight: 700; color: #b45309;">${sum.dataIssueCount}</td>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: right; color: #94a3b8;">-</td>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0; text-align: right; color: #94a3b8;">-</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <!-- FOOTER BAR -->
+        <!-- BẢNG CẤU HÌNH THAM SỐ ĐANG DÙNG -->
+        <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+          <div style="padding: 10px 16px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: 700; font-size: 13px; color: #0f172a;">
+            Tham Số Ngưỡng Kiểm Định (Active Config)
+          </div>
+          <div style="padding: 12px; max-height: 240px; overflow-y: auto; background: #ffffff; font-family: monospace; font-size: 11px;">
+            <pre style="margin: 0; white-space: pre-wrap;">${JSON.stringify(sum.activeConfig, null, 2)}</pre>
+          </div>
+        </div>
+      </div>
+    `;
+    }
+    // ==========================================================================
+    // TAB 2: BY TRACK
+    // ==========================================================================
+    renderByTrackTab() {
+      const rep = this.report;
+      if (rep.byTrack.length === 0) {
+        return `<div style="text-align: center; padding: 40px; color: #059669; font-weight: 600;">Không có track nào gặp lỗi!</div>`;
+      }
+      return `
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+          <thead>
+            <tr style="background: #1F4E78; color: #ffffff;">
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Track ID</th>
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Class</th>
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: center;">Số frame</th>
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: center;">Đầu</th>
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: center;">Cuối</th>
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: right;">Tổng lỗi</th>
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: right;">Số frame lỗi</th>
+              ${CHECKS_LIST.map((c) => `<th style="padding: 8px 10px; border: 1px solid #cbd5e1;">${c.name}</th>`).join("")}
+            </tr>
+          </thead>
+          <tbody>
+            ${rep.byTrack.map(
+        (t, idx) => `
+              <tr style="background: ${idx % 2 === 0 ? "#ffffff" : "#f8fafc"};">
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0; font-weight: 700; color: #0284c7;">${t.track}</td>
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0;">${t.label}</td>
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0; text-align: center;">${t.presenceCount}</td>
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0; text-align: center;">${t.firstFrame ?? ""}</td>
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0; text-align: center;">${t.lastFrame ?? ""}</td>
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0; text-align: right; font-weight: 700; color: #dc2626;">${t.totalIssues}</td>
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0; text-align: right;">${t.issueFramesCount}</td>
+                ${CHECKS_LIST.map((c) => {
+          const val = t.checkFrames[c.key] || "";
+          return `<td style="padding: 6px 10px; border: 1px solid #e2e8f0; font-size: 11px;">${this.renderClickableFrameList(t.track, val)}</td>`;
+        }).join("")}
+              </tr>
+            `
+      ).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+    }
+    // ==========================================================================
+    // TAB 3: BY FRAME
+    // ==========================================================================
+    renderByFrameTab() {
+      const rep = this.report;
+      if (rep.byFrame.length === 0) {
+        return `<div style="text-align: center; padding: 40px; color: #059669; font-weight: 600;">Không có frame nào gặp lỗi!</div>`;
+      }
+      return `
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+          <thead>
+            <tr style="background: #1F4E78; color: #ffffff;">
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Frame</th>
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Item ID</th>
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: center;">Số obj</th>
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: right;">Tổng lỗi</th>
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: right;">Số track lỗi</th>
+              ${CHECKS_LIST.map((c) => `<th style="padding: 8px 10px; border: 1px solid #cbd5e1;">${c.name}</th>`).join("")}
+            </tr>
+          </thead>
+          <tbody>
+            ${rep.byFrame.map(
+        (f, idx) => `
+              <tr style="background: ${idx % 2 === 0 ? "#ffffff" : "#f8fafc"};">
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0; font-weight: 700; color: #0284c7;">
+                  <a href="javascript:void(0)" class="qc-jump-frame-link" data-frame="${f.frame}" style="color: #0284c7; text-decoration: underline;">
+                    Frame ${f.frame}
+                  </a>
+                </td>
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0; color: #64748b;">${f.itemId}</td>
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0; text-align: center;">${f.objCount}</td>
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0; text-align: right; font-weight: 700; color: #dc2626;">${f.totalIssues}</td>
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0; text-align: right;">${f.issueTracksCount}</td>
+                ${CHECKS_LIST.map((c) => {
+          const val = f.checkTracks[c.key] || "";
+          return `<td style="padding: 6px 10px; border: 1px solid #e2e8f0; font-size: 11px;">${this.renderClickableTrackList(f.frame, val)}</td>`;
+        }).join("")}
+              </tr>
+            `
+      ).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+    }
+    // ==========================================================================
+    // TAB 4: MATRIX (MA TRẬN 2D TRACK × FRAME)
+    // ==========================================================================
+    renderMatrixTab() {
+      const rep = this.report;
+      const allFrames = rep.matrix.allFrames;
+      const rows = rep.matrix.rows;
+      return `
+      <div>
+        <!-- CHÚ THÍCH KÝ HIỆU & MÀU SẮC (KHỚP 100% EXCEL datumaro_qa.py) -->
         <div style="
-          padding: 8px 20px;
-          background: #f8fafc;
-          border-top: 1px solid #e2e8f0;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          font-size: 11px;
-          color: #64748b;
+          margin-bottom: 14px; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+          display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 11px;
         ">
           <div>
-            💡 Nhấp vào ô bất kỳ trên Ma trận hoặc nút [Đến Frame] để tự động nhảy Timeline & focus camera 3D Three.js.
+            <strong>Ký hiệu lỗi:</strong>
+            ${CHECKS_LIST.map((c) => `<span style="margin-left: 8px;"><strong>${c.code}</strong> = ${c.name}</span>`).join(" | ")}
           </div>
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <span style="width: 10px; height: 10px; border-radius: 2px; background: #ecfdf5; border: 1px solid #a7f3d0; display: inline-block;"></span>
-              Đạt chuẩn
+              <span style="width: 14px; height: 14px; background: #E2EFDA; border: 1px solid #cbd5e1; border-radius: 2px;"></span> Có mặt, sạch
             </span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <span style="width: 10px; height: 10px; border-radius: 2px; background: #fef9c3; border: 1px solid #fde047; display: inline-block;"></span>
-              Cảnh báo (1 lỗi)
+              <span style="width: 14px; height: 14px; background: #FFE699; border: 1px solid #cbd5e1; border-radius: 2px;"></span> 1 loại issue
             </span>
             <span style="display: inline-flex; align-items: center; gap: 4px;">
-              <span style="width: 10px; height: 10px; border-radius: 2px; background: #fee2e2; border: 1px solid #fca5a5; display: inline-block;"></span>
-              Lỗi nghiêm trọng (≥ 2 lỗi / Lỗi S, H, O)
+              <span style="width: 14px; height: 14px; background: #F4B084; border: 1px solid #cbd5e1; border-radius: 2px;"></span> ≥ 2 loại issue
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 4px;">
+              <span style="width: 14px; height: 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 2px;"></span> Không có mặt
             </span>
           </div>
         </div>
-      </div>
-    `;
-      this.attachEventListeners();
-    }
-    renderCounterBadge(code, name, count, color, bg, border) {
-      const isZero = count === 0;
-      return `
-      <div style="
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 2px 7px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 600;
-        background: ${isZero ? "#f8fafc" : bg};
-        color: ${isZero ? "#94a3b8" : color};
-        border: 1px solid ${isZero ? "#e2e8f0" : border};
-      ">
-        <span style="font-weight: 700;">${code}</span>
-        <span>${count}</span>
-      </div>
-    `;
-    }
-    // =========================================================================
-    // VIEW 1: MATRIX VIEW (TRACK × FRAME)
-    // =========================================================================
-    renderMatrixView(rep) {
-      const filteredTracks = rep.tracksList.filter((tid) => {
-        const trData = rep.byTrack[tid];
-        if (!trData) return false;
-        if (this.selectedClassFilter !== "all") {
-          const grp = classifyLabelGroup(trData.label, this.engine.getConfig());
-          if (grp !== this.selectedClassFilter) return false;
-        }
-        if (this.searchKeyword.trim()) {
-          const kw = this.searchKeyword.trim().toLowerCase().replace("#", "");
-          const matchId = String(tid).includes(kw);
-          const matchLabel = trData.label.toLowerCase().includes(kw);
-          if (!matchId && !matchLabel) return false;
-        }
-        if (this.selectedCheckFilter !== "all") {
-          const hasCheck = trData.issues.some((i) => i.check === this.selectedCheckFilter);
-          if (!hasCheck) return false;
-        }
-        return true;
-      });
-      if (filteredTracks.length === 0) {
+
+        <!-- BẢNG MA TRẬN CUỘN NGANG -->
+        <div style="overflow-x: auto; max-height: calc(92vh - 220px); border: 1px solid #e2e8f0; border-radius: 6px;">
+          <table style="border-collapse: separate; border-spacing: 0; font-size: 11px; text-align: center;">
+            <thead>
+              <tr style="position: sticky; top: 0; z-index: 20; background: #1F4E78; color: #ffffff;">
+                <th style="position: sticky; left: 0; z-index: 30; background: #1F4E78; padding: 6px 10px; border: 1px solid #475569; min-width: 70px;">Track</th>
+                <th style="position: sticky; left: 70px; z-index: 30; background: #1F4E78; padding: 6px 10px; border: 1px solid #475569; min-width: 90px;">Class</th>
+                <th style="position: sticky; left: 160px; z-index: 30; background: #1F4E78; padding: 6px 8px; border: 1px solid #475569; min-width: 60px;">Tổng lỗi</th>
+                ${allFrames.map((f) => `<th style="padding: 6px 4px; border: 1px solid #475569; min-width: 32px;">${f}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map((r, rIdx) => {
+        const bgSticky = rIdx % 2 === 0 ? "#ffffff" : "#f8fafc";
         return `
-        <div style="padding: 40px; text-align: center; color: #94a3b8; font-size: 13px;">
-          Không tìm thấy Track nào khớp với bộ lọc hiện tại.
-        </div>
-      `;
-      }
-      const headerCols = rep.framesList.map(
-        (f) => `
-        <th style="
-          padding: 6px 8px;
-          min-width: 38px;
-          max-width: 38px;
-          text-align: center;
-          font-size: 10px;
-          font-family: monospace;
-          color: #475569;
-          border-right: 1px solid #f1f5f9;
-          background: #f8fafc;
-          position: sticky;
-          top: 0;
-          z-index: 10;
-        ">
-          ${f}
-        </th>
-      `
-      ).join("");
-      const rows = filteredTracks.map((tid) => {
-        const trData = rep.byTrack[tid];
-        const label = (trData == null ? void 0 : trData.label) || "Object";
-        const cells = rep.framesList.map((f) => {
-          var _a;
-          const cell = (_a = rep.matrix[tid]) == null ? void 0 : _a[f];
-          if (!cell || !cell.hasObject) {
-            return `<td style="border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; background: #fafafa;"></td>`;
+                  <tr>
+                    <td style="position: sticky; left: 0; z-index: 10; background: ${bgSticky}; padding: 6px 10px; border: 1px solid #e2e8f0; font-weight: 700; color: #0284c7;">
+                      ${r.track}
+                    </td>
+                    <td style="position: sticky; left: 70px; z-index: 10; background: ${bgSticky}; padding: 6px 10px; border: 1px solid #e2e8f0; text-align: left; white-space: nowrap;">
+                      ${r.label}
+                    </td>
+                    <td style="position: sticky; left: 160px; z-index: 10; background: ${bgSticky}; padding: 6px 8px; border: 1px solid #e2e8f0; font-weight: 700; color: ${r.totalIssues > 0 ? "#dc2626" : "#475569"};">
+                      ${r.totalIssues}
+                    </td>
+                    ${allFrames.map((f) => {
+          const cell = r.cells[f];
+          if (!cell || !cell.present) {
+            return `<td style="padding: 4px; border: 1px solid #f1f5f9; background: #ffffff;"></td>`;
           }
-          let bg = "#ecfdf5";
-          let textCol = "#059669";
-          let text = "✓";
-          if (cell.severity === "error") {
-            bg = "#fee2e2";
-            textCol = "#dc2626";
-            text = cell.symbols.join("");
-          } else if (cell.severity === "warning") {
-            bg = "#fef9c3";
-            textCol = "#d97706";
-            text = cell.symbols.join("");
+          if (cell.codes.length === 0) {
+            return `<td class="qc-matrix-cell" data-track="${r.track}" data-frame="${f}" style="padding: 4px; border: 1px solid #e2e8f0; background: #E2EFDA; cursor: pointer;" title="Track ${r.track} tại Frame ${f}: Sạch"></td>`;
           }
-          const tooltip = cell.issues.map((i) => `[${i.symbol}] ${i.name}: ${i.detail}`).join("\n");
+          const cellBg = cell.codes.length >= 2 ? "#F4B084" : "#FFE699";
           return `
-              <td class="qc-matrix-cell" data-track="${tid}" data-frame="${f}" title="${tooltip.replace(/"/g, "&quot;")}" style="
-                padding: 4px 2px;
-                min-width: 38px;
-                max-width: 38px;
-                text-align: center;
-                font-size: 10px;
-                font-weight: 700;
-                font-family: monospace;
-                background: ${bg};
-                color: ${textCol};
-                border-right: 1px solid #f1f5f9;
-                border-bottom: 1px solid #f1f5f9;
-                cursor: pointer;
-              ">
-                ${text}
-              </td>
-            `;
-        }).join("");
-        return `
-          <tr>
-            <td style="
-              padding: 6px 12px;
-              min-width: 140px;
-              max-width: 140px;
-              background: #ffffff;
-              border-right: 2px solid #e2e8f0;
-              border-bottom: 1px solid #f1f5f9;
-              position: sticky;
-              left: 0;
-              z-index: 5;
-            ">
-              <div style="font-size: 12px; font-weight: 700; color: #09090b; display: flex; align-items: center; gap: 6px;">
-                <span>#${tid}</span>
-                <span style="font-size: 10px; font-weight: 500; color: #64748b; background: #f1f5f9; padding: 1px 5px; border-radius: 4px;">${label}</span>
-              </div>
-            </td>
-            ${cells}
-          </tr>
-        `;
-      }).join("");
-      return `
-      <table style="border-collapse: separate; border-spacing: 0; width: 100%; text-align: left;">
-        <thead>
-          <tr>
-            <th style="
-              padding: 6px 12px;
-              min-width: 140px;
-              background: #f8fafc;
-              border-right: 2px solid #e2e8f0;
-              border-bottom: 1px solid #e2e8f0;
-              font-size: 11px;
-              font-weight: 600;
-              color: #475569;
-              position: sticky;
-              top: 0;
-              left: 0;
-              z-index: 20;
-            ">
-              Track ID / Frame
-            </th>
-            ${headerCols}
-          </tr>
-        </thead>
-        <tbody>
-          ${rows}
-        </tbody>
-      </table>
+                          <td class="qc-matrix-cell" data-track="${r.track}" data-frame="${f}" style="
+                            padding: 4px; border: 1px solid #cbd5e1; background: ${cellBg}; font-weight: 700; color: #000000; cursor: pointer;
+                          " title="Track ${r.track} tại Frame ${f}: ${cell.codes.join(", ")} (Click nhảy tới CVAT)">
+                            ${cell.codes.join("")}
+                          </td>
+                        `;
+        }).join("")}
+                  </tr>
+                `;
+      }).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
     `;
     }
-    // =========================================================================
-    // VIEW 2: BY TRACK VIEW
-    // =========================================================================
-    renderByTrackView(rep) {
-      const tracksWithIssues = Object.values(rep.byTrack).filter((t) => t.issues.length > 0);
-      if (tracksWithIssues.length === 0) {
-        return `
-        <div style="padding: 48px; text-align: center; color: #059669;">
-          <div style="margin-bottom: 8px;">${ICONS.checkCircle}</div>
-          <div style="font-size: 14px; font-weight: 600;">Tuyệt vời! Không có Track nào bị lỗi.</div>
-        </div>
-      `;
+    // ==========================================================================
+    // TAB 5: ALL ISSUES (BẢNG TOÀN BỘ LỖI CHI TIẾT)
+    // ==========================================================================
+    renderAllIssuesTab() {
+      const rep = this.report;
+      let issues = rep.allIssues;
+      if (this.selectedCheckFilter !== "all") {
+        issues = issues.filter((i) => i.check === this.selectedCheckFilter);
       }
-      const rows = tracksWithIssues.map((t) => {
-        const sortedFrames = [...t.framesWithIssues].sort((a, b) => a - b);
-        const compressed = [];
-        let i = 0;
-        while (i < sortedFrames.length) {
-          let j = i;
-          while (j + 1 < sortedFrames.length && sortedFrames[j + 1] === sortedFrames[j] + 1) {
-            j++;
-          }
-          compressed.push(i === j ? `${sortedFrames[i]}` : `${sortedFrames[i]}-${sortedFrames[j]}`);
-          i = j + 1;
-        }
-        const firstErrFrame = sortedFrames[0];
-        const issuesSummary = t.issues.reduce((acc, cur) => {
-          acc[cur.symbol] = (acc[cur.symbol] || 0) + 1;
-          return acc;
-        }, {});
-        const badges = Object.entries(issuesSummary).map(([sym, count]) => `<span style="padding: 2px 6px; border-radius: 4px; background: #fee2e2; color: #dc2626; font-size: 10px; font-weight: bold; margin-right: 4px;">${sym} (${count})</span>`).join("");
-        return `
-          <tr style="border-bottom: 1px solid #f1f5f9;">
-            <td style="padding: 10px 14px; font-weight: 700; color: #09090b;">
-              #${t.trackId} <span style="font-size: 11px; font-weight: normal; color: #64748b;">(${t.label})</span>
-            </td>
-            <td style="padding: 10px 14px;">
-              ${badges}
-            </td>
-            <td style="padding: 10px 14px; font-family: monospace; font-size: 12px; color: #0f172a;">
-              ${compressed.join(", ")} <span style="color: #64748b;">(${sortedFrames.length} frames)</span>
-            </td>
-            <td style="padding: 10px 14px; text-align: right;">
-              <button class="qc-btn-jump" data-track="${t.trackId}" data-frame="${firstErrFrame}" style="
-                padding: 4px 10px;
-                border-radius: 6px;
-                border: 1px solid #bfdbfe;
-                background: #eff6ff;
-                color: #1d4ed8;
-                font-size: 11px;
-                font-weight: 600;
-                cursor: pointer;
-              ">
-                Đến Frame ${firstErrFrame} ➔
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join("");
+      if (this.searchKeyword.trim() !== "") {
+        const kw = this.searchKeyword.toLowerCase().trim();
+        issues = issues.filter(
+          (i) => String(i.track).toLowerCase().includes(kw) || String(i.frame).toLowerCase().includes(kw) || i.label.toLowerCase().includes(kw) || i.detail.toLowerCase().includes(kw) || String(i.other).toLowerCase().includes(kw)
+        );
+      }
       return `
-      <div style="padding: 16px 20px;">
+      <div>
+        <!-- THANH CÔNG CỤ LỌC & TÌM KIẾM -->
+        <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input
+              type="text"
+              id="qc-search-kw-input"
+              value="${this.searchKeyword}"
+              placeholder="Tìm theo Track ID, Frame, Label, Mô tả..."
+              style="padding: 6px 12px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 6px; width: 260px;"
+            />
+            <select id="qc-check-filter-select" style="padding: 6px 10px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
+              <option value="all" ${this.selectedCheckFilter === "all" ? "selected" : ""}>Tất cả kiểm tra (${rep.allIssues.length})</option>
+              ${CHECKS_LIST.map(
+        (c) => `
+                <option value="${c.key}" ${this.selectedCheckFilter === c.key ? "selected" : ""}>
+                  ${c.code} - ${c.name} (${rep.allIssues.filter((i) => i.check === c.key).length})
+                </option>
+              `
+      ).join("")}
+            </select>
+          </div>
+
+          <div style="font-size: 12px; color: #64748b;">
+            Hiển thị <strong>${issues.length}</strong> / ${rep.allIssues.length} issues
+          </div>
+        </div>
+
+        <!-- BẢNG DANH SÁCH CHI TIẾT -->
+        <div style="overflow-x: auto; max-height: calc(92vh - 220px); border: 1px solid #e2e8f0; border-radius: 6px;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+            <thead>
+              <tr style="position: sticky; top: 0; z-index: 10; background: #1F4E78; color: #ffffff;">
+                <th style="padding: 8px 10px; border: 1px solid #475569;">Frame</th>
+                <th style="padding: 8px 10px; border: 1px solid #475569;">Item ID</th>
+                <th style="padding: 8px 10px; border: 1px solid #475569;">Track ID</th>
+                <th style="padding: 8px 10px; border: 1px solid #475569;">Class</th>
+                <th style="padding: 8px 10px; border: 1px solid #475569;">Loại kiểm tra</th>
+                <th style="padding: 8px 10px; border: 1px solid #475569;">Mô tả</th>
+                <th style="padding: 8px 10px; border: 1px solid #475569;">Giá trị</th>
+                <th style="padding: 8px 10px; border: 1px solid #475569;">Ngưỡng / Chuẩn</th>
+                <th style="padding: 8px 10px; border: 1px solid #475569;">Track liên quan</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${issues.length === 0 ? `<tr><td colspan="9" style="text-align: center; padding: 30px; color: #64748b;">Không tìm thấy issue nào khớp với bộ lọc</td></tr>` : issues.map(
+        (r, idx) => `
+                    <tr class="qc-issue-row" data-track="${r.track}" data-frame="${r.frame}" style="
+                      background: ${idx % 2 === 0 ? "#ffffff" : "#f8fafc"}; cursor: pointer; transition: background 0.1s ease;
+                    ">
+                      <td style="padding: 6px 10px; border: 1px solid #e2e8f0; font-weight: 700; color: #0284c7;">${r.frame}</td>
+                      <td style="padding: 6px 10px; border: 1px solid #e2e8f0; color: #64748b;">${r.item_id}</td>
+                      <td style="padding: 6px 10px; border: 1px solid #e2e8f0; font-weight: 700;">${r.track}</td>
+                      <td style="padding: 6px 10px; border: 1px solid #e2e8f0;">${r.label}</td>
+                      <td style="padding: 6px 10px; border: 1px solid #e2e8f0; font-weight: 600; color: #0369a1;">${CHECK_NAME[r.check] || r.check}</td>
+                      <td style="padding: 6px 10px; border: 1px solid #e2e8f0;">${r.detail}</td>
+                      <td style="padding: 6px 10px; border: 1px solid #e2e8f0; font-family: monospace;">${r.value}</td>
+                      <td style="padding: 6px 10px; border: 1px solid #e2e8f0; color: #64748b;">${r.ref}</td>
+                      <td style="padding: 6px 10px; border: 1px solid #e2e8f0; font-weight: 600; color: #b45309;">${r.other}</td>
+                    </tr>
+                  `
+      ).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    }
+    // ==========================================================================
+    // TAB 6: DATA ISSUES
+    // ==========================================================================
+    renderDataIssuesTab() {
+      const rep = this.report;
+      if (rep.dataIssues.length === 0) {
+        return `<div style="text-align: center; padding: 40px; color: #059669; font-weight: 600;">Không có lỗi dữ liệu cấu trúc (Data Issues Clean 100%)!</div>`;
+      }
+      return `
+      <div style="overflow-x: auto;">
         <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
           <thead>
-            <tr style="border-bottom: 1px solid #e2e8f0; background: #f8fafc; color: #475569; font-size: 11px;">
-              <th style="padding: 8px 14px;">Track ID</th>
-              <th style="padding: 8px 14px;">Các loại lỗi gặp phải</th>
-              <th style="padding: 8px 14px;">Danh sách Frame bị lỗi</th>
-              <th style="padding: 8px 14px; text-align: right;">Thao tác</th>
+            <tr style="background: #1F4E78; color: #ffffff;">
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Loại</th>
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1; text-align: center;">Frame</th>
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Item ID</th>
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Annotation ID</th>
+              <th style="padding: 8px 10px; border: 1px solid #cbd5e1;">Chi tiết</th>
             </tr>
           </thead>
           <tbody>
-            ${rows}
+            ${rep.dataIssues.map(
+        (i, idx) => `
+              <tr style="background: ${idx % 2 === 0 ? "#ffffff" : "#f8fafc"};">
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0; font-weight: 700; color: #b45309;">${i.kind}</td>
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0; text-align: center; font-weight: 600;">${i.frame}</td>
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0; color: #64748b;">${i.item_id}</td>
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0;">${i.ann_id}</td>
+                <td style="padding: 6px 10px; border: 1px solid #e2e8f0;">${i.detail}</td>
+              </tr>
+            `
+      ).join("")}
           </tbody>
         </table>
       </div>
     `;
     }
-    // =========================================================================
-    // VIEW 3: ALL ISSUES VIEW
-    // =========================================================================
-    renderAllIssuesView(rep) {
-      const filteredIssues = rep.allIssues.filter((iss) => {
-        if (this.selectedCheckFilter !== "all" && iss.check !== this.selectedCheckFilter) {
-          return false;
-        }
-        if (this.searchKeyword.trim()) {
-          const kw = this.searchKeyword.trim().toLowerCase().replace("#", "");
-          const matchTrack = String(iss.trackId).includes(kw);
-          const matchFrame = String(iss.frame).includes(kw);
-          const matchName = iss.name.toLowerCase().includes(kw);
-          if (!matchTrack && !matchFrame && !matchName) return false;
-        }
-        return true;
+    // ==========================================================================
+    // CÁC HÀM TIỆN ÍCH HIỂN THỊ LINK & GẮN SỰ KIỆN TƯƠNG TÁC
+    // ==========================================================================
+    renderClickableFrameList(track, compressedStr) {
+      if (!compressedStr) return "";
+      const match = compressedStr.match(/^(.*?)\s*\((\d+)\)$/);
+      if (!match) return compressedStr;
+      const ranges = match[1].split(",");
+      const count = match[2];
+      const links = ranges.map((r) => {
+        const trimmed = r.trim();
+        const parts = trimmed.split("-");
+        const firstFrame = parseInt(parts[0], 10);
+        return `<a href="javascript:void(0)" class="qc-jump-track-frame" data-track="${track}" data-frame="${firstFrame}" style="color: #0284c7; text-decoration: underline;" title="Nhảy tới Frame ${firstFrame}">${trimmed}</a>`;
       });
-      if (filteredIssues.length === 0) {
-        return `
-        <div style="padding: 48px; text-align: center; color: #059669;">
-          <div style="font-size: 14px; font-weight: 600;">Không có cảnh báo / lỗi nào trong danh sách.</div>
-        </div>
-      `;
-      }
-      const rows = filteredIssues.map((iss) => {
-        const isErr = iss.severity === "error";
-        const badgeBg = isErr ? "#fee2e2" : "#fef3c7";
-        const badgeText = isErr ? "#dc2626" : "#d97706";
-        return `
-          <tr style="border-bottom: 1px solid #f1f5f9;">
-            <td style="padding: 8px 12px; font-family: monospace; font-weight: 700; color: #0f172a;">${iss.frame}</td>
-            <td style="padding: 8px 12px; font-weight: 700; color: #09090b;">#${iss.trackId} <span style="font-size: 10px; color: #64748b; font-weight: normal;">(${iss.label})</span></td>
-            <td style="padding: 8px 12px;">
-              <span style="padding: 2px 6px; border-radius: 4px; background: ${badgeBg}; color: ${badgeText}; font-size: 11px; font-weight: 700;">
-                [${iss.symbol}] ${iss.name}
-              </span>
-            </td>
-            <td style="padding: 8px 12px; color: #334155; font-size: 12px;">${iss.detail}</td>
-            <td style="padding: 8px 12px; font-family: monospace; font-size: 11px; color: #0f172a;">${iss.value}</td>
-            <td style="padding: 8px 12px; font-family: monospace; font-size: 11px; color: #64748b;">${iss.ref}</td>
-            <td style="padding: 8px 12px; text-align: right;">
-              <button class="qc-btn-jump" data-track="${iss.trackId}" data-frame="${iss.frame}" style="
-                padding: 4px 10px; border-radius: 6px; border: 1px solid #bfdbfe; background: #eff6ff; color: #1d4ed8; font-size: 11px; font-weight: 600; cursor: pointer;
-              ">
-                Đến Frame ➔
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join("");
-      return `
-      <div style="padding: 16px 20px;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
-          <thead>
-            <tr style="border-bottom: 1px solid #e2e8f0; background: #f8fafc; color: #475569; font-size: 11px;">
-              <th style="padding: 8px 12px;">Frame</th>
-              <th style="padding: 8px 12px;">Track ID</th>
-              <th style="padding: 8px 12px;">Loại lỗi</th>
-              <th style="padding: 8px 12px;">Mô tả chi tiết</th>
-              <th style="padding: 8px 12px;">Giá trị đo đạc</th>
-              <th style="padding: 8px 12px;">Ngưỡng chuẩn</th>
-              <th style="padding: 8px 12px; text-align: right;">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows}
-          </tbody>
-        </table>
-      </div>
-    `;
+      return `${links.join(", ")} <span style="color: #64748b;">(${count})</span>`;
     }
-    // =========================================================================
-    // SỰ KIỆN TƯƠNG TÁC
-    // =========================================================================
-    attachEventListeners() {
-      var _a, _b;
+    renderClickableTrackList(frame, tracksStr) {
+      if (!tracksStr) return "";
+      if (tracksStr.includes(";")) {
+        const pairs = tracksStr.split(";").map((p) => p.trim());
+        const res = pairs.map((pair) => {
+          const parts = pair.split("&").map((t) => t.trim());
+          const tLinks = parts.map(
+            (t) => `<a href="javascript:void(0)" class="qc-jump-track-frame" data-track="${t}" data-frame="${frame}" style="color: #0284c7; text-decoration: underline;">#${t}</a>`
+          );
+          return tLinks.join("&");
+        });
+        return res.join("; ");
+      } else {
+        const items = tracksStr.split(",").map((t) => t.trim());
+        const res = items.map(
+          (t) => `<a href="javascript:void(0)" class="qc-jump-track-frame" data-track="${t}" data-frame="${frame}" style="color: #0284c7; text-decoration: underline;">#${t}</a>`
+        );
+        return res.join(", ");
+      }
+    }
+    attachEvents() {
+      var _a, _b, _c, _d, _e;
       if (!this.overlay) return;
-      (_a = this.overlay.querySelector("#btn-qc-close")) == null ? void 0 : _a.addEventListener("click", () => this.close());
-      (_b = this.overlay.querySelector("#btn-qc-rescan")) == null ? void 0 : _b.addEventListener("click", () => this.scanJob());
+      (_a = this.overlay.querySelector("#qc-close-btn")) == null ? void 0 : _a.addEventListener("click", () => this.close());
+      const fileInput = this.overlay.querySelector("#qc-json-file-input");
+      (_b = this.overlay.querySelector("#qc-open-file-btn")) == null ? void 0 : _b.addEventListener("click", () => fileInput == null ? void 0 : fileInput.click());
+      fileInput == null ? void 0 : fileInput.addEventListener("change", (e) => {
+        var _a2;
+        const file = (_a2 = e.target.files) == null ? void 0 : _a2[0];
+        if (file) this.loadJsonFile(file);
+      });
+      (_c = this.overlay.querySelector("#qc-rescan-job-btn")) == null ? void 0 : _c.addEventListener("click", () => this.scanJobFromCVAT());
+      (_d = this.overlay.querySelector("#qc-download-csv-btn")) == null ? void 0 : _d.addEventListener("click", () => this.downloadCsvReport());
+      (_e = this.overlay.querySelector("#qc-copy-tsv-btn")) == null ? void 0 : _e.addEventListener("click", () => this.copyTsvReport());
       this.overlay.querySelectorAll(".qc-tab-btn").forEach((btn) => {
         btn.addEventListener("click", (e) => {
           const tab = e.currentTarget.getAttribute("data-tab");
@@ -15078,50 +17332,166 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         });
       });
-      const classSel = this.overlay.querySelector("#qc-filter-class");
-      classSel == null ? void 0 : classSel.addEventListener("change", () => {
-        this.selectedClassFilter = classSel.value;
-        this.render();
+      const searchInput = this.overlay.querySelector("#qc-search-kw-input");
+      searchInput == null ? void 0 : searchInput.addEventListener("input", (e) => {
+        var _a2;
+        this.searchKeyword = e.target.value;
+        const content = (_a2 = this.overlay) == null ? void 0 : _a2.querySelector("#qc-tab-content");
+        if (content) content.innerHTML = this.renderActiveTabContent();
+        this.attachContentEvents();
       });
-      const checkSel = this.overlay.querySelector("#qc-filter-check");
-      checkSel == null ? void 0 : checkSel.addEventListener("change", () => {
-        this.selectedCheckFilter = checkSel.value;
-        this.render();
+      const checkSelect = this.overlay.querySelector("#qc-check-filter-select");
+      checkSelect == null ? void 0 : checkSelect.addEventListener("change", (e) => {
+        var _a2;
+        this.selectedCheckFilter = e.target.value;
+        const content = (_a2 = this.overlay) == null ? void 0 : _a2.querySelector("#qc-tab-content");
+        if (content) content.innerHTML = this.renderActiveTabContent();
+        this.attachContentEvents();
       });
-      const searchInp = this.overlay.querySelector("#qc-search-kw");
-      searchInp == null ? void 0 : searchInp.addEventListener("input", () => {
-        this.searchKeyword = searchInp.value;
-        this.render();
+      this.attachContentEvents();
+    }
+    attachContentEvents() {
+      if (!this.overlay) return;
+      this.overlay.querySelectorAll(".qc-jump-frame-link").forEach((link) => {
+        link.addEventListener("click", (e) => {
+          const f = Number(e.currentTarget.getAttribute("data-frame"));
+          if (!isNaN(f)) this.navigateToFrame(f);
+        });
+      });
+      this.overlay.querySelectorAll(".qc-jump-track-frame").forEach((link) => {
+        link.addEventListener("click", (e) => {
+          const el = e.currentTarget;
+          const track = Number(el.getAttribute("data-track"));
+          const frame = Number(el.getAttribute("data-frame"));
+          if (!isNaN(frame)) {
+            this.navigateToTrackAndFrame(!isNaN(track) ? track : 1, frame);
+          }
+        });
       });
       this.overlay.querySelectorAll(".qc-matrix-cell").forEach((cell) => {
         cell.addEventListener("click", (e) => {
           const el = e.currentTarget;
-          const track2 = Number(el.getAttribute("data-track"));
+          const track = Number(el.getAttribute("data-track"));
           const frame = Number(el.getAttribute("data-frame"));
-          if (!isNaN(track2) && !isNaN(frame)) {
-            this.navigateToTrackAndFrame(track2, frame);
+          if (!isNaN(frame)) {
+            this.navigateToTrackAndFrame(!isNaN(track) ? track : 1, frame);
           }
         });
       });
-      this.overlay.querySelectorAll(".qc-btn-jump").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
+      this.overlay.querySelectorAll(".qc-issue-row").forEach((row) => {
+        row.addEventListener("click", (e) => {
           const el = e.currentTarget;
-          const track2 = Number(el.getAttribute("data-track"));
+          const track = Number(el.getAttribute("data-track"));
           const frame = Number(el.getAttribute("data-frame"));
-          if (!isNaN(track2) && !isNaN(frame)) {
-            this.navigateToTrackAndFrame(track2, frame);
+          if (!isNaN(frame)) {
+            this.navigateToTrackAndFrame(!isNaN(track) ? track : 1, frame);
           }
         });
       });
     }
+    getActiveSheetName() {
+      switch (this.currentTab) {
+        case "by_track":
+          return "By_Track";
+        case "by_frame":
+          return "By_Frame";
+        case "matrix":
+          return "Matrix";
+        case "summary":
+          return "Summary";
+        case "data_issues":
+          return "Data_Issues";
+        case "all_issues":
+        default:
+          return "All_Issues";
+      }
+    }
     /**
-     * Điều hướng 2 chiều: Nhảy tới frame và kích hoạt đối tượng trên Canvas Three.js của CVAT
+     * Tải xuống báo cáo CSV UTF-8 kèm BOM theo Sheet tương ứng với Tab hiện tại
      */
+    downloadCsvReport() {
+      var _a;
+      if (!this.report) return;
+      const sheet = this.getActiveSheetName();
+      const csvContent = exportReportToCsv(this.report, sheet);
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `datumaro_qa_${sheet.toLowerCase()}_${((_a = this.currentCtx) == null ? void 0 : _a.jobId) || "export"}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      this.showToast(`Đã xuất sheet ${sheet} dạng CSV UTF-8 with BOM (Excel)`);
+    }
+    /**
+     * Sao chép TSV vào Clipboard theo Sheet tương ứng với Tab hiện tại để dán 1-click vào Google Sheets
+     */
+    copyTsvReport() {
+      if (!this.report) return;
+      const sheet = this.getActiveSheetName();
+      const tsvContent = exportReportToTsv(this.report, sheet);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(tsvContent).then(() => {
+          this.showToast(`Đã copy sheet ${sheet} (TSV)! Bạn có thể dán (Ctrl+V) thẳng vào Google Sheets.`);
+        }).catch(() => {
+          this.fallbackCopyText(tsvContent);
+        });
+      } else {
+        this.fallbackCopyText(tsvContent);
+      }
+    }
+    fallbackCopyText(text) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      this.showToast("Đã copy TSV vào Clipboard!");
+    }
+    navigateToFrame(frame) {
+      CVATBridge.jumpToFrame(frame);
+      this.close();
+      this.showToast(`Đã chuyển tới Frame #${frame}`);
+    }
     navigateToTrackAndFrame(trackId, frame) {
       CVATBridge.jumpToFrame(frame);
       CVATBridge.activateObject(trackId);
       CVATBridge.centerCanvas3DOnTrack(trackId);
-      console.log(`[QCStudioModal] Đã nhảy tới Frame ${frame} và focus Track #${trackId}`);
+      this.close();
+      this.showToast(`Đã chuyển tới Frame #${frame} & Focus Track #${trackId}`);
+    }
+    showToast(msg) {
+      try {
+        let toast = document.getElementById("cvat-3d-qc-studio-floating-toast");
+        if (!toast) {
+          toast = document.createElement("div");
+          toast.id = "cvat-3d-qc-studio-floating-toast";
+          toast.style.position = "fixed";
+          toast.style.bottom = "24px";
+          toast.style.left = "50%";
+          toast.style.transform = "translateX(-50%)";
+          toast.style.zIndex = "9999999";
+          toast.style.background = "#0f172a";
+          toast.style.color = "#ffffff";
+          toast.style.padding = "8px 18px";
+          toast.style.borderRadius = "9999px";
+          toast.style.fontSize = "12px";
+          toast.style.fontWeight = "600";
+          toast.style.boxShadow = "0 10px 25px -4px rgba(0, 0, 0, 0.25)";
+          toast.style.pointerEvents = "none";
+          toast.style.transition = "opacity 0.3s ease";
+          document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.opacity = "1";
+        setTimeout(() => {
+          if (toast) toast.style.opacity = "0";
+        }, 2500);
+      } catch (_) {
+      }
     }
   }
   const DEFAULT_VINFAST_ADAS_CAMERAS = [
@@ -15660,7 +18030,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const camCalib = storedVinCalib.cameras[resolvedName];
     if (!camCalib) return false;
     const cornersLidar = d14BoxCorners(box.c, box.r, box.s);
-    console.log(`[Day14 Proj] cam=${cameraName}, pos=[${box.c.map((v) => v.toFixed(2))}], rot=[${box.r.map((v) => v.toFixed(3))}], scale=[${box.s.map((v) => v.toFixed(2))}]`);
     const cornersCam = cornersLidar.map((p) => {
       const ego = storedVinCalib.pcd_frame === "ego" ? p : d14Transform(p, storedVinCalib.lidar.sensor2ego);
       return d14Transform(ego, camCalib.ego2cam);
@@ -15676,7 +18045,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return { u, v, valid: front && xn * xn + yn * yn <= maxR2 };
     });
     const inImage = projected.filter((q) => q.valid && q.u >= 0 && q.u < W && q.v >= 0 && q.v < H).length;
-    console.log(`[Day14 Proj] → inImage=${inImage}/8, pixel[0]=(${projected[0].u.toFixed(0)}, ${projected[0].v.toFixed(0)})`);
     if (inImage === 0) return false;
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
@@ -15887,10 +18255,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       `;
         img.alt = cam.name;
         img.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90" viewBox="0 0 160 90"><rect width="100%" height="100%" fill="%2327272a"/><text x="50%" y="50%" fill="%2371717a" font-size="10" font-family="sans-serif" dominant-baseline="middle" text-anchor="middle">${cam.name}</text></svg>`;
-        const canvas2 = document.createElement("canvas");
-        canvas2.width = cam.imageWidth || 1920;
-        canvas2.height = cam.imageHeight || 1080;
-        canvas2.style.cssText = `
+        const canvas = document.createElement("canvas");
+        canvas.width = cam.imageWidth || 1920;
+        canvas.height = cam.imageHeight || 1080;
+        canvas.style.cssText = `
         position: absolute;
         top: 0;
         left: 0;
@@ -15898,7 +18266,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         height: 100%;
         pointer-events: none;
       `;
-        const ctx = canvas2.getContext("2d");
+        const ctx = canvas.getContext("2d");
         const badge = document.createElement("span");
         badge.style.cssText = `
         position: absolute;
@@ -15915,13 +18283,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       `;
         badge.innerText = cam.name;
         card.appendChild(img);
-        card.appendChild(canvas2);
+        card.appendChild(canvas);
         card.appendChild(badge);
         grid.appendChild(card);
         this.viewports.set(cam.id, {
           container: card,
           img,
-          canvas: canvas2,
+          canvas,
           ctx,
           badge
         });
@@ -16078,6 +18446,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (this.container) {
         this.container.style.display = "flex";
       }
+    }
+    /**
+     * Kiểm tra xem HUD Camera có đang hiển thị trên màn hình hay không
+     */
+    isVisible() {
+      if (!this.container || !this.container.isConnected) return false;
+      if (this.container.style.display === "none") return false;
+      if (this.isCollapsed) return false;
+      return true;
     }
     /**
      * Hủy bỏ HUD khi rời khỏi trang
@@ -18314,8 +20691,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     function inRange(f) {
       return f >= Math.min(range.from, range.to) && f <= Math.max(range.from, range.to);
     }
-    async function apply(track2, size) {
-      const keyframes = track2.shapes.filter((s) => inRange(s.frame));
+    async function apply(track, size) {
+      const keyframes = track.shapes.filter((s) => inRange(s.frame));
       if (!keyframes.length) {
         app.setStatus("Không có keyframe nào trong dải frame.", "err");
         return;
@@ -18330,7 +20707,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         );
       }
-      app.snapshot([track2.id]);
+      app.snapshot([track.id]);
       let failed = 0;
       for (const shape of keyframes) {
         const box = pointsToBox(shape.points);
@@ -18338,16 +20715,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (!res.ok) failed += 1;
         shape.points = boxToPoints(res.box, shape.points);
       }
-      track2.dirty = true;
+      track.dirty = true;
       progress.textContent = "";
       app.setStatus(
-        `ID ${track2.uiId}: đã sửa ${keyframes.length} keyframe (chưa lưu)` + (failed ? ` · ${failed} frame không đủ điểm mặt đất → giữ đáy` : ""),
+        `ID ${track.uiId}: đã sửa ${keyframes.length} keyframe (chưa lưu)` + (failed ? ` · ${failed} frame không đủ điểm mặt đất → giữ đáy` : ""),
         failed ? "err" : "ok"
       );
       app.changed();
     }
-    async function snapOnly(track2) {
-      const keyframes = track2.shapes.filter((s) => inRange(s.frame) && !s.outside);
+    async function snapOnly(track) {
+      const keyframes = track.shapes.filter((s) => inRange(s.frame) && !s.outside);
       await app.getFrames().preload(
         keyframes.map((s) => s.frame),
         (p) => {
@@ -18355,7 +20732,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           progress.textContent = `Nạp point cloud ${Math.round(p.fraction * 100)}% (${p.done}/${p.total} chunk)${disk}…`;
         }
       );
-      app.snapshot([track2.id]);
+      app.snapshot([track.id]);
       let failed = 0;
       for (const shape of keyframes) {
         const cloud = await app.getFrames().cloud(shape.frame);
@@ -18366,10 +20743,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         shape.points = boxToPoints(res.box, shape.points);
       }
-      track2.dirty = true;
+      track.dirty = true;
       progress.textContent = "";
       app.setStatus(
-        `ID ${track2.uiId}: đã đặt ${keyframes.length - failed} keyframe chạm đất` + (failed ? ` · ${failed} frame không đủ điểm` : ""),
+        `ID ${track.uiId}: đã đặt ${keyframes.length - failed} keyframe chạm đất` + (failed ? ` · ${failed} frame không đủ điểm` : ""),
         failed ? "err" : "ok"
       );
       app.changed();
@@ -19528,7 +21905,7 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
         }
       };
     }
-    let track2 = (initialTrackId ? store.track(initialTrackId) : null) || tracks[0];
+    let track = (initialTrackId ? store.track(initialTrackId) : null) || tracks[0];
     let range = null;
     let grid = null;
     const extraGrids = /* @__PURE__ */ new Set();
@@ -19548,7 +21925,7 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
       ...tracks.map(
         (t) => h$2(
           "option",
-          { value: String(t.id), selected: t.id === track2.id },
+          { value: String(t.id), selected: t.id === track.id },
           `#${t.uiId} · ${store.labelName(t.labelId)} · f${t.firstFrame}–f${t.lastFrame}`
         )
       )
@@ -19733,7 +22110,7 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
     function getCloud(frame) {
       const full = frameData.clouds.get(frame);
       if (!full) return null;
-      const pos = track2.at(frame);
+      const pos = track.at(frame);
       if (!pos) return null;
       const c = pos.box.c;
       const old = crops.get(frame);
@@ -19766,27 +22143,27 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
       (_b = rows.get(frame)) == null ? void 0 : _b.el.classList.add("sel");
     }
     function editBox(frame, mutate, { sync = false } = {}) {
-      const pos = track2.at(frame);
+      const pos = track.at(frame);
       if (!pos || pos.outside) return;
-      app.snapshot([Number(track2.id)]);
+      app.snapshot([Number(track.id)]);
       const box = cloneBox(pos.box);
       mutate(box);
-      track2.setBox(frame, box);
+      track.setBox(frame, box);
       const sizeChanged = box.s.some((v, i) => Math.abs(v - pos.box.s[i]) > 1e-6);
       if (sync && sizeChanged) syncSize(frame, box.s).then(afterEdit);
       else afterEdit();
     }
     function toggleOutside(frame) {
-      const pos = track2.at(frame);
+      const pos = track.at(frame);
       if (!pos) return;
-      app.snapshot([Number(track2.id)]);
-      track2.setOutside(frame, !pos.outside);
+      app.snapshot([Number(track.id)]);
+      track.setOutside(frame, !pos.outside);
       app.setStatus(`f${frame}: outside ${pos.outside ? "TẮT" : "BẬT"}`, "ok");
       afterEdit();
     }
     async function syncSize(frame, size) {
       let failed = 0;
-      for (const shape of track2.shapes) {
+      for (const shape of track.shapes) {
         if (shape.frame === frame) continue;
         const res = await app.resizeBox(
           { c: [shape.points[0], shape.points[1], shape.points[2]], r: [shape.points[3], shape.points[4], shape.points[5]], s: [shape.points[6], shape.points[7], shape.points[8]] },
@@ -19801,9 +22178,9 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
         shape.points[1] = res.box.c[1];
         shape.points[2] = res.box.c[2];
       }
-      track2.dirty = true;
+      track.dirty = true;
       app.setStatus(
-        `Đã đồng bộ L/W/H cho ${track2.shapes.length} keyframe` + (failed ? ` · ${failed} frame không đủ điểm mặt đất → giữ đáy` : ""),
+        `Đã đồng bộ L/W/H cho ${track.shapes.length} keyframe` + (failed ? ` · ${failed} frame không đủ điểm mặt đất → giữ đáy` : ""),
         failed ? "err" : "ok"
       );
     }
@@ -19813,9 +22190,9 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
       app.changed();
     }
     function nudgeBox(frame, dir) {
-      const pos = track2.at(frame);
+      const pos = track.at(frame);
       if (!pos || pos.outside) return;
-      app.snapshot([Number(track2.id)]);
+      app.snapshot([Number(track.id)]);
       const box = cloneBox(pos.box);
       const ax = axes(box.r);
       const step = 0.02;
@@ -19836,31 +22213,31 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
         box.c[1] -= ax.ey[1] * step;
         box.c[2] -= ax.ey[2] * step;
       }
-      track2.setBox(frame, box);
+      track.setBox(frame, box);
       afterEdit();
     }
     async function applyFitOperation(frame, op) {
-      const pos = track2.at(frame);
+      const pos = track.at(frame);
       if (!pos || pos.outside) return;
       if (op === "flip") {
-        app.snapshot([Number(track2.id)]);
+        app.snapshot([Number(track.id)]);
         const newBox = cloneBox(pos.box);
         newBox.r[2] = flipYaw(newBox.r[2]);
-        track2.setBox(frame, newBox);
+        track.setBox(frame, newBox);
         app.setStatus(`f${frame}: Đã lật Yaw 180°`, "ok");
         afterEdit();
         return;
       }
       if (op === "catalog") {
-        const match = findBestFitCatalog(pos.box.s[0], pos.box.s[1], pos.box.s[2], store.labelName(track2.labelId));
+        const match = findBestFitCatalog(pos.box.s[0], pos.box.s[1], pos.box.s[2], store.labelName(track.labelId));
         if (match && match.matchedItem) {
-          app.snapshot([Number(track2.id)]);
+          app.snapshot([Number(track.id)]);
           const newBox = cloneBox(pos.box);
           const oldH = newBox.s[2];
           const newH = match.recommendedH;
           newBox.s = [match.recommendedL, match.recommendedW, newH];
           newBox.c[2] += (newH - oldH) / 2;
-          track2.setBox(frame, newBox);
+          track.setBox(frame, newBox);
           if (S.syncSize) await syncSize(frame, newBox.s);
           app.setStatus(
             `f${frame}: Khớp Catalog ${match.matchedItem.name} (${match.recommendedL}x${match.recommendedW}x${newH})`,
@@ -19885,20 +22262,21 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
           app.setStatus(`f${frame}: Không đủ điểm mặt đất quanh box`, "err");
           return;
         }
-        app.snapshot([Number(track2.id)]);
+        app.snapshot([Number(track.id)]);
         const newBox = cloneBox(pos.box);
         newBox.c = res2.box.c;
-        track2.setBox(frame, newBox);
+        track.setBox(frame, newBox);
         app.setStatus(`f${frame}: Đã ghim mặt đất (ΔZ: ${fmt(res2.shift * 100, 1)} cm)`, "ok");
         afterEdit();
         return;
       }
-      const labelLower = store.labelName(track2.labelId).toLowerCase();
-      const isPed = labelLower.includes("pedestrian") || labelLower.includes("person") || labelLower.includes("người");
-      const isCyclist = labelLower.includes("cyclist") || labelLower.includes("bicycle") || labelLower.includes("bike") || labelLower.includes("moto");
+      const rawLabel = store.labelName(track.labelId);
+      const cat = detectObjectCategory(rawLabel);
+      const isPed = cat === "pedestrian";
+      const isCyclist = cat === "cyclist";
       const pts = float32ToPointObjects(cloud);
       const curBox = cloneBox(pos.box);
-      app.snapshot([Number(track2.id)]);
+      app.snapshot([Number(track.id)]);
       if (isPed || op === "ped_all") {
         const stepParam = op === "ped_all" ? "all" : op;
         const res2 = fitPedestrianBox(
@@ -19917,7 +22295,7 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
         if (res2.newYawRad !== void 0) curBox.r[2] = res2.newYawRad;
         curBox.r[0] = 0;
         curBox.r[1] = 0;
-        track2.setBox(frame, curBox);
+        track.setBox(frame, curBox);
         if (S.syncSize && (op === "w" || op === "h" || op === "ped_all")) await syncSize(frame, curBox.s);
         app.setStatus(`f${frame}: Fit Pedestrian [${stepParam.toUpperCase()}] hoàn tất`, "ok");
         afterEdit();
@@ -19939,10 +22317,14 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
         curBox.c = [res2.newCenterX, res2.newCenterY, res2.newCenterZ];
         curBox.s = [res2.newL, res2.newW, res2.newH];
         if (res2.newYawRad !== void 0) curBox.r[2] = res2.newYawRad;
-        track2.setBox(frame, curBox);
+        track.setBox(frame, curBox);
         if (S.syncSize && (op === "w" || op === "h" || op === "cyclist_all")) await syncSize(frame, curBox.s);
         app.setStatus(`f${frame}: Fit Cyclist [${stepParam.toUpperCase()}] hoàn tất`, "ok");
         afterEdit();
+        return;
+      }
+      if (op === "w" || op === "h") {
+        app.setStatus(`f${frame}: Ô tô tuân thủ kích thước chuẩn Catalog (Phím B), không có Fit ${op.toUpperCase()}`, "err");
         return;
       }
       const fitStepParam = op === "top" || op === "side" || op === "front" ? op : "all";
@@ -19966,20 +22348,20 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
       if (res.newYawRad !== void 0) curBox.r[2] = res.newYawRad;
       curBox.r[0] = res.rollRad || 0;
       curBox.r[1] = res.pitchRad || 0;
-      track2.setBox(frame, curBox);
+      track.setBox(frame, curBox);
       app.setStatus(`f${frame}: Căn ${op.toUpperCase()} hoàn tất`, "ok");
       afterEdit();
     }
     const editCallbacks = {
       getCloud,
       getBox: (frame) => {
-        const pos = track2.at(frame);
+        const pos = track.at(frame);
         return pos ? { box: pos.box, keyframe: pos.keyframe, outside: pos.outside } : null;
       },
-      onEditStart: () => app.snapshot([Number(track2.id)]),
+      onEditStart: () => app.snapshot([Number(track.id)]),
       onEdit: (frame, box) => {
         var _a2;
-        track2.setBox(frame, box);
+        track.setBox(frame, box);
         (_a2 = rows.get(frame)) == null ? void 0 : _a2.refresh();
         select(frame);
         renderAll();
@@ -20060,14 +22442,14 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
           class: "small",
           title: "Xoá keyframe này (frame sẽ nội suy lại)",
           onclick: () => {
-            const idx = track2.keyframeIndex(frame);
+            const idx = track.keyframeIndex(frame);
             if (idx <= 0) {
               app.setStatus("Không xoá được keyframe đầu tiên của track", "err");
               return;
             }
-            app.snapshot([Number(track2.id)]);
-            track2.shapes.splice(idx, 1);
-            track2.dirty = true;
+            app.snapshot([Number(track.id)]);
+            track.shapes.splice(idx, 1);
+            track.dirty = true;
             afterEdit();
           }
         },
@@ -20084,7 +22466,7 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
               app.setStatus("Point cloud frame này chưa tải xong", "err");
               return;
             }
-            const pos = track2.at(frame);
+            const pos = track.at(frame);
             if (!pos || pos.outside) return;
             const res = snapToGround(cloud, pos.box);
             if (!res) {
@@ -20125,9 +22507,9 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
               class: "small",
               title: "Áp L/W/H của frame này cho mọi keyframe của track",
               onclick: async () => {
-                const pos = track2.at(frame);
+                const pos = track.at(frame);
                 if (!pos) return;
-                app.snapshot([Number(track2.id)]);
+                app.snapshot([Number(track.id)]);
                 await syncSize(frame, pos.box.s);
                 afterEdit();
               }
@@ -20143,7 +22525,7 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
       el.dataset.frame = String(frame);
       const refresh = () => {
         var _a2;
-        const pos = track2.at(frame);
+        const pos = track.at(frame);
         if (!pos) {
           kfBadge.className = "kf off";
           kfBadge.textContent = "ngoài track";
@@ -20158,7 +22540,7 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
           f.input.disabled = pos.outside;
         }
         ground.disabled = pos.outside;
-        kfDel.disabled = !pos.keyframe || track2.keyframeIndex(frame) <= 0;
+        kfDel.disabled = !pos.keyframe || track.keyframeIndex(frame) <= 0;
       };
       refresh();
       return { el, info, img, views, refresh, imgLoaded: false };
@@ -20216,7 +22598,7 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
       );
       function updateBar() {
         frameLbl.textContent = `f${cell.frame}`;
-        const pos = track2.at(cell.frame);
+        const pos = track.at(cell.frame);
         kfBadge.className = `kf ${!pos ? "off" : pos.outside ? "out" : pos.keyframe ? "on" : "off"}`;
         kfBadge.textContent = !pos ? "–" : pos.outside ? "OUTSIDE" : pos.keyframe ? "KEYFRAME" : "nội suy";
         osw.update(!!(pos && pos.outside));
@@ -20224,7 +22606,7 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
         Object.keys(VIEW_NAMES).forEach(
           (v, i) => viewBtns[i].classList.toggle("active", v === cell.view)
         );
-        ui.setTitle(`ID #${track2.uiId} · ${VIEW_NAMES[cell.view]}`);
+        ui.setTitle(`ID #${track.uiId} · ${VIEW_NAMES[cell.view]}`);
       }
       function setFrame(f) {
         var _a2;
@@ -20384,7 +22766,7 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
       );
     }
     function fitZoom() {
-      settings.refSize = refSizeOf(track2);
+      settings.refSize = refSizeOf(track);
       S.zoom.top = S.zoom.side = S.zoom.front = 1;
       for (const c of (grid == null ? void 0 : grid.cells) || []) {
         c.zoom = 1;
@@ -20444,7 +22826,7 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
       });
     }
     function openTrack(t) {
-      track2 = t;
+      track = t;
       trackSel.value = String(t.id);
       crops = /* @__PURE__ */ new Map();
       settings.refSize = refSizeOf(t);
@@ -20462,7 +22844,7 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
       });
       buildRows();
     }
-    openTrack(track2);
+    openTrack(track);
     return {
       refresh() {
         var _a2;
@@ -20621,21 +23003,21 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
     let tx = 0;
     let ty = 0;
     let fitted = true;
-    const canvas2 = h$1("canvas");
-    const area = h$1("div", { class: "viewer" }, canvas2);
+    const canvas = h$1("canvas");
+    const area = h$1("div", { class: "viewer" }, canvas);
     const zoomLbl = h$1("span", { class: "zoomlbl" });
-    const ctx = canvas2.getContext("2d");
+    const ctx = canvas.getContext("2d");
     function draw() {
       const dpr = window.devicePixelRatio || 1;
       const W = area.clientWidth;
       const H = area.clientHeight;
       const rW = Math.round(W * dpr);
       const rH = Math.round(H * dpr);
-      if (canvas2.width !== rW || canvas2.height !== rH) {
-        canvas2.width = rW;
-        canvas2.height = rH;
-        canvas2.style.width = `${W}px`;
-        canvas2.style.height = `${H}px`;
+      if (canvas.width !== rW || canvas.height !== rH) {
+        canvas.width = rW;
+        canvas.height = rH;
+        canvas.style.width = `${W}px`;
+        canvas.style.height = `${H}px`;
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.fillStyle = "#000";
@@ -21187,13 +23569,16 @@ Cancel = hủy`
       __publicField(this, "toastOverlay", null);
       __publicField(this, "toastTimer", null);
       __publicField(this, "isMinimized", false);
-      __publicField(this, "trackStudioModal", new TrackStudioModal());
       __publicField(this, "qcStudioModal", new QCStudioModal());
       __publicField(this, "qcEngine", new QCEngine());
       // Tab chính của Floating Panel: "edit" (Chỉnh sửa) hoặc "qc" (Kiểm tra QC tức thì)
       __publicField(this, "activeMainTab", "edit");
-      // Ngăn xếp hoàn tác thao tác (Undo / Pre Stack)
+      // Bộ nhớ đệm RAM lưu kết quả QC độc lập cho từng Track ID (0ms latency, không fetch lại)
+      __publicField(this, "trackQCRamCache", /* @__PURE__ */ new Map());
+      __publicField(this, "pendingTrackQCPreloads", /* @__PURE__ */ new Set());
+      // Ngăn xếp hoàn tác & làm lại (Bidirectional History Stack: Undo & Redo)
       __publicField(this, "undoStack", []);
+      __publicField(this, "redoStack", []);
       // Chế độ phân loại đối tượng nhanh: "car" | "pedestrian" | "cyclist"
       __publicField(this, "selectedCategory", "car");
       // Trạng thái mở rộng accordion tinh chỉnh nâng cao
@@ -21202,7 +23587,9 @@ Cancel = hủy`
       __publicField(this, "applyToTrack", false);
       // Dữ liệu đối tượng đang chọn
       __publicField(this, "selectedUiId", null);
-      // Số 1, 2 hiển thị chuẩn
+      // Số instance clientID tại frame này (dùng tương tác Three.js)
+      __publicField(this, "selectedTrackId", null);
+      // Số Track ID bền vững toàn cục xuyên suốt các frame
       __publicField(this, "selectedServerId", null);
       // Số 31, 32 lưu database
       __publicField(this, "currentLabel", "Chưa chọn xe");
@@ -21215,6 +23602,8 @@ Cancel = hủy`
       __publicField(this, "currentH", 0);
       __publicField(this, "currentRawPoints", null);
       // Lưu trữ mảng điểm nguyên bản (16 điểm) từ CVAT
+      __publicField(this, "currentAttributes", {});
+      // Lưu trữ attributes (balo, vali, xe đỗ, sitting, v.v.)
       // Giá trị đang chỉnh sửa trên ô input (L, W, H)
       __publicField(this, "editL", 0);
       __publicField(this, "editW", 0);
@@ -21222,23 +23611,51 @@ Cancel = hủy`
       // Danh sách các xe ĐANG CÓ MẶT TẠI FRAME HIỆN TẠI
       __publicField(this, "currentFrameNumber", 0);
       __publicField(this, "lastContextImageFrame", -1);
+      __publicField(this, "contextImagesDebounceTimer", null);
       __publicField(this, "frameTracks", []);
+      __publicField(this, "cachedAllJobObjects", []);
+      // Bộ nhớ đệm toàn bộ đối tượng trong Job (nếu đã nạp từ QC Studio)
       // Trạng thái Dropdown Select & Tìm kiếm
       __publicField(this, "isDropdownOpen", false);
       __publicField(this, "searchKeyword", "");
       __publicField(this, "autoSelectListenerAttached", false);
       __publicField(this, "autoCenterOnFrame", localStorage.getItem("CVAT_3D_SUITE_AUTO_CENTER_FRAME") !== "false");
-      // Cấu hình Chế độ màu mây điểm LiDAR & Nhuộm màu xe bọc & Mặt sàn Polygon
+      // Cấu hình Chế độ màu mây điểm LiDAR & Nhuộm màu xe bọc
       __publicField(this, "pointColorMode", localStorage.getItem("cvat_3d_point_color_mode") || "intensity");
       __publicField(this, "colorizeBoxedPoints", localStorage.getItem("cvat_3d_colorize_boxed") !== "false");
-      __publicField(this, "groundPlaneVisible", localStorage.getItem("cvat_3d_ground_plane_visible") !== "false");
+      __publicField(this, "canvasTheme", localStorage.getItem("cvat_3d_canvas_theme") === "dark" ? "dark" : "light");
+      // Kích thước hạt điểm mây LiDAR trên 3 khung nhìn trực giao 2D (Top / Side / Front)
+      __publicField(this, "orthoPointSize", typeof localStorage !== "undefined" && localStorage.getItem("cvat_3d_ortho_point_size") ? parseFloat(localStorage.getItem("cvat_3d_ortho_point_size")) || 3.5 : 3.5);
+      // Cấu hình Lát cắt (Depth Slicing) & Lọc mặt đất/ROI trực giao (Top / Side / Front)
+      __publicField(this, "orthoSlicing", (() => {
+        const def = { enabled: false, slab: 0.5, hideGround: true, isolateROI: false };
+        try {
+          const saved = typeof localStorage !== "undefined" ? localStorage.getItem("cvat_3d_ortho_slicing") : null;
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (typeof parsed.enabled === "boolean") def.enabled = parsed.enabled;
+            if (typeof parsed.slab === "number" && parsed.slab > 0) def.slab = parsed.slab;
+            if (typeof parsed.hideGround === "boolean") def.hideGround = parsed.hideGround;
+            if (typeof parsed.isolateROI === "boolean") def.isolateROI = parsed.isolateROI;
+          }
+        } catch (_) {
+        }
+        return def;
+      })());
+      // Trạng thái tiếp xúc 4 mép đón tia (Edge Contact HUD) cho Active Box
+      __publicField(this, "edgeContacts", null);
       // Thống kê vòng đời của Track ID đang chọn
       __publicField(this, "trackStats", null);
       __publicField(this, "trackStatsLoading", false);
+      __publicField(this, "loadTrackStatsDebounceTimer", null);
       // Trạng thái xử lý
       __publicField(this, "isProcessing", false);
       __publicField(this, "isHelpModalOpen", false);
       __publicField(this, "helpModalContainer", null);
+      // Trạng thái gắn vào sidebar CVAT (Docked mode)
+      __publicField(this, "isDocked", false);
+      __publicField(this, "cvatOrigChildrenEl", null);
+      __publicField(this, "isShowingCVATOrigSidebar", false);
       // Tọa độ kéo thả
       __publicField(this, "isDragging", false);
       __publicField(this, "startX", 0);
@@ -21258,6 +23675,55 @@ Cancel = hủy`
         this.currentActiveView = view;
         this.scheduleUpdate();
       }
+    }
+    /**
+     * Render HTML cho từng badge trạng thái mép đón tia (Khít / Cắt lẹm / Hở)
+     */
+    renderEdgeContactBadge(title, side) {
+      if (!side) {
+        return `
+        <div style="text-align: center; padding: 2px 0;">
+          <div style="color: #64748b; font-size: 8.5px; font-weight: 600;">${title}</div>
+          <div style="color: #94a3b8; font-weight: 600; font-size: 9px; margin-top: 1px;">--</div>
+        </div>
+      `;
+      }
+      let bg = "#f0fdf4";
+      let border = "#bbf7d0";
+      let text = "#15803d";
+      let dotHtml = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #16a34a; vertical-align: middle; margin-right: 2px;"></span>`;
+      let label = "Khít";
+      let sub = side.gapCm !== 0 ? ` (${side.gapCm > 0 ? "+" : ""}${side.gapCm}cm)` : "";
+      if (side.status === "cut") {
+        bg = "#fef2f2";
+        border = "#fecaca";
+        text = "#b91c1c";
+        dotHtml = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #dc2626; vertical-align: middle; margin-right: 2px;"></span>`;
+        label = "Cắt";
+        sub = ` (${side.gapCm}cm)`;
+      } else if (side.status === "loose") {
+        bg = "#f8fafc";
+        border = "#e2e8f0";
+        text = "#475569";
+        dotHtml = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #94a3b8; vertical-align: middle; margin-right: 2px;"></span>`;
+        label = "Hở";
+        sub = ` (+${side.gapCm}cm)`;
+      }
+      return `
+      <div title="${title}: ${side.label} (${side.gapCm}cm)" style="
+        text-align: center;
+        background: ${bg};
+        border: 1px solid ${border};
+        border-radius: 4px;
+        padding: 2px 1px;
+        transition: all 0.12s;
+      ">
+        <div style="color: #64748b; font-size: 7.5px; font-weight: 600; white-space: nowrap;">${title}</div>
+        <div style="color: ${text}; font-weight: 700; font-size: 8.5px; margin-top: 1px; white-space: nowrap;">
+          ${dotHtml}${label}<span style="font-size: 7px; opacity: 0.85;">${sub}</span>
+        </div>
+      </div>
+    `;
     }
     /**
      * Lên lịch cập nhật giao diện bằng requestAnimationFrame (gộp nhiều lần gọi dồn dập, chống nháy DOM).
@@ -21293,6 +23759,7 @@ Cancel = hủy`
         this.loadVinCalibration();
         CVATBridge.setAutoCenterOnFrameChange(this.autoCenterOnFrame);
         CVATBridge.setPointCloudColorMode(this.pointColorMode, this.colorizeBoxedPoints);
+        CVATBridge.setCanvasTheme(this.canvasTheme);
       }
       this.scheduleUpdate();
       if (!HeaderSuiteButton.isSuiteEnabled()) {
@@ -21562,14 +24029,18 @@ Cancel = hủy`
       if (this.autoSelectListenerAttached) return;
       this.autoSelectListenerAttached = true;
       window.addEventListener("CVAT_EXT_RES_OBJECT_ACTIVATED", (e) => {
-        var _a, _b;
+        var _a, _b, _c, _d;
         const clientId = (_a = e.detail) == null ? void 0 : _a.clientId;
-        const details = (_b = e.detail) == null ? void 0 : _b.details;
+        const trackId = (_b = e.detail) == null ? void 0 : _b.trackId;
+        const details = (_c = e.detail) == null ? void 0 : _c.details;
         if (details && details.clientId) {
           console.log(`[CVAT 3D Suite] Nhận dữ liệu tức thì của xe #${details.clientId}:`, details);
           this.selectedUiId = details.clientId;
+          this.selectedTrackId = trackId ?? details.trackId ?? this.selectedTrackId ?? details.clientId;
           this.selectedServerId = details.serverId || null;
           this.currentLabel = details.label || `Xe #${details.clientId}`;
+          this.syncCategoryFromLabel(this.currentLabel);
+          this.currentAttributes = details.attributes || {};
           this.currentX = details.x;
           this.currentY = details.y;
           this.currentZ = details.z;
@@ -21584,6 +24055,7 @@ Cancel = hủy`
           const existingIdx = this.frameTracks.findIndex((t) => t.uiId === details.clientId);
           const item = {
             uiId: details.clientId,
+            trackId: this.selectedTrackId ?? details.trackId ?? details.clientId,
             serverId: details.serverId || details.clientId,
             label: details.label || "Car",
             x: details.x,
@@ -21602,6 +24074,12 @@ Cancel = hủy`
           if (!this.trackStats || this.trackStats.uiId !== details.clientId) {
             this.loadTrackStats(details.clientId);
           }
+          if (this.activeMainTab === "qc") {
+            this.preloadTrackQCInBackground(details.clientId, details.serverId || this.selectedServerId);
+          }
+          if ((_d = e.detail) == null ? void 0 : _d.isDoubleClick) {
+            this.showToast(`Đã kích hoạt & Ghim xe #${details.clientId} (${details.label || "Object"})`, "success");
+          }
           this.scheduleUpdate();
         } else if (clientId && clientId !== this.selectedUiId) {
           console.log(`[CVAT 3D Suite] Tự động chọn xe #${clientId} từ click Canvas 3D`);
@@ -21609,11 +24087,20 @@ Cancel = hủy`
         }
       });
       window.addEventListener("CVAT_EXT_RES_OBJECT_DEACTIVATED", () => {
-        if (this.selectedUiId !== null) {
+        if (this.selectedUiId !== null || this.selectedTrackId !== null) {
           console.log("[CVAT 3D Suite] Đối tượng bị hủy kích hoạt trên CVAT -> chuyển sang Inactive State");
           this.selectedUiId = null;
+          this.selectedTrackId = null;
           this.selectedServerId = null;
           this.currentLabel = "Chưa chọn đối tượng";
+          this.edgeContacts = null;
+          this.scheduleUpdate();
+        }
+      });
+      window.addEventListener("CVAT_EXT_RES_EDGE_CONTACTS_UPDATED", (e) => {
+        const contacts = e.detail;
+        if (contacts && (this.selectedUiId === null || Number(contacts.clientId) === Number(this.selectedUiId))) {
+          this.edgeContacts = contacts;
           this.scheduleUpdate();
         }
       });
@@ -21622,33 +24109,80 @@ Cancel = hủy`
       });
       window.addEventListener("CVAT_EXT_RES_FRAME_CHANGED", (e) => {
         const { frame } = e.detail || {};
-        if (typeof frame === "number" && frame !== this.currentFrameNumber) {
+        if (typeof frame === "number" && (frame !== this.currentFrameNumber || this.frameTracks.length === 0)) {
           this.currentFrameNumber = frame;
           this.syncFrameTracks();
         }
       });
-    }
-    /**
-     * Vòng lặp quét Frame và Đồng bộ xe thời gian thực (Realtime Loop)
-     */
-    startPollingLoop() {
-      this.pollInterval = setInterval(async () => {
-        if (!this.currentCtx || !this.currentCtx.jobId) return;
-        const frame = CVATBridge.getCurrentFrame();
-        const frameChanged = frame !== this.currentFrameNumber;
-        this.currentFrameNumber = frame;
-        if (frameChanged || this.frameTracks.length === 0) {
-          await this.syncFrameTracks();
-        }
-        const active = CVATBridge.getActiveTrackId();
-        if (active.id !== null && active.id !== this.selectedUiId) {
-          const isTrackInCurrentFrame = this.frameTracks.length === 0 || this.frameTracks.some((t) => t.uiId === active.id);
-          if (isTrackInCurrentFrame) {
-            await this.selectTrackByUiId(active.id, void 0, true);
+      window.addEventListener("CVAT_EXT_RES_LIVE_TRANSFORM_CHANGED", (e) => {
+        var _a, _b;
+        const clientId = (_a = e.detail) == null ? void 0 : _a.clientId;
+        const details = (_b = e.detail) == null ? void 0 : _b.details;
+        if (!details || !clientId) return;
+        const numId = Number(clientId);
+        if (this.selectedUiId === numId) {
+          this.currentX = details.x;
+          this.currentY = details.y;
+          this.currentZ = details.z;
+          this.currentYawDeg = details.yawDeg;
+          this.currentL = details.l;
+          this.currentW = details.w;
+          this.currentH = details.h;
+          this.editL = details.l;
+          this.editW = details.w;
+          this.editH = details.h;
+          if (Array.isArray(details.points)) {
+            this.currentRawPoints = [...details.points];
           }
         }
-      }, 150);
-      setTimeout(() => this.syncFrameTracks(), 1200);
+        const existingIdx = this.frameTracks.findIndex((t) => t.uiId === numId);
+        if (existingIdx >= 0) {
+          this.frameTracks[existingIdx] = {
+            ...this.frameTracks[existingIdx],
+            x: details.x,
+            y: details.y,
+            z: details.z,
+            yawDeg: details.yawDeg,
+            l: details.l,
+            w: details.w,
+            h: details.h
+          };
+        }
+        const pointsToUse = details.points || [
+          details.x,
+          details.y,
+          details.z,
+          0,
+          0,
+          details.yawDeg * Math.PI / 180,
+          details.l,
+          details.w,
+          details.h
+        ];
+        this.revalidateAndSyncIssue(numId, this.currentFrameNumber, pointsToUse, false);
+        this.scheduleUpdate();
+      });
+    }
+    /**
+     * Đồng bộ xe và Frame thuần Event-Driven (Zero-Polling, 60 FPS mượt mà tuyệt đối)
+     * Thay thế hoàn toàn cơ chế Polling setInterval(400ms) bằng các sự kiện Realtime:
+     * - CVAT_EXT_RES_FRAME_CHANGED: Khi chuyển frame
+     * - CVAT_EXT_RES_FRAME_TRACKS_DIRTY: Khi có track thêm/sửa/xóa
+     * - CVAT_EXT_RES_OBJECT_ACTIVATED / DEACTIVATED: Khi chọn/hủy chọn xe (< 0.2ms)
+     */
+    startPollingLoop() {
+      var _a;
+      if (this.pollInterval) {
+        clearInterval(this.pollInterval);
+        this.pollInterval = null;
+      }
+      if ((_a = this.currentCtx) == null ? void 0 : _a.jobId) {
+        setTimeout(() => {
+          if (this.frameTracks.length === 0) {
+            this.syncFrameTracks();
+          }
+        }, 800);
+      }
     }
     /**
      * Vi chỉnh nhanh Box 3D bằng tổ hợp phím Shift + WASD theo Screen Space trực quan (độc lập với góc xoay của xe)
@@ -21746,26 +24280,37 @@ Cancel = hủy`
       this.currentFrameNumber = CVATBridge.getCurrentFrame();
       const tracks = await CVATBridge.getTracksInCurrentFrame(this.currentCtx.jobId, this.currentFrameNumber);
       this.frameTracks = tracks;
-      if (this.currentFrameNumber !== this.lastContextImageFrame) {
-        this.lastContextImageFrame = this.currentFrameNumber;
-        CVATBridge.fetchContextImages(this.currentCtx.jobId, this.currentFrameNumber).then((images) => {
-          if (images.size > 0) {
-            images.forEach((blobUrl, camIdx) => {
-              CameraOverlayManager.getInstance().updateCameraImage(camIdx, blobUrl);
-            });
-          }
-        }).catch(() => {
-        });
+      if (this.currentFrameNumber !== this.lastContextImageFrame && CameraOverlayManager.getInstance().isVisible()) {
+        if (this.contextImagesDebounceTimer) {
+          clearTimeout(this.contextImagesDebounceTimer);
+          this.contextImagesDebounceTimer = null;
+        }
+        const targetFrame = this.currentFrameNumber;
+        const targetJobId = this.currentCtx.jobId;
+        this.contextImagesDebounceTimer = setTimeout(() => {
+          this.contextImagesDebounceTimer = null;
+          if (this.currentFrameNumber !== targetFrame) return;
+          this.lastContextImageFrame = targetFrame;
+          CVATBridge.fetchContextImages(targetJobId, targetFrame).then((images) => {
+            if (this.currentFrameNumber === targetFrame && images.size > 0) {
+              images.forEach((blobUrl, camIdx) => {
+                CameraOverlayManager.getInstance().updateCameraImage(camIdx, blobUrl);
+              });
+            }
+          }).catch(() => {
+          });
+        }, 250);
       }
       let matchingTrack;
-      if (this.selectedServerId) {
-        matchingTrack = tracks.find((t) => t.serverId === this.selectedServerId);
+      if (this.selectedTrackId !== null) {
+        matchingTrack = tracks.find((t) => t.trackId === this.selectedTrackId);
       }
-      if (!matchingTrack && this.selectedUiId !== null) {
-        matchingTrack = tracks.find((t) => t.uiId === this.selectedUiId);
+      if (!matchingTrack && this.selectedServerId) {
+        matchingTrack = tracks.find((t) => t.serverId === this.selectedServerId);
       }
       if (matchingTrack) {
         this.selectedUiId = matchingTrack.uiId;
+        this.selectedTrackId = matchingTrack.trackId ?? this.selectedTrackId;
         this.selectedServerId = matchingTrack.serverId;
         this.currentLabel = matchingTrack.label;
         this.syncCategoryFromLabel(this.currentLabel);
@@ -21780,14 +24325,18 @@ Cancel = hủy`
         this.editW = matchingTrack.w;
         this.editH = matchingTrack.h;
         CVATBridge.activateCanvasTrack(matchingTrack.uiId, { x: matchingTrack.x, y: matchingTrack.y, z: matchingTrack.z });
-        CVATBridge.setActiveTrackIdInMainWorld(matchingTrack.uiId);
+        CVATBridge.setActiveTrackIdInMainWorld(this.selectedTrackId);
         if (this.selectedUiId && (!this.trackStats || this.trackStats.uiId !== this.selectedUiId)) {
           this.loadTrackStats(this.selectedUiId);
         }
         this.scheduleUpdate();
       } else {
-        if (this.selectedUiId !== null) {
+        if (tracks.length === 0) {
+          return;
+        }
+        if (this.selectedUiId !== null || this.selectedTrackId !== null) {
           this.selectedUiId = null;
+          this.selectedTrackId = null;
           this.selectedServerId = null;
           this.currentLabel = "Chưa chọn đối tượng";
           this.scheduleUpdate();
@@ -21795,14 +24344,7 @@ Cancel = hủy`
       }
     }
     syncCategoryFromLabel(label) {
-      const l = (label || "").toLowerCase();
-      if (l.includes("pedestrian") || l.includes("person") || l.includes("walker") || l.includes("human")) {
-        this.selectedCategory = "pedestrian";
-      } else if (l.includes("cyclist") || l.includes("bicycle") || l.includes("motorcycle") || l.includes("motorbike") || l.includes("motobike") || l.includes("bike") || l.includes("rider") || l.includes("scooter") || l.includes("moped") || l.includes("two_wheeler") || l.includes("two-wheeler") || l.includes("twowheeler") || l.includes("2_wheeler") || l.includes("2-wheeler") || l.includes("2wheeler") || l.includes("motor") || l.includes("cycle") || l.includes("xe máy") || l.includes("xe_may") || l.includes("xemay") || l.includes("xe đạp") || l.includes("xe_dap") || l.includes("xedap") || l.includes("xe 2 bánh") || l.includes("xe_2_banh")) {
-        this.selectedCategory = "cyclist";
-      } else {
-        this.selectedCategory = "car";
-      }
+      this.selectedCategory = detectObjectCategory(label);
     }
     /**
      * Chọn xe theo UI ID (#1, #2...) và kích hoạt highlight trên Canvas
@@ -21810,9 +24352,22 @@ Cancel = hủy`
      */
     async selectTrackByUiId(uiId, details, activateCanvas = true) {
       this.selectedUiId = uiId;
-      CVATBridge.setActiveTrackIdInMainWorld(uiId);
+      let trackIdToSet = uiId;
+      if ((details == null ? void 0 : details.trackId) !== void 0) {
+        trackIdToSet = details.trackId;
+      } else {
+        const foundInFrame2 = this.frameTracks.find((t) => t.uiId === uiId);
+        if ((foundInFrame2 == null ? void 0 : foundInFrame2.trackId) !== void 0) {
+          trackIdToSet = foundInFrame2.trackId;
+        }
+      }
+      this.selectedTrackId = trackIdToSet;
+      CVATBridge.setActiveTrackIdInMainWorld(trackIdToSet);
       if (!this.trackStats || this.trackStats.uiId !== uiId) {
         this.loadTrackStats(uiId);
+      }
+      if (this.activeMainTab === "qc") {
+        this.preloadTrackQCInBackground(uiId, (details == null ? void 0 : details.serverId) || this.selectedServerId);
       }
       let targetPos;
       if (details) {
@@ -21901,73 +24456,108 @@ Cancel = hủy`
       }
     }
     /**
-     * Lưu snapshot trạng thái trước khi thực hiện thao tác để người dùng có thể bấm Hoàn Tác (Pre).
+     * Trích xuất mây điểm và shapes của đối tượng hiện tại để phục vụ Undo/Redo
      */
-    async pushUndoSnapshot(actionName, forTrack = false) {
-      if (!this.currentCtx || !this.currentCtx.jobId || this.selectedUiId === null) return;
-      try {
-        let currentBoxPoints;
-        if (Array.isArray(this.currentRawPoints) && this.currentRawPoints.length >= 16) {
-          currentBoxPoints = [...this.currentRawPoints];
-          currentBoxPoints[0] = this.currentX;
-          currentBoxPoints[1] = this.currentY;
-          currentBoxPoints[2] = this.currentZ;
-          currentBoxPoints[3] = 0;
-          currentBoxPoints[4] = 0;
-          currentBoxPoints[5] = this.currentYawDeg * Math.PI / 180;
-          currentBoxPoints[6] = this.currentL;
-          currentBoxPoints[7] = this.currentW;
-          currentBoxPoints[8] = this.currentH;
-        } else {
-          currentBoxPoints = [
-            this.currentX,
-            this.currentY,
-            this.currentZ,
-            0,
-            0,
-            this.currentYawDeg * Math.PI / 180,
-            this.currentL,
-            this.currentW,
-            this.currentH
-          ];
-          while (currentBoxPoints.length < 16) {
-            currentBoxPoints.push(0);
-          }
+    async captureCurrentSnapshotData(forTrack) {
+      var _a;
+      let boxPoints;
+      if (Array.isArray(this.currentRawPoints) && this.currentRawPoints.length >= 16) {
+        boxPoints = [...this.currentRawPoints];
+        boxPoints[0] = this.currentX;
+        boxPoints[1] = this.currentY;
+        boxPoints[2] = this.currentZ;
+        boxPoints[3] = 0;
+        boxPoints[4] = 0;
+        boxPoints[5] = this.currentYawDeg * Math.PI / 180;
+        boxPoints[6] = this.currentL;
+        boxPoints[7] = this.currentW;
+        boxPoints[8] = this.currentH;
+      } else {
+        boxPoints = [
+          this.currentX,
+          this.currentY,
+          this.currentZ,
+          0,
+          0,
+          this.currentYawDeg * Math.PI / 180,
+          this.currentL,
+          this.currentW,
+          this.currentH
+        ];
+        while (boxPoints.length < 16) {
+          boxPoints.push(0);
         }
-        let trackShapesBackup = void 0;
-        if (forTrack || this.applyToTrack) {
+      }
+      let trackShapes = void 0;
+      if (forTrack && ((_a = this.currentCtx) == null ? void 0 : _a.jobId) && this.selectedUiId !== null) {
+        try {
           const serverId = this.selectedServerId || this.selectedUiId;
           const allFrames = await CVATBridge.getTrackAllFrames(this.currentCtx.jobId, this.selectedUiId, serverId);
           if (allFrames && allFrames.length > 0) {
-            trackShapesBackup = allFrames.map((f) => ({
+            trackShapes = allFrames.map((f) => ({
               frame: f.frame,
               outside: f.outside,
               points: [...f.points]
             }));
           }
+        } catch (_) {
         }
+      }
+      return { boxPoints, trackShapes };
+    }
+    /**
+     * Cập nhật trạng thái enabled/disabled và tooltip của 2 nút Undo và Redo trên giao diện
+     */
+    updateUndoRedoButtonsState() {
+      if (!this.container) return;
+      const undoBtn = this.container.querySelector("#floating-btn-undo");
+      const redoBtn = this.container.querySelector("#floating-btn-redo");
+      if (undoBtn) {
+        const hasUndo = this.undoStack.length > 0;
+        undoBtn.style.opacity = hasUndo ? "1" : "0.35";
+        undoBtn.style.cursor = hasUndo ? "pointer" : "not-allowed";
+        const lastAction = hasUndo ? this.undoStack[this.undoStack.length - 1].actionName : "";
+        undoBtn.title = hasUndo ? `Hoàn tác: ${lastAction} (Ctrl+Z / Cmd+Z)` : "Không có thao tác nào để hoàn tác (Ctrl+Z)";
+      }
+      if (redoBtn) {
+        const hasRedo = this.redoStack.length > 0;
+        redoBtn.style.opacity = hasRedo ? "1" : "0.35";
+        redoBtn.style.cursor = hasRedo ? "pointer" : "not-allowed";
+        const nextAction = hasRedo ? this.redoStack[this.redoStack.length - 1].actionName : "";
+        redoBtn.title = hasRedo ? `Làm lại: ${nextAction} (Ctrl+Y / Ctrl+Shift+Z)` : "Không có thao tác nào để làm lại (Ctrl+Y / Ctrl+Shift+Z)";
+      }
+    }
+    /**
+     * Lưu snapshot trạng thái trước khi thực hiện thao tác để người dùng có thể bấm Hoàn Tác (Undo / Pre).
+     */
+    async pushUndoSnapshot(actionName, forTrack = false) {
+      if (!this.currentCtx || !this.currentCtx.jobId || this.selectedUiId === null) return;
+      try {
+        const data = await this.captureCurrentSnapshotData(forTrack || this.applyToTrack);
         this.undoStack.push({
           uiId: this.selectedUiId,
           serverId: this.selectedServerId,
           frame: this.currentFrameNumber,
           applyToTrack: forTrack || this.applyToTrack,
-          boxPoints: currentBoxPoints,
-          trackShapesBackup,
+          boxPoints: data.boxPoints,
+          trackShapesBackup: data.trackShapes,
           actionName
         });
-        if (this.undoStack.length > 25) {
+        if (this.undoStack.length > 30) {
           this.undoStack.shift();
         }
+        this.redoStack = [];
+        this.updateUndoRedoButtonsState();
       } catch (err) {
         console.warn("[CVAT 3D Suite] Lỗi lưu Undo Snapshot:", err);
       }
     }
     /**
-     * Hoàn tác (Pre) thao tác vừa thực hiện
+     * Hoàn tác (Undo / Pre) thao tác vừa thực hiện
      */
     async handleUndo() {
       if (this.undoStack.length === 0) {
-        this.showToast("Không có thao tác nào để hoàn tác (Pre)!", "info");
+        this.showToast("Không có thao tác nào để hoàn tác (Undo)!", "info");
         return;
       }
       if (this.isProcessing) return;
@@ -21975,6 +24565,9 @@ Cancel = hủy`
       const snapshot = this.undoStack.pop();
       this.showToast(`Đang hoàn tác: ${snapshot.actionName}...`, "info");
       try {
+        const curData = await this.captureCurrentSnapshotData(snapshot.applyToTrack);
+        snapshot.afterBoxPoints = curData.boxPoints;
+        snapshot.afterTrackShapes = curData.trackShapes;
         const res = await CVATBridge.restoreTrackSnapshot(
           this.currentCtx.jobId,
           snapshot.uiId,
@@ -21987,6 +24580,10 @@ Cancel = hủy`
           }
         );
         if (res.success) {
+          this.redoStack.push(snapshot);
+          if (this.redoStack.length > 30) {
+            this.redoStack.shift();
+          }
           if (Array.isArray(snapshot.boxPoints) && snapshot.boxPoints.length >= 9) {
             this.currentX = snapshot.boxPoints[0];
             this.currentY = snapshot.boxPoints[1];
@@ -22003,12 +24600,74 @@ Cancel = hủy`
           this.showToast(`Đã hoàn tác: ${snapshot.actionName}`, "success");
           await this.syncFrameTracks();
         } else {
+          this.undoStack.push(snapshot);
           this.showToast(res.message || "Không thể hoàn tác!", "error");
         }
       } catch (err) {
+        this.undoStack.push(snapshot);
         this.showToast(`Lỗi hoàn tác: ${err.message || err}`, "error");
       } finally {
         this.isProcessing = false;
+        this.updateUndoRedoButtonsState();
+        this.updateContent();
+      }
+    }
+    /**
+     * Làm lại (Redo) thao tác vừa hoàn tác
+     */
+    async handleRedo() {
+      if (this.redoStack.length === 0) {
+        this.showToast("Không có thao tác nào để làm lại (Redo)!", "info");
+        return;
+      }
+      if (this.isProcessing) return;
+      this.isProcessing = true;
+      const snapshot = this.redoStack.pop();
+      this.showToast(`Đang làm lại: ${snapshot.actionName}...`, "info");
+      try {
+        const targetPoints = snapshot.afterBoxPoints || snapshot.boxPoints;
+        const targetShapes = snapshot.afterTrackShapes || snapshot.trackShapesBackup;
+        const res = await CVATBridge.restoreTrackSnapshot(
+          this.currentCtx.jobId,
+          snapshot.uiId,
+          snapshot.serverId,
+          {
+            frame: snapshot.frame,
+            applyToTrack: snapshot.applyToTrack,
+            boxPoints: targetPoints,
+            trackShapesBackup: targetShapes
+          }
+        );
+        if (res.success) {
+          this.undoStack.push(snapshot);
+          if (this.undoStack.length > 30) {
+            this.undoStack.shift();
+          }
+          if (Array.isArray(targetPoints) && targetPoints.length >= 9) {
+            this.currentX = targetPoints[0];
+            this.currentY = targetPoints[1];
+            this.currentZ = targetPoints[2];
+            this.currentYawDeg = Math.round(targetPoints[5] * 180 / Math.PI);
+            this.currentL = targetPoints[6];
+            this.currentW = targetPoints[7];
+            this.currentH = targetPoints[8];
+            this.editL = this.currentL;
+            this.editW = this.currentW;
+            this.editH = this.currentH;
+            this.currentRawPoints = [...targetPoints];
+          }
+          this.showToast(`Đã làm lại: ${snapshot.actionName}`, "success");
+          await this.syncFrameTracks();
+        } else {
+          this.redoStack.push(snapshot);
+          this.showToast(res.message || "Không thể làm lại!", "error");
+        }
+      } catch (err) {
+        this.redoStack.push(snapshot);
+        this.showToast(`Lỗi làm lại: ${err.message || err}`, "error");
+      } finally {
+        this.isProcessing = false;
+        this.updateUndoRedoButtonsState();
         this.updateContent();
       }
     }
@@ -22043,7 +24702,7 @@ Cancel = hủy`
             "success"
           );
           await this.syncFrameTracks();
-          await this.loadTrackStats(this.selectedUiId);
+          await this.loadTrackStats(this.selectedUiId, true);
         } else {
           this.showToast(res.message || "Không thể đổi trạng thái Outside!", "error");
         }
@@ -22056,25 +24715,64 @@ Cancel = hủy`
     }
     /**
      * Tải ngầm thống kê toàn bộ vòng đời của Track ID (Total frames, Active, Outside, Dải frame)
+     * Debounce 300ms để chống nghẽn khi người dùng chuyển liên tục qua nhiều xe
      */
-    async loadTrackStats(uiId) {
-      var _a, _b;
+    async loadTrackStats(uiId, immediate = false) {
+      var _a;
+      if (this.loadTrackStatsDebounceTimer) {
+        clearTimeout(this.loadTrackStatsDebounceTimer);
+        this.loadTrackStatsDebounceTimer = null;
+      }
       if (uiId === null || !((_a = this.currentCtx) == null ? void 0 : _a.jobId)) {
         this.trackStats = null;
         this.updateContent();
         return;
       }
+      if (immediate) {
+        await this.executeLoadTrackStats(uiId);
+      } else {
+        this.loadTrackStatsDebounceTimer = setTimeout(async () => {
+          this.loadTrackStatsDebounceTimer = null;
+          await this.executeLoadTrackStats(uiId);
+        }, 300);
+      }
+    }
+    async executeLoadTrackStats(uiId) {
+      var _a, _b;
+      if (!((_a = this.currentCtx) == null ? void 0 : _a.jobId)) return;
       try {
         this.trackStatsLoading = true;
         const serverId = this.selectedServerId || uiId;
         const allFrames = await CVATBridge.getTrackAllFrames(this.currentCtx.jobId, uiId, serverId);
         if (this.selectedUiId !== uiId) return;
         if (Array.isArray(allFrames) && allFrames.length > 0) {
-          const totalFrames = allFrames.length;
-          const startFrame = allFrames[0].frame;
-          const endFrame = allFrames[allFrames.length - 1].frame;
-          const outsideCount = allFrames.filter((f) => !!f.outside).length;
-          const activeCount = totalFrames - outsideCount;
+          const sortedFrames = [...allFrames].sort((a, b) => a.frame - b.frame);
+          const startFrame = sortedFrames[0].frame;
+          const endFrame = sortedFrames[sortedFrames.length - 1].frame;
+          let activeCount = 0;
+          let outsideCount = 0;
+          if (sortedFrames.length === 1) {
+            if (sortedFrames[0].outside) {
+              outsideCount = 1;
+            } else {
+              activeCount = 1;
+            }
+          } else {
+            for (let i = 0; i < sortedFrames.length - 1; i++) {
+              const span = sortedFrames[i + 1].frame - sortedFrames[i].frame;
+              if (sortedFrames[i].outside) {
+                outsideCount += span;
+              } else {
+                activeCount += span;
+              }
+            }
+            if (sortedFrames[sortedFrames.length - 1].outside) {
+              outsideCount += 1;
+            } else {
+              activeCount += 1;
+            }
+          }
+          const totalFrames = activeCount + outsideCount;
           const isFullyOutside = outsideCount === totalFrames;
           const isFullyActive = outsideCount === 0;
           this.trackStats = {
@@ -22086,7 +24784,7 @@ Cancel = hủy`
             outsideCount,
             isFullyOutside,
             isFullyActive,
-            label: ((_b = allFrames[0]) == null ? void 0 : _b.label) || this.currentLabel
+            label: ((_b = sortedFrames[0]) == null ? void 0 : _b.label) || this.currentLabel
           };
         } else {
           this.trackStats = null;
@@ -22258,6 +24956,7 @@ Cancel = hủy`
           CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
         }
         this.showToast(res.message, "success");
+        this.onBoxModificationSuccess(!currentFrameOnly);
       } catch (err) {
         this.showToast(`Lỗi: ${err.message || err}`, "error");
       } finally {
@@ -22315,6 +25014,7 @@ Cancel = hủy`
           CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
         }
         this.showToast(res.message, "success");
+        this.onBoxModificationSuccess(applyToTrack);
       } catch (err) {
         this.showToast(`Lỗi: ${err.message || err}`, "error");
       } finally {
@@ -22373,6 +25073,33 @@ Cancel = hủy`
       this.updateContent();
     }
     /**
+     * Xoay vi chỉnh dốc Side (Pitch) tương đối một lượng deltaDeg (ví dụ: -1°, +1°, -3°, +3°)
+     * Thao tác siêu tốc bằng 2 phím tắt . và / trên Side View.
+     * Tuân thủ GEMINI.md:
+     * - Người đi bộ: Khóa cứng Pitch = 0° tuyệt đối.
+     * - Phạm vi: Tuân theo toggle applyToTrack (Chỉ Frame này hoặc Toàn bộ Track).
+     * - Tịnh tiến dàn đều cho toàn bộ các frame trong track.
+     * - Hỗ trợ Undo/Redo hoàn tác tức thì.
+     */
+    async rotatePitchByDelta(deg2) {
+      if (!this.currentCtx || !this.currentCtx.jobId) return;
+      if (this.selectedUiId === null) {
+        await this.ensureActiveTrackSelected();
+      }
+      if (this.selectedUiId === null) {
+        this.showToast("Vui lòng chọn xe trước!", "warning");
+        return;
+      }
+      if (this.selectedCategory === "pedestrian") {
+        this.showToast("Người đi bộ luôn đứng thẳng (Roll=0°, Pitch=0° tuyệt đối)!", "warning");
+        return;
+      }
+      await this.handleSnapGround("micro_adjust_pitch", {
+        deltaDeg: deg2,
+        applyToTrack: this.applyToTrack
+      });
+    }
+    /**
      * Chuyển đổi giữa 2 phạm vi: Chỉ Frame Này <-> Toàn Bộ Track
      */
     toggleScope() {
@@ -22406,16 +25133,25 @@ Cancel = hủy`
         return;
       }
       if (this.isProcessing) return;
+      if (this.selectedCategory === "pedestrian") {
+        await this.handleFitPedestrian("all");
+        return;
+      }
+      if (this.selectedCategory === "cyclist") {
+        await this.handleFitCyclist("all");
+        return;
+      }
       await this.pushUndoSnapshot("Fit Box Hiện Tại (+5cm Pad)", this.applyToTrack);
       this.isProcessing = true;
-      this.showToast("Đang đo mây điểm & Fit Box hiện tại (+5cm Pad)...", "info");
+      this.showToast("Đang đo mây điểm & Fit Box Ô tô (+5cm Pad, Chuẩn Tool_QC)...", "info");
       try {
         const serverId = this.selectedServerId || this.selectedUiId;
         const res = await CVATBridge.fitCurrentBox(
           this.currentCtx.jobId,
           this.selectedUiId,
           serverId,
-          this.applyToTrack
+          this.applyToTrack,
+          this.currentAttributes
         );
         if (res.success && res.newL && res.newW && res.newH) {
           this.currentL = res.newL;
@@ -22439,6 +25175,7 @@ Cancel = hủy`
           if (inputW) inputW.value = String(res.newW);
           if (inputH) inputH.value = String(res.newH);
           this.showToast(res.message, "success");
+          this.onBoxModificationSuccess();
         } else {
           this.showToast(res.message || "Không thể Fit Box với frame hiện tại!", "warning");
         }
@@ -22492,6 +25229,7 @@ Cancel = hủy`
           serverId,
           deltaXLocal,
           deltaYLocal,
+          0,
           this.applyToTrack
         );
         if (res.success) {
@@ -22506,6 +25244,7 @@ Cancel = hủy`
             CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
           }
           this.showToast(res.message, "success");
+          this.onBoxModificationSuccess();
         } else {
           this.showToast(res.message || "Lỗi khi vi chỉnh Center!", "error");
         }
@@ -22533,7 +25272,15 @@ Cancel = hủy`
       }
       const forTrack = (params == null ? void 0 : params.applyToTrack) === true;
       if (this.isProcessing) return;
-      await this.pushUndoSnapshot(`Ghim Đất ${forTrack ? "Toàn Track " : ""}(${mode})`, forTrack);
+      let actionDesc = `Ghim Đất ${forTrack ? "Toàn Track " : ""}(${mode})`;
+      if (mode === "micro_adjust_pitch") {
+        const dDeg = (params == null ? void 0 : params.deltaDeg) ?? 1;
+        actionDesc = `Xoay dốc Side ${dDeg > 0 ? "+" : ""}${dDeg}° ${forTrack ? "Toàn Track" : ""}`.trim();
+      } else if (mode === "micro_adjust_roll") {
+        const dDeg = (params == null ? void 0 : params.deltaDeg) ?? 1;
+        actionDesc = `Xoay nghiêng Front ${dDeg > 0 ? "+" : ""}${dDeg}° ${forTrack ? "Toàn Track" : ""}`.trim();
+      }
+      await this.pushUndoSnapshot(actionDesc, forTrack);
       this.isProcessing = true;
       try {
         const serverId = this.selectedServerId || this.selectedUiId;
@@ -22542,7 +25289,11 @@ Cancel = hủy`
           this.selectedUiId,
           serverId,
           mode,
-          params
+          {
+            ...params,
+            category: this.selectedCategory,
+            attributes: this.currentAttributes
+          }
         );
         this.currentZ = res.newZ;
         const targetItem = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
@@ -22553,6 +25304,7 @@ Cancel = hủy`
           CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
         }
         this.showToast(res.message, "success");
+        this.onBoxModificationSuccess();
       } catch (err) {
         this.showToast(`Lỗi: ${err.message || err}`, "error");
       } finally {
@@ -22565,6 +25317,60 @@ Cancel = hủy`
      */
     async handleSnapGroundTrack() {
       await this.handleSnapGround("road", { applyToTrack: true });
+    }
+    /**
+     * Đồng bộ và lưu cấu hình Lát cắt (Depth Slicing) xuống localStorage và Main World
+     */
+    saveAndSyncOrthoSlicing() {
+      try {
+        localStorage.setItem("cvat_3d_ortho_slicing", JSON.stringify(this.orthoSlicing));
+      } catch (_) {
+      }
+      CVATBridge.setOrthoSlicing(this.orthoSlicing);
+    }
+    toggleOrthoSlicing() {
+      this.orthoSlicing.enabled = !this.orthoSlicing.enabled;
+      this.saveAndSyncOrthoSlicing();
+      this.showToast(
+        this.orthoSlicing.enabled ? `Đã BẬT lát cắt Side & Front (±${this.orthoSlicing.slab}m)` : "Đã TẮT lát cắt (Toàn cảnh không cắt)",
+        "info"
+      );
+      this.scheduleUpdate();
+    }
+    stepOrthoSlab(delta) {
+      const slabs = [0.3, 0.5, 1, 2];
+      let cur = this.orthoSlicing.slab;
+      let nextSlab = cur;
+      if (delta > 0) {
+        const found = slabs.find((s) => s > cur + 1e-3);
+        nextSlab = found !== void 0 ? found : Math.min(4, Number((cur + 0.5).toFixed(1)));
+      } else {
+        const reversed = [...slabs].reverse();
+        const found = reversed.find((s) => s < cur - 1e-3);
+        nextSlab = found !== void 0 ? found : Math.max(0.2, Number((cur - 0.2).toFixed(1)));
+      }
+      this.orthoSlicing.slab = nextSlab;
+      this.saveAndSyncOrthoSlicing();
+      this.showToast(`Độ dày lát cắt Side/Front: ±${this.orthoSlicing.slab}m`, "info");
+      this.scheduleUpdate();
+    }
+    toggleHideGround() {
+      this.orthoSlicing.hideGround = !this.orthoSlicing.hideGround;
+      this.saveAndSyncOrthoSlicing();
+      this.showToast(
+        this.orthoSlicing.hideGround ? "Đã BẬT tắt mặt đất Top View (Z_base + 12cm)" : "Đã TẮT lọc mặt đất Top View",
+        "info"
+      );
+      this.scheduleUpdate();
+    }
+    toggleIsolateROI() {
+      this.orthoSlicing.isolateROI = !this.orthoSlicing.isolateROI;
+      this.saveAndSyncOrthoSlicing();
+      this.showToast(
+        this.orthoSlicing.isolateROI ? "Đã BẬT khóa vùng ROI (Xóa cây cối, nhà cửa xung quanh)" : "Đã TẮT khóa vùng ROI (Hiển thị toàn bối cảnh)",
+        "info"
+      );
+      this.scheduleUpdate();
     }
     /**
      * Căn góc xoay Yaw theo vạch kẻ làn đường 3D (LiDAR Intensity Lane Snap)
@@ -22603,6 +25409,7 @@ Cancel = hủy`
             CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
           }
           this.showToast(res.message, "success");
+          this.onBoxModificationSuccess();
         } else {
           this.showToast(res.message || "Không tìm thấy vạch sơn rõ nét!", "warning");
         }
@@ -22660,6 +25467,7 @@ Cancel = hủy`
             CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
           }
           this.showToast(res.message, "success");
+          this.onBoxModificationSuccess();
         } else {
           this.showToast(res.message, "error");
         }
@@ -22702,15 +25510,17 @@ Cancel = hủy`
      * Tự động điều hướng theo loại đối tượng:
      * - Pedestrian: Fit vai/ngực người
      * - Cyclist: Fit tay lái / gương xe (+5cm pad)
-     * - Car: Fit riêng bề rộng W (+8cm pad)
+     * - Car: Ô tô tuân thủ kích thước chuẩn Catalog (Phím B), không áp dụng Fit W tự do
      */
     async handleFitWidth() {
+      if (this.selectedCategory === "car") {
+        this.showToast("Ô tô tuân thủ kích thước chuẩn Catalog (Phím B), không áp dụng Fit W tự do!", "warning");
+        return;
+      }
       if (this.selectedCategory === "pedestrian") {
         await this.handleFitPedestrian("w");
       } else if (this.selectedCategory === "cyclist") {
         await this.handleFitCyclist("w");
-      } else {
-        await this.handleFitCarDimension("w");
       }
     }
     /**
@@ -22719,80 +25529,25 @@ Cancel = hủy`
      * Tự động điều hướng theo loại đối tượng:
      * - Pedestrian: Fit đỉnh đầu (+12cm đệm)
      * - Cyclist: Fit nón bảo hiểm (+12cm đệm)
-     * - Car: Fit nóc xe (+5cm đệm)
+     * - Car: Ô tô tuân thủ kích thước chuẩn Catalog (Phím B), không áp dụng Fit H tự do
      */
     async handleFitHeight() {
+      if (this.selectedCategory === "car") {
+        this.showToast("Ô tô tuân thủ kích thước chuẩn Catalog (Phím B), không áp dụng Fit H tự do!", "warning");
+        return;
+      }
       if (this.selectedCategory === "pedestrian") {
         await this.handleFitPedestrian("h");
       } else if (this.selectedCategory === "cyclist") {
         await this.handleFitCyclist("h");
-      } else {
-        await this.handleFitCarDimension("h");
       }
     }
     /**
-     * Fit riêng Chiều Rộng (W) hoặc Chiều Cao (H Ground-Lock) cho Xe Ô tô (Car) hoặc đối tượng chung
+     * Ô tô tuân thủ kích thước hình học cứng từ Catalog xe (Phím B), không áp dụng Fit W/H tự do
      */
     async handleFitCarDimension(dimension) {
-      var _a, _b;
-      if (!this.currentCtx || !this.currentCtx.jobId) {
-        this.showToast("Chưa kết nối Job CVAT!", "warning");
-        return;
-      }
-      const activeId = await this.ensureActiveTrackSelected();
-      if (!activeId) {
-        this.showToast("Chưa chọn đối tượng để fit kích thước!", "warning");
-        return;
-      }
-      if (this.isProcessing) return;
-      const dimLabel = dimension === "w" ? "Rộng (W) [Phím 4]" : "Cao (H) [Phím 5 - Ground-Lock]";
-      await this.pushUndoSnapshot(`Fit ${dimLabel}`, this.applyToTrack);
-      this.isProcessing = true;
-      this.showToast(`Đang đo mây điểm & Fit ${dimLabel}...`, "info");
-      try {
-        const serverId = this.selectedServerId || activeId;
-        const res = await CVATBridge.fitDimension(
-          this.currentCtx.jobId,
-          activeId,
-          serverId,
-          dimension,
-          this.applyToTrack
-        );
-        if (res.success) {
-          if (res.newW !== void 0) {
-            this.currentW = res.newW;
-            this.editW = res.newW;
-          }
-          if (res.newH !== void 0) {
-            this.currentH = res.newH;
-            this.editH = res.newH;
-          }
-          if (res.newX !== void 0) this.currentX = res.newX;
-          if (res.newY !== void 0) this.currentY = res.newY;
-          if (res.newZ !== void 0) this.currentZ = res.newZ;
-          const targetItem = this.frameTracks.find((t) => t.uiId === activeId);
-          if (targetItem) {
-            if (res.newW !== void 0) targetItem.w = res.newW;
-            if (res.newH !== void 0) targetItem.h = res.newH;
-            if (res.newX !== void 0) targetItem.x = res.newX;
-            if (res.newY !== void 0) targetItem.y = res.newY;
-            if (res.newZ !== void 0) targetItem.z = res.newZ;
-          }
-          const inputW = (_a = this.container) == null ? void 0 : _a.querySelector("#input-dim-w");
-          const inputH = (_b = this.container) == null ? void 0 : _b.querySelector("#input-dim-h");
-          if (inputW && res.newW !== void 0) inputW.value = String(res.newW);
-          if (inputH && res.newH !== void 0) inputH.value = String(res.newH);
-          this.showToast(res.message, "success");
-          this.scheduleUpdate();
-        } else {
-          this.showToast(res.message, "error");
-        }
-      } catch (err) {
-        this.showToast(`Lỗi fit ${dimLabel}: ${err.message || String(err)}`, "error");
-      } finally {
-        this.isProcessing = false;
-        this.updateContent();
-      }
+      const dimLabel = dimension === "w" ? "Rộng (W)" : "Cao (H)";
+      this.showToast(`Ô tô tuân thủ kích thước chuẩn Catalog (Phím B), không áp dụng Fit ${dimLabel} tự do!`, "warning");
     }
     /**
      * Xử lý FIT CHUYÊN BIỆT CHO NGƯỜI ĐI BỘ (PEDESTRIAN FIT)
@@ -22874,6 +25629,7 @@ Cancel = hủy`
             if (res.newH !== void 0) targetItem.h = res.newH;
           }
           this.showToast(res.message, "success");
+          this.onBoxModificationSuccess(this.applyToTrack);
         } else {
           this.showToast(res.message, "error");
         }
@@ -22960,6 +25716,7 @@ Cancel = hủy`
             if (res.newH !== void 0) targetItem.h = res.newH;
           }
           this.showToast(res.message, "success");
+          this.onBoxModificationSuccess(this.applyToTrack);
         } else {
           this.showToast(res.message, "error");
         }
@@ -23004,6 +25761,7 @@ Cancel = hủy`
             if (res.newZ !== void 0) targetItem.z = res.newZ;
           }
           this.showToast(res.message, "success");
+          this.onBoxModificationSuccess();
         } else {
           this.showToast(res.message, "error");
         }
@@ -23021,7 +25779,8 @@ Cancel = hủy`
       await this.handleAlignBoxToPoints();
     }
     /**
-     * Xử lý Khớp Kích Thước Chuẩn Catalog (Catalog Best-Fit)
+     * Xử lý Khớp Kích Thước Chuẩn Catalog (Catalog Best-Fit - Phím B)
+     * Phân nhánh chuyên biệt theo từng chủng loại: Car, Cyclist, Pedestrian chuẩn Tool_QC
      */
     async handleCatalogFit() {
       if (!this.currentCtx || !this.currentCtx.jobId) {
@@ -23032,12 +25791,20 @@ Cancel = hủy`
         this.showToast("Cần active đối tượng để thao tác!", "warning");
         return;
       }
-      if (this.selectedCategory !== "car") {
-        this.showToast("Catalog kích thước chỉ áp dụng cho Ô tô/Xe cơ giới!", "warning");
+      if (this.isProcessing) return;
+      if (this.selectedCategory === "pedestrian") {
+        const match = findBestFitCatalog(this.currentL, this.currentW, this.currentH, "pedestrian");
+        this.showToast(`Khớp Catalog Người: ${match.matchedItem.name} (${match.recommendedL}x${match.recommendedW}x${match.recommendedH}m, Chuẩn Tool_QC)`, "info");
+        await this.handleUpdateDimensions(match.recommendedL, match.recommendedW, match.recommendedH, this.applyToTrack);
         return;
       }
-      if (this.isProcessing) return;
-      await this.pushUndoSnapshot("Khớp Kích Thước Catalog", this.applyToTrack);
+      if (this.selectedCategory === "cyclist") {
+        const match = findBestFitCatalog(this.currentL, this.currentW, this.currentH, "cycle");
+        this.showToast(`Khớp Catalog Xe 2 Bánh: ${match.matchedItem.name} (${match.recommendedL}x${match.recommendedW}x${match.recommendedH}m, Chuẩn Tool_QC)`, "info");
+        await this.handleUpdateDimensions(match.recommendedL, match.recommendedW, match.recommendedH, this.applyToTrack);
+        return;
+      }
+      await this.pushUndoSnapshot("Khớp Kích Thước Catalog Xe", this.applyToTrack);
       this.isProcessing = true;
       try {
         const serverId = this.selectedServerId || this.selectedUiId;
@@ -23075,6 +25842,7 @@ Cancel = hủy`
             if (res.newH !== void 0) targetItem.h = res.newH;
           }
           this.showToast(res.message, "success");
+          this.onBoxModificationSuccess();
         } else {
           this.showToast(res.message, "error");
         }
@@ -23138,6 +25906,7 @@ Cancel = hủy`
             if (res.optH !== void 0) targetItem.h = res.optH;
           }
           this.showToast(res.message, "success");
+          this.onBoxModificationSuccess(true);
         } else {
           this.showToast(res.message, "error");
         }
@@ -23151,35 +25920,36 @@ Cancel = hủy`
     /**
      * Render nội dung Tab QC (Quick Focus Mode) trên Floating Panel
      */
+    /**
+     * Render nội dung Tab QC: Quản lý danh sách lỗi của riêng Track ID đang chọn qua từng Frame lỗi
+     * Dữ liệu được nạp ngầm vào RAM (trackQCRamCache), truy xuất tức thì 0ms latency.
+     */
     renderQCTabContent() {
       const openModalBtnHtml = `
       <button id="btn-open-qc-studio-modal" style="
         width: 100%;
-        padding: 9px 12px;
-        background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
-        border: 1px solid #bfdbfe;
-        border-radius: 8px;
-        color: #1d4ed8;
+        padding: 8px 12px;
+        background: #0284c7;
+        border: none;
+        border-radius: 6px;
+        color: #ffffff;
         font-size: 11.5px;
         font-weight: 700;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
         box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        transition: all 0.15s ease;
       ">
         <span style="display: flex; align-items: center;">${ICONS.matrix}</span>
-        <span>Mở QC Studio Toàn Màn Hình</span>
-        <span style="display: flex; align-items: center; opacity: 0.7;">${ICONS.externalLink}</span>
+        <span>Mở CVAT 3D QC Studio (Datumaro QA)</span>
       </button>
     `;
       if (this.selectedUiId === null) {
         return `
-        <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
           ${openModalBtnHtml}
-
           <div style="
             background: #ffffff;
             border: 1px dashed #cbd5e1;
@@ -23187,179 +25957,784 @@ Cancel = hủy`
             padding: 24px 16px;
             text-align: center;
             color: #64748b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
           ">
-            <div style="margin-bottom: 8px; color: #94a3b8; display: flex; justify-content: center;">
+            <div style="color: #94a3b8; display: flex; justify-content: center;">
               ${ICONS.target}
             </div>
-            <div style="font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px;">
-              Chưa chọn đối tượng để kiểm định
+            <div style="font-size: 12.5px; font-weight: 700; color: #334155;">
+              Vui lòng chọn đối tượng để kiểm tra danh sách lỗi
             </div>
-            <div style="font-size: 11px; line-height: 1.5;">
-              Vui lòng nhấp chọn bất kỳ box 3D nào trên Canvas hoặc chọn từ Dropdown để xem báo cáo sức khỏe tức thì.
+            <div style="font-size: 11px; line-height: 1.5; color: #64748b;">
+              Nhấp chọn một Box 3D trên Canvas hoặc chọn một ID trong danh sách để kiểm định danh sách lỗi qua từng Frame.
             </div>
           </div>
         </div>
       `;
       }
-      const curObj = {
-        frame: this.currentFrameNumber,
-        trackId: this.selectedUiId,
-        label: this.currentLabel,
-        group: classifyLabelGroup(this.currentLabel, this.qcEngine.getConfig()),
-        x: this.currentX,
-        y: this.currentY,
-        z: this.currentZ,
-        yaw: this.currentYawDeg * Math.PI / 180,
-        yawDeg: this.currentYawDeg,
-        l: this.currentL,
-        w: this.currentW,
-        h: this.currentH
-      };
-      const currentFrameObjects = this.frameTracks.map((t) => ({
-        frame: this.currentFrameNumber,
-        trackId: t.uiId,
-        label: t.label,
-        group: classifyLabelGroup(t.label, this.qcEngine.getConfig()),
-        x: t.x,
-        y: t.y,
-        z: t.z,
-        yaw: t.yawDeg * Math.PI / 180,
-        yawDeg: t.yawDeg,
-        l: t.l,
-        w: t.w,
-        h: t.h
-      }));
-      const summary = this.qcEngine.checkSingleObject(curObj, [curObj], currentFrameObjects);
-      const isClean = summary.overallStatus === "clean";
-      const isError = summary.overallStatus === "error";
-      const statusBg = isClean ? "#ecfdf5" : isError ? "#fef2f2" : "#fffbeb";
-      const statusBorder = isClean ? "#a7f3d0" : isError ? "#fecaca" : "#fef08a";
-      const statusText = isClean ? "#059669" : isError ? "#dc2626" : "#d97706";
-      const statusTitle = isClean ? "✓ ĐẠT CHUẨN KIỂM ĐỊNH" : isError ? `✖ CÓ ${summary.issues.length} LỖI CẦN SỬA` : `⚠ CÓ ${summary.issues.length} CẢNH BÁO`;
-      const renderCheckItem = (code, name, chk) => {
-        const ok = chk.passed;
-        const color = ok ? "#059669" : chk.severity === "error" ? "#dc2626" : "#d97706";
-        const bg = ok ? "#f0fdf4" : chk.severity === "error" ? "#fef2f2" : "#fffbeb";
-        const icon = ok ? "✓" : chk.severity === "error" ? "✖" : "⚠";
+      const cachedResult = this.trackQCRamCache.get(this.selectedUiId);
+      if (!cachedResult || cachedResult.status === "idle") {
+        this.preloadTrackQCInBackground(this.selectedUiId, this.selectedServerId);
         return `
-        <div style="
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 5px 8px;
-          border-radius: 6px;
-          background: ${bg};
-          border: 1px solid ${color}20;
-          font-size: 11px;
-        ">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="font-weight: 700; color: ${color}; font-family: monospace;">[${code}]</span>
-            <span style="color: #334155; font-weight: 500;">${name}</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 4px; color: ${color}; font-weight: 600; font-size: 10px;">
-            <span>${icon}</span>
-            <span>${ok ? "Đạt" : "Chưa đạt"}</span>
-          </div>
-        </div>
-      `;
-      };
-      let issuesDetailHtml = "";
-      if (summary.issues.length > 0) {
-        issuesDetailHtml = `
-        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
-          <div style="font-size: 11px; font-weight: 700; color: #475569;">Chi tiết cảnh báo & lỗi:</div>
-          ${summary.issues.map(
-          (iss) => `
-            <div style="
-              padding: 6px 8px;
-              border-radius: 6px;
-              background: ${iss.severity === "error" ? "#fef2f2" : "#fffbeb"};
-              border: 1px solid ${iss.severity === "error" ? "#fca5a5" : "#fde047"};
-              font-size: 10.5px;
-              color: #0f172a;
-              display: flex;
-              flex-direction: column;
-              gap: 2px;
-            ">
-              <div style="display: flex; justify-content: space-between; font-weight: 700; color: ${iss.severity === "error" ? "#dc2626" : "#b45309"};">
-                <span>[${iss.symbol}] ${iss.name}</span>
-                <span style="font-family: monospace;">${iss.value}</span>
-              </div>
-              <div style="color: #475569; font-size: 10px;">${iss.detail}</div>
-              <div style="color: #64748b; font-size: 9.5px; font-family: monospace;">Chuẩn: ${iss.ref}</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          ${openModalBtnHtml}
+          <div style="
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 22px 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+          ">
+            <div style="display: flex; align-items: center; justify-content: center; animation: spin 1s linear infinite; color: #2563eb;">
+              ${ICONS.radar}
             </div>
-          `
-        ).join("")}
+            <div style="font-size: 11.5px; font-weight: 700; color: #1e293b;">
+              Đang nạp kiểm tra QC ngầm vào RAM...
+            </div>
+            <div style="font-size: 10.5px; color: #64748b;">
+              Đang phân tích các frames của Track #${this.selectedUiId} (${this.currentLabel})
+            </div>
+          </div>
         </div>
       `;
       }
-      return `
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <!-- NÚT MỞ TOÀN MÀN HÌNH -->
-        ${openModalBtnHtml}
-
-        <!-- THẺ TỔNG HỢP SỨC KHỎE OBJECT ĐANG CHỌN -->
-        <div style="
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
-          padding: 10px;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        ">
-          <!-- HEADER THẺ: ID & TRẠNG THÁI TỔNG THỂ -->
+      if (cachedResult.status === "loading") {
+        return `
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          ${openModalBtnHtml}
           <div style="
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 22px 16px;
+            text-align: center;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            padding: 6px 10px;
-            border-radius: 6px;
-            background: ${statusBg};
-            border: 1px solid ${statusBorder};
+            gap: 8px;
           ">
-            <div style="font-weight: 700; font-size: 12px; color: ${statusText};">
-              #${this.selectedUiId} · ${this.currentLabel}
+            <div style="display: flex; align-items: center; justify-content: center; animation: spin 1s linear infinite; color: #2563eb;">
+              ${ICONS.radar}
             </div>
-            <div style="font-size: 10.5px; font-weight: 700; color: ${statusText};">
-              ${statusTitle}
+            <div style="font-size: 11.5px; font-weight: 700; color: #1e293b;">
+              Đang nạp kiểm tra QC ngầm vào RAM...
+            </div>
+            <div style="font-size: 10.5px; color: #64748b;">
+              Đang phân tích các frames của Track #${cachedResult.trackId} (${cachedResult.label})
             </div>
           </div>
-
-          <!-- THÔNG SỐ HIỆN TẠI -->
+        </div>
+      `;
+      }
+      if (cachedResult.status === "error") {
+        return `
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          ${openModalBtnHtml}
           <div style="
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            padding: 16px 12px;
             display: flex;
-            justify-content: space-between;
-            padding: 4px 6px;
-            background: #f8fafc;
-            border-radius: 6px;
-            font-size: 10px;
-            font-family: monospace;
-            color: #64748b;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-align: center;
           ">
-            <span>Size: ${this.currentL.toFixed(2)}x${this.currentW.toFixed(2)}x${this.currentH.toFixed(2)}m</span>
-            <span>Z: ${this.currentZ.toFixed(2)}m</span>
-            <span>Yaw: ${this.currentYawDeg.toFixed(0)}°</span>
+            <div style="font-size: 11.5px; font-weight: 700; color: #dc2626;">
+              Không thể nạp dữ liệu QC cho Track #${cachedResult.trackId}
+            </div>
+            <div style="font-size: 10px; color: #991b1b;">
+              ${cachedResult.errorMessage || "Vui lòng thử lại"}
+            </div>
+            <button id="btn-retry-track-qc" style="
+              background: #ffffff;
+              border: 1px solid #fca5a5;
+              border-radius: 6px;
+              padding: 4px 10px;
+              font-size: 10.5px;
+              font-weight: 600;
+              color: #dc2626;
+              cursor: pointer;
+            ">Thử lại</button>
           </div>
-
-          <!-- BẢNG TIÊU CHÍ KIỂM TRA -->
-          <div style="display: flex; flex-direction: column; gap: 4px;">
-            ${renderCheckItem("S", "Scale Toàn Track", summary.checks.scale)}
-            ${renderCheckItem("K", "Kích Thước Catalog", summary.checks.size)}
-            ${renderCheckItem("Z", "Cao Độ Mặt Đường", summary.checks.z)}
-            ${renderCheckItem("H", "Hướng Đầu Xe (Yaw)", summary.checks.rot)}
-            ${renderCheckItem("O", "Chồng Lấn BEV", summary.checks.overlap)}
-            ${renderCheckItem("D", "Khoảng Cách LiDAR", summary.checks.dist)}
-            ${renderCheckItem("L", "Mây Điểm LiDAR Thực", summary.checks.empty_box)}
+        </div>
+      `;
+      }
+      const isClean = cachedResult.errorFrames.length === 0;
+      const headerHtml = `
+      <div style="
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      ">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 12.5px; font-weight: 800; color: #0f172a; font-family: monospace;">
+              #${cachedResult.trackId}
+            </span>
+            <span style="font-size: 11px; font-weight: 600; color: #475569;">
+              ${cachedResult.label}
+            </span>
           </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="
+              font-size: 10.5px;
+              font-weight: 700;
+              padding: 2px 8px;
+              border-radius: 6px;
+              background: ${isClean ? "#ecfdf5" : "#fef2f2"};
+              color: ${isClean ? "#059669" : "#dc2626"};
+              border: 1px solid ${isClean ? "#a7f3d0" : "#fecaca"};
+            ">
+              ${isClean ? "✓ Đạt chuẩn 100%" : `${cachedResult.errorFrames.length} frame lỗi`}
+            </span>
+            <button id="btn-refresh-track-qc" title="Quét lại toàn bộ frames của track này vào RAM" style="
+              background: #f8fafc;
+              border: 1px solid #cbd5e1;
+              border-radius: 6px;
+              padding: 3px 6px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #475569;
+              transition: all 0.15s ease;
+            ">
+              ${ICONS.refresh}
+            </button>
+          </div>
+        </div>
 
-          <!-- CHI TIẾT CẢNH BÁO / LỖI NẾU CÓ -->
-          ${issuesDetailHtml}
+        <div style="
+          display: flex;
+          justify-content: space-between;
+          font-size: 10px;
+          color: #64748b;
+          border-top: 1px dashed #e2e8f0;
+          padding-top: 6px;
+        ">
+          <span>Tổng: <strong>${cachedResult.totalFrames} frames</strong></span>
+          <span>Chuẩn: <strong style="color: #059669;">${cachedResult.cleanFramesCount}</strong></span>
+          <span>Lỗi: <strong style="color: ${cachedResult.errorFrames.length > 0 ? "#dc2626" : "#64748b"};">${cachedResult.errorFrames.length}</strong></span>
         </div>
       </div>
     `;
+      if (isClean) {
+        return `
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          ${openModalBtnHtml}
+          ${headerHtml}
+          <div style="
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            padding: 18px 14px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+          ">
+            <div style="color: #059669; font-size: 12.5px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+              <span>✓</span>
+              <span>ĐẠT CHUẨN KIỂM ĐỊNH 100%</span>
+            </div>
+            <div style="font-size: 10.5px; color: #047857; line-height: 1.5;">
+              Toàn bộ ${cachedResult.totalFrames} frames của Track #${cachedResult.trackId} đều đạt chuẩn kích thước Catalog, cao độ Z, hướng xoay Yaw và tính đồng bộ Scale.
+            </div>
+          </div>
+        </div>
+      `;
+      }
+      const errorFramesListHtml = `
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2px;
+      ">
+        <span style="font-size: 11px; font-weight: 700; color: #0f172a;">
+          Danh sách frame lỗi (${cachedResult.errorFrames.length} frame):
+        </span>
+        <span style="font-size: 9.5px; color: #64748b;">
+          Nhấp để tua tới frame
+        </span>
+      </div>
+
+      <div style="
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 320px;
+        overflow-y: auto;
+        padding-right: 2px;
+      ">
+        ${cachedResult.errorFrames.map((group) => {
+        const isCurFrame = group.frame === this.currentFrameNumber;
+        return `
+              <div class="btn-jump-to-qc-issue"
+                   data-frame="${group.frame}"
+                   data-track-id="${cachedResult.trackId}"
+                   data-issue-title="Frame #${group.frame}"
+                   title="Nhấp để tua CVAT tới Frame #${group.frame} và căn chỉnh camera 3D"
+                   style="
+                     padding: 8px 10px;
+                     border-radius: 8px;
+                     background: ${group.topSeverity === "error" ? "#fef2f2" : "#fffbeb"};
+                     border: 1px solid ${isCurFrame ? "#2563eb" : group.topSeverity === "error" ? "#fca5a5" : "#fde047"};
+                     box-shadow: ${isCurFrame ? "0 0 0 2px #93c5fd" : "none"};
+                     cursor: pointer;
+                     display: flex;
+                     flex-direction: column;
+                     gap: 4px;
+                     transition: all 0.12s ease;
+                   ">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="
+                      font-size: 10px;
+                      font-family: monospace;
+                      font-weight: 800;
+                      padding: 2px 6px;
+                      border-radius: 4px;
+                      background: ${group.topSeverity === "error" ? "#dc2626" : "#d97706"};
+                      color: #ffffff;
+                    ">Frame #${group.frame}</span>
+                    <span style="font-size: 10px; font-weight: 700; color: ${group.topSeverity === "error" ? "#b91c1c" : "#b45309"};">
+                      ${group.issues.length} lỗi
+                    </span>
+                  </div>
+                  <span style="font-size: 11px; color: #1d4ed8; font-weight: 700; white-space: nowrap; margin-left: 6px;">
+                    Tua tới ➔
+                  </span>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 3px; margin-top: 2px;">
+                  ${group.issues.map(
+          (iss) => `
+                    <div style="
+                      font-size: 10px;
+                      background: rgba(255, 255, 255, 0.85);
+                      padding: 4px 6px;
+                      border-radius: 4px;
+                      border-left: 2px solid ${iss.severity === "error" ? "#dc2626" : "#d97706"};
+                      display: flex;
+                      flex-direction: column;
+                      gap: 2px;
+                    ">
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; color: ${iss.severity === "error" ? "#dc2626" : "#b45309"};">
+                          [${iss.symbol}] ${iss.name}
+                        </span>
+                        <span style="font-family: monospace; font-size: 9.5px; color: #2563eb; font-weight: 600;">
+                          ${iss.value} ➔ ${iss.ref}
+                        </span>
+                      </div>
+                      <div style="font-size: 9px; color: #64748b;">
+                        ${iss.detail}
+                      </div>
+                    </div>
+                  `
+        ).join("")}
+                </div>
+              </div>
+            `;
+      }).join("")}
+      </div>
+    `;
+      return `
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        ${openModalBtnHtml}
+        ${headerHtml}
+        ${errorFramesListHtml}
+      </div>
+    `;
+    }
+    /**
+     * Tua trực tiếp đến một lỗi cụ thể và focus camera 3D vào đối tượng (Tab QC)
+     */
+    jumpToSpecificIssue(frame, trackId, issueTitle) {
+      var _a;
+      const isSameFrame = this.currentFrameNumber === frame;
+      if (!isSameFrame) {
+        CVATBridge.jumpToFrame(frame);
+      }
+      const cached = this.trackQCRamCache.get(trackId);
+      const targetObj = (_a = cached == null ? void 0 : cached.trackObjects) == null ? void 0 : _a.find((o) => o.frame === frame);
+      const targetPos = targetObj ? { x: targetObj.x, y: targetObj.y, z: targetObj.z } : void 0;
+      const delay = isSameFrame ? 0 : 100;
+      setTimeout(() => {
+        CVATBridge.activateObject(trackId, targetPos);
+        CVATBridge.centerCanvas3DOnTrack(trackId, targetPos);
+        this.selectedUiId = trackId;
+        if (targetObj) {
+          if (targetObj.label) {
+            this.currentLabel = targetObj.label;
+            this.syncCategoryFromLabel(this.currentLabel);
+          } else if (cached == null ? void 0 : cached.label) {
+            this.currentLabel = cached.label;
+            this.syncCategoryFromLabel(this.currentLabel);
+          }
+          this.currentX = targetObj.x;
+          this.currentY = targetObj.y;
+          this.currentZ = targetObj.z;
+          this.currentYawDeg = targetObj.yawDeg;
+          this.currentL = targetObj.l;
+          this.currentW = targetObj.w;
+          this.currentH = targetObj.h;
+          this.editL = targetObj.l;
+          this.editW = targetObj.w;
+          this.editH = targetObj.h;
+        }
+        this.scheduleUpdate();
+      }, delay);
+      this.scheduleUpdate();
+      this.showToast(
+        `Đã chuyển đến Track #${trackId} @ Frame ${frame}${issueTitle ? `: ${issueTitle}` : ""}`,
+        "info"
+      );
+    }
+    /**
+     * Cập nhật danh sách toàn bộ đối tượng của Job (ví dụ khi QC Studio quét xong toàn Job)
+     */
+    setCachedAllJobObjects(objects) {
+      this.cachedAllJobObjects = Array.isArray(objects) ? objects : [];
+    }
+    /**
+     * Tự động nạp ngầm kiểm tra QC toàn bộ các frame của riêng một Track ID vào bộ nhớ RAM
+     * Chạy bất đồng bộ ngầm, không khóa Main Thread, lưu kết quả vào trackQCRamCache
+     */
+    async preloadTrackQCInBackground(uiId, serverId, forceRefresh = false) {
+      var _a, _b;
+      const existing = this.trackQCRamCache.get(uiId);
+      if (!forceRefresh && existing && (existing.status === "ready" || existing.status === "loading")) {
+        return existing;
+      }
+      const currentJobId = (_a = this.currentCtx) == null ? void 0 : _a.jobId;
+      if (!currentJobId) {
+        const idleResult = {
+          trackId: uiId,
+          serverId: serverId ?? null,
+          label: this.currentLabel || `Track #${uiId}`,
+          status: "idle",
+          totalFrames: 0,
+          errorFrames: [],
+          cleanFramesCount: 0,
+          lastScannedAt: Date.now()
+        };
+        return idleResult;
+      }
+      const loadingResult = {
+        trackId: uiId,
+        serverId: serverId ?? null,
+        label: this.currentLabel || `Track #${uiId}`,
+        status: "loading",
+        totalFrames: 0,
+        errorFrames: [],
+        cleanFramesCount: 0,
+        lastScannedAt: Date.now()
+      };
+      this.trackQCRamCache.set(uiId, loadingResult);
+      if (this.activeMainTab === "qc" && this.selectedUiId === uiId) {
+        this.scheduleUpdate();
+      }
+      this.pendingTrackQCPreloads.add(uiId);
+      try {
+        const frames = await CVATBridge.getTrackAllFrames(currentJobId, uiId, serverId ?? void 0);
+        const trackObjects = [];
+        const trackLabel = this.currentLabel || `Track #${uiId}`;
+        for (const f of frames) {
+          if (f.outside || !Array.isArray(f.points) || f.points.length < 9) continue;
+          const yaw = f.points[5];
+          const objLabel = f.label || trackLabel;
+          trackObjects.push({
+            frame: f.frame,
+            trackId: uiId,
+            label: objLabel,
+            group: classifyLabelGroup(objLabel, this.qcEngine.getConfig()),
+            x: f.points[0],
+            y: f.points[1],
+            z: f.points[2],
+            yaw,
+            yawDeg: yaw * 180 / Math.PI,
+            l: f.points[6],
+            w: f.points[7],
+            h: f.points[8],
+            outside: f.outside
+          });
+        }
+        trackObjects.sort((a, b) => a.frame - b.frame);
+        this.currentFrameNumber = CVATBridge.getCurrentFrame();
+        const frameContextMap = /* @__PURE__ */ new Map();
+        let curFrameTracks = [];
+        if (!forceRefresh && Array.isArray(this.frameTracks) && this.frameTracks.length > 0) {
+          curFrameTracks = this.frameTracks;
+        } else {
+          try {
+            const fetched = await CVATBridge.getTracksInCurrentFrame(currentJobId, this.currentFrameNumber);
+            curFrameTracks = Array.isArray(fetched) ? fetched : [];
+          } catch (_) {
+            curFrameTracks = [];
+          }
+        }
+        if (Array.isArray(curFrameTracks) && curFrameTracks.length > 0) {
+          this.frameTracks = curFrameTracks;
+        }
+        const curFrameObjs = (curFrameTracks || []).map((t) => ({
+          frame: this.currentFrameNumber,
+          trackId: t.uiId,
+          label: t.label,
+          group: classifyLabelGroup(t.label, this.qcEngine.getConfig()),
+          x: t.x,
+          y: t.y,
+          z: t.z,
+          yaw: t.yawDeg * Math.PI / 180,
+          yawDeg: t.yawDeg,
+          l: t.l,
+          w: t.w,
+          h: t.h
+        }));
+        frameContextMap.set(this.currentFrameNumber, curFrameObjs);
+        const curObjInFrame = curFrameObjs.find((o) => o.trackId === uiId);
+        if (curObjInFrame && !trackObjects.some((o) => o.frame === this.currentFrameNumber)) {
+          trackObjects.push({ ...curObjInFrame });
+          trackObjects.sort((a, b) => a.frame - b.frame);
+        }
+        if (Array.isArray(this.cachedAllJobObjects) && this.cachedAllJobObjects.length > 0) {
+          for (const o of this.cachedAllJobObjects) {
+            if (o.frame === this.currentFrameNumber) continue;
+            let list = frameContextMap.get(o.frame);
+            if (!list) {
+              list = [];
+              frameContextMap.set(o.frame, list);
+            }
+            list.push(o);
+          }
+        }
+        const frameGroupMap = /* @__PURE__ */ new Map();
+        for (const obj of trackObjects) {
+          if (obj.frame === this.currentFrameNumber && curObjInFrame) {
+            obj.x = curObjInFrame.x;
+            obj.y = curObjInFrame.y;
+            obj.z = curObjInFrame.z;
+            obj.yaw = curObjInFrame.yaw;
+            obj.yawDeg = curObjInFrame.yawDeg;
+            obj.l = curObjInFrame.l;
+            obj.w = curObjInFrame.w;
+            obj.h = curObjInFrame.h;
+          }
+          let frameObjs = frameContextMap.get(obj.frame);
+          if (!frameObjs || frameObjs.length === 0) {
+            frameObjs = [obj];
+          } else {
+            const existingIdx = frameObjs.findIndex((o) => o.trackId === obj.trackId);
+            if (existingIdx >= 0) {
+              frameObjs[existingIdx] = obj;
+            } else {
+              frameObjs = [...frameObjs, obj];
+            }
+          }
+          const summary = this.qcEngine.checkSingleObject(obj, trackObjects, frameObjs);
+          if (summary.issues.length > 0) {
+            frameGroupMap.set(obj.frame, summary.issues);
+          }
+        }
+        const errorFrames = [];
+        for (const [frame, issues] of frameGroupMap.entries()) {
+          const actionableIssues = issues.filter(
+            (iss) => iss.severity === "error" || iss.severity === "warning"
+          );
+          if (actionableIssues.length > 0) {
+            const hasError = actionableIssues.some((iss) => iss.severity === "error");
+            errorFrames.push({
+              frame,
+              issues: actionableIssues,
+              topSeverity: hasError ? "error" : "warning"
+            });
+          }
+        }
+        errorFrames.sort((a, b) => a.frame - b.frame);
+        const totalFrames = trackObjects.length;
+        const cleanFramesCount = Math.max(0, totalFrames - errorFrames.length);
+        const readyResult = {
+          trackId: uiId,
+          serverId: serverId ?? null,
+          label: ((_b = trackObjects[0]) == null ? void 0 : _b.label) || trackLabel,
+          status: "ready",
+          totalFrames,
+          errorFrames,
+          cleanFramesCount,
+          lastScannedAt: Date.now(),
+          trackObjects
+        };
+        this.trackQCRamCache.set(uiId, readyResult);
+        if (this.activeMainTab === "qc" && this.selectedUiId === uiId) {
+          this.scheduleUpdate();
+        }
+        return readyResult;
+      } catch (err) {
+        console.error(`[FloatingPanel] Lỗi nạp ngầm QC cho Track #${uiId}:`, err);
+        const errResult = {
+          trackId: uiId,
+          serverId: serverId ?? null,
+          label: this.currentLabel || `Track #${uiId}`,
+          status: "error",
+          totalFrames: 0,
+          errorFrames: [],
+          cleanFramesCount: 0,
+          lastScannedAt: Date.now(),
+          errorMessage: (err == null ? void 0 : err.message) || "Lỗi tải thông tin frames"
+        };
+        this.trackQCRamCache.set(uiId, errResult);
+        if (this.activeMainTab === "qc" && this.selectedUiId === uiId) {
+          this.scheduleUpdate();
+        }
+        return errResult;
+      } finally {
+        this.pendingTrackQCPreloads.delete(uiId);
+      }
+    }
+    /**
+     * Helper kích hoạt live auto-update QC sau khi sửa đối tượng thành công
+     */
+    onBoxModificationSuccess(applyToTrack = false) {
+      if (this.selectedUiId !== null) {
+        this.revalidateAndSyncIssue(this.selectedUiId, this.currentFrameNumber, void 0, applyToTrack);
+        CVATBridge.requestEdgeContactsCalculation();
+      }
+    }
+    /**
+     * Tự động kiểm tra lại đối tượng sau khi sửa và cập nhật dữ liệu lưu trữ (Live Auto-Update)
+     * Loại bỏ lỗi khỏi danh sách kiểm định ngay khi sửa thành công mà không làm gián đoạn main process của CVAT.
+     */
+    revalidateAndSyncIssue(uiId, frame, newBoxPoints, applyToTrack = false) {
+      try {
+        if (this.trackQCRamCache.has(uiId)) {
+          const cached = this.trackQCRamCache.get(uiId);
+          if (cached.status === "ready" && cached.trackObjects) {
+            const pointsToUse = newBoxPoints || [
+              this.currentX,
+              this.currentY,
+              this.currentZ,
+              0,
+              0,
+              this.currentYawDeg * Math.PI / 180,
+              this.currentL,
+              this.currentW,
+              this.currentH
+            ];
+            if (applyToTrack) {
+              for (const obj of cached.trackObjects) {
+                obj.l = pointsToUse[6] ?? this.currentL;
+                obj.w = pointsToUse[7] ?? this.currentW;
+                obj.h = pointsToUse[8] ?? this.currentH;
+              }
+            } else {
+              const yaw = pointsToUse[5];
+              const yawDeg = yaw * 180 / Math.PI;
+              const targetObj = cached.trackObjects.find((o) => o.frame === frame);
+              if (targetObj) {
+                targetObj.x = pointsToUse[0];
+                targetObj.y = pointsToUse[1];
+                targetObj.z = pointsToUse[2];
+                targetObj.yaw = yaw;
+                targetObj.yawDeg = yawDeg;
+                targetObj.l = pointsToUse[6];
+                targetObj.w = pointsToUse[7];
+                targetObj.h = pointsToUse[8];
+              } else {
+                const newObj = {
+                  frame,
+                  trackId: uiId,
+                  label: cached.label || this.currentLabel,
+                  group: classifyLabelGroup(cached.label || this.currentLabel, this.qcEngine.getConfig()),
+                  x: pointsToUse[0],
+                  y: pointsToUse[1],
+                  z: pointsToUse[2],
+                  yaw,
+                  yawDeg,
+                  l: pointsToUse[6],
+                  w: pointsToUse[7],
+                  h: pointsToUse[8]
+                };
+                cached.trackObjects.push(newObj);
+                cached.trackObjects.sort((a, b) => a.frame - b.frame);
+              }
+            }
+            const frameGroupMap = /* @__PURE__ */ new Map();
+            for (const obj of cached.trackObjects) {
+              let frameObjs = [obj];
+              if (obj.frame === this.currentFrameNumber && this.frameTracks.length > 0) {
+                frameObjs = this.frameTracks.map((t) => {
+                  if (t.uiId === uiId) {
+                    return obj;
+                  }
+                  return {
+                    frame: this.currentFrameNumber,
+                    trackId: t.uiId,
+                    label: t.label,
+                    group: classifyLabelGroup(t.label, this.qcEngine.getConfig()),
+                    x: t.x,
+                    y: t.y,
+                    z: t.z,
+                    yaw: t.yawDeg * Math.PI / 180,
+                    yawDeg: t.yawDeg,
+                    l: t.l,
+                    w: t.w,
+                    h: t.h
+                  };
+                });
+                if (!frameObjs.some((o) => o.trackId === uiId)) {
+                  frameObjs.push(obj);
+                }
+              } else if (Array.isArray(this.cachedAllJobObjects) && this.cachedAllJobObjects.length > 0) {
+                const fromAll = this.cachedAllJobObjects.filter((o) => o.frame === obj.frame);
+                if (fromAll.length > 0) {
+                  frameObjs = fromAll.map((o) => o.trackId === uiId ? obj : o);
+                  if (!frameObjs.some((o) => o.trackId === uiId)) {
+                    frameObjs.push(obj);
+                  }
+                }
+              }
+              const summary = this.qcEngine.checkSingleObject(obj, cached.trackObjects, frameObjs);
+              if (summary.issues.length > 0) {
+                frameGroupMap.set(obj.frame, summary.issues);
+              }
+            }
+            const hadIssueBeforeThisFrame = cached.errorFrames.some((ef) => ef.frame === frame);
+            const newErrorFrames = [];
+            for (const [f, issues] of frameGroupMap.entries()) {
+              const actionableIssues = issues.filter(
+                (iss) => iss.severity === "error" || iss.severity === "warning"
+              );
+              if (actionableIssues.length > 0) {
+                const hasError = actionableIssues.some((iss) => iss.severity === "error");
+                newErrorFrames.push({
+                  frame: f,
+                  issues: actionableIssues,
+                  topSeverity: hasError ? "error" : "warning"
+                });
+              }
+            }
+            newErrorFrames.sort((a, b) => a.frame - b.frame);
+            const hasIssueNowThisFrame = newErrorFrames.some((ef) => ef.frame === frame);
+            cached.errorFrames = newErrorFrames;
+            cached.totalFrames = cached.trackObjects.length;
+            cached.cleanFramesCount = Math.max(0, cached.totalFrames - cached.errorFrames.length);
+            cached.lastScannedAt = Date.now();
+            if (hadIssueBeforeThisFrame && !hasIssueNowThisFrame) {
+              this.showToast(`✓ Đã sửa đạt chuẩn! Frame #${frame} đã được xóa khỏi danh sách lỗi.`, "success");
+            }
+            if (this.activeMainTab === "qc") {
+              this.scheduleUpdate();
+            }
+            for (const [otherUiId, otherCached] of this.trackQCRamCache.entries()) {
+              if (otherUiId === uiId || otherCached.status !== "ready" || !otherCached.trackObjects) continue;
+              const hasRelatedOverlap = otherCached.errorFrames.some(
+                (ef) => ef.issues.some((iss) => iss.check === "overlap" && iss.otherTrackId === uiId)
+              );
+              if (hasRelatedOverlap) {
+                const otherFrameGroupMap = /* @__PURE__ */ new Map();
+                for (const otherObj of otherCached.trackObjects) {
+                  let otherFrameObjs = [otherObj];
+                  if (otherObj.frame === this.currentFrameNumber && this.frameTracks.length > 0) {
+                    otherFrameObjs = this.frameTracks.map((t) => {
+                      if (t.uiId === uiId) {
+                        return cached.trackObjects.find((o) => o.frame === this.currentFrameNumber) || {
+                          frame: this.currentFrameNumber,
+                          trackId: uiId,
+                          label: cached.label || this.currentLabel,
+                          group: classifyLabelGroup(cached.label || this.currentLabel, this.qcEngine.getConfig()),
+                          x: pointsToUse[0],
+                          y: pointsToUse[1],
+                          z: pointsToUse[2],
+                          yaw: pointsToUse[5],
+                          yawDeg: pointsToUse[5] * 180 / Math.PI,
+                          l: pointsToUse[6],
+                          w: pointsToUse[7],
+                          h: pointsToUse[8]
+                        };
+                      }
+                      if (t.uiId === otherUiId) return otherObj;
+                      return {
+                        frame: this.currentFrameNumber,
+                        trackId: t.uiId,
+                        label: t.label,
+                        group: classifyLabelGroup(t.label, this.qcEngine.getConfig()),
+                        x: t.x,
+                        y: t.y,
+                        z: t.z,
+                        yaw: t.yawDeg * Math.PI / 180,
+                        yawDeg: t.yawDeg,
+                        l: t.l,
+                        w: t.w,
+                        h: t.h
+                      };
+                    });
+                    if (!otherFrameObjs.some((o) => o.trackId === otherUiId)) {
+                      otherFrameObjs.push(otherObj);
+                    }
+                  } else if (Array.isArray(this.cachedAllJobObjects) && this.cachedAllJobObjects.length > 0) {
+                    const fromAll = this.cachedAllJobObjects.filter((o) => o.frame === otherObj.frame);
+                    if (fromAll.length > 0) {
+                      otherFrameObjs = fromAll.map((o) => {
+                        if (o.trackId === otherUiId) return otherObj;
+                        if (o.trackId === uiId) {
+                          const inCached = cached.trackObjects.find((co) => co.frame === otherObj.frame);
+                          return inCached || o;
+                        }
+                        return o;
+                      });
+                      if (!otherFrameObjs.some((o) => o.trackId === otherUiId)) {
+                        otherFrameObjs.push(otherObj);
+                      }
+                    }
+                  }
+                  const otherSummary = this.qcEngine.checkSingleObject(otherObj, otherCached.trackObjects, otherFrameObjs);
+                  if (otherSummary.issues.length > 0) {
+                    otherFrameGroupMap.set(otherObj.frame, otherSummary.issues);
+                  }
+                }
+                const newOtherErrorFrames = [];
+                for (const [f, issues] of otherFrameGroupMap.entries()) {
+                  const actionableIssues = issues.filter(
+                    (iss) => iss.severity === "error" || iss.severity === "warning"
+                  );
+                  if (actionableIssues.length > 0) {
+                    const hasError = actionableIssues.some((iss) => iss.severity === "error");
+                    newOtherErrorFrames.push({
+                      frame: f,
+                      issues: actionableIssues,
+                      topSeverity: hasError ? "error" : "warning"
+                    });
+                  }
+                }
+                newOtherErrorFrames.sort((a, b) => a.frame - b.frame);
+                otherCached.errorFrames = newOtherErrorFrames;
+                otherCached.cleanFramesCount = Math.max(0, otherCached.totalFrames - otherCached.errorFrames.length);
+                otherCached.lastScannedAt = Date.now();
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("[FloatingPanel] Lỗi live revalidate:", e);
+      }
     }
     updateContent() {
+      var _a, _b, _c, _d, _e, _f, _g, _h;
       if (!this.container || !this.currentCtx) return;
       const stateHash = [
         this.activeMainTab,
@@ -23383,7 +26758,11 @@ Cancel = hủy`
         this.applyToTrack,
         this.currentActiveView,
         this.pointColorMode,
-        this.colorizeBoxedPoints
+        this.colorizeBoxedPoints,
+        this.canvasTheme,
+        this.selectedUiId ? (_a = this.trackQCRamCache.get(this.selectedUiId)) == null ? void 0 : _a.status : "",
+        this.selectedUiId ? (_b = this.trackQCRamCache.get(this.selectedUiId)) == null ? void 0 : _b.errorFrames.length : 0,
+        this.selectedUiId ? (_c = this.trackQCRamCache.get(this.selectedUiId)) == null ? void 0 : _c.lastScannedAt : 0
       ].join("|");
       if (stateHash === this.lastRenderedHash && this.container.children.length > 0) {
         return;
@@ -23507,8 +26886,8 @@ Cancel = hủy`
                 <span>Dốc Side (Pitch)</span>
               </span>
               <div style="display: flex; gap: 3px;">
-                <button class="btn-micro-pitch" data-delta="-1" style="flex: 1; background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer;">-1°</button>
-                <button class="btn-micro-pitch" data-delta="1" style="flex: 1; background: #f0f9ff; border: 1px solid #bae6fd; color: #0284c7; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer; font-weight: 600;">+1°</button>
+                <button class="btn-micro-pitch" data-delta="-1" title="Vi chỉnh dốc Side -1° (Phím .)" style="flex: 1; background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer;">-1° [ . ]</button>
+                <button class="btn-micro-pitch" data-delta="1" title="Vi chỉnh dốc Side +1° (Phím /)" style="flex: 1; background: #f0f9ff; border: 1px solid #bae6fd; color: #0284c7; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer; font-weight: 600;">+1° [ / ]</button>
               </div>
             </div>
 
@@ -23582,6 +26961,10 @@ Cancel = hủy`
         </div>
       `;
       }
+      const hasUndo = this.undoStack.length > 0;
+      const hasRedo = this.redoStack.length > 0;
+      const lastUndoAction = hasUndo ? this.undoStack[this.undoStack.length - 1].actionName : "";
+      const lastRedoAction = hasRedo ? this.redoStack[this.redoStack.length - 1].actionName : "";
       this.container.innerHTML = `
       <!-- HEADER CHUẨN SHADCN (LIGHT) -->
       <div id="floating-drag-header" style="
@@ -23625,11 +27008,12 @@ Cancel = hủy`
         </div>
 
         <div style="display: flex; align-items: center; gap: 3px;">
-          <button id="floating-btn-undo" title="Hoàn tác thao tác vừa thực hiện (Ctrl+Z / Cmd+Z)" style="
+          <button id="floating-btn-undo" title="${hasUndo ? `Hoàn tác: ${lastUndoAction} (Ctrl+Z / Cmd+Z)` : "Không có thao tác nào để hoàn tác (Ctrl+Z)"}" style="
             background: #ffffff;
             border: 1px solid #e2e8f0;
             color: #0f172a;
-            cursor: pointer;
+            cursor: ${hasUndo ? "pointer" : "not-allowed"};
+            opacity: ${hasUndo ? "1" : "0.35"};
             padding: 3px 6px;
             border-radius: 4px;
             display: flex;
@@ -23642,6 +27026,25 @@ Cancel = hủy`
           ">
             <span style="display: flex; align-items: center;">${ICONS.undo}</span>
             <span>Pre</span>
+          </button>
+          <button id="floating-btn-redo" title="${hasRedo ? `Làm lại: ${lastRedoAction} (Ctrl+Y / Ctrl+Shift+Z)` : "Không có thao tác nào để làm lại (Ctrl+Y / Ctrl+Shift+Z)"}" style="
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #0f172a;
+            cursor: ${hasRedo ? "pointer" : "not-allowed"};
+            opacity: ${hasRedo ? "1" : "0.35"};
+            padding: 3px 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            transition: all 0.12s;
+          ">
+            <span style="display: flex; align-items: center;">${ICONS.redo}</span>
+            <span>Redo</span>
           </button>
           <button id="floating-btn-fullscreen" title="Mở Rộng Toàn Màn Hình · Duyệt Toàn Bộ Track ID (Shift+M)" style="
             background: #eff6ff;
@@ -23868,6 +27271,25 @@ Cancel = hủy`
             </div>
 
             <div style="display: flex; align-items: center; gap: 4px;">
+              <!-- NÚT TOGGLE THEME CANVAS: NỀN TRẮNG / NỀN TỐI -->
+              <button id="btn-toggle-canvas-theme" title="Chuyển đổi giữa Canvas Nền Trắng (Mây điểm Đen) và Canvas Nền Tối (Mây điểm Sáng)" style="
+                background: ${this.canvasTheme === "light" ? "#f8fafc" : "#1e293b"};
+                border: 1px solid ${this.canvasTheme === "light" ? "#cbd5e1" : "#475569"};
+                color: ${this.canvasTheme === "light" ? "#0f172a" : "#f8fafc"};
+                padding: 3px 7px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 10px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 3px;
+                transition: all 0.12s;
+              ">
+                <span style="display: flex; align-items: center;">${this.canvasTheme === "light" ? ICONS.sun : ICONS.moon}</span>
+                <span>${this.canvasTheme === "light" ? "Nền Trắng" : "Nền Tối"}</span>
+              </button>
+
               <!-- NÚT CHUYỂN ĐỔI CHẾ ĐỘ MÀU: INTENSITY VS PLAIN -->
               <button id="btn-toggle-point-color-mode" title="Chuyển đổi giữa chế độ Độ phản xạ (Intensity - Soi vạch sơn, biển báo) và Màu phẳng không xét intensity (Plain - Rõ khối 3D)" style="
                 background: ${this.pointColorMode === "intensity" ? "#eff6ff" : "#ffffff"};
@@ -23883,7 +27305,9 @@ Cancel = hủy`
                 gap: 3px;
                 transition: all 0.12s;
               ">
-                <span>${this.pointColorMode === "intensity" ? "⚡ Intensity" : "⚪ Plain"}</span>
+                <span style="display: flex; align-items: center; gap: 3px;">
+                  ${this.pointColorMode === "intensity" ? `${ICONS.zap} Intensity` : `${ICONS.sun} Plain`}
+                </span>
               </button>
 
               <!-- NÚT TOGGLE NHUỘM MÀU XE BỌC -->
@@ -23904,11 +27328,11 @@ Cancel = hủy`
                 <span>📦 Xe bọc: ${this.colorizeBoxedPoints ? "BẬT" : "TẮT"}</span>
               </button>
 
-              <!-- NÚT TOGGLE MẶT SÀN POLYGON 3D MỜ (MẶT ĐƯỜNG & VỈA HÈ) -->
-              <button id="btn-toggle-ground-plane" title="Bật/Tắt hiển thị Mặt Sàn Polygon 3D Mờ (Mặt đường & Vỉa hè) giúp annotator dễ thấy đáy xe có chạm sàn" style="
-                background: ${this.groundPlaneVisible ? "#f0fdf4" : "#ffffff"};
-                border: 1px solid ${this.groundPlaneVisible ? "#86efac" : "#cbd5e1"};
-                color: ${this.groundPlaneVisible ? "#15803d" : "#64748b"};
+              <!-- NÚT CHUYỂN ĐỔI KÍCH THƯỚC POINT CLOUD (2.0px / 3.5px / 5.0px) -->
+              <button id="btn-toggle-ortho-point-size" title="Kích thước hạt điểm mây LiDAR trên 3 khung nhìn trực giao 2D Top/Side/Front (2.0px ➔ 3.5px ➔ 5.0px)" style="
+                background: #f0f9ff;
+                border: 1px solid #bae6fd;
+                color: #0369a1;
                 padding: 3px 7px;
                 border-radius: 5px;
                 cursor: pointer;
@@ -23919,7 +27343,8 @@ Cancel = hủy`
                 gap: 3px;
                 transition: all 0.12s;
               ">
-                <span>🛣️ Sàn: ${this.groundPlaneVisible ? "BẬT" : "TẮT"}</span>
+                <span style="display: flex; align-items: center; color: #0284c7;">${ICONS.target}</span>
+                <span>Điểm: ${this.orthoPointSize.toFixed(1)}px</span>
               </button>
             </div>
           </div>
@@ -24034,20 +27459,61 @@ Cancel = hủy`
               border: 1px solid #e2e8f0;
             ">
               <span style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase;">Loại đối tượng:</span>
-              <div style="
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                padding: 2px 8px;
-                border-radius: 5px;
-                font-size: 11px;
-                font-weight: 700;
-                background: ${this.selectedCategory === "car" ? "#ecfdf5" : this.selectedCategory === "pedestrian" ? "#faf5ff" : "#fffbeb"};
-                border: 1px solid ${this.selectedCategory === "car" ? "#a7f3d0" : this.selectedCategory === "pedestrian" ? "#d8b4fe" : "#fcd34d"};
-                color: ${this.selectedCategory === "car" ? "#047857" : this.selectedCategory === "pedestrian" ? "#6b21a8" : "#b45309"};
-              ">
-                <span style="display: flex; align-items: center;">${this.selectedCategory === "car" ? ICONS.car : this.selectedCategory === "pedestrian" ? ICONS.user : ICONS.bicycle}</span>
-                <span>${this.selectedCategory === "car" ? "Ô tô / Xe cơ giới" : this.selectedCategory === "pedestrian" ? "Người đi bộ" : "Xe 2 bánh (Cyclist)"}</span>
+              <div style="display: inline-flex; align-items: center; gap: 3px; background: #e2e8f0; padding: 2px; border-radius: 6px;">
+                <button type="button" class="btn-category-chip" data-cat="car" title="Chế độ Ô tô / Xe cơ giới (Catalog xe chuẩn - Phím B)" style="
+                  border: ${this.selectedCategory === "car" ? "1px solid #a7f3d0" : "1px solid transparent"};
+                  background: ${this.selectedCategory === "car" ? "#ecfdf5" : "transparent"};
+                  color: ${this.selectedCategory === "car" ? "#047857" : "#475569"};
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  font-size: 10px;
+                  font-weight: ${this.selectedCategory === "car" ? "700" : "500"};
+                  cursor: pointer;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 3px;
+                  box-shadow: ${this.selectedCategory === "car" ? "0 1px 2px rgba(0,0,0,0.05)" : "none"};
+                  transition: all 0.12s;
+                ">
+                  <span style="display: flex; align-items: center;">${ICONS.car}</span>
+                  <span>Ô tô</span>
+                </button>
+                <button type="button" class="btn-category-chip" data-cat="pedestrian" title="Chế độ Người đi bộ (Fit L, W phím 4, H phím 5)" style="
+                  border: ${this.selectedCategory === "pedestrian" ? "1px solid #d8b4fe" : "1px solid transparent"};
+                  background: ${this.selectedCategory === "pedestrian" ? "#faf5ff" : "transparent"};
+                  color: ${this.selectedCategory === "pedestrian" ? "#6b21a8" : "#475569"};
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  font-size: 10px;
+                  font-weight: ${this.selectedCategory === "pedestrian" ? "700" : "500"};
+                  cursor: pointer;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 3px;
+                  box-shadow: ${this.selectedCategory === "pedestrian" ? "0 1px 2px rgba(0,0,0,0.05)" : "none"};
+                  transition: all 0.12s;
+                ">
+                  <span style="display: flex; align-items: center;">${ICONS.user}</span>
+                  <span>Người</span>
+                </button>
+                <button type="button" class="btn-category-chip" data-cat="cyclist" title="Chế độ Xe 2 bánh (Fit Rộng W phím 4, Fit Cao H phím 5, Khóa L)" style="
+                  border: ${this.selectedCategory === "cyclist" ? "1px solid #fcd34d" : "1px solid transparent"};
+                  background: ${this.selectedCategory === "cyclist" ? "#fffbeb" : "transparent"};
+                  color: ${this.selectedCategory === "cyclist" ? "#b45309" : "#475569"};
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  font-size: 10px;
+                  font-weight: ${this.selectedCategory === "cyclist" ? "700" : "500"};
+                  cursor: pointer;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 3px;
+                  box-shadow: ${this.selectedCategory === "cyclist" ? "0 1px 2px rgba(0,0,0,0.05)" : "none"};
+                  transition: all 0.12s;
+                ">
+                  <span style="display: flex; align-items: center;">${ICONS.bicycle}</span>
+                  <span>Xe 2 bánh</span>
+                </button>
               </div>
             </div>
 
@@ -24084,6 +27550,24 @@ Cancel = hủy`
           flex-direction: column;
           gap: 6px;
         ">
+          <!-- DẢI BADGE CẢNH BÁO VIỀN CHẠM POINT TRỰC TIẾP (TOP - SIDE - FRONT HUD) -->
+          <div style="
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 3px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 3px 4px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+          ">
+            ${this.renderEdgeContactBadge("Trước (X+)", (_d = this.edgeContacts) == null ? void 0 : _d.front)}
+            ${this.renderEdgeContactBadge("Sau (X-)", (_e = this.edgeContacts) == null ? void 0 : _e.rear)}
+            ${this.renderEdgeContactBadge("Trái (Y+)", (_f = this.edgeContacts) == null ? void 0 : _f.left)}
+            ${this.renderEdgeContactBadge("Phải (Y-)", (_g = this.edgeContacts) == null ? void 0 : _g.right)}
+            ${this.renderEdgeContactBadge("Nóc (Z+)", (_h = this.edgeContacts) == null ? void 0 : _h.roof)}
+          </div>
+
           ${this.selectedCategory === "car" ? `
             <!-- THANH 3 NÚT FIT ĐỘC LẬP THEO 3 CHIỀU (TOP - SIDE - FRONT) -->
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
@@ -24160,65 +27644,6 @@ Cancel = hủy`
                   <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #f3e8ff; color: #7e22ce;">3</kbd>
                 </div>
                 <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Sườn xe W</span>
-              </button>
-            </div>
-
-            <!-- THANH 2 NÚT TÁCH BIỆT CHO CAR: FIT RỘNG (W) & FIT CAO (H GROUND-LOCK) -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-              <!-- 1. NÚT FIT RỘNG W -->
-              <button id="btn-fit-car-w" title="Tự động đo mây điểm và fit riêng chiều rộng W (bám khít 2 sườn xe +8cm đệm), giữ nguyên L, H và Z (Phím 4)" style="
-                background: #faf5ff;
-                border: 1px solid #d8b4fe;
-                color: #7e22ce;
-                padding: 6px 8px;
-                border-radius: 7px;
-                font-size: 10px;
-                font-weight: 600;
-                cursor: pointer;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 2px;
-                transition: all 0.12s;
-                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-              ">
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                  <span style="display: flex; align-items: center; gap: 4px; font-weight: 700;">
-                    ${ICONS.sparkles}
-                    <span>Fit Rộng (W)</span>
-                  </span>
-                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #e9d5ff; color: #7e22ce;">4</kbd>
-                </div>
-                <span style="font-size: 8.5px; opacity: 0.85;">+8cm đệm vỏ</span>
-              </button>
-
-              <!-- 2. NÚT FIT CAO H -->
-              <button id="btn-fit-car-h" title="Tự động đo mây điểm nóc xe và fit riêng chiều cao H (Mặt đáy tiếp đất bám sàn cố định tại groundZ, nở lên nóc xe +5cm), giữ nguyên L, W và XY (Phím 5)" style="
-                background: #fff7ed;
-                border: 1px solid #fdba74;
-                color: #c2410c;
-                padding: 6px 8px;
-                border-radius: 7px;
-                font-size: 10px;
-                font-weight: 600;
-                cursor: pointer;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 2px;
-                transition: all 0.12s;
-                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-              ">
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                  <span style="display: flex; align-items: center; gap: 4px; font-weight: 700;">
-                    ${ICONS.arrowUpDown}
-                    <span>Fit Cao (H)</span>
-                  </span>
-                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #fed7aa; color: #c2410c;">5</kbd>
-                </div>
-                <span style="font-size: 8.5px; opacity: 0.85;">Ground-Lock nở nóc</span>
               </button>
             </div>
           ` : this.selectedCategory === "cyclist" ? `
@@ -24522,9 +27947,6 @@ Cancel = hủy`
                 </span>
                 <kbd style="font-size: 8px; font-family: monospace; background: #ffffff; padding: 1px 3px; border-radius: 3px; border: 1px solid #fed7aa; color: #c2410c;">5</kbd>
               </button>
-                <span style="display: flex; align-items: center; color: #ea580c;">${ICONS.arrowUpDown}</span>
-                <span>Fit Cao (H)</span>
-              </button>
             </div>
 
             <!-- NÚT FIT TOÀN DIỆN CHO NGƯỜI ĐI BỘ (1-CHẠM CHU TRÌNH HOÀN CHỈNH) -->
@@ -24625,6 +28047,124 @@ Cancel = hủy`
               <span style="display: flex; align-items: center; gap: 4px;">
                 <span style="font-size: 9px; background: #dcfce7; color: #15803d; padding: 1px 6px; border-radius: 4px; font-weight: 700; border: 1px solid #bbf7d0;">All Track</span>
               </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KHỐI 2.5: LÁT CẮT & LỌC 3 KHUNG NHÌN TRỰC GIAO (TOP, SIDE, FRONT) -->
+        <div style="
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 8px 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        ">
+          <!-- HEADER LÁT CẮT & TOGGLE BẬT/TẮT CHÍNH -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px solid #f1f5f9;">
+            <span style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; display: flex; align-items: center; gap: 4px;">
+              <span style="color: #6366f1; display: flex; align-items: center;">${ICONS.scissors}</span>
+              <span>Lát cắt & Lọc trực giao:</span>
+            </span>
+            <button id="btn-toggle-ortho-slicing" title="Bật/Tắt Lát cắt mỏng trên Side & Front views (GPU Hardware Clipping 60 FPS)" style="
+              background: ${this.orthoSlicing.enabled ? "#eef2ff" : "#f8fafc"};
+              border: 1px solid ${this.orthoSlicing.enabled ? "#c7d2fe" : "#e2e8f0"};
+              color: ${this.orthoSlicing.enabled ? "#4338ca" : "#64748b"};
+              padding: 2px 7px;
+              border-radius: 5px;
+              cursor: pointer;
+              font-size: 9.5px;
+              font-weight: 700;
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              transition: all 0.12s;
+            ">
+              <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: ${this.orthoSlicing.enabled ? "#4f46e5" : "#94a3b8"};"></span>
+              <span>${this.orthoSlicing.enabled ? "Đang BẬT" : "Đang TẮT"}</span>
+            </button>
+          </div>
+
+          <!-- THANH ĐIỀU KHIỂN ĐỘ DÀY SLAB & CÁC BỘ LỌC ĐẤT/ROI -->
+          <div style="display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 5px;">
+            <!-- STEPPER ĐỘ DÀY LÁT CẮT (SLAB) -->
+            <div style="
+              background: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 6px;
+              padding: 3px 6px;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            " title="Độ dày lát cắt Side/Front (m)">
+              <button id="btn-slab-minus" style="
+                background: #ffffff;
+                border: 1px solid #cbd5e1;
+                border-radius: 4px;
+                width: 18px;
+                height: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                color: #475569;
+                padding: 0;
+              ">${ICONS.minus}</button>
+              <span style="font-size: 10px; font-weight: 700; color: #1e293b; font-family: monospace;">±${this.orthoSlicing.slab}m</span>
+              <button id="btn-slab-plus" style="
+                background: #ffffff;
+                border: 1px solid #cbd5e1;
+                border-radius: 4px;
+                width: 18px;
+                height: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                color: #475569;
+                padding: 0;
+              ">${ICONS.plus}</button>
+            </div>
+
+            <!-- TOGGLE TẮT MẶT ĐẤT TOP VIEW -->
+            <button id="btn-toggle-hide-ground" title="Top View: Cắt mây điểm mặt đất cao hơn đáy xe +12cm để nhìn rõ viền xe" style="
+              background: ${this.orthoSlicing.hideGround ? "#f0fdf4" : "#ffffff"};
+              border: 1px solid ${this.orthoSlicing.hideGround ? "#86efac" : "#e2e8f0"};
+              color: ${this.orthoSlicing.hideGround ? "#15803d" : "#64748b"};
+              padding: 3px 5px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 10px;
+              font-weight: 600;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 4px;
+              transition: all 0.12s;
+            ">
+              <span style="display: flex; align-items: center;">${ICONS.mountain}</span>
+              <span>Tắt Đất</span>
+            </button>
+
+            <!-- TOGGLE KHÓA VÙNG ROI XUNG QUANH -->
+            <button id="btn-toggle-isolate-roi" title="Xóa cây cối, nhà cửa ngoài vùng ±1.0m quanh xe trên 3 view trực giao" style="
+              background: ${this.orthoSlicing.isolateROI ? "#eff6ff" : "#ffffff"};
+              border: 1px solid ${this.orthoSlicing.isolateROI ? "#93c5fd" : "#e2e8f0"};
+              color: ${this.orthoSlicing.isolateROI ? "#1d4ed8" : "#64748b"};
+              padding: 3px 5px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 10px;
+              font-weight: 600;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 4px;
+              transition: all 0.12s;
+            ">
+              <span style="display: flex; align-items: center;">${ICONS.focus}</span>
+              <span>Khóa ROI</span>
             </button>
           </div>
         </div>
@@ -24866,24 +28406,6 @@ Cancel = hủy`
                 font-weight: 600;
               ">Áp dụng</button>
             </span>
-
-            <button id="btn-apply-dimensions" style="
-              background: #0f172a;
-              border: 1px solid #0f172a;
-              color: #ffffff;
-              padding: 4px 10px;
-              border-radius: 5px;
-              font-size: 10px;
-              font-weight: 600;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              gap: 4px;
-              transition: background 0.12s;
-            ">
-              ${ICONS.save}
-              <span>Lưu</span>
-            </button>
           </div>
         </div>
 
@@ -24972,9 +28494,13 @@ Cancel = hủy`
       }
       const tabQcBtn = this.container.querySelector("#main-tab-qc");
       if (tabQcBtn) {
-        tabQcBtn.addEventListener("click", () => {
+        tabQcBtn.addEventListener("click", async () => {
           if (this.activeMainTab !== "qc") {
             this.activeMainTab = "qc";
+            if (this.selectedUiId !== null) {
+              await this.syncFrameTracks();
+              this.preloadTrackQCInBackground(this.selectedUiId, this.selectedServerId, true);
+            }
             this.updateContent();
           }
         });
@@ -24987,6 +28513,54 @@ Cancel = hủy`
           }
         });
       }
+      const retryTrackQcBtn = this.container.querySelector("#btn-retry-track-qc");
+      if (retryTrackQcBtn && this.selectedUiId !== null) {
+        retryTrackQcBtn.addEventListener("click", async () => {
+          if (this.selectedUiId !== null) {
+            this.trackQCRamCache.delete(this.selectedUiId);
+            await this.syncFrameTracks();
+            await this.preloadTrackQCInBackground(this.selectedUiId, this.selectedServerId, true);
+            this.updateContent();
+          }
+        });
+      }
+      const refreshTrackQcBtn = this.container.querySelector("#btn-refresh-track-qc");
+      if (refreshTrackQcBtn && this.selectedUiId !== null) {
+        refreshTrackQcBtn.addEventListener("click", async () => {
+          if (this.selectedUiId !== null) {
+            this.showToast(`Đang quét lại QC cho Track #${this.selectedUiId}...`, "info");
+            this.trackQCRamCache.delete(this.selectedUiId);
+            await this.syncFrameTracks();
+            const currentTrack = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
+            if (currentTrack) {
+              this.currentX = currentTrack.x;
+              this.currentY = currentTrack.y;
+              this.currentZ = currentTrack.z;
+              this.currentYawDeg = currentTrack.yawDeg;
+              this.currentL = currentTrack.l;
+              this.currentW = currentTrack.w;
+              this.currentH = currentTrack.h;
+            }
+            await this.preloadTrackQCInBackground(this.selectedUiId, this.selectedServerId, true);
+            this.updateContent();
+          }
+        });
+      }
+      const issueCards = this.container.querySelectorAll(".btn-jump-to-qc-issue");
+      issueCards.forEach((card) => {
+        card.addEventListener("click", () => {
+          const fStr = card.dataset.frame;
+          const tStr = card.dataset.trackId;
+          const title = card.dataset.issueTitle || "";
+          if (fStr !== void 0 && tStr !== void 0) {
+            const f = parseInt(fStr, 10);
+            const t = parseInt(tStr, 10);
+            if (!isNaN(f) && !isNaN(t)) {
+              this.jumpToSpecificIssue(f, t, title);
+            }
+          }
+        });
+      });
       const catChips = this.container.querySelectorAll(".btn-category-chip");
       catChips.forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -25004,10 +28578,6 @@ Cancel = hủy`
       if (fitSideBtn) fitSideBtn.addEventListener("click", () => this.handleFitSide());
       const fitFrontBtn = this.container.querySelector("#btn-fit-front");
       if (fitFrontBtn) fitFrontBtn.addEventListener("click", () => this.handleFitFront());
-      const fitCarWBtn = this.container.querySelector("#btn-fit-car-w");
-      if (fitCarWBtn) fitCarWBtn.addEventListener("click", () => this.handleFitWidth());
-      const fitCarHBtn = this.container.querySelector("#btn-fit-car-h");
-      if (fitCarHBtn) fitCarHBtn.addEventListener("click", () => this.handleFitHeight());
       const heroBtn = this.container.querySelector("#btn-hero-smart-fit");
       if (heroBtn) {
         heroBtn.addEventListener("click", () => {
@@ -25052,6 +28622,16 @@ Cancel = hủy`
       if (quickGroundBtn) quickGroundBtn.addEventListener("click", () => this.handleSnapGround("road"));
       const quickGroundTrackBtn = this.container.querySelector("#btn-snap-ground-track");
       if (quickGroundTrackBtn) quickGroundTrackBtn.addEventListener("click", () => this.handleSnapGroundTrack());
+      const toggleSlicingBtn = this.container.querySelector("#btn-toggle-ortho-slicing");
+      if (toggleSlicingBtn) toggleSlicingBtn.addEventListener("click", () => this.toggleOrthoSlicing());
+      const slabMinusBtn = this.container.querySelector("#btn-slab-minus");
+      if (slabMinusBtn) slabMinusBtn.addEventListener("click", () => this.stepOrthoSlab(-1));
+      const slabPlusBtn = this.container.querySelector("#btn-slab-plus");
+      if (slabPlusBtn) slabPlusBtn.addEventListener("click", () => this.stepOrthoSlab(1));
+      const hideGroundBtn = this.container.querySelector("#btn-toggle-hide-ground");
+      if (hideGroundBtn) hideGroundBtn.addEventListener("click", () => this.toggleHideGround());
+      const isolateRoiBtn = this.container.querySelector("#btn-toggle-isolate-roi");
+      if (isolateRoiBtn) isolateRoiBtn.addEventListener("click", () => this.toggleIsolateROI());
       const toggleAdvancedBtn = this.container.querySelector("#btn-toggle-advanced");
       if (toggleAdvancedBtn) {
         toggleAdvancedBtn.addEventListener("click", () => {
@@ -25061,6 +28641,8 @@ Cancel = hủy`
       }
       const undoBtn = this.container.querySelector("#floating-btn-undo");
       if (undoBtn) undoBtn.addEventListener("click", () => this.handleUndo());
+      const redoBtn = this.container.querySelector("#floating-btn-redo");
+      if (redoBtn) redoBtn.addEventListener("click", () => this.handleRedo());
       const minBtn = this.container.querySelector("#floating-btn-minimize");
       if (minBtn) minBtn.addEventListener("click", () => this.toggleMinimize());
       const badgeView = this.container.querySelector("#floating-badge-view");
@@ -25079,6 +28661,11 @@ Cancel = hủy`
         syncBtn.addEventListener("click", async () => {
           this.showToast("Đang quét lại xe ở frame này...", "info");
           await this.syncFrameTracks();
+          if (this.selectedUiId !== null) {
+            this.trackQCRamCache.delete(this.selectedUiId);
+            await this.preloadTrackQCInBackground(this.selectedUiId, this.selectedServerId, true);
+          }
+          this.updateContent();
         });
       }
       const dropdownToggle = this.container.querySelector("#btn-dropdown-toggle");
@@ -25088,8 +28675,8 @@ Cancel = hủy`
           this.updateContent();
           if (this.isDropdownOpen) {
             setTimeout(() => {
-              var _a;
-              const inputSearch2 = (_a = this.container) == null ? void 0 : _a.querySelector("#input-dropdown-search");
+              var _a2;
+              const inputSearch2 = (_a2 = this.container) == null ? void 0 : _a2.querySelector("#input-dropdown-search");
               if (inputSearch2) inputSearch2.focus();
             }, 60);
           }
@@ -25098,9 +28685,9 @@ Cancel = hủy`
       const inputSearch = this.container.querySelector("#input-dropdown-search");
       if (inputSearch) {
         inputSearch.addEventListener("input", (e) => {
-          var _a;
+          var _a2;
           this.searchKeyword = e.target.value;
-          const popover = (_a = this.container) == null ? void 0 : _a.querySelector("#dropdown-menu-popover");
+          const popover = (_a2 = this.container) == null ? void 0 : _a2.querySelector("#dropdown-menu-popover");
           if (popover) {
             const filtered = this.frameTracks.filter((t) => {
               if (!this.searchKeyword.trim()) return true;
@@ -25205,6 +28792,19 @@ Cancel = hủy`
           this.updateContent();
         });
       }
+      const canvasThemeBtn = this.container.querySelector("#btn-toggle-canvas-theme");
+      if (canvasThemeBtn) {
+        canvasThemeBtn.addEventListener("click", async () => {
+          this.canvasTheme = this.canvasTheme === "light" ? "dark" : "light";
+          localStorage.setItem("cvat_3d_canvas_theme", this.canvasTheme);
+          await CVATBridge.setCanvasTheme(this.canvasTheme);
+          this.showToast(
+            this.canvasTheme === "light" ? "Theme Canvas: Nền Trắng (Mây điểm Đen High-Contrast)" : "Theme Canvas: Nền Tối (Mây điểm Sáng Nguyên bản)",
+            "info"
+          );
+          this.updateContent();
+        });
+      }
       const colorModeBtn = this.container.querySelector("#btn-toggle-point-color-mode");
       if (colorModeBtn) {
         colorModeBtn.addEventListener("click", async () => {
@@ -25231,16 +28831,19 @@ Cancel = hủy`
           this.updateContent();
         });
       }
-      const groundPlaneBtn = this.container.querySelector("#btn-toggle-ground-plane");
-      if (groundPlaneBtn) {
-        groundPlaneBtn.addEventListener("click", async () => {
-          this.groundPlaneVisible = !this.groundPlaneVisible;
-          localStorage.setItem("cvat_3d_ground_plane_visible", String(this.groundPlaneVisible));
-          await CVATBridge.setGroundPlaneVisible(this.groundPlaneVisible);
-          this.showToast(
-            `Đã ${this.groundPlaneVisible ? "BẬT" : "TẮT"} mặt sàn polygon mờ (Đường & Vỉa hè)`,
-            this.groundPlaneVisible ? "success" : "info"
-          );
+      const pointSizeBtn = this.container.querySelector("#btn-toggle-ortho-point-size");
+      if (pointSizeBtn) {
+        pointSizeBtn.addEventListener("click", async () => {
+          if (this.orthoPointSize < 3) {
+            this.orthoPointSize = 3.5;
+          } else if (this.orthoPointSize < 4.5) {
+            this.orthoPointSize = 5;
+          } else {
+            this.orthoPointSize = 2;
+          }
+          localStorage.setItem("cvat_3d_ortho_point_size", String(this.orthoPointSize));
+          await CVATBridge.setOrthoPointSize(this.orthoPointSize);
+          this.showToast(`Cỡ điểm 2D: ${this.orthoPointSize.toFixed(1)}px`, "info");
           this.updateContent();
         });
       }
@@ -25265,16 +28868,30 @@ Cancel = hủy`
       const inpL = this.container.querySelector("#input-dim-l");
       const inpW = this.container.querySelector("#input-dim-w");
       const inpH = this.container.querySelector("#input-dim-h");
-      if (inpL) inpL.addEventListener("change", () => this.editL = parseFloat(inpL.value) || this.currentL);
-      if (inpW) inpW.addEventListener("change", () => this.editW = parseFloat(inpW.value) || this.currentW);
-      if (inpH) inpH.addEventListener("change", () => this.editH = parseFloat(inpH.value) || this.currentH);
-      const applyDimBtn = this.container.querySelector("#btn-apply-dimensions");
-      if (applyDimBtn) {
-        applyDimBtn.addEventListener("click", () => {
-          const l = inpL ? parseFloat(inpL.value) : this.editL;
-          const w = inpW ? parseFloat(inpW.value) : this.editW;
-          const h2 = inpH ? parseFloat(inpH.value) : this.editH;
+      const onDimInputChange = () => {
+        const l = inpL ? parseFloat(inpL.value) || this.currentL : this.currentL;
+        const w = inpW ? parseFloat(inpW.value) || this.currentW : this.currentW;
+        const h2 = inpH ? parseFloat(inpH.value) || this.currentH : this.currentH;
+        if (l > 0 && w > 0 && h2 > 0 && (l !== this.currentL || w !== this.currentW || h2 !== this.currentH)) {
           this.handleUpdateDimensions(l, w, h2, this.applyToTrack);
+        }
+      };
+      if (inpL) {
+        inpL.addEventListener("change", onDimInputChange);
+        inpL.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") inpL.blur();
+        });
+      }
+      if (inpW) {
+        inpW.addEventListener("change", onDimInputChange);
+        inpW.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") inpW.blur();
+        });
+      }
+      if (inpH) {
+        inpH.addEventListener("change", onDimInputChange);
+        inpH.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") inpH.blur();
         });
       }
       const fitCurrentBoxBtn = this.container.querySelector("#btn-fit-current-box");
@@ -25327,14 +28944,14 @@ Cancel = hủy`
       const rotBtns = this.container.querySelectorAll(".btn-rot");
       rotBtns.forEach((btn) => {
         btn.addEventListener("click", () => {
-          var _a;
+          var _a2;
           const deg2 = parseInt(btn.dataset.deg || "0", 10);
           if (deg2 !== 0) {
             let newDeg = Math.round(this.currentYawDeg + deg2);
             while (newDeg > 180) newDeg -= 360;
             while (newDeg < -180) newDeg += 360;
             const rad = newDeg * Math.PI / 180;
-            if (this.selectedUiId && ((_a = this.currentCtx) == null ? void 0 : _a.jobId)) {
+            if (this.selectedUiId && ((_a2 = this.currentCtx) == null ? void 0 : _a2.jobId)) {
               window.dispatchEvent(
                 new CustomEvent("CVAT_EXT_REQ_FLIP_YAW", {
                   detail: {
@@ -25370,7 +28987,7 @@ Cancel = hủy`
         btn.addEventListener("click", () => {
           const deltaDeg = parseFloat(btn.dataset.delta || "0");
           if (deltaDeg !== 0) {
-            this.handleSnapGround("micro_adjust_pitch", { deltaDeg });
+            this.rotatePitchByDelta(deltaDeg);
           }
         });
       });
@@ -25508,11 +29125,11 @@ Cancel = hủy`
                 <kbd style="background: #faf5ff; border: 1px solid #e9d5ff; color: #7e22ce; padding: 1px 5px; border-radius: 4px; font-weight: 700;">3</kbd>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Fit Rộng (W) [Mọi đối tượng]</span>
+                <span>Fit Rộng (W) [Người & Xe 2 bánh]</span>
                 <kbd style="background: #faf5ff; border: 1px solid #d8b4fe; color: #7e22ce; padding: 1px 5px; border-radius: 4px; font-weight: 700;">4</kbd>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Fit Cao (H) [Ground-Lock nở nóc]</span>
+                <span>Fit Cao (H) [Người & Xe 2 bánh]</span>
                 <kbd style="background: #fff7ed; border: 1px solid #fdba74; color: #c2410c; padding: 1px 5px; border-radius: 4px; font-weight: 700;">5</kbd>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -25568,6 +29185,10 @@ Cancel = hủy`
                 <span>Đặt lại Dốc 0° (Reset phẳng hoàn toàn)</span>
                 <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">Alt+R</kbd>
               </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Xoay dốc Side (Pitch) ±1°</span>
+                <div><kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 5px; border-radius: 4px; font-weight: 700;">.</kbd> / <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 5px; border-radius: 4px; font-weight: 700;">/</kbd></div>
+              </div>
               <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 2px;">
                 <span style="font-size: 9.5px; color: #64748b;">Chưa đủ điểm mặt đất</span>
                 <span style="font-size: 9.5px; color: #b45309; font-weight: 600;">Fit cao & góc thẳng theo Ego</span>
@@ -25598,8 +29219,12 @@ Cancel = hủy`
                 <div><kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">Tab</kbd> / <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">X</kbd></div>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Hoàn Tác Thao Tác Vừa Làm (Pre)</span>
+                <span>Hoàn Tác Thao Tác (Undo / Pre)</span>
                 <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Ctrl+Z</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Làm Lại Thao Tác (Redo)</span>
+                <div><kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Ctrl+Y</kbd> / <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Shift+Z</kbd></div>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Ẩn / Hiện Toàn Bộ Track</span>
@@ -25691,7 +29316,7 @@ Cancel = hủy`
         if (isInputElement(e.target)) return;
         const key = (e.key || "").toLowerCase();
         const code = e.code || "";
-        if (key === "w" || code === "KeyW" || key === "ư" || key === "a" || code === "KeyA" || key === "á" || key === "à" || key === "â" || key === "s" || code === "KeyS" || key === "d" || code === "KeyD" || key === "đ" || key === "backspace" || code === "Backspace" || key === "delete" || code === "Delete" || key === "1" || code === "Digit1" || code === "Numpad1" || key === "2" || code === "Digit2" || code === "Numpad2" || key === "3" || code === "Digit3" || code === "Numpad3" || key === "4" || code === "Digit4" || code === "Numpad4" || key === "5" || code === "Digit5" || code === "Numpad5") {
+        if (key === "w" || code === "KeyW" || key === "ư" || key === "a" || code === "KeyA" || key === "á" || key === "à" || key === "â" || key === "s" || code === "KeyS" || key === "d" || code === "KeyD" || key === "đ" || key === "backspace" || code === "Backspace" || key === "delete" || code === "Delete" || key === "." || code === "Period" || code === "NumpadDecimal" || key === "/" || code === "Slash" || code === "NumpadDivide" || key === "1" || code === "Digit1" || code === "Numpad1" || key === "2" || code === "Digit2" || code === "Numpad2" || key === "3" || code === "Digit3" || code === "Numpad3" || key === "4" || code === "Digit4" || code === "Numpad4" || key === "5" || code === "Digit5" || code === "Numpad5") {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
@@ -25734,8 +29359,15 @@ Cancel = hủy`
           }
           if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (key === "z" || code === "KeyZ")) {
             consume();
-            console.log("[CVAT 3D Suite] Phím tắt Ctrl/Cmd+Z: Hoàn tác (Pre)");
+            console.log("[CVAT 3D Suite] Phím tắt Ctrl/Cmd+Z: Hoàn tác (Undo / Pre)");
             panel.handleUndo();
+            return;
+          }
+          const isRedoKey = (e.ctrlKey || e.metaKey) && !e.shiftKey && (key === "y" || code === "KeyY") || (e.ctrlKey || e.metaKey) && e.shiftKey && (key === "z" || code === "KeyZ");
+          if (isRedoKey) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Redo (Làm lại)");
+            panel.handleRedo();
             return;
           }
           if (e.shiftKey && (key === "m" || code === "KeyM")) {
@@ -25754,7 +29386,7 @@ Cancel = hủy`
             panel.selectNextTrack();
             return;
           }
-          const isActionRequiringActive = key === "z" || code === "KeyZ" || (key === "o" || code === "KeyO") || (key === "i" || code === "KeyI") || (key === "f" || code === "KeyF") || (key === "w" || code === "KeyW" || key === "ư") || (key === "a" || code === "KeyA" || ["á", "à", "ả", "ã", "ạ", "â", "ă"].includes(key)) || (key === "s" || code === "KeyS") || (key === "d" || code === "KeyD" || key === "đ") || (key === "q" || code === "KeyQ") || (key === "e" || code === "KeyE") || (key === "g" || code === "KeyG") || (key === "r" || code === "KeyR") || (key === "1" || code === "Digit1" || code === "Numpad1" || key === "t" || code === "KeyT") || (key === "2" || code === "Digit2" || code === "Numpad2") || (key === "3" || code === "Digit3" || code === "Numpad3") || (key === "4" || code === "Digit4" || code === "Numpad4") || (key === "5" || code === "Digit5" || code === "Numpad5") || (key === "p" || code === "KeyP") || (key === "c" || code === "KeyC") || (key === "b" || code === "KeyB") || (key === "l" || code === "KeyL") || e.shiftKey && (code === "ArrowUp" || code === "ArrowDown" || code === "ArrowLeft" || code === "ArrowRight");
+          const isActionRequiringActive = key === "z" || code === "KeyZ" || (key === "o" || code === "KeyO") || (key === "i" || code === "KeyI") || (key === "f" || code === "KeyF") || (key === "w" || code === "KeyW" || key === "ư") || (key === "a" || code === "KeyA" || ["á", "à", "ả", "ã", "ạ", "â", "ă"].includes(key)) || (key === "s" || code === "KeyS") || (key === "d" || code === "KeyD" || key === "đ") || (key === "q" || code === "KeyQ") || (key === "e" || code === "KeyE") || (key === "g" || code === "KeyG") || (key === "r" || code === "KeyR") || (key === "1" || code === "Digit1" || code === "Numpad1" || key === "t" || code === "KeyT") || (key === "2" || code === "Digit2" || code === "Numpad2") || (key === "3" || code === "Digit3" || code === "Numpad3") || (key === "4" || code === "Digit4" || code === "Numpad4") || (key === "5" || code === "Digit5" || code === "Numpad5") || (key === "p" || code === "KeyP") || (key === "c" || code === "KeyC") || (key === "b" || code === "KeyB") || (key === "l" || code === "KeyL") || (key === "." || code === "Period" || code === "NumpadDecimal") || !e.shiftKey && (key === "/" || code === "Slash" || code === "NumpadDivide") || e.shiftKey && (code === "ArrowUp" || code === "ArrowDown" || code === "ArrowLeft" || code === "ArrowRight");
           if (isActionRequiringActive && panel.selectedUiId === null) {
             consume();
             panel.showToast("Cần active đối tượng để thao tác!", "warning");
@@ -25843,6 +29475,32 @@ Cancel = hủy`
             panel.handleSnapGround("reset_slope");
             return;
           }
+          const isKeyPeriod = key === "." || code === "Period" || code === "NumpadDecimal";
+          const isKeySlash = key === "/" || code === "Slash" || code === "NumpadDivide";
+          if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && isKeyPeriod) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Alt+ . : Xoay nhanh Dốc Side (Pitch) -3°");
+            panel.rotatePitchByDelta(-3);
+            return;
+          }
+          if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && isKeySlash) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt Alt+ / : Xoay nhanh Dốc Side (Pitch) +3°");
+            panel.rotatePitchByDelta(3);
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && isKeyPeriod) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt . : Vi chỉnh Dốc Side (Pitch) -1°");
+            panel.rotatePitchByDelta(-1);
+            return;
+          }
+          if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && isKeySlash) {
+            consume();
+            console.log("[CVAT 3D Suite] Phím tắt / : Vi chỉnh Dốc Side (Pitch) +1°");
+            panel.rotatePitchByDelta(1);
+            return;
+          }
           if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "1" || code === "Digit1" || code === "Numpad1" || key === "t" || code === "KeyT")) {
             consume();
             console.log("[CVAT 3D Suite] Phím tắt 1/T: Căn TOP");
@@ -25863,13 +29521,13 @@ Cancel = hủy`
           }
           if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "4" || code === "Digit4" || code === "Numpad4")) {
             consume();
-            console.log("[CVAT 3D Suite] Phím tắt 4: Fit Rộng (W)");
+            console.log("[CVAT 3D Suite] Phím tắt 4: Fit Rộng (W) [Người/Xe 2 bánh]");
             panel.handleFitWidth();
             return;
           }
           if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "5" || code === "Digit5" || code === "Numpad5")) {
             consume();
-            console.log("[CVAT 3D Suite] Phím tắt 5: Fit Cao (H) [Ground-Lock]");
+            console.log("[CVAT 3D Suite] Phím tắt 5: Fit Cao (H) [Ground-Lock - Người/Xe 2 bánh]");
             panel.handleFitHeight();
             return;
           }

@@ -3,6 +3,8 @@
  * và thuật toán so khớp Best-Fit tối ưu cho gán nhãn 3D LiDAR Bounding Box.
  */
 
+import { detectObjectCategory } from "./qc/qc_engine.ts";
+
 export interface VehicleCatalogItem {
   id: string;
   name: string;
@@ -235,13 +237,14 @@ export function findBestFitCatalog(
   // Lọc sơ bộ theo nhãn nếu có
   if (labelHint) {
     const hint = labelHint.toLowerCase();
+    const detected = detectObjectCategory(labelHint);
     if (hint.includes("bus")) {
       candidates = STANDARD_VEHICLE_CATALOG.filter((c) => c.category === "bus");
     } else if (hint.includes("truck")) {
       candidates = STANDARD_VEHICLE_CATALOG.filter((c) => c.category === "truck");
-    } else if (hint.includes("pedestrian")) {
+    } else if (detected === "pedestrian") {
       candidates = STANDARD_VEHICLE_CATALOG.filter((c) => c.category === "pedestrian");
-    } else if (hint.includes("cycl") || hint.includes("moto")) {
+    } else if (detected === "cyclist") {
       candidates = STANDARD_VEHICLE_CATALOG.filter((c) => c.category === "cycle");
     } else if (hint.includes("car") || hint.includes("vehicle")) {
       candidates = STANDARD_VEHICLE_CATALOG.filter((c) =>

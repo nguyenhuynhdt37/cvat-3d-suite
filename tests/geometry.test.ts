@@ -31,6 +31,10 @@ import {
   computeIntensityWeights,
   detectDominantWallEdgeWithValleyCutoff,
   determineBumperByDensity,
+  analyzeOrientedDensityEnvelope,
+  computeAODEDensityEnvelope,
+  CLASS_SIZE_LIMITS,
+  clusterByPointDilation5x,
 } from "../src/core/geometry.ts";
 import {
   findBestFitCatalog,
@@ -4337,7 +4341,693 @@ console.log(`✅ Test 58f: Fit Toàn Diện Xe 2 Bánh (ALL): ${allRes.newL}x${a
   console.log(`✅ Test 108: Xe Ở Dốc Trũng Ít Point Mặt Đất: Đáy neo chuẩn ${res108.groundZ}m (Tâm Z: ${newCenterZ.toFixed(3)}m, Roll=0°, Pitch=0°), KHÔNG BỊ BAY LÊN TRỜI THEO EGO!`);
 }
 
-console.log("\n🎉 TẤT CẢ 108/108 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z, CĂN GÓC FRONT ROLL 2 ĐẦU, BẢO TOÀN CURPOINT BIÊN, RIDER 42%, CĂN YAW THEO VẠCH KẺ LÀN LIDAR INTENSITY, CHỐNG LƠ LỬNG 0 ĐIỂM, CHỐNG BAY LÊN TRỜI KHI THIẾU POINT, SIDE/FRONT CHUẨN HÓA CẢ 3 VẬT THỂ (CAR, CYCLIST, PEDESTRIAN), TRỌNG SỐ INTENSITY BẢO VỆ MÉP SÁNG VÀ MẬT ĐỘ 20% ĐẦU/ĐUƠI XE ĐÃ ĐẠT 100%!");
+// =========================================================================
+// TEST 109: THUẬT TOÁN A-O-D-E (ANISOTROPIC ORIENTED DENSITY ENVELOPE)
+// =========================================================================
+
+// Test 109a: A-O-D-E Kháng Đám Đông Người Đi Bộ (Density Valley Cutoff > 12cm)
+{
+  const pts: Array<{ x: number; y: number; z: number }> = [];
+  // Người mục tiêu A (cx = 5.0, cy = 2.0, yaw = 0): Thân người ly in [-0.18, 0.18], lx in [-0.20, 0.20]
+  for (let lx = -0.20; lx <= 0.20; lx += 0.08) {
+    for (let ly = -0.16; ly <= 0.16; ly += 0.08) {
+      pts.push({ x: 5.0 + lx, y: 2.0 + ly, z: 0.8 });
+    }
+  }
+  const countA = pts.length;
+
+  // Người đi cùng B (ở bên sườn trái): ly in [0.40, 0.52] (khoảng trống gap = 0.40 - 0.16 = 0.24m > 0.12m)
+  for (let lx = -0.15; lx <= 0.15; lx += 0.10) {
+    for (let ly = 0.40; ly <= 0.52; ly += 0.06) {
+      pts.push({ x: 5.0 + lx, y: 2.0 + ly, z: 0.8 });
+    }
+  }
+
+  const res109a = computeAODEDensityEnvelope(
+    pts,
+    5.0, 2.0, 0.85, 0.0,
+    "pedestrian",
+    0.65, 0.60, 1.70
+  );
+
+  assert.strictEqual(res109a.hasCrowdSeparation, true, "Test 109a: Phải nhận diện cắt đám đông người đi cùng");
+  assert.ok(
+    res109a.lyLeftEdge <= 0.22,
+    `Test 109a: Mép trái phải cắt trước thung lũng mật độ <= 0.22m (thực tế: ${res109a.lyLeftEdge}m)`
+  );
+  assert.strictEqual(
+    res109a.filteredCount,
+    countA,
+    `Test 109a: Phải chỉ giữ lại trọn vẹn điểm Người A (${countA} điểm), loại bỏ Người B (nhận được: ${res109a.filteredCount} điểm)`
+  );
+
+  console.log(
+    `✅ Test 109a: A-O-D-E Kháng Đám Đông Người Đi Bộ: Cắt đứt Người B đi cùng (gap > 12cm, giữ trọn ${res109a.filteredCount}/${countA} điểm Người A, mép trái ${res109a.lyLeftEdge}m)`
+  );
+}
+
+// Test 109b: A-O-D-E Kháng Xe Máy Chạy Song Song Ở Sườn (Khóa Ly & Cutoff > 12cm)
+{
+  const pts: Array<{ x: number; y: number; z: number }> = [];
+  // Xe máy 1 (mục tiêu ở tâm cx = 10.0, cy = 4.0, yaw = 0): lx in [-0.85, 0.85], ly in [-0.22, 0.22]
+  for (let lx = -0.80; lx <= 0.80; lx += 0.40) {
+    for (let ly = -0.20; ly <= 0.20; ly += 0.20) {
+      pts.push({ x: 10.0 + lx, y: 4.0 + ly, z: 0.7 });
+    }
+  }
+  const countBike1 = pts.length;
+
+  // Xe máy 2 chạy song song ở sườn phải y = 3.35 (ly = -0.65m), gap = 0.65 - 0.20 = 0.45m > 0.12m
+  for (let lx = -0.60; lx <= 0.60; lx += 0.30) {
+    pts.push({ x: 10.0 + lx, y: 3.35, z: 0.7 });
+  }
+
+  const res109b = computeAODEDensityEnvelope(
+    pts,
+    10.0, 4.0, 0.85, 0.0,
+    "two_wheel",
+    1.80, 0.70, 1.55
+  );
+
+  assert.ok(
+    res109b.hasCrowdSeparation || res109b.hasParallelVehicleSeparation,
+    "Test 109b: Phải nhận diện cắt xe song song ở sườn"
+  );
+  assert.ok(
+    res109b.lyRightEdge >= -0.28,
+    `Test 109b: Mép phải phải cắt trước xe song song >= -0.28m (thực tế: ${res109b.lyRightEdge}m)`
+  );
+  assert.strictEqual(
+    res109b.filteredCount,
+    countBike1,
+    `Test 109b: Phải chỉ giữ lại trọn vẹn điểm Xe 1 (${countBike1} điểm), loại bỏ Xe 2 (nhận được: ${res109b.filteredCount} điểm)`
+  );
+
+  console.log(
+    `✅ Test 109b: A-O-D-E Kháng Xe Máy Song Song: Cắt đứt Xe 2 (gap 45cm > 12cm, giữ trọn ${res109b.filteredCount}/${countBike1} điểm Xe 1, mép phải ${res109b.lyRightEdge}m)`
+  );
+}
+
+// Test 109c: A-O-D-E Tính Radial Mean (meanR, meanAbsLx, meanAbsLy) & Histogram Đỉnh Mật Độ (lxPeak, lyPeak)
+{
+  const pts: Array<{ x: number; y: number; z: number }> = [];
+  // Cụm điểm ngực người tập trung dày đặc quanh lx = 0.06m, ly = -0.04m
+  for (let i = 0; i < 20; i++) {
+    pts.push({ x: 0.06 + (i % 3) * 0.01, y: -0.04 + (i % 2) * 0.01, z: 0.8 + (i % 4) * 0.1 });
+  }
+  // Vài điểm phân tán ở viền
+  pts.push({ x: 0.20, y: 0.15, z: 0.7 });
+  pts.push({ x: -0.18, y: -0.16, z: 0.7 });
+
+  const res109c = computeAODEDensityEnvelope(
+    pts,
+    0.0, 0.0, 0.85, 0.0,
+    "pedestrian",
+    0.65, 0.60, 1.70
+  );
+
+  assert.ok(res109c.meanR > 0 && res109c.meanR < 0.25, `Test 109c: meanR hợp lý (thực tế: ${res109c.meanR}m)`);
+  assert.ok(res109c.meanAbsLx > 0 && res109c.meanAbsLy > 0, "Test 109c: meanAbsLx/Ly > 0");
+  assert.ok(
+    Math.abs(res109c.lxPeak - 0.06) <= 0.04,
+    `Test 109c: lxPeak khớp đỉnh ngực ~0.06m (thực tế: ${res109c.lxPeak}m)`
+  );
+  assert.ok(
+    Math.abs(res109c.lyPeak - (-0.04)) <= 0.04,
+    `Test 109c: lyPeak khớp đỉnh ngực ~-0.04m (thực tế: ${res109c.lyPeak}m)`
+  );
+
+  console.log(
+    `✅ Test 109c: A-O-D-E Thống Kê Cự Ly & Histogram Đỉnh Mật Độ: meanR=${res109c.meanR}m, Peak=(${res109c.lxPeak}, ${res109c.lyPeak})m`
+  );
+}
+
+// Test 109d: A-O-D-E Tính Khoảng Cách Chưa Bọc (Uncovered Span/Margin)
+{
+  const pts: Array<{ x: number; y: number; z: number }> = [
+    { x: 0.30, y: 0.0, z: 0.7 },  // Mép trước thật lx = +0.30
+    { x: -0.30, y: 0.0, z: 0.7 }, // Mép sau thật lx = -0.30
+    { x: 0.0, y: 0.25, z: 0.7 },  // Mép trái thật ly = +0.25
+    { x: 0.0, y: -0.25, z: 0.7 }, // Mép phải thật ly = -0.25
+    { x: 0.0, y: 0.0, z: 0.7 },
+  ];
+
+  // TH1: Box ban đầu bé (L=0.40m, W=0.30m) -> Mép box trước = +0.20m, trái = +0.15m -> HỤT (Undercovered > 0)
+  const resUnder = computeAODEDensityEnvelope(
+    pts,
+    0.0, 0.0, 0.70, 0.0,
+    "pedestrian",
+    0.40, 0.30, 1.60
+  );
+  assert.ok(
+    resUnder.uncoveredFront > 0.08,
+    `Test 109d: Phải phát hiện mép trước bị hụt > 0.08m (thực tế: ${resUnder.uncoveredFront}m)`
+  );
+  assert.ok(
+    resUnder.uncoveredLeft > 0.08,
+    `Test 109d: Phải phát hiện mép trái bị hụt > 0.08m (thực tế: ${resUnder.uncoveredLeft}m)`
+  );
+
+  // TH2: Box ban đầu to (L=0.90m, W=0.80m) -> Mép box trước = +0.45m, trái = +0.40m -> THỪA (Overcovered < 0)
+  const resOver = computeAODEDensityEnvelope(
+    pts,
+    0.0, 0.0, 0.70, 0.0,
+    "pedestrian",
+    0.90, 0.80, 1.60
+  );
+  assert.ok(
+    resOver.uncoveredFront < -0.10,
+    `Test 109d: Phải phát hiện mép trước dư ra ngoài < -0.10m (thực tế: ${resOver.uncoveredFront}m)`
+  );
+  assert.ok(
+    resOver.uncoveredLeft < -0.10,
+    `Test 109d: Phải phát hiện mép trái dư ra ngoài < -0.10m (thực tế: ${resOver.uncoveredLeft}m)`
+  );
+
+  console.log(
+    `✅ Test 109d: A-O-D-E Khoảng Cách Chưa Bọc: Hụt trước=+${resUnder.uncoveredFront}m, Dư trước=${resOver.uncoveredFront}m (Chuẩn xác 100%)`
+  );
+}
+
+// Test 109e: A-O-D-E Bảo Toàn Viền Mỏng (Density Drop-off: Gương Xe & Bàn Chân)
+{
+  const ptsBikeMirror: Array<{ x: number; y: number; z: number }> = [
+    // Thân xe
+    { x: 0.0, y: 0.0, z: 0.6 },
+    { x: 0.0, y: 0.15, z: 0.6 },
+    { x: 0.0, y: -0.15, z: 0.6 },
+    // Tay lái bên trái
+    { x: 0.0, y: 0.28, z: 0.85 },
+    // Gương chiếu hậu ngoài cùng bên trái ly = +0.38m (chỉ có duy nhất 1 điểm, gap = 0.38 - 0.28 = 0.10m <= 0.12m)
+    { x: 0.0, y: 0.38, z: 1.05 },
+  ];
+
+  const resMirror = computeAODEDensityEnvelope(
+    ptsBikeMirror,
+    0.0, 0.0, 0.85, 0.0,
+    "two_wheel",
+    1.80, 0.70, 1.55
+  );
+
+  assert.ok(
+    Math.abs(resMirror.lyLeftEdge - 0.38) <= 0.02,
+    `Test 109e: Gương chiếu hậu ly = 0.38m phải được bảo toàn 100% không bị teo lẹm (thực tế: ${resMirror.lyLeftEdge}m)`
+  );
+
+  console.log(
+    `✅ Test 109e: A-O-D-E Bảo Toàn Viền Mỏng (Density Drop-off): Bắt trọn gương xe ngoài cùng ly = ${resMirror.lyLeftEdge}m`
+  );
+}
+
+// Test 109f: Ngưỡng Kích Thước Giới Hạn Chuẩn Tool_QC (CLASS_SIZE_LIMITS)
+{
+  assert.strictEqual(CLASS_SIZE_LIMITS.vehicle.minL, 3.2, "Vehicle minL = 3.2m");
+  assert.strictEqual(CLASS_SIZE_LIMITS.vehicle.maxL, 5.5, "Vehicle maxL = 5.5m");
+  assert.strictEqual(CLASS_SIZE_LIMITS.two_wheel.minW, 0.6, "Two_wheel minW = 0.6m");
+  assert.strictEqual(CLASS_SIZE_LIMITS.two_wheel.maxW, 0.9, "Two_wheel maxW = 0.9m");
+  assert.strictEqual(CLASS_SIZE_LIMITS.pedestrian.minH, 1.2, "Pedestrian minH = 1.2m");
+  assert.strictEqual(CLASS_SIZE_LIMITS.pedestrian.maxH, 1.9, "Pedestrian maxH = 1.9m");
+
+  console.log("✅ Test 109f: Khớp 100% Ngưỡng Kích Thước Giới Hạn Chuẩn Tool_QC (datumaro_qa.py)");
+}
+
+// Test 109g: Tích Hợp fitPedestrianBox & fitTwoWheelerBox Cung Cấp aodeInfo & Tuân Thủ GEMINI.md
+{
+  const pedPts: Array<{ x: number; y: number; z: number }> = [
+    { x: 0.0, y: 0.0, z: -0.20 }, // Chân
+    { x: 0.0, y: 0.0, z: 1.30 },  // Đầu
+    { x: 0.1, y: 0.0, z: 0.60 },
+  ];
+  const pedRes = fitPedestrianBox(pedPts, 0, 0, 0.50, 0, 0.65, 0.65, 1.70, { step: "h" });
+  assert.ok(pedRes.aodeInfo !== undefined, "Test 109g: fitPedestrianBox phải có aodeInfo");
+  assert.ok(pedRes.aodeInfo.meanR >= 0, "Test 109g: aodeInfo.meanR >= 0");
+
+  const bikePts: Array<{ x: number; y: number; z: number }> = [
+    { x: 0.8, y: 0.0, z: 0.35 },
+    { x: -0.8, y: 0.0, z: 0.35 },
+    { x: 0.0, y: 0.25, z: 0.70 },
+  ];
+  const bikeRes = fitTwoWheelerBox(bikePts, 0, 0, 0.80, 0, 1.80, 0.70, 1.55, { step: "w" });
+  assert.ok(bikeRes.aodeInfo !== undefined, "Test 109g: fitTwoWheelerBox phải có aodeInfo");
+  assert.strictEqual(bikeRes.newL, 1.80, "Test 109g: Xe 2 bánh bảo toàn L khi fit W");
+
+  console.log("✅ Test 109g: Tích Hợp fitPedestrianBox & fitTwoWheelerBox Cung Cấp aodeInfo & Bảo Toàn 100% Quy Chuẩn GEMINI.md");
+}
+
+// =========================================================================
+// TEST SUITE 110: NÂNG CẤP CĂN CHỈNH TOP, SIDE, FRONT KẾT HỢP ĐỘ ĐO KHOẢNG CÁCH 5X (5X POINT DILATION)
+// =========================================================================
+
+// Test 110a: Test tính kết nối của 5x Point Dilation (Connectivity Metric)
+{
+  // 2 chùm điểm thưa cách nhau 18cm (<= Dconnect = 25cm tương ứng phóng to hạt điểm 5x với r0 = 2.5cm)
+  const ptsGroupA: Array<{ lx: number; ly: number; z: number }> = [
+    { lx: 0.0, ly: 0.0, z: 0.5 },
+    { lx: 0.10, ly: 0.05, z: 0.5 },
+  ];
+  const ptsGroupB: Array<{ lx: number; ly: number; z: number }> = [
+    { lx: 0.28, ly: 0.05, z: 0.5 }, // Cách điểm (0.10, 0.05) đúng 0.18m
+    { lx: 0.38, ly: 0.05, z: 0.5 },
+  ];
+  const allPts = [...ptsGroupA, ...ptsGroupB];
+
+  const res = clusterByPointDilation5x(allPts, {
+    basePointSize: 0.025,
+    dilationFactor: 5.0,
+    connectDist: 0.25,
+    dim: "2d",
+  });
+
+  assert.strictEqual(res.clusters.length, 1, "Test 110a: 2 chùm điểm cách nhau 18cm (<= 25cm) phải kết nối thành duy nhất 1 cụm liên thông");
+  assert.strictEqual(res.dominantPts.length, 4, "Test 110a: dominantPts phải chứa trọn vẹn 4 điểm");
+  assert.strictEqual(res.noisePts.length, 0, "Test 110a: Không có điểm nhiễu ngoại lai");
+  console.log("✅ Test 110a: 5x Point Dilation Connectivity: 2 chùm điểm cách nhau 18cm kết nối liền mạch thành 1 khối vững chắc");
+}
+
+// Test 110b: Test cô lập và loại bỏ 100% điểm nhiễu ngoại lai và người đi bộ lân cận
+{
+  // Khối thân xe vỏ ngoài: lx in [-1.5, 1.5], ly in [-0.8, 0.8], bước 0.2m
+  const carPts: Array<{ lx: number; ly: number; z: number }> = [];
+  for (let x = -1.5; x <= 1.5; x += 0.2) {
+    for (let y = -0.8; y <= 0.8; y += 0.2) {
+      carPts.push({ lx: Number(x.toFixed(2)), ly: Number(y.toFixed(2)), z: 0.6 });
+    }
+  }
+
+  // Người đi bộ đứng cạnh sườn xe tại lx = 0.2, ly = 1.30m (cách mép sườn xe 0.8m tới 1.30m là 0.50m > 0.25m)
+  const pedPts: Array<{ lx: number; ly: number; z: number }> = [
+    { lx: 0.20, ly: 1.30, z: 0.6 },
+    { lx: 0.25, ly: 1.35, z: 0.6 },
+    { lx: 0.15, ly: 1.25, z: 0.6 },
+  ];
+
+  // Hạt bụi/lá cây lẻ loi tại lx = -1.2, ly = -1.35 (cách sườn xe 0.55m > 0.25m)
+  const dustPt = { lx: -1.20, ly: -1.35, z: 0.6 };
+
+  const combinedPts = [...carPts, ...pedPts, dustPt];
+
+  const res = clusterByPointDilation5x(combinedPts, {
+    basePointSize: 0.025,
+    dilationFactor: 5.0,
+    connectDist: 0.25,
+    dim: "2d",
+    centerBias: { lx: 0, ly: 0 },
+  });
+
+  assert.strictEqual(res.dominantPts.length, carPts.length, "Test 110b: Khối thân xe chính phải giữ trọn vẹn số điểm của thân xe");
+  assert.strictEqual(res.noisePts.length, pedPts.length + 1, "Test 110b: Toàn bộ người đi bộ và hạt bụi phải bị loại vào noisePts");
+  
+  // Xác nhận không có điểm nào trong dominantPts có ly > 1.0 hoặc ly < -1.0
+  const maxLyDominant = Math.max(...res.dominantPts.map(p => p.ly));
+  const minLyDominant = Math.min(...res.dominantPts.map(p => p.ly));
+  assert.ok(maxLyDominant <= 0.81, `Test 110b: Mép sườn lớn nhất phải <= 0.8m (thực tế: ${maxLyDominant}m)`);
+  assert.ok(minLyDominant >= -0.81, `Test 110b: Mép sườn nhỏ nhất phải >= -0.8m (thực tế: ${minLyDominant}m)`);
+  console.log("✅ Test 110b: Kháng Nhiễu Ngoại Lai & Người Đi Bộ: Loại bỏ 100% người đi bộ cạnh xe và bụi bẩn, giữ sạch khối thân xe");
+}
+
+// Test 110c: Test bảo toàn 100% curpoint mép cản trước/sau và sườn xe đón tia
+{
+  // Thân xe với các curpoint ngoài cùng mép cản và sườn xe, các điểm liên thông bước <= 0.20m
+  const ptsWithCurpoints: Array<{ lx: number; ly: number; z: number }> = [];
+  // Trục dọc thân xe từ -2.2m tới +2.2m bước 0.20m
+  for (let x = -2.2; x <= 2.2; x += 0.2) {
+    ptsWithCurpoints.push({ lx: Number(x.toFixed(2)), ly: 0.0, z: 0.5 });
+  }
+  // Curpoint mép cản trước và cản sau
+  ptsWithCurpoints.push({ lx: 2.25, ly: 0.0, z: 0.5 });
+  ptsWithCurpoints.push({ lx: -2.25, ly: 0.0, z: 0.5 });
+
+  // Nhánh sườn trái từ ly = 0.0 tới 0.90m bước 0.15m
+  for (let y = 0.15; y <= 0.90; y += 0.15) {
+    ptsWithCurpoints.push({ lx: 0.0, ly: Number(y.toFixed(2)), z: 0.5 });
+  }
+
+  const res = clusterByPointDilation5x(ptsWithCurpoints, {
+    basePointSize: 0.025,
+    dilationFactor: 5.0,
+    connectDist: 0.25,
+    dim: "2d",
+    centerBias: { lx: 0, ly: 0 },
+  });
+
+  assert.strictEqual(res.dominantPts.length, ptsWithCurpoints.length, "Test 110c: Toàn bộ curpoint mép cản và sườn phải được bảo tồn 100%");
+  const maxLx = Math.max(...res.dominantPts.map(p => p.lx));
+  const minLx = Math.min(...res.dominantPts.map(p => p.lx));
+  const maxLy = Math.max(...res.dominantPts.map(p => p.ly));
+
+  assert.strictEqual(maxLx, 2.25, "Test 110c: Curpoint cản trước lx=2.25m bảo tồn 100%");
+  assert.strictEqual(minLx, -2.25, "Test 110c: Curpoint cản sau lx=-2.25m bảo tồn 100%");
+  assert.strictEqual(maxLy, 0.90, "Test 110c: Curpoint sườn trái ly=0.90m bảo tồn 100%");
+  console.log("✅ Test 110c: Bảo Toàn 100% Curpoint Biên (Mép Cản Trước lx=2.25m, Cản Sau lx=-2.25m, Sườn ly=0.90m)");
+}
+
+// Test 110d: Test Căn TOP kết hợp 5x Dilation & Theil-Sen Median Slope (Chuyên trách Yaw, khóa tâm X/Y/Z)
+{
+  const ptsCarTop: Array<{ x: number; y: number; z: number }> = [];
+  // Thân xe nghiêng góc Yaw = -4.0° (radian = -4 * PI / 180 ≈ -0.0698)
+  const trueYaw = -0.0698;
+  const cosT = Math.cos(trueYaw);
+  const sinT = Math.sin(trueYaw);
+
+  // Tạo sườn đón tia laser dày đặc từ x = -2.0 đến +2.0, mép sườn tại ly = 0.90
+  for (let lx = -2.0; lx <= 2.0; lx += 0.15) {
+    for (let ly = 0.75; ly <= 0.90; ly += 0.05) {
+      const gx = lx * cosT - ly * sinT + 10.0;
+      const gy = lx * sinT + ly * cosT + 5.0;
+      ptsCarTop.push({ x: gx, y: gy, z: 0.5 });
+    }
+  }
+
+  // Người đi bộ đứng cạnh sườn xe tại lx = 0.5, ly = 1.40 (cách sườn xe 0.50m)
+  for (let i = 0; i < 5; i++) {
+    const lx = 0.5 + (i * 0.03);
+    const ly = 1.40 + (i * 0.02);
+    ptsCarTop.push({
+      x: lx * cosT - ly * sinT + 10.0,
+      y: lx * sinT + ly * cosT + 5.0,
+      z: 0.5,
+    });
+  }
+
+  // Điểm mặt đất Z = -0.35m
+  ptsCarTop.push({ x: 10.0, y: 5.0, z: -0.35 });
+  ptsCarTop.push({ x: 11.0, y: 5.0, z: -0.35 });
+  ptsCarTop.push({ x: 9.0, y: 5.0, z: -0.35 });
+
+  // Khởi tạo box ở góc Yaw = 0° (đang lệch 4° so với thân xe nghiêng -4°)
+  const resTop = fitBoxToEgoRayAndGround(
+    ptsCarTop,
+    10.0, 5.0, 0.40, 0.0,
+    4.5, 1.8, 1.5,
+    { x: 10.0, y: 15.0, z: 0.0 }, // Ego nhìn từ phía sườn trái tới
+    { fitStep: "top", preserveDimensions: true }
+  );
+
+  assert.strictEqual(resTop.fitStep, "top", "Test 110d: fitStep phải là 'top'");
+  assert.ok(Math.abs(resTop.newYawDeg - (-4.0)) <= 0.5, `Test 110d: Yaw phải xoay về song song sườn đón tia ~ -4.0° (thực tế: ${resTop.newYawDeg}°)`);
+  assert.strictEqual(resTop.newCenterX, 10.0, "Test 110d: Nút TOP khóa cứng tâm X (shiftLx = 0)");
+  assert.strictEqual(resTop.newCenterY, 5.0, "Test 110d: Nút TOP khóa cứng tâm Y (shiftLy = 0)");
+  assert.strictEqual(resTop.newCenterZ, 0.40, "Test 110d: Nút TOP giữ nguyên 100% cao độ Z (tuyệt đối không ghim đất)");
+  assert.strictEqual(resTop.newL, 4.5, "Test 110d: Bảo toàn chiều dài L");
+  assert.strictEqual(resTop.newW, 1.8, "Test 110d: Bảo toàn chiều rộng W");
+  assert.strictEqual(resTop.newH, 1.5, "Test 110d: Bảo toàn chiều cao H");
+  console.log(`✅ Test 110d: Nút TOP Kết Hợp 5x Dilation & Theil-Sen Median Slope: Yaw=${resTop.newYawDeg}° (chuẩn -4°), Khóa 100% tâm X/Y/Z và Size`);
+}
+
+// Test 110e: Test Căn SIDE kết hợp 5x Dilation (Bám cản đón tia + Padding 5cm, Giữ nguyên Z và Y)
+{
+  const ptsCarSide: Array<{ x: number; y: number; z: number }> = [];
+  // Cản trước xe thật tại x = 12.25m đón tia laser từ Ego (20, 5)
+  // Các điểm cản trước tạo chùm điểm dày đặc tại mép ngoài cùng x = 12.20 -> 12.25
+  for (let i = 0; i < 20; i++) {
+    const lx = 2.20 + (i % 6) * 0.01; // 2.20 -> 2.25
+    const ly = -0.75 + (i / 20) * 1.5;
+    ptsCarSide.push({ x: 10.0 + lx, y: 5.0 + ly, z: 0.6 });
+  }
+
+  // Thân xe liên tục bước 0.15m nối liền tới cản sau
+  for (let lx = 2.10; lx >= -2.0; lx -= 0.15) {
+    ptsCarSide.push({ x: 10.0 + lx, y: 5.0, z: 0.6 });
+  }
+
+  // Người đi bộ băng qua đường trước mũi cản xe tại x = 12.75 (cách cản 0.50m > 0.25m)
+  ptsCarSide.push({ x: 12.75, y: 5.0, z: 0.6 });
+  ptsCarSide.push({ x: 12.80, y: 5.1, z: 0.6 });
+
+  // Ego tại x = 20.0, y = 5.0 (nhìn từ trước đầu xe tới -> cản trước đón tia)
+  const resSide = fitBoxToEgoRayAndGround(
+    ptsCarSide,
+    10.15, 5.0, 0.60, 0.0, // Box đang hơi lệch X = 10.15m
+    4.6, 1.8, 1.5,
+    { x: 20.0, y: 5.0, z: 0.0 },
+    { fitStep: "side", preserveDimensions: true, edgePadding: 0.05 }
+  );
+
+  assert.strictEqual(resSide.fitStep, "side", "Test 110e: fitStep phải là 'side'");
+  // Cản trước đón tia tại lx=2.25 -> mép trước thực tế = 10.0 + 2.25 = 12.25m.
+  // Box có padding 5cm -> mép trước box = 12.25 + 0.05 = 12.30m -> newCenterX = 12.30 - 2.30 = 10.00m
+  const frontBoxEdge = resSide.newCenterX + resSide.newL / 2;
+  assert.ok(Math.abs(frontBoxEdge - 12.30) <= 0.03, `Test 110e: Mép trước box phải bọc cản đón tia + padding 5cm = 12.30m (thực tế: ${frontBoxEdge.toFixed(3)}m)`);
+  assert.strictEqual(resSide.newCenterY, 5.0, "Test 110e: Nút SIDE giữ nguyên 100% trục ngang Y (shiftLy = 0)");
+  assert.strictEqual(resSide.newCenterZ, 0.60, "Test 110e: Nút SIDE giữ nguyên 100% cao độ Z (tuyệt đối không ghim đất)");
+  assert.strictEqual(resSide.newL, 4.6, "Test 110e: Chiều dài L bảo toàn 100%");
+  console.log(`✅ Test 110e: Nút SIDE Kết Hợp 5x Dilation: Mép cản trước = ${frontBoxEdge.toFixed(2)}m (bọc cản thật 12.25m + Padding 5cm), Giữ nguyên Y, Z`);
+}
+
+// Test 110f: Test Căn FRONT kết hợp 5x Dilation (Bám sườn đón tia + Padding 5cm, Giữ nguyên Z và X)
+{
+  const ptsCarFront: Array<{ x: number; y: number; z: number }> = [];
+  // Sườn trái đón tia laser từ Ego (10, 15) tại y = 5.90m (ly = 0.90 so với cy=5.0)
+  // Chùm điểm sườn trái dày đặc bọc khít mép y = 5.85 -> 5.90m
+  for (let i = 0; i < 20; i++) {
+    const lx = -1.8 + (i / 20) * 3.6;
+    const ly = 0.85 + (i % 6) * 0.01; // 0.85 -> 0.90 (tức y = 5.85 -> 5.90)
+    ptsCarFront.push({ x: 10.0 + lx, y: 5.0 + ly, z: 0.6 });
+  }
+
+  // Thân xe liên tục bước <= 0.15m nối sang sườn phải
+  for (let ly = 0.80; ly >= -0.80; ly -= 0.15) {
+    ptsCarFront.push({ x: 10.0, y: 5.0 + ly, z: 0.6 });
+  }
+
+  // Xe khác đỗ song song bên sườn phải tại y = 3.50m (cách sườn phải 0.60m > 0.25m)
+  for (let lx = -1.5; lx <= 1.5; lx += 0.2) {
+    ptsCarFront.push({ x: 10.0 + lx, y: 3.50, z: 0.6 });
+  }
+
+  // Box ban đầu hơi lệch Y = 5.15m
+  // Ego tại x = 10.0, y = 15.0 (nhìn từ sườn trái tới -> sườn trái đón tia)
+  const resFront = fitBoxToEgoRayAndGround(
+    ptsCarFront,
+    10.0, 5.15, 0.60, 0.0, // Box đang hơi lệch Y = 5.15m
+    4.5, 1.8, 1.5,
+    { x: 10.0, y: 15.0, z: 0.0 },
+    { fitStep: "front", preserveDimensions: true, edgePadding: 0.05 }
+  );
+
+  assert.strictEqual(resFront.fitStep, "front", "Test 110f: fitStep phải là 'front'");
+  // Sườn trái đón tia tại ly=0.90 -> mép trái thực tế = 5.0 + 0.90 = 5.90m.
+  // Box có padding 5cm -> mép trái box = 5.90 + 0.05 = 5.95m -> newCenterY = 5.95 - 0.90 = 5.05m
+  const leftBoxEdge = resFront.newCenterY + resFront.newW / 2;
+  assert.ok(Math.abs(leftBoxEdge - 5.95) <= 0.03, `Test 110f: Mép trái box phải ôm sườn đón tia + padding 5cm = 5.95m (thực tế: ${leftBoxEdge.toFixed(3)}m)`);
+  assert.strictEqual(resFront.newCenterX, 10.0, "Test 110f: Nút FRONT giữ nguyên 100% trục dọc X (shiftLx = 0)");
+  assert.strictEqual(resFront.newCenterZ, 0.60, "Test 110f: Nút FRONT giữ nguyên 100% cao độ Z (tuyệt đối không ghim đất)");
+  assert.strictEqual(resFront.newW, 1.8, "Test 110f: Chiều rộng W bảo toàn 100%");
+  console.log(`✅ Test 110f: Nút FRONT Kết Hợp 5x Dilation: Mép sườn trái = ${leftBoxEdge.toFixed(2)}m (ôm sườn thật 5.90m + Padding 5cm), Giữ nguyên X, Z`);
+}
+
+// Test 110g: Test Kháng Đám Đông Người Đi Bộ (5x Dilation Density Valley Separation)
+{
+  const ptsCrowd: Array<{ x: number; y: number; z: number }> = [];
+  // Người mục tiêu A tại (0, 0): Z in [0, 1.70m], thân người r <= 0.20m
+  for (let z = 0.10; z <= 1.70; z += 0.1) {
+    ptsCrowd.push({ x: 0.0, y: 0.0, z });
+    ptsCrowd.push({ x: 0.10, y: 0.08, z });
+    ptsCrowd.push({ x: -0.10, y: -0.08, z });
+  }
+
+  // Người đi cùng B đứng bên cạnh tại (0.1, 0.45): khoảng cách = 0.45m > 0.22m
+  for (let z = 0.10; z <= 1.70; z += 0.1) {
+    ptsCrowd.push({ x: 0.10, y: 0.45, z });
+    ptsCrowd.push({ x: 0.15, y: 0.50, z });
+  }
+
+  const pedTop = fitPedestrianBox(ptsCrowd, 0, 0, 0.85, 0, 0.65, 0.65, 1.70, {}, "top");
+  assert.strictEqual(pedTop.newCenterX, 0, "Test 110g: Nút TOP Người đi bộ khóa tâm X");
+  assert.strictEqual(pedTop.newCenterY, 0, "Test 110g: Nút TOP Người đi bộ khóa tâm Y");
+  assert.strictEqual(pedTop.newCenterZ, 0.85, "Test 110g: Nút TOP Người đi bộ giữ nguyên Z");
+
+  const pedFront = fitPedestrianBox(ptsCrowd, 0, 0, 0.85, 0, 0.65, 0.65, 1.70, {}, "front");
+  assert.strictEqual(pedFront.newCenterZ, 0.85, "Test 110g: Nút FRONT Người đi bộ giữ nguyên Z (không ghim đất)");
+  console.log("✅ Test 110g: Kháng Đám Đông Người Đi Bộ (5x Dilation): Tách sạch người đi cùng cách 45cm, Giữ nguyên 100% Z & Size");
+}
+
+// Test 110h: Test Xe 2 Bánh (Nối thông 2 bánh & loại bỏ xe máy chạy song song)
+{
+  const ptsBikeParallel: Array<{ x: number; y: number; z: number }> = [];
+  // Xe mục tiêu tại (0, 0): trục dọc dài [-0.7, 0.7], ly in [-0.25, 0.25]
+  for (let x = -0.7; x <= 0.7; x += 0.1) {
+    ptsBikeParallel.push({ x, y: 0.0, z: 0.4 });
+    ptsBikeParallel.push({ x, y: 0.15, z: 0.8 }); // Tay lái
+    ptsBikeParallel.push({ x, y: -0.15, z: 0.8 });
+  }
+
+  // Xe máy khác chạy song song tại y = 0.70m (cách 0.45m > 0.32m)
+  for (let x = -0.7; x <= 0.7; x += 0.15) {
+    ptsBikeParallel.push({ x, y: 0.70, z: 0.5 });
+  }
+
+  const bikeRes = fitTwoWheelerBox(ptsBikeParallel, 0, 0, 0.70, 0, 1.80, 0.70, 1.55, {}, "front");
+  assert.strictEqual(bikeRes.newCenterZ, 0.70, "Test 110h: Xe 2 bánh giữ nguyên cao độ Z (chuẩn Car, không ghim đất)");
+  assert.strictEqual(bikeRes.newL, 1.80, "Test 110h: Xe 2 bánh bảo toàn tuyệt đối chiều dài L = 1.80m");
+  assert.ok(Math.abs(bikeRes.newCenterY) <= 0.10, `Test 110h: Không bị kéo sang xe máy song song (thực tế: ${bikeRes.newCenterY}m)`);
+  console.log("✅ Test 110h: Xe 2 Bánh (5x Dilation): Nối thông 2 bánh xe, Loại bỏ xe máy song song cách 45cm, Khóa L=1.80m & Z=0.70m");
+}
+
+// Test 110i: Benchmark Hiệu Năng O(N) Spatial Grid 5x Dilation (< 1.0ms cho N = 500 điểm)
+{
+  const testPts: Array<{ lx: number; ly: number; z: number }> = [];
+  for (let i = 0; i < 500; i++) {
+    testPts.push({
+      lx: (Math.random() - 0.5) * 4.5,
+      ly: (Math.random() - 0.5) * 2.0,
+      z: Math.random() * 1.5,
+    });
+  }
+
+  // Warm-up JIT
+  for (let k = 0; k < 10; k++) {
+    clusterByPointDilation5x(testPts, {
+      basePointSize: 0.025,
+      dilationFactor: 5.0,
+      connectDist: 0.25,
+      dim: "2d",
+    });
+  }
+
+  // Đo thời gian thực thi của 100 lần chạy
+  const start = performance.now();
+  const iterations = 100;
+  for (let k = 0; k < iterations; k++) {
+    clusterByPointDilation5x(testPts, {
+      basePointSize: 0.025,
+      dilationFactor: 5.0,
+      connectDist: 0.25,
+      dim: "2d",
+    });
+  }
+  const totalElapsed = performance.now() - start;
+  const avgTimeMs = totalElapsed / iterations;
+
+  assert.ok(
+    avgTimeMs < 1.0,
+    `Test 110i: Hiệu năng Spatial Grid 5x Dilation phải < 1.0ms cho 500 điểm (thực tế: ${avgTimeMs.toFixed(4)}ms)`
+  );
+
+  console.log(`✅ Test 110i: Benchmark Hiệu Năng O(N) 5x Dilation: ${avgTimeMs.toFixed(4)}ms/lượt (N = 500 điểm) -> Tốc độ đáp ứng > 1000 FPS, Zero-Lag Architecture!`);
+}
+
+// Test 110j: Test Kháng Cụm Nhiễu Nhỏ Gần Tâm (Small Center Noise Cluster Immunity)
+{
+  // Xe ô tô thật: 50 điểm ở sườn ngoài ly = 0.8m, lx từ -2m đến +2m
+  const carPts: Array<{ lx: number; ly: number; z: number }> = [];
+  for (let x = -2.0; x <= 2.0; x += 0.08) {
+    carPts.push({ lx: Number(x.toFixed(2)), ly: 0.80, z: 0.5 });
+  }
+
+  // Cụm nhiễu 3 điểm lơ lửng ngẫu nhiên tại (0.05, 0.05) sát tâm box
+  const noisePts: Array<{ lx: number; ly: number; z: number }> = [
+    { lx: 0.05, ly: 0.05, z: 0.5 },
+    { lx: 0.06, ly: 0.05, z: 0.5 },
+    { lx: 0.05, ly: 0.06, z: 0.5 },
+  ];
+
+  const allPts = [...carPts, ...noisePts];
+  const res = clusterByPointDilation5x(allPts, {
+    basePointSize: 0.025,
+    dilationFactor: 5.0,
+    connectDist: 0.25,
+    dim: "2d",
+    centerBias: { lx: 0, ly: 0 },
+  });
+
+  assert.strictEqual(
+    res.dominantPts.length,
+    carPts.length,
+    "Test 110j: Khối thân xe 50 điểm phải được chọn làm dominantPts, cụm nhiễu 3 điểm tại tâm không được cướp quyền!"
+  );
+  assert.strictEqual(
+    res.noisePts.length,
+    noisePts.length,
+    "Test 110j: Cụm nhiễu 3 điểm tại tâm phải bị tách vào noisePts"
+  );
+  console.log("✅ Test 110j: Kháng Nhiễu Nhỏ Gần Tâm: Cụm 3 điểm nhiễu tại tâm không cướp quyền thân xe 50 điểm");
+}
+
+// Test 110k: Test Bảo Toàn Dốc Nghiêng Roll & Pitch cho Nút TOP, SIDE, FRONT khi Xe Có Góc Dốc (Slope Invariance)
+{
+  const ptsCarSlope: Array<{ x: number; y: number; z: number }> = [];
+  for (let lx = -2.0; lx <= 2.0; lx += 0.2) {
+    for (let ly = -0.8; ly <= 0.8; ly += 0.2) {
+      ptsCarSlope.push({ x: 10.0 + lx, y: 5.0 + ly, z: 0.6 });
+    }
+  }
+
+  const initialPitch = 0.05; // ~2.86 độ
+  const initialRoll = -0.03; // ~ -1.72 độ
+  const initialCz = 0.85;
+
+  // Test với fitStep: "front"
+  const resFront = fitBoxToEgoRayAndGround(
+    ptsCarSlope,
+    10.0, 5.0, initialCz, 0.0,
+    4.5, 1.8, 1.5,
+    { x: 10.0, y: 15.0, z: 0.0 },
+    { fitStep: "front", pitch: initialPitch, roll: initialRoll }
+  );
+  assert.strictEqual(resFront.newCenterZ, initialCz, "Test 110k: Nút FRONT giữ nguyên 100% cao độ Z");
+  assert.strictEqual(resFront.pitchRad, initialPitch, "Test 110k: Nút FRONT bảo toàn 100% góc Pitch ban đầu");
+  assert.strictEqual(resFront.rollRad, initialRoll, "Test 110k: Nút FRONT bảo toàn 100% góc Roll ban đầu");
+
+  // Test với fitStep: "side"
+  const resSide = fitBoxToEgoRayAndGround(
+    ptsCarSlope,
+    10.0, 5.0, initialCz, 0.0,
+    4.5, 1.8, 1.5,
+    { x: 20.0, y: 5.0, z: 0.0 },
+    { fitStep: "side", pitch: initialPitch, roll: initialRoll }
+  );
+  assert.strictEqual(resSide.newCenterZ, initialCz, "Test 110k: Nút SIDE giữ nguyên 100% cao độ Z");
+  assert.strictEqual(resSide.pitchRad, initialPitch, "Test 110k: Nút SIDE bảo toàn 100% góc Pitch ban đầu");
+  assert.strictEqual(resSide.rollRad, initialRoll, "Test 110k: Nút SIDE bảo toàn 100% góc Roll ban đầu");
+
+  // Test với fitStep: "top"
+  const resTop = fitBoxToEgoRayAndGround(
+    ptsCarSlope,
+    10.0, 5.0, initialCz, 0.0,
+    4.5, 1.8, 1.5,
+    { x: 10.0, y: 15.0, z: 0.0 },
+    { fitStep: "top", pitch: initialPitch, roll: initialRoll }
+  );
+  assert.strictEqual(resTop.newCenterZ, initialCz, "Test 110k: Nút TOP giữ nguyên 100% cao độ Z");
+  assert.strictEqual(resTop.pitchRad, initialPitch, "Test 110k: Nút TOP bảo toàn 100% góc Pitch ban đầu");
+  assert.strictEqual(resTop.rollRad, initialRoll, "Test 110k: Nút TOP bảo toàn 100% góc Roll ban đầu");
+
+  console.log("✅ Test 110k: Bảo Toàn Dốc Nghiêng Roll & Pitch: Nút FRONT, SIDE, TOP bảo toàn 100% góc dốc ban đầu và cao độ Z");
+}
+
+// Test 110l: Test Kháng Xe Khổng Lồ Đỗ Bên Cạnh (Adjacent Heavy Vehicle Immunity)
+{
+  // Xe con mục tiêu: 40 điểm tại ly = 0.70m, lx in [-1.8, 1.8]
+  const targetCarPts: Array<{ lx: number; ly: number; z: number }> = [];
+  for (let x = -1.8; x <= 1.8; x += 0.09) {
+    targetCarPts.push({ lx: Number(x.toFixed(2)), ly: 0.70, z: 0.5 });
+  }
+
+  // Xe buýt đỗ bên cạnh: 120 điểm tại ly = 1.80m, lx in [-4.0, 4.0]
+  const adjacentBusPts: Array<{ lx: number; ly: number; z: number }> = [];
+  for (let x = -4.0; x <= 4.0; x += 0.07) {
+    adjacentBusPts.push({ lx: Number(x.toFixed(2)), ly: 1.80, z: 0.5 });
+  }
+
+  const combinedPts = [...targetCarPts, ...adjacentBusPts];
+  const res = clusterByPointDilation5x(combinedPts, {
+    basePointSize: 0.025,
+    dilationFactor: 5.0,
+    connectDist: 0.25,
+    dim: "2d",
+    centerBias: { lx: 0, ly: 0 },
+  });
+
+  assert.strictEqual(
+    res.dominantPts.length,
+    targetCarPts.length,
+    "Test 110l: Xe con mục tiêu (40 điểm) phải được chọn, xe buýt bên cạnh (120 điểm) phải bị loại vào noisePts"
+  );
+  console.log("✅ Test 110l: Kháng Xe Khổng Lồ Bên Cạnh: Xe buýt 120 điểm không cướp quyền xe con mục tiêu 40 điểm");
+}
+
+console.log("\n🎉 TẤT CẢ 110 BÀI KIỂM THỬ HÌNH HỌC, DỐC MẶT ĐƯỜNG 3D, CẮT THUNG LŨNG MẬT ĐỘ A-O-D-E, PHÂN TẦNG KHÁNG NHIỄU ĐẤT, KHÁNG ĐÁM ĐÔNG, ÔM SÁT EGO, VỈA HÈ EGO-Z, CĂN GÓC FRONT ROLL 2 ĐẦU, BẢO TOÀN CURPOINT BIÊN, RIDER 42%, CĂN YAW THEO VẠCH KẺ LÀN LIDAR INTENSITY, ĐỘ ĐO KHOẢNG CÁCH PHÓNG TO ĐIỂM 5X (5X POINT DILATION CONNECTIVITY METRIC), SIDE/FRONT CHUẨN HÓA CẢ 3 VẬT THỂ (CAR, CYCLIST, PEDESTRIAN), TRỌNG SỐ INTENSITY BẢO VỆ MÉP SÁNG VÀ MẬT ĐỘ 20% ĐẦU/ĐUƠI XE ĐÃ ĐẠT 100%!");
 
 
 

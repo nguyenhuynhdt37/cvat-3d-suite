@@ -71,6 +71,7 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
       if (isInputElement(e.target)) return;
       const key = (e.key || "").toLowerCase();
       const code = e.code || "";
+
       if (
         key === "w" || code === "KeyW" || key === "ư" ||
         key === "a" || code === "KeyA" || key === "á" || key === "à" || key === "â" ||
@@ -78,6 +79,8 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
         key === "d" || code === "KeyD" || key === "đ" ||
         key === "backspace" || code === "Backspace" ||
         key === "delete" || code === "Delete" ||
+        key === "." || code === "Period" || code === "NumpadDecimal" ||
+        key === "/" || code === "Slash" || code === "NumpadDivide" ||
         key === "1" || code === "Digit1" || code === "Numpad1" ||
         key === "2" || code === "Digit2" || code === "Numpad2" ||
         key === "3" || code === "Digit3" || code === "Numpad3" ||
@@ -140,11 +143,22 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
-        // Phím Ctrl+Z hoặc Cmd+Z: Hoàn Tác (Pre) thao tác vừa làm
+        // Phím Ctrl+Z hoặc Cmd+Z: Hoàn Tác (Pre / Undo) thao tác vừa làm
         if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (key === "z" || code === "KeyZ")) {
           consume();
-          console.log("[CVAT 3D Suite] Phím tắt Ctrl/Cmd+Z: Hoàn tác (Pre)");
+          console.log("[CVAT 3D Suite] Phím tắt Ctrl/Cmd+Z: Hoàn tác (Undo / Pre)");
           panel.handleUndo();
+          return;
+        }
+
+        // Phím Ctrl+Y / Cmd+Y hoặc Ctrl+Shift+Z / Cmd+Shift+Z: Làm lại (Redo) thao tác vừa hoàn tác
+        const isRedoKey =
+          ((e.ctrlKey || e.metaKey) && !e.shiftKey && (key === "y" || code === "KeyY")) ||
+          ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === "z" || code === "KeyZ"));
+        if (isRedoKey) {
+          consume();
+          console.log("[CVAT 3D Suite] Phím tắt Redo (Làm lại)");
+          panel.handleRedo();
           return;
         }
 
@@ -193,6 +207,8 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           (key === "c" || code === "KeyC") ||
           (key === "b" || code === "KeyB") ||
           (key === "l" || code === "KeyL") ||
+          (key === "." || code === "Period" || code === "NumpadDecimal") ||
+          (!e.shiftKey && (key === "/" || code === "Slash" || code === "NumpadDivide")) ||
           (e.shiftKey && (code === "ArrowUp" || code === "ArrowDown" || code === "ArrowLeft" || code === "ArrowRight"));
 
         if (isActionRequiringActive && panel.selectedUiId === null) {
@@ -315,6 +331,41 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
+        const isKeyPeriod = key === "." || code === "Period" || code === "NumpadDecimal";
+        const isKeySlash = key === "/" || code === "Slash" || code === "NumpadDivide";
+
+        // Phím Alt + . : Xoay nhanh Dốc Side -3°
+        if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && isKeyPeriod) {
+          consume();
+          console.log("[CVAT 3D Suite] Phím tắt Alt+ . : Xoay nhanh Dốc Side (Pitch) -3°");
+          panel.rotatePitchByDelta(-3);
+          return;
+        }
+
+        // Phím Alt + / : Xoay nhanh Dốc Side +3°
+        if (e.altKey && !e.shiftKey && !e.ctrlKey && !e.metaKey && isKeySlash) {
+          consume();
+          console.log("[CVAT 3D Suite] Phím tắt Alt+ / : Xoay nhanh Dốc Side (Pitch) +3°");
+          panel.rotatePitchByDelta(3);
+          return;
+        }
+
+        // Phím . đơn: Vi chỉnh Dốc Side (Pitch) -1°
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && isKeyPeriod) {
+          consume();
+          console.log("[CVAT 3D Suite] Phím tắt . : Vi chỉnh Dốc Side (Pitch) -1°");
+          panel.rotatePitchByDelta(-1);
+          return;
+        }
+
+        // Phím / đơn: Vi chỉnh Dốc Side (Pitch) +1°
+        if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && isKeySlash) {
+          consume();
+          console.log("[CVAT 3D Suite] Phím tắt / : Vi chỉnh Dốc Side (Pitch) +1°");
+          panel.rotatePitchByDelta(1);
+          return;
+        }
+
         // Phím 1 hoặc T: Căn TOP (Yaw & Nóc xe)
         if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "1" || code === "Digit1" || code === "Numpad1" || key === "t" || code === "KeyT")) {
           consume();
@@ -339,18 +390,18 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
           return;
         }
 
-        // Phím 4: Fit Riêng Chiều Rộng W (Pedestrian / Cyclist / Car)
+        // Phím 4: Fit Riêng Chiều Rộng W (Chỉ Người đi bộ / Xe 2 bánh; Ô tô dùng Catalog B)
         if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "4" || code === "Digit4" || code === "Numpad4")) {
           consume();
-          console.log("[CVAT 3D Suite] Phím tắt 4: Fit Rộng (W)");
+          console.log("[CVAT 3D Suite] Phím tắt 4: Fit Rộng (W) [Người/Xe 2 bánh]");
           panel.handleFitWidth();
           return;
         }
 
-        // Phím 5: Fit Riêng Chiều Cao H - Ground-Lock Bám Sàn Cố Định, Nở Lên Nóc (Pedestrian / Cyclist / Car)
+        // Phím 5: Fit Riêng Chiều Cao H - Ground-Lock Bám Sàn Cố Định, Nở Lên Nóc (Chỉ Người đi bộ / Xe 2 bánh; Ô tô dùng Catalog B)
         if (!e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (key === "5" || code === "Digit5" || code === "Numpad5")) {
           consume();
-          console.log("[CVAT 3D Suite] Phím tắt 5: Fit Cao (H) [Ground-Lock]");
+          console.log("[CVAT 3D Suite] Phím tắt 5: Fit Cao (H) [Ground-Lock - Người/Xe 2 bánh]");
           panel.handleFitHeight();
           return;
         }

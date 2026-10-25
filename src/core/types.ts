@@ -17,3 +17,17 @@ export interface CVATContext {
   /** Phiên bản hoặc thông điệp trạng thái */
   statusMessage: string;
 }
+
+/**
+ * Cấu hình tính năng Lát cắt (Depth Slicing) & Lọc mặt đất/ROI trên 3 khung nhìn trực giao (Top, Side, Front).
+ */
+export interface OrthoSlicingConfig {
+  /** Bật/tắt tính năng lát cắt linh hoạt trên Side & Front views */
+  enabled: boolean;
+  /** Độ dày mở rộng của lát cắt (mét), ví dụ: 0.3, 0.5, 1.0, 2.0 */
+  slab: number;
+  /** Tự động tắt mặt đất trên Top View (cắt tại Z_base + 12cm) */
+  hideGround: boolean;
+  /** Tắt bối cảnh cây cối, nhà cửa xung quanh (ROI Bounding Box) */
+  isolateROI: boolean;
+}

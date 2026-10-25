@@ -1,6 +1,6 @@
-import { CVATContext } from "../../core/types";
+import { CVATContext, OrthoSlicingConfig } from "../../core/types";
 import { ICONS } from "../icons";
-import { CVATBridge, FrameTrackItem } from "../../cvat/bridge";
+import { CVATBridge, FrameTrackItem, type BoxEdgeContactsResult, type EdgeContactSide } from "../../cvat/bridge";
 import {
   findBestFitCatalog,
   STANDARD_VEHICLE_CATALOG,
@@ -9,26 +9,27 @@ import {
   PEDESTRIAN_PRESETS,
   VehicleCatalogItem,
 } from "../../core/catalog";
-import { TrackStudioModal } from "./TrackStudioModal";
 import { QCStudioModal } from "./QCStudioModal";
-import { QCEngine, classifyLabelGroup } from "../../core/qc/qc_engine.ts";
-import type { QCObjectInstance } from "../../core/qc/types.ts";
+import { QCEngine, classifyLabelGroup, detectObjectCategory } from "../../core/qc/qc_engine.ts";
+import type { QCObjectInstance, QCIssue } from "../../core/qc/types.ts";
 import { CameraOverlayManager, setVinCalibForOverlay } from "./CameraOverlay";
 import { CameraFocusModal } from "./CameraFocusModal";
-import { CalibrationModal } from "./CalibrationModal";
 import { HeaderSuiteButton } from "./HeaderSuiteButton";
 import { HelperOverlay } from "../../helper/overlay";
 import type { Box3D } from "../../core/geometry";
 
-export interface UndoSnapshot {
+export interface HistorySnapshot {
   uiId: number;
   serverId: number | null;
   frame: number;
   applyToTrack: boolean;
   boxPoints: number[];
   trackShapesBackup?: Array<{ frame: number; outside?: boolean; points: number[] }>;
+  afterBoxPoints?: number[];
+  afterTrackShapes?: Array<{ frame: number; outside?: boolean; points: number[] }>;
   actionName: string;
 }
+export type UndoSnapshot = HistorySnapshot;
 
 export interface TrackStatsInfo {
   uiId: number;
@@ -40,6 +41,25 @@ export interface TrackStatsInfo {
   isFullyOutside: boolean;
   isFullyActive: boolean;
   label?: string;
+}
+
+export interface FrameIssueGroup {
+  frame: number;
+  issues: QCIssue[];
+  topSeverity: "error" | "warning";
+}
+
+export interface TrackQCResult {
+  trackId: number;
+  serverId: number | null;
+  label: string;
+  status: "idle" | "loading" | "ready" | "error";
+  totalFrames: number;
+  errorFrames: FrameIssueGroup[];
+  cleanFramesCount: number;
+  lastScannedAt: number;
+  errorMessage?: string;
+  trackObjects?: QCObjectInstance[]; // Lưu trữ danh sách đối tượng các frame để revalidate chính xác ngữ cảnh
 }
 
 /**
@@ -58,15 +78,19 @@ export class FloatingPanel {
   private toastOverlay: HTMLDivElement | null = null;
   private toastTimer: any = null;
   private isMinimized: boolean = false;
-  private trackStudioModal: TrackStudioModal = new TrackStudioModal();
   private qcStudioModal: QCStudioModal = new QCStudioModal();
   private qcEngine: QCEngine = new QCEngine();
 
   // Tab chính của Floating Panel: "edit" (Chỉnh sửa) hoặc "qc" (Kiểm tra QC tức thì)
   public activeMainTab: "edit" | "qc" = "edit";
 
-  // Ngăn xếp hoàn tác thao tác (Undo / Pre Stack)
-  private undoStack: UndoSnapshot[] = [];
+  // Bộ nhớ đệm RAM lưu kết quả QC độc lập cho từng Track ID (0ms latency, không fetch lại)
+  public trackQCRamCache: Map<number, TrackQCResult> = new Map();
+  private pendingTrackQCPreloads: Set<number> = new Set();
+
+  // Ngăn xếp hoàn tác & làm lại (Bidirectional History Stack: Undo & Redo)
+  private undoStack: HistorySnapshot[] = [];
+  private redoStack: HistorySnapshot[] = [];
 
   // Chế độ phân loại đối tượng nhanh: "car" | "pedestrian" | "cyclist"
   private selectedCategory: "car" | "pedestrian" | "cyclist" = "car";
@@ -78,7 +102,8 @@ export class FloatingPanel {
   private applyToTrack: boolean = false;
 
   // Dữ liệu đối tượng đang chọn
-  public selectedUiId: number | null = null;       // Số 1, 2 hiển thị chuẩn
+  public selectedUiId: number | null = null;       // Số instance clientID tại frame này (dùng tương tác Three.js)
+  public selectedTrackId: number | null = null;    // Số Track ID bền vững toàn cục xuyên suốt các frame
   public selectedServerId: number | null = null;   // Số 31, 32 lưu database
   private currentLabel: string = "Chưa chọn xe";
   private currentX: number = 0;
@@ -89,6 +114,7 @@ export class FloatingPanel {
   private currentW: number = 0;
   private currentH: number = 0;
   private currentRawPoints: number[] | null = null; // Lưu trữ mảng điểm nguyên bản (16 điểm) từ CVAT
+  private currentAttributes: Record<string, any> = {}; // Lưu trữ attributes (balo, vali, xe đỗ, sitting, v.v.)
 
   // Giá trị đang chỉnh sửa trên ô input (L, W, H)
   private editL: number = 0;
@@ -98,7 +124,9 @@ export class FloatingPanel {
   // Danh sách các xe ĐANG CÓ MẶT TẠI FRAME HIỆN TẠI
   private currentFrameNumber: number = 0;
   private lastContextImageFrame: number = -1;
+  private contextImagesDebounceTimer: any = null;
   private frameTracks: FrameTrackItem[] = [];
+  private cachedAllJobObjects: QCObjectInstance[] = []; // Bộ nhớ đệm toàn bộ đối tượng trong Job (nếu đã nạp từ QC Studio)
 
   // Trạng thái Dropdown Select & Tìm kiếm
   private isDropdownOpen: boolean = false;
@@ -106,22 +134,53 @@ export class FloatingPanel {
   private autoSelectListenerAttached: boolean = false;
   private autoCenterOnFrame: boolean = localStorage.getItem("CVAT_3D_SUITE_AUTO_CENTER_FRAME") !== "false";
 
-  // Cấu hình Chế độ màu mây điểm LiDAR & Nhuộm màu xe bọc & Mặt sàn Polygon
+  // Cấu hình Chế độ màu mây điểm LiDAR & Nhuộm màu xe bọc
   private pointColorMode: "intensity" | "plain" =
     (localStorage.getItem("cvat_3d_point_color_mode") as any) || "intensity";
   private colorizeBoxedPoints: boolean =
     localStorage.getItem("cvat_3d_colorize_boxed") !== "false";
-  private groundPlaneVisible: boolean =
-    localStorage.getItem("cvat_3d_ground_plane_visible") !== "false";
+  private canvasTheme: "light" | "dark" =
+    localStorage.getItem("cvat_3d_canvas_theme") === "dark" ? "dark" : "light";
+
+  // Kích thước hạt điểm mây LiDAR trên 3 khung nhìn trực giao 2D (Top / Side / Front)
+  private orthoPointSize: number =
+    typeof localStorage !== "undefined" && localStorage.getItem("cvat_3d_ortho_point_size")
+      ? parseFloat(localStorage.getItem("cvat_3d_ortho_point_size")!) || 3.5
+      : 3.5;
+
+  // Cấu hình Lát cắt (Depth Slicing) & Lọc mặt đất/ROI trực giao (Top / Side / Front)
+  private orthoSlicing: OrthoSlicingConfig = (() => {
+    const def: OrthoSlicingConfig = { enabled: false, slab: 0.5, hideGround: true, isolateROI: false };
+    try {
+      const saved = typeof localStorage !== "undefined" ? localStorage.getItem("cvat_3d_ortho_slicing") : null;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (typeof parsed.enabled === "boolean") def.enabled = parsed.enabled;
+        if (typeof parsed.slab === "number" && parsed.slab > 0) def.slab = parsed.slab;
+        if (typeof parsed.hideGround === "boolean") def.hideGround = parsed.hideGround;
+        if (typeof parsed.isolateROI === "boolean") def.isolateROI = parsed.isolateROI;
+      }
+    } catch (_) {}
+    return def;
+  })();
+
+  // Trạng thái tiếp xúc 4 mép đón tia (Edge Contact HUD) cho Active Box
+  private edgeContacts: BoxEdgeContactsResult | null = null;
 
   // Thống kê vòng đời của Track ID đang chọn
   private trackStats: TrackStatsInfo | null = null;
   private trackStatsLoading: boolean = false;
+  private loadTrackStatsDebounceTimer: any = null;
 
   // Trạng thái xử lý
   private isProcessing: boolean = false;
   public isHelpModalOpen: boolean = false;
   private helpModalContainer: HTMLElement | null = null;
+
+  // Trạng thái gắn vào sidebar CVAT (Docked mode)
+  public isDocked: boolean = false;
+  private cvatOrigChildrenEl: HTMLElement | null = null;
+  private isShowingCVATOrigSidebar: boolean = false;
 
   // Tọa độ kéo thả
   private isDragging: boolean = false;
@@ -144,6 +203,59 @@ export class FloatingPanel {
       this.currentActiveView = view;
       this.scheduleUpdate();
     }
+  }
+
+  /**
+   * Render HTML cho từng badge trạng thái mép đón tia (Khít / Cắt lẹm / Hở)
+   */
+  private renderEdgeContactBadge(title: string, side?: EdgeContactSide): string {
+    if (!side) {
+      return `
+        <div style="text-align: center; padding: 2px 0;">
+          <div style="color: #64748b; font-size: 8.5px; font-weight: 600;">${title}</div>
+          <div style="color: #94a3b8; font-weight: 600; font-size: 9px; margin-top: 1px;">--</div>
+        </div>
+      `;
+    }
+
+    let bg = "#f0fdf4";
+    let border = "#bbf7d0";
+    let text = "#15803d";
+    let dotHtml = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #16a34a; vertical-align: middle; margin-right: 2px;"></span>`;
+    let label = "Khít";
+    let sub = side.gapCm !== 0 ? ` (${side.gapCm > 0 ? "+" : ""}${side.gapCm}cm)` : "";
+
+    if (side.status === "cut") {
+      bg = "#fef2f2";
+      border = "#fecaca";
+      text = "#b91c1c";
+      dotHtml = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #dc2626; vertical-align: middle; margin-right: 2px;"></span>`;
+      label = "Cắt";
+      sub = ` (${side.gapCm}cm)`;
+    } else if (side.status === "loose") {
+      bg = "#f8fafc";
+      border = "#e2e8f0";
+      text = "#475569";
+      dotHtml = `<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #94a3b8; vertical-align: middle; margin-right: 2px;"></span>`;
+      label = "Hở";
+      sub = ` (+${side.gapCm}cm)`;
+    }
+
+    return `
+      <div title="${title}: ${side.label} (${side.gapCm}cm)" style="
+        text-align: center;
+        background: ${bg};
+        border: 1px solid ${border};
+        border-radius: 4px;
+        padding: 2px 1px;
+        transition: all 0.12s;
+      ">
+        <div style="color: #64748b; font-size: 7.5px; font-weight: 600; white-space: nowrap;">${title}</div>
+        <div style="color: ${text}; font-weight: 700; font-size: 8.5px; margin-top: 1px; white-space: nowrap;">
+          ${dotHtml}${label}<span style="font-size: 7px; opacity: 0.85;">${sub}</span>
+        </div>
+      </div>
+    `;
   }
 
   /**
@@ -191,6 +303,9 @@ export class FloatingPanel {
 
       // Tự động cấu hình chế độ màu mây điểm LiDAR (Intensity mặc định & Tô màu xe bọc)
       CVATBridge.setPointCloudColorMode(this.pointColorMode, this.colorizeBoxedPoints);
+
+      // Tự động khởi tạo theme Canvas 3D (Light: Nền Trắng / Điểm Đen ⇄ Dark: Nền Tối / Điểm Sáng)
+      CVATBridge.setCanvasTheme(this.canvasTheme);
     }
 
     this.scheduleUpdate();
@@ -200,6 +315,7 @@ export class FloatingPanel {
       this.setSuiteVisible(false);
     }
   }
+
 
   /**
    * Bật hoặc Tắt hiển thị Suite Panel và Camera Overlay (Được kích hoạt từ nút Header hoặc API)
@@ -511,13 +627,17 @@ export class FloatingPanel {
     // Lắng nghe sự kiện kích hoạt đối tượng từ Main World
     window.addEventListener("CVAT_EXT_RES_OBJECT_ACTIVATED", (e: any) => {
       const clientId = e.detail?.clientId;
+      const trackId = e.detail?.trackId;
       const details = e.detail?.details;
 
       if (details && details.clientId) {
         console.log(`[CVAT 3D Suite] Nhận dữ liệu tức thì của xe #${details.clientId}:`, details);
         this.selectedUiId = details.clientId;
+        this.selectedTrackId = trackId ?? details.trackId ?? this.selectedTrackId ?? details.clientId;
         this.selectedServerId = details.serverId || null;
         this.currentLabel = details.label || `Xe #${details.clientId}`;
+        this.syncCategoryFromLabel(this.currentLabel);
+        this.currentAttributes = details.attributes || {};
         this.currentX = details.x;
         this.currentY = details.y;
         this.currentZ = details.z;
@@ -534,6 +654,7 @@ export class FloatingPanel {
         const existingIdx = this.frameTracks.findIndex((t) => t.uiId === details.clientId);
         const item: FrameTrackItem = {
           uiId: details.clientId,
+          trackId: this.selectedTrackId ?? details.trackId ?? details.clientId,
           serverId: details.serverId || details.clientId,
           label: details.label || "Car",
           x: details.x,
@@ -554,6 +675,16 @@ export class FloatingPanel {
           this.loadTrackStats(details.clientId);
         }
 
+        // Tự động nạp kết quả kiểm tra QC ngay khi kích hoạt xe nếu đang ở Tab QC
+        if (this.activeMainTab === "qc") {
+          this.preloadTrackQCInBackground(details.clientId, details.serverId || this.selectedServerId);
+        }
+
+        // Phản hồi Toast nhanh khi kích hoạt thông qua cú Double-Click trên View 3D
+        if (e.detail?.isDoubleClick) {
+          this.showToast(`Đã kích hoạt & Ghim xe #${details.clientId} (${details.label || "Object"})`, "success");
+        }
+
         this.scheduleUpdate();
       } else if (clientId && clientId !== this.selectedUiId) {
         console.log(`[CVAT 3D Suite] Tự động chọn xe #${clientId} từ click Canvas 3D`);
@@ -563,11 +694,22 @@ export class FloatingPanel {
 
     // Lắng nghe sự kiện đối tượng bị hủy kích hoạt (click ra ngoài canvas hoặc bỏ chọn trên CVAT)
     window.addEventListener("CVAT_EXT_RES_OBJECT_DEACTIVATED", () => {
-      if (this.selectedUiId !== null) {
+      if (this.selectedUiId !== null || this.selectedTrackId !== null) {
         console.log("[CVAT 3D Suite] Đối tượng bị hủy kích hoạt trên CVAT -> chuyển sang Inactive State");
         this.selectedUiId = null;
+        this.selectedTrackId = null;
         this.selectedServerId = null;
         this.currentLabel = "Chưa chọn đối tượng";
+        this.edgeContacts = null;
+        this.scheduleUpdate();
+      }
+    });
+
+    // Lắng nghe sự kiện Cảnh Báo Viền Chạm Point (Edge Contact HUD) cho Active Box
+    window.addEventListener("CVAT_EXT_RES_EDGE_CONTACTS_UPDATED", (e: any) => {
+      const contacts = e.detail;
+      if (contacts && (this.selectedUiId === null || Number(contacts.clientId) === Number(this.selectedUiId))) {
+        this.edgeContacts = contacts;
         this.scheduleUpdate();
       }
     });
@@ -577,44 +719,92 @@ export class FloatingPanel {
       this.syncFrameTracks();
     });
 
-    // Lắng nghe sự kiện chuyển frame tức thì từ Main World (Phím F/D, Timeline, Play)
+    // Lắng nghe sự kiện chuyển frame tức thì từ Main World (Phím F/D, Timeline, Play, Frame nạp lần đầu)
     window.addEventListener("CVAT_EXT_RES_FRAME_CHANGED", (e: any) => {
       const { frame } = e.detail || {};
-      if (typeof frame === "number" && frame !== this.currentFrameNumber) {
+      if (typeof frame === "number" && (frame !== this.currentFrameNumber || this.frameTracks.length === 0)) {
         this.currentFrameNumber = frame;
         this.syncFrameTracks();
       }
     });
+
+    // Lắng nghe sự kiện biến đổi Box thời gian thực (Kéo di chuyển, xoay hoặc co giãn trên Three.js Canvas)
+    window.addEventListener("CVAT_EXT_RES_LIVE_TRANSFORM_CHANGED", (e: any) => {
+      const clientId = e.detail?.clientId;
+      const details = e.detail?.details;
+      if (!details || !clientId) return;
+
+      const numId = Number(clientId);
+      if (this.selectedUiId === numId) {
+        this.currentX = details.x;
+        this.currentY = details.y;
+        this.currentZ = details.z;
+        this.currentYawDeg = details.yawDeg;
+        this.currentL = details.l;
+        this.currentW = details.w;
+        this.currentH = details.h;
+        this.editL = details.l;
+        this.editW = details.w;
+        this.editH = details.h;
+        if (Array.isArray(details.points)) {
+          this.currentRawPoints = [...details.points];
+        }
+      }
+
+      // Cập nhật ngay mục đối ứng trong frameTracks
+      const existingIdx = this.frameTracks.findIndex((t) => t.uiId === numId);
+      if (existingIdx >= 0) {
+        this.frameTracks[existingIdx] = {
+          ...this.frameTracks[existingIdx],
+          x: details.x,
+          y: details.y,
+          z: details.z,
+          yawDeg: details.yawDeg,
+          l: details.l,
+          w: details.w,
+          h: details.h,
+        };
+      }
+
+      // Revalidate QC thời gian thực cho track vừa biến đổi (< 0.5ms)
+      const pointsToUse = details.points || [
+        details.x,
+        details.y,
+        details.z,
+        0,
+        0,
+        (details.yawDeg * Math.PI) / 180,
+        details.l,
+        details.w,
+        details.h,
+      ];
+      this.revalidateAndSyncIssue(numId, this.currentFrameNumber, pointsToUse, false);
+
+      this.scheduleUpdate();
+    });
   }
 
   /**
-   * Vòng lặp quét Frame và Đồng bộ xe thời gian thực (Realtime Loop)
+   * Đồng bộ xe và Frame thuần Event-Driven (Zero-Polling, 60 FPS mượt mà tuyệt đối)
+   * Thay thế hoàn toàn cơ chế Polling setInterval(400ms) bằng các sự kiện Realtime:
+   * - CVAT_EXT_RES_FRAME_CHANGED: Khi chuyển frame
+   * - CVAT_EXT_RES_FRAME_TRACKS_DIRTY: Khi có track thêm/sửa/xóa
+   * - CVAT_EXT_RES_OBJECT_ACTIVATED / DEACTIVATED: Khi chọn/hủy chọn xe (< 0.2ms)
    */
   private startPollingLoop(): void {
-    this.pollInterval = setInterval(async () => {
-      if (!this.currentCtx || !this.currentCtx.jobId) return;
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
+    }
 
-      const frame = CVATBridge.getCurrentFrame();
-      const frameChanged = frame !== this.currentFrameNumber;
-      this.currentFrameNumber = frame;
-
-      // 1. Quét danh sách các xe có ở frame này
-      if (frameChanged || this.frameTracks.length === 0) {
-        await this.syncFrameTracks();
-      }
-
-      // 2. Quét xem có active item nào trên sidebar không (Tự động FOCUS vào xe khi đổi đối tượng)
-      const active = CVATBridge.getActiveTrackId();
-      if (active.id !== null && active.id !== this.selectedUiId) {
-        const isTrackInCurrentFrame = this.frameTracks.length === 0 || this.frameTracks.some((t) => t.uiId === active.id);
-        if (isTrackInCurrentFrame) {
-          await this.selectTrackByUiId(active.id, undefined, true);
+    // Nạp danh sách ban đầu một lần duy nhất khi khởi tạo panel sau khi CVAT sẵn sàng
+    if (this.currentCtx?.jobId) {
+      setTimeout(() => {
+        if (this.frameTracks.length === 0) {
+          this.syncFrameTracks();
         }
-      }
-    }, 150);
-
-    // Chờ CVAT ổn định 1.2s sau khi F5 rồi mới quét lần đầu để chống bão khởi tạo
-    setTimeout(() => this.syncFrameTracks(), 1200);
+      }, 800);
+    }
   }
 
   /**
@@ -733,32 +923,50 @@ export class FloatingPanel {
     const tracks = await CVATBridge.getTracksInCurrentFrame(this.currentCtx.jobId, this.currentFrameNumber);
     this.frameTracks = tracks;
 
-    // Fetch ảnh Context Images từ CVAT API (chỉ khi frame thay đổi)
-    if (this.currentFrameNumber !== this.lastContextImageFrame) {
-      this.lastContextImageFrame = this.currentFrameNumber;
-      CVATBridge.fetchContextImages(this.currentCtx.jobId, this.currentFrameNumber)
-        .then((images) => {
-          if (images.size > 0) {
-            images.forEach((blobUrl, camIdx) => {
-              CameraOverlayManager.getInstance().updateCameraImage(camIdx, blobUrl);
-            });
-          }
-        })
-        .catch(() => {});
+    // Fetch ảnh Context Images từ CVAT API có Debounce 250ms (hoãn tải khi tua frame liên tục)
+    if (
+      this.currentFrameNumber !== this.lastContextImageFrame &&
+      CameraOverlayManager.getInstance().isVisible()
+    ) {
+      if (this.contextImagesDebounceTimer) {
+        clearTimeout(this.contextImagesDebounceTimer);
+        this.contextImagesDebounceTimer = null;
+      }
+      const targetFrame = this.currentFrameNumber;
+      const targetJobId = this.currentCtx.jobId;
+      this.contextImagesDebounceTimer = setTimeout(() => {
+        this.contextImagesDebounceTimer = null;
+        if (this.currentFrameNumber !== targetFrame) return;
+        this.lastContextImageFrame = targetFrame;
+        CVATBridge.fetchContextImages(targetJobId, targetFrame)
+          .then((images) => {
+            if (this.currentFrameNumber === targetFrame && images.size > 0) {
+              images.forEach((blobUrl, camIdx) => {
+                CameraOverlayManager.getInstance().updateCameraImage(camIdx, blobUrl);
+              });
+            }
+          })
+          .catch(() => {});
+      }, 250);
     }
 
-    // 1. Dò tìm đối tượng đang active trong frame mới (ưu tiên serverId, fallback uiId)
+    // 1. Dò tìm đối tượng đang active trong frame mới:
+    // ƯU TIÊN 1: Tìm theo Track ID bền vững toàn cục (selectedTrackId) để CHỐNG NHẢY ID
     let matchingTrack: FrameTrackItem | undefined;
-    if (this.selectedServerId) {
+    if (this.selectedTrackId !== null) {
+      matchingTrack = tracks.find((t) => t.trackId === this.selectedTrackId);
+    }
+    // ƯU TIÊN 2: Fallback tìm theo serverId lưu trên server (nếu đã lưu DB)
+    if (!matchingTrack && this.selectedServerId) {
       matchingTrack = tracks.find((t) => t.serverId === this.selectedServerId);
     }
-    if (!matchingTrack && this.selectedUiId !== null) {
-      matchingTrack = tracks.find((t) => t.uiId === this.selectedUiId);
-    }
+    // 🚨 TUYỆT ĐỐI KHÔNG FALLBACK THEO t.uiId === this.selectedUiId
+    // vì uiId ở frame mới là ID của instance khác, hoàn toàn không liên quan đến frame cũ!
 
     if (matchingTrack) {
       // Đối tượng VẪN CÒN MẶT tại frame mới: duy trì và cập nhật thông số mới nhất
       this.selectedUiId = matchingTrack.uiId;
+      this.selectedTrackId = matchingTrack.trackId ?? this.selectedTrackId;
       this.selectedServerId = matchingTrack.serverId;
       this.currentLabel = matchingTrack.label;
       this.syncCategoryFromLabel(this.currentLabel);
@@ -773,9 +981,9 @@ export class FloatingPanel {
       this.editW = matchingTrack.w;
       this.editH = matchingTrack.h;
 
-      // KÍCH HOẠT LẠI TRÊN THREE.JS CANVAS 3D ĐỂ BẬT LẠI TOP, SIDE, FRONT VIEWS ĐÚNG CHO BOX NÀY
+      // KÍCH HOẠT LẠI TRÊN THREE.JS CANVAS 3D BẰNG INSTANCE CLIENT ID MỚI CỦA FRAME ĐÓ
       CVATBridge.activateCanvasTrack(matchingTrack.uiId, { x: matchingTrack.x, y: matchingTrack.y, z: matchingTrack.z });
-      CVATBridge.setActiveTrackIdInMainWorld(matchingTrack.uiId);
+      CVATBridge.setActiveTrackIdInMainWorld(this.selectedTrackId);
 
       if (this.selectedUiId && (!this.trackStats || this.trackStats.uiId !== this.selectedUiId)) {
         this.loadTrackStats(this.selectedUiId);
@@ -784,8 +992,13 @@ export class FloatingPanel {
     } else {
       // Đối tượng KHÔNG CÓ MẶT ở frame này (outside hoặc track kết thúc):
       // Chuyển sang Inactive State, KHÔNG TỰ ĐỘNG CHỌN BOX KHÁC (chống nhảy ID bừa bãi)
-      if (this.selectedUiId !== null) {
+      // 🚨 NẾU tracks đang rỗng (đang nạp frame mới), KHÔNG VỘI XÓA selectedTrackId để chờ states nạp xong!
+      if (tracks.length === 0) {
+        return;
+      }
+      if (this.selectedUiId !== null || this.selectedTrackId !== null) {
         this.selectedUiId = null;
+        this.selectedTrackId = null;
         this.selectedServerId = null;
         this.currentLabel = "Chưa chọn đối tượng";
         this.scheduleUpdate();
@@ -794,40 +1007,7 @@ export class FloatingPanel {
   }
 
   private syncCategoryFromLabel(label: string): void {
-    const l = (label || "").toLowerCase();
-    if (l.includes("pedestrian") || l.includes("person") || l.includes("walker") || l.includes("human")) {
-      this.selectedCategory = "pedestrian";
-    } else if (
-      l.includes("cyclist") ||
-      l.includes("bicycle") ||
-      l.includes("motorcycle") ||
-      l.includes("motorbike") ||
-      l.includes("motobike") ||
-      l.includes("bike") ||
-      l.includes("rider") ||
-      l.includes("scooter") ||
-      l.includes("moped") ||
-      l.includes("two_wheeler") ||
-      l.includes("two-wheeler") ||
-      l.includes("twowheeler") ||
-      l.includes("2_wheeler") ||
-      l.includes("2-wheeler") ||
-      l.includes("2wheeler") ||
-      l.includes("motor") ||
-      l.includes("cycle") ||
-      l.includes("xe máy") ||
-      l.includes("xe_may") ||
-      l.includes("xemay") ||
-      l.includes("xe đạp") ||
-      l.includes("xe_dap") ||
-      l.includes("xedap") ||
-      l.includes("xe 2 bánh") ||
-      l.includes("xe_2_banh")
-    ) {
-      this.selectedCategory = "cyclist";
-    } else {
-      this.selectedCategory = "car";
-    }
+    this.selectedCategory = detectObjectCategory(label);
   }
 
   /**
@@ -836,10 +1016,25 @@ export class FloatingPanel {
    */
   public async selectTrackByUiId(uiId: number, details?: any, activateCanvas: boolean = true): Promise<void> {
     this.selectedUiId = uiId;
-    CVATBridge.setActiveTrackIdInMainWorld(uiId);
+    let trackIdToSet = uiId;
+    if (details?.trackId !== undefined) {
+      trackIdToSet = details.trackId;
+    } else {
+      const foundInFrame = this.frameTracks.find((t) => t.uiId === uiId);
+      if (foundInFrame?.trackId !== undefined) {
+        trackIdToSet = foundInFrame.trackId;
+      }
+    }
+    this.selectedTrackId = trackIdToSet;
+    CVATBridge.setActiveTrackIdInMainWorld(trackIdToSet);
 
     if (!this.trackStats || this.trackStats.uiId !== uiId) {
       this.loadTrackStats(uiId);
+    }
+
+    // Chỉ kích hoạt nạp kiểm tra QC khi người dùng đang ở Tab Kiểm Tra QC (tiết kiệm 100% CPU khi đang ở Tab Edit)
+    if (this.activeMainTab === "qc") {
+      this.preloadTrackQCInBackground(uiId, details?.serverId || this.selectedServerId);
     }
 
     let targetPos: { x: number; y: number; z: number } | undefined;
@@ -939,82 +1134,126 @@ export class FloatingPanel {
   }
 
   /**
-   * Lưu snapshot trạng thái trước khi thực hiện thao tác để người dùng có thể bấm Hoàn Tác (Pre).
+   * Trích xuất mây điểm và shapes của đối tượng hiện tại để phục vụ Undo/Redo
    */
-  public async pushUndoSnapshot(actionName: string, forTrack: boolean = false): Promise<void> {
-    if (!this.currentCtx || !this.currentCtx.jobId || this.selectedUiId === null) return;
-
-    try {
-      let currentBoxPoints: number[];
-      if (Array.isArray(this.currentRawPoints) && this.currentRawPoints.length >= 16) {
-        currentBoxPoints = [...this.currentRawPoints];
-        currentBoxPoints[0] = this.currentX;
-        currentBoxPoints[1] = this.currentY;
-        currentBoxPoints[2] = this.currentZ;
-        currentBoxPoints[3] = 0;
-        currentBoxPoints[4] = 0;
-        currentBoxPoints[5] = (this.currentYawDeg * Math.PI) / 180;
-        currentBoxPoints[6] = this.currentL;
-        currentBoxPoints[7] = this.currentW;
-        currentBoxPoints[8] = this.currentH;
-      } else {
-        currentBoxPoints = [
-          this.currentX,
-          this.currentY,
-          this.currentZ,
-          0,
-          0,
-          (this.currentYawDeg * Math.PI) / 180,
-          this.currentL,
-          this.currentW,
-          this.currentH,
-        ];
-        // Đảm bảo đủ tối thiểu 16 giá trị cho cấu trúc cuboid (8 đỉnh x 2) để thỏa mãn cvat-core
-        while (currentBoxPoints.length < 16) {
-          currentBoxPoints.push(0);
-        }
+  private async captureCurrentSnapshotData(forTrack: boolean): Promise<{
+    boxPoints: number[];
+    trackShapes?: Array<{ frame: number; outside?: boolean; points: number[] }>;
+  }> {
+    let boxPoints: number[];
+    if (Array.isArray(this.currentRawPoints) && this.currentRawPoints.length >= 16) {
+      boxPoints = [...this.currentRawPoints];
+      boxPoints[0] = this.currentX;
+      boxPoints[1] = this.currentY;
+      boxPoints[2] = this.currentZ;
+      boxPoints[3] = 0;
+      boxPoints[4] = 0;
+      boxPoints[5] = (this.currentYawDeg * Math.PI) / 180;
+      boxPoints[6] = this.currentL;
+      boxPoints[7] = this.currentW;
+      boxPoints[8] = this.currentH;
+    } else {
+      boxPoints = [
+        this.currentX,
+        this.currentY,
+        this.currentZ,
+        0,
+        0,
+        (this.currentYawDeg * Math.PI) / 180,
+        this.currentL,
+        this.currentW,
+        this.currentH,
+      ];
+      while (boxPoints.length < 16) {
+        boxPoints.push(0);
       }
+    }
 
-      let trackShapesBackup: Array<{ frame: number; outside?: boolean; points: number[] }> | undefined = undefined;
-
-      // Nếu thao tác tác động toàn bộ track: sao lưu toàn bộ shapes
-      if (forTrack || this.applyToTrack) {
+    let trackShapes: Array<{ frame: number; outside?: boolean; points: number[] }> | undefined = undefined;
+    if (forTrack && this.currentCtx?.jobId && this.selectedUiId !== null) {
+      try {
         const serverId = this.selectedServerId || this.selectedUiId;
         const allFrames = await CVATBridge.getTrackAllFrames(this.currentCtx.jobId, this.selectedUiId, serverId);
         if (allFrames && allFrames.length > 0) {
-          trackShapesBackup = allFrames.map((f) => ({
+          trackShapes = allFrames.map((f) => ({
             frame: f.frame,
             outside: f.outside,
             points: [...f.points],
           }));
         }
-      }
+      } catch (_) {}
+    }
+
+    return { boxPoints, trackShapes };
+  }
+
+  /**
+   * Cập nhật trạng thái enabled/disabled và tooltip của 2 nút Undo và Redo trên giao diện
+   */
+  private updateUndoRedoButtonsState(): void {
+    if (!this.container) return;
+    const undoBtn = this.container.querySelector<HTMLButtonElement>("#floating-btn-undo");
+    const redoBtn = this.container.querySelector<HTMLButtonElement>("#floating-btn-redo");
+
+    if (undoBtn) {
+      const hasUndo = this.undoStack.length > 0;
+      undoBtn.style.opacity = hasUndo ? "1" : "0.35";
+      undoBtn.style.cursor = hasUndo ? "pointer" : "not-allowed";
+      const lastAction = hasUndo ? this.undoStack[this.undoStack.length - 1].actionName : "";
+      undoBtn.title = hasUndo
+        ? `Hoàn tác: ${lastAction} (Ctrl+Z / Cmd+Z)`
+        : "Không có thao tác nào để hoàn tác (Ctrl+Z)";
+    }
+
+    if (redoBtn) {
+      const hasRedo = this.redoStack.length > 0;
+      redoBtn.style.opacity = hasRedo ? "1" : "0.35";
+      redoBtn.style.cursor = hasRedo ? "pointer" : "not-allowed";
+      const nextAction = hasRedo ? this.redoStack[this.redoStack.length - 1].actionName : "";
+      redoBtn.title = hasRedo
+        ? `Làm lại: ${nextAction} (Ctrl+Y / Ctrl+Shift+Z)`
+        : "Không có thao tác nào để làm lại (Ctrl+Y / Ctrl+Shift+Z)";
+    }
+  }
+
+  /**
+   * Lưu snapshot trạng thái trước khi thực hiện thao tác để người dùng có thể bấm Hoàn Tác (Undo / Pre).
+   */
+  public async pushUndoSnapshot(actionName: string, forTrack: boolean = false): Promise<void> {
+    if (!this.currentCtx || !this.currentCtx.jobId || this.selectedUiId === null) return;
+
+    try {
+      const data = await this.captureCurrentSnapshotData(forTrack || this.applyToTrack);
 
       this.undoStack.push({
         uiId: this.selectedUiId,
         serverId: this.selectedServerId,
         frame: this.currentFrameNumber,
         applyToTrack: forTrack || this.applyToTrack,
-        boxPoints: currentBoxPoints,
-        trackShapesBackup,
+        boxPoints: data.boxPoints,
+        trackShapesBackup: data.trackShapes,
         actionName,
       });
 
-      // Giới hạn độ sâu Undo tối đa 25 bước để tối ưu bộ nhớ
-      if (this.undoStack.length > 25) {
+      // Giới hạn độ sâu Undo tối đa 30 bước để tối ưu bộ nhớ
+      if (this.undoStack.length > 30) {
         this.undoStack.shift();
       }
+
+      // Mỗi khi người dùng thực hiện một thao tác mới, làm rỗng ngăn xếp Redo
+      this.redoStack = [];
+      this.updateUndoRedoButtonsState();
     } catch (err) {
       console.warn("[CVAT 3D Suite] Lỗi lưu Undo Snapshot:", err);
     }
   }
 
   /**
-   * Hoàn tác (Pre) thao tác vừa thực hiện
+   * Hoàn tác (Undo / Pre) thao tác vừa thực hiện
    */
   public async handleUndo(): Promise<void> {
     if (this.undoStack.length === 0) {
-      this.showToast("Không có thao tác nào để hoàn tác (Pre)!", "info");
+      this.showToast("Không có thao tác nào để hoàn tác (Undo)!", "info");
       return;
     }
     if (this.isProcessing) return;
@@ -1024,6 +1263,12 @@ export class FloatingPanel {
     this.showToast(`Đang hoàn tác: ${snapshot.actionName}...`, "info");
 
     try {
+      // 1. Chụp lại trạng thái hiện tại (ngay trước lúc hoàn tác) để phục vụ Redo
+      const curData = await this.captureCurrentSnapshotData(snapshot.applyToTrack);
+      snapshot.afterBoxPoints = curData.boxPoints;
+      snapshot.afterTrackShapes = curData.trackShapes;
+
+      // 2. Khôi phục trạng thái cũ (before)
       const res = await CVATBridge.restoreTrackSnapshot(
         this.currentCtx!.jobId!,
         snapshot.uiId,
@@ -1037,6 +1282,12 @@ export class FloatingPanel {
       );
 
       if (res.success) {
+        // Đẩy snapshot vào ngăn xếp Redo
+        this.redoStack.push(snapshot);
+        if (this.redoStack.length > 30) {
+          this.redoStack.shift();
+        }
+
         // Đồng bộ tức thì các thông số hiển thị trên Panel về trạng thái vừa khôi phục
         if (Array.isArray(snapshot.boxPoints) && snapshot.boxPoints.length >= 9) {
           this.currentX = snapshot.boxPoints[0];
@@ -1054,12 +1305,82 @@ export class FloatingPanel {
         this.showToast(`Đã hoàn tác: ${snapshot.actionName}`, "success");
         await this.syncFrameTracks();
       } else {
+        this.undoStack.push(snapshot);
         this.showToast(res.message || "Không thể hoàn tác!", "error");
       }
     } catch (err: any) {
+      this.undoStack.push(snapshot);
       this.showToast(`Lỗi hoàn tác: ${err.message || err}`, "error");
     } finally {
       this.isProcessing = false;
+      this.updateUndoRedoButtonsState();
+      this.updateContent();
+    }
+  }
+
+  /**
+   * Làm lại (Redo) thao tác vừa hoàn tác
+   */
+  public async handleRedo(): Promise<void> {
+    if (this.redoStack.length === 0) {
+      this.showToast("Không có thao tác nào để làm lại (Redo)!", "info");
+      return;
+    }
+    if (this.isProcessing) return;
+    this.isProcessing = true;
+
+    const snapshot = this.redoStack.pop()!;
+    this.showToast(`Đang làm lại: ${snapshot.actionName}...`, "info");
+
+    try {
+      const targetPoints = snapshot.afterBoxPoints || snapshot.boxPoints;
+      const targetShapes = snapshot.afterTrackShapes || snapshot.trackShapesBackup;
+
+      const res = await CVATBridge.restoreTrackSnapshot(
+        this.currentCtx!.jobId!,
+        snapshot.uiId,
+        snapshot.serverId,
+        {
+          frame: snapshot.frame,
+          applyToTrack: snapshot.applyToTrack,
+          boxPoints: targetPoints,
+          trackShapesBackup: targetShapes,
+        }
+      );
+
+      if (res.success) {
+        // Đẩy snapshot trở lại undoStack
+        this.undoStack.push(snapshot);
+        if (this.undoStack.length > 30) {
+          this.undoStack.shift();
+        }
+
+        // Đồng bộ các thông số hiển thị trên Panel về trạng thái vừa làm lại
+        if (Array.isArray(targetPoints) && targetPoints.length >= 9) {
+          this.currentX = targetPoints[0];
+          this.currentY = targetPoints[1];
+          this.currentZ = targetPoints[2];
+          this.currentYawDeg = Math.round((targetPoints[5] * 180) / Math.PI);
+          this.currentL = targetPoints[6];
+          this.currentW = targetPoints[7];
+          this.currentH = targetPoints[8];
+          this.editL = this.currentL;
+          this.editW = this.currentW;
+          this.editH = this.currentH;
+          this.currentRawPoints = [...targetPoints];
+        }
+        this.showToast(`Đã làm lại: ${snapshot.actionName}`, "success");
+        await this.syncFrameTracks();
+      } else {
+        this.redoStack.push(snapshot);
+        this.showToast(res.message || "Không thể làm lại!", "error");
+      }
+    } catch (err: any) {
+      this.redoStack.push(snapshot);
+      this.showToast(`Lỗi làm lại: ${err.message || err}`, "error");
+    } finally {
+      this.isProcessing = false;
+      this.updateUndoRedoButtonsState();
       this.updateContent();
     }
   }
@@ -1100,7 +1421,7 @@ export class FloatingPanel {
           "success"
         );
         await this.syncFrameTracks();
-        await this.loadTrackStats(this.selectedUiId);
+        await this.loadTrackStats(this.selectedUiId, true);
       } else {
         this.showToast(res.message || "Không thể đổi trạng thái Outside!", "error");
       }
@@ -1114,14 +1435,32 @@ export class FloatingPanel {
 
   /**
    * Tải ngầm thống kê toàn bộ vòng đời của Track ID (Total frames, Active, Outside, Dải frame)
+   * Debounce 300ms để chống nghẽn khi người dùng chuyển liên tục qua nhiều xe
    */
-  public async loadTrackStats(uiId: number | null): Promise<void> {
+  public async loadTrackStats(uiId: number | null, immediate: boolean = false): Promise<void> {
+    if (this.loadTrackStatsDebounceTimer) {
+      clearTimeout(this.loadTrackStatsDebounceTimer);
+      this.loadTrackStatsDebounceTimer = null;
+    }
+
     if (uiId === null || !this.currentCtx?.jobId) {
       this.trackStats = null;
       this.updateContent();
       return;
     }
 
+    if (immediate) {
+      await this.executeLoadTrackStats(uiId);
+    } else {
+      this.loadTrackStatsDebounceTimer = setTimeout(async () => {
+        this.loadTrackStatsDebounceTimer = null;
+        await this.executeLoadTrackStats(uiId);
+      }, 300);
+    }
+  }
+
+  private async executeLoadTrackStats(uiId: number): Promise<void> {
+    if (!this.currentCtx?.jobId) return;
     try {
       this.trackStatsLoading = true;
       const serverId = this.selectedServerId || uiId;
@@ -1131,11 +1470,36 @@ export class FloatingPanel {
       if (this.selectedUiId !== uiId) return;
 
       if (Array.isArray(allFrames) && allFrames.length > 0) {
-        const totalFrames = allFrames.length;
-        const startFrame = allFrames[0].frame;
-        const endFrame = allFrames[allFrames.length - 1].frame;
-        const outsideCount = allFrames.filter((f) => !!f.outside).length;
-        const activeCount = totalFrames - outsideCount;
+        const sortedFrames = [...allFrames].sort((a, b) => a.frame - b.frame);
+        const startFrame = sortedFrames[0].frame;
+        const endFrame = sortedFrames[sortedFrames.length - 1].frame;
+
+        let activeCount = 0;
+        let outsideCount = 0;
+
+        if (sortedFrames.length === 1) {
+          if (sortedFrames[0].outside) {
+            outsideCount = 1;
+          } else {
+            activeCount = 1;
+          }
+        } else {
+          for (let i = 0; i < sortedFrames.length - 1; i++) {
+            const span = sortedFrames[i + 1].frame - sortedFrames[i].frame;
+            if (sortedFrames[i].outside) {
+              outsideCount += span;
+            } else {
+              activeCount += span;
+            }
+          }
+          if (sortedFrames[sortedFrames.length - 1].outside) {
+            outsideCount += 1;
+          } else {
+            activeCount += 1;
+          }
+        }
+
+        const totalFrames = activeCount + outsideCount;
         const isFullyOutside = outsideCount === totalFrames;
         const isFullyActive = outsideCount === 0;
 
@@ -1148,7 +1512,7 @@ export class FloatingPanel {
           outsideCount,
           isFullyOutside,
           isFullyActive,
-          label: allFrames[0]?.label || this.currentLabel,
+          label: sortedFrames[0]?.label || this.currentLabel,
         };
       } else {
         this.trackStats = null;
@@ -1337,6 +1701,7 @@ export class FloatingPanel {
       }
 
       this.showToast(res.message, "success");
+      this.onBoxModificationSuccess(!currentFrameOnly);
     } catch (err: any) {
       this.showToast(`Lỗi: ${err.message || err}`, "error");
     } finally {
@@ -1403,6 +1768,7 @@ export class FloatingPanel {
       }
 
       this.showToast(res.message, "success");
+      this.onBoxModificationSuccess(applyToTrack);
     } catch (err: any) {
       this.showToast(`Lỗi: ${err.message || err}`, "error");
     } finally {
@@ -1468,6 +1834,37 @@ export class FloatingPanel {
   }
 
   /**
+   * Xoay vi chỉnh dốc Side (Pitch) tương đối một lượng deltaDeg (ví dụ: -1°, +1°, -3°, +3°)
+   * Thao tác siêu tốc bằng 2 phím tắt . và / trên Side View.
+   * Tuân thủ GEMINI.md:
+   * - Người đi bộ: Khóa cứng Pitch = 0° tuyệt đối.
+   * - Phạm vi: Tuân theo toggle applyToTrack (Chỉ Frame này hoặc Toàn bộ Track).
+   * - Tịnh tiến dàn đều cho toàn bộ các frame trong track.
+   * - Hỗ trợ Undo/Redo hoàn tác tức thì.
+   */
+  public async rotatePitchByDelta(deg: number): Promise<void> {
+    if (!this.currentCtx || !this.currentCtx.jobId) return;
+    if (this.selectedUiId === null) {
+      await this.ensureActiveTrackSelected();
+    }
+    if (this.selectedUiId === null) {
+      this.showToast("Vui lòng chọn xe trước!", "warning");
+      return;
+    }
+
+    // Tuân thủ GEMINI.md mục I.7: Luôn khóa cứng Roll = 0°, Pitch = 0° cho Người đi bộ
+    if (this.selectedCategory === "pedestrian") {
+      this.showToast("Người đi bộ luôn đứng thẳng (Roll=0°, Pitch=0° tuyệt đối)!", "warning");
+      return;
+    }
+
+    await this.handleSnapGround("micro_adjust_pitch", {
+      deltaDeg: deg,
+      applyToTrack: this.applyToTrack,
+    });
+  }
+
+  /**
    * Chuyển đổi giữa 2 phạm vi: Chỉ Frame Này <-> Toàn Bộ Track
    */
   public toggleScope(): void {
@@ -1503,10 +1900,21 @@ export class FloatingPanel {
     }
     if (this.isProcessing) return;
 
+    // PHÂN LẬP XỬ LÝ THEO CHỦNG LOẠI ĐỐI TƯỢNG (CATEGORY HANDLER SEPARATION)
+    if (this.selectedCategory === "pedestrian") {
+      await this.handleFitPedestrian("all");
+      return;
+    }
+    if (this.selectedCategory === "cyclist") {
+      await this.handleFitCyclist("all");
+      return;
+    }
+
+    // Luồng riêng biệt cho Ô tô (Car / Truck / Bus):
     // Lưu snapshot vào undo stack trước khi đổi trạng thái
     await this.pushUndoSnapshot("Fit Box Hiện Tại (+5cm Pad)", this.applyToTrack);
     this.isProcessing = true;
-    this.showToast("Đang đo mây điểm & Fit Box hiện tại (+5cm Pad)...", "info");
+    this.showToast("Đang đo mây điểm & Fit Box Ô tô (+5cm Pad, Chuẩn Tool_QC)...", "info");
 
     try {
       const serverId = this.selectedServerId || this.selectedUiId;
@@ -1514,7 +1922,8 @@ export class FloatingPanel {
         this.currentCtx.jobId,
         this.selectedUiId,
         serverId,
-        this.applyToTrack
+        this.applyToTrack,
+        this.currentAttributes
       );
 
       if (res.success && res.newL && res.newW && res.newH) {
@@ -1543,6 +1952,7 @@ export class FloatingPanel {
         if (inputH) inputH.value = String(res.newH);
 
         this.showToast(res.message, "success");
+        this.onBoxModificationSuccess();
       } else {
         this.showToast(res.message || "Không thể Fit Box với frame hiện tại!", "warning");
       }
@@ -1601,6 +2011,7 @@ export class FloatingPanel {
         serverId,
         deltaXLocal,
         deltaYLocal,
+        0,
         this.applyToTrack
       );
 
@@ -1619,6 +2030,7 @@ export class FloatingPanel {
         }
 
         this.showToast(res.message, "success");
+        this.onBoxModificationSuccess();
       } else {
         this.showToast(res.message || "Lỗi khi vi chỉnh Center!", "error");
       }
@@ -1653,7 +2065,15 @@ export class FloatingPanel {
 
     const forTrack = params?.applyToTrack === true;
     if (this.isProcessing) return;
-    await this.pushUndoSnapshot(`Ghim Đất ${forTrack ? "Toàn Track " : ""}(${mode})`, forTrack);
+    let actionDesc = `Ghim Đất ${forTrack ? "Toàn Track " : ""}(${mode})`;
+    if (mode === "micro_adjust_pitch") {
+      const dDeg = params?.deltaDeg ?? 1;
+      actionDesc = `Xoay dốc Side ${dDeg > 0 ? "+" : ""}${dDeg}° ${forTrack ? "Toàn Track" : ""}`.trim();
+    } else if (mode === "micro_adjust_roll") {
+      const dDeg = params?.deltaDeg ?? 1;
+      actionDesc = `Xoay nghiêng Front ${dDeg > 0 ? "+" : ""}${dDeg}° ${forTrack ? "Toàn Track" : ""}`.trim();
+    }
+    await this.pushUndoSnapshot(actionDesc, forTrack);
     this.isProcessing = true;
 
     try {
@@ -1663,7 +2083,11 @@ export class FloatingPanel {
         this.selectedUiId,
         serverId,
         mode,
-        params
+        {
+          ...params,
+          category: this.selectedCategory,
+          attributes: this.currentAttributes,
+        }
       );
 
       this.currentZ = res.newZ;
@@ -1677,6 +2101,7 @@ export class FloatingPanel {
       }
 
       this.showToast(res.message, "success");
+      this.onBoxModificationSuccess();
     } catch (err: any) {
       this.showToast(`Lỗi: ${err.message || err}`, "error");
     } finally {
@@ -1690,6 +2115,70 @@ export class FloatingPanel {
    */
   public async handleSnapGroundTrack(): Promise<void> {
     await this.handleSnapGround("road", { applyToTrack: true });
+  }
+
+  /**
+   * Đồng bộ và lưu cấu hình Lát cắt (Depth Slicing) xuống localStorage và Main World
+   */
+  private saveAndSyncOrthoSlicing(): void {
+    try {
+      localStorage.setItem("cvat_3d_ortho_slicing", JSON.stringify(this.orthoSlicing));
+    } catch (_) {}
+    CVATBridge.setOrthoSlicing(this.orthoSlicing);
+  }
+
+  public toggleOrthoSlicing(): void {
+    this.orthoSlicing.enabled = !this.orthoSlicing.enabled;
+    this.saveAndSyncOrthoSlicing();
+    this.showToast(
+      this.orthoSlicing.enabled
+        ? `Đã BẬT lát cắt Side & Front (±${this.orthoSlicing.slab}m)`
+        : "Đã TẮT lát cắt (Toàn cảnh không cắt)",
+      "info"
+    );
+    this.scheduleUpdate();
+  }
+
+  public stepOrthoSlab(delta: number): void {
+    const slabs = [0.3, 0.5, 1.0, 2.0];
+    let cur = this.orthoSlicing.slab;
+    let nextSlab = cur;
+    if (delta > 0) {
+      const found = slabs.find((s) => s > cur + 1e-3);
+      nextSlab = found !== undefined ? found : Math.min(4.0, Number((cur + 0.5).toFixed(1)));
+    } else {
+      const reversed = [...slabs].reverse();
+      const found = reversed.find((s) => s < cur - 1e-3);
+      nextSlab = found !== undefined ? found : Math.max(0.2, Number((cur - 0.2).toFixed(1)));
+    }
+    this.orthoSlicing.slab = nextSlab;
+    this.saveAndSyncOrthoSlicing();
+    this.showToast(`Độ dày lát cắt Side/Front: ±${this.orthoSlicing.slab}m`, "info");
+    this.scheduleUpdate();
+  }
+
+  public toggleHideGround(): void {
+    this.orthoSlicing.hideGround = !this.orthoSlicing.hideGround;
+    this.saveAndSyncOrthoSlicing();
+    this.showToast(
+      this.orthoSlicing.hideGround
+        ? "Đã BẬT tắt mặt đất Top View (Z_base + 12cm)"
+        : "Đã TẮT lọc mặt đất Top View",
+      "info"
+    );
+    this.scheduleUpdate();
+  }
+
+  public toggleIsolateROI(): void {
+    this.orthoSlicing.isolateROI = !this.orthoSlicing.isolateROI;
+    this.saveAndSyncOrthoSlicing();
+    this.showToast(
+      this.orthoSlicing.isolateROI
+        ? "Đã BẬT khóa vùng ROI (Xóa cây cối, nhà cửa xung quanh)"
+        : "Đã TẮT khóa vùng ROI (Hiển thị toàn bối cảnh)",
+      "info"
+    );
+    this.scheduleUpdate();
   }
 
   /**
@@ -1734,6 +2223,7 @@ export class FloatingPanel {
           CVATBridge.centerCanvas3DOnTrack(this.selectedUiId, { x: this.currentX, y: this.currentY, z: this.currentZ });
         }
         this.showToast(res.message, "success");
+        this.onBoxModificationSuccess();
       } else {
         this.showToast(res.message || "Không tìm thấy vạch sơn rõ nét!", "warning");
       }
@@ -1800,6 +2290,7 @@ export class FloatingPanel {
         }
 
         this.showToast(res.message, "success");
+        this.onBoxModificationSuccess();
       } else {
         this.showToast(res.message, "error");
       }
@@ -1846,15 +2337,17 @@ export class FloatingPanel {
    * Tự động điều hướng theo loại đối tượng:
    * - Pedestrian: Fit vai/ngực người
    * - Cyclist: Fit tay lái / gương xe (+5cm pad)
-   * - Car: Fit riêng bề rộng W (+8cm pad)
+   * - Car: Ô tô tuân thủ kích thước chuẩn Catalog (Phím B), không áp dụng Fit W tự do
    */
   public async handleFitWidth(): Promise<void> {
+    if (this.selectedCategory === "car") {
+      this.showToast("Ô tô tuân thủ kích thước chuẩn Catalog (Phím B), không áp dụng Fit W tự do!", "warning");
+      return;
+    }
     if (this.selectedCategory === "pedestrian") {
       await this.handleFitPedestrian("w");
     } else if (this.selectedCategory === "cyclist") {
       await this.handleFitCyclist("w");
-    } else {
-      await this.handleFitCarDimension("w");
     }
   }
 
@@ -1864,86 +2357,26 @@ export class FloatingPanel {
    * Tự động điều hướng theo loại đối tượng:
    * - Pedestrian: Fit đỉnh đầu (+12cm đệm)
    * - Cyclist: Fit nón bảo hiểm (+12cm đệm)
-   * - Car: Fit nóc xe (+5cm đệm)
+   * - Car: Ô tô tuân thủ kích thước chuẩn Catalog (Phím B), không áp dụng Fit H tự do
    */
   public async handleFitHeight(): Promise<void> {
+    if (this.selectedCategory === "car") {
+      this.showToast("Ô tô tuân thủ kích thước chuẩn Catalog (Phím B), không áp dụng Fit H tự do!", "warning");
+      return;
+    }
     if (this.selectedCategory === "pedestrian") {
       await this.handleFitPedestrian("h");
     } else if (this.selectedCategory === "cyclist") {
       await this.handleFitCyclist("h");
-    } else {
-      await this.handleFitCarDimension("h");
     }
   }
 
   /**
-   * Fit riêng Chiều Rộng (W) hoặc Chiều Cao (H Ground-Lock) cho Xe Ô tô (Car) hoặc đối tượng chung
+   * Ô tô tuân thủ kích thước hình học cứng từ Catalog xe (Phím B), không áp dụng Fit W/H tự do
    */
   public async handleFitCarDimension(dimension: "w" | "h"): Promise<void> {
-    if (!this.currentCtx || !this.currentCtx.jobId) {
-      this.showToast("Chưa kết nối Job CVAT!", "warning");
-      return;
-    }
-    const activeId = await this.ensureActiveTrackSelected();
-    if (!activeId) {
-      this.showToast("Chưa chọn đối tượng để fit kích thước!", "warning");
-      return;
-    }
-    if (this.isProcessing) return;
-
-    const dimLabel = dimension === "w" ? "Rộng (W) [Phím 4]" : "Cao (H) [Phím 5 - Ground-Lock]";
-    await this.pushUndoSnapshot(`Fit ${dimLabel}`, this.applyToTrack);
-    this.isProcessing = true;
-    this.showToast(`Đang đo mây điểm & Fit ${dimLabel}...`, "info");
-
-    try {
-      const serverId = this.selectedServerId || activeId;
-      const res = await CVATBridge.fitDimension(
-        this.currentCtx.jobId,
-        activeId,
-        serverId,
-        dimension,
-        this.applyToTrack
-      );
-
-      if (res.success) {
-        if (res.newW !== undefined) {
-          this.currentW = res.newW;
-          this.editW = res.newW;
-        }
-        if (res.newH !== undefined) {
-          this.currentH = res.newH;
-          this.editH = res.newH;
-        }
-        if (res.newX !== undefined) this.currentX = res.newX;
-        if (res.newY !== undefined) this.currentY = res.newY;
-        if (res.newZ !== undefined) this.currentZ = res.newZ;
-
-        const targetItem = this.frameTracks.find((t) => t.uiId === activeId);
-        if (targetItem) {
-          if (res.newW !== undefined) targetItem.w = res.newW;
-          if (res.newH !== undefined) targetItem.h = res.newH;
-          if (res.newX !== undefined) targetItem.x = res.newX;
-          if (res.newY !== undefined) targetItem.y = res.newY;
-          if (res.newZ !== undefined) targetItem.z = res.newZ;
-        }
-
-        const inputW = this.container?.querySelector<HTMLInputElement>("#input-dim-w");
-        const inputH = this.container?.querySelector<HTMLInputElement>("#input-dim-h");
-        if (inputW && res.newW !== undefined) inputW.value = String(res.newW);
-        if (inputH && res.newH !== undefined) inputH.value = String(res.newH);
-
-        this.showToast(res.message, "success");
-        this.scheduleUpdate();
-      } else {
-        this.showToast(res.message, "error");
-      }
-    } catch (err: any) {
-      this.showToast(`Lỗi fit ${dimLabel}: ${err.message || String(err)}`, "error");
-    } finally {
-      this.isProcessing = false;
-      this.updateContent();
-    }
+    const dimLabel = dimension === "w" ? "Rộng (W)" : "Cao (H)";
+    this.showToast(`Ô tô tuân thủ kích thước chuẩn Catalog (Phím B), không áp dụng Fit ${dimLabel} tự do!`, "warning");
   }
 
   /**
@@ -2051,6 +2484,7 @@ export class FloatingPanel {
         }
 
         this.showToast(res.message, "success");
+        this.onBoxModificationSuccess(this.applyToTrack);
       } else {
         this.showToast(res.message, "error");
       }
@@ -2161,6 +2595,7 @@ export class FloatingPanel {
         }
 
         this.showToast(res.message, "success");
+        this.onBoxModificationSuccess(this.applyToTrack);
       } else {
         this.showToast(res.message, "error");
       }
@@ -2213,6 +2648,7 @@ export class FloatingPanel {
         }
 
         this.showToast(res.message, "success");
+        this.onBoxModificationSuccess();
       } else {
         this.showToast(res.message, "error");
       }
@@ -2232,7 +2668,8 @@ export class FloatingPanel {
   }
 
   /**
-   * Xử lý Khớp Kích Thước Chuẩn Catalog (Catalog Best-Fit)
+   * Xử lý Khớp Kích Thước Chuẩn Catalog (Catalog Best-Fit - Phím B)
+   * Phân nhánh chuyên biệt theo từng chủng loại: Car, Cyclist, Pedestrian chuẩn Tool_QC
    */
   public async handleCatalogFit(): Promise<void> {
     if (!this.currentCtx || !this.currentCtx.jobId) {
@@ -2245,14 +2682,26 @@ export class FloatingPanel {
       return;
     }
 
-    // Phòng vệ phân lập nhãn: Catalog xe chỉ áp dụng cho Ô tô/Xe cơ giới
-    if (this.selectedCategory !== "car") {
-      this.showToast("Catalog kích thước chỉ áp dụng cho Ô tô/Xe cơ giới!", "warning");
+    if (this.isProcessing) return;
+
+    // 1. NHÓM NGƯỜI ĐI BỘ (PEDESTRIAN CATALOG BEST-FIT)
+    if (this.selectedCategory === "pedestrian") {
+      const match = findBestFitCatalog(this.currentL, this.currentW, this.currentH, "pedestrian");
+      this.showToast(`Khớp Catalog Người: ${match.matchedItem.name} (${match.recommendedL}x${match.recommendedW}x${match.recommendedH}m, Chuẩn Tool_QC)`, "info");
+      await this.handleUpdateDimensions(match.recommendedL, match.recommendedW, match.recommendedH, this.applyToTrack);
       return;
     }
 
-    if (this.isProcessing) return;
-    await this.pushUndoSnapshot("Khớp Kích Thước Catalog", this.applyToTrack);
+    // 2. NHÓM XE 2 BÁNH (CYCLIST / MOTORCYCLE CATALOG BEST-FIT)
+    if (this.selectedCategory === "cyclist") {
+      const match = findBestFitCatalog(this.currentL, this.currentW, this.currentH, "cycle");
+      this.showToast(`Khớp Catalog Xe 2 Bánh: ${match.matchedItem.name} (${match.recommendedL}x${match.recommendedW}x${match.recommendedH}m, Chuẩn Tool_QC)`, "info");
+      await this.handleUpdateDimensions(match.recommendedL, match.recommendedW, match.recommendedH, this.applyToTrack);
+      return;
+    }
+
+    // 3. NHÓM Ô TÔ / XE CƠ GIỚI (CAR / TRUCK / BUS CATALOG BEST-FIT)
+    await this.pushUndoSnapshot("Khớp Kích Thước Catalog Xe", this.applyToTrack);
     this.isProcessing = true;
 
     try {
@@ -2294,6 +2743,7 @@ export class FloatingPanel {
         }
 
         this.showToast(res.message, "success");
+        this.onBoxModificationSuccess();
       } else {
         this.showToast(res.message, "error");
       }
@@ -2365,6 +2815,7 @@ export class FloatingPanel {
         }
 
         this.showToast(res.message, "success");
+        this.onBoxModificationSuccess(true);
       } else {
         this.showToast(res.message, "error");
       }
@@ -2379,36 +2830,38 @@ export class FloatingPanel {
   /**
    * Render nội dung Tab QC (Quick Focus Mode) trên Floating Panel
    */
+  /**
+   * Render nội dung Tab QC: Quản lý danh sách lỗi của riêng Track ID đang chọn qua từng Frame lỗi
+   * Dữ liệu được nạp ngầm vào RAM (trackQCRamCache), truy xuất tức thì 0ms latency.
+   */
   private renderQCTabContent(): string {
     const openModalBtnHtml = `
       <button id="btn-open-qc-studio-modal" style="
         width: 100%;
-        padding: 9px 12px;
-        background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
-        border: 1px solid #bfdbfe;
-        border-radius: 8px;
-        color: #1d4ed8;
+        padding: 8px 12px;
+        background: #0284c7;
+        border: none;
+        border-radius: 6px;
+        color: #ffffff;
         font-size: 11.5px;
         font-weight: 700;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
         box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        transition: all 0.15s ease;
       ">
         <span style="display: flex; align-items: center;">${ICONS.matrix}</span>
-        <span>Mở QC Studio Toàn Màn Hình</span>
-        <span style="display: flex; align-items: center; opacity: 0.7;">${ICONS.externalLink}</span>
+        <span>Mở CVAT 3D QC Studio (Datumaro QA)</span>
       </button>
     `;
 
+    // 1. Trường hợp CHƯA CHỌN TRACK ID NÀO:
     if (this.selectedUiId === null) {
       return `
-        <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
           ${openModalBtnHtml}
-
           <div style="
             background: #ffffff;
             border: 1px dashed #cbd5e1;
@@ -2416,197 +2869,877 @@ export class FloatingPanel {
             padding: 24px 16px;
             text-align: center;
             color: #64748b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
           ">
-            <div style="margin-bottom: 8px; color: #94a3b8; display: flex; justify-content: center;">
+            <div style="color: #94a3b8; display: flex; justify-content: center;">
               ${ICONS.target}
             </div>
-            <div style="font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px;">
-              Chưa chọn đối tượng để kiểm định
+            <div style="font-size: 12.5px; font-weight: 700; color: #334155;">
+              Vui lòng chọn đối tượng để kiểm tra danh sách lỗi
             </div>
-            <div style="font-size: 11px; line-height: 1.5;">
-              Vui lòng nhấp chọn bất kỳ box 3D nào trên Canvas hoặc chọn từ Dropdown để xem báo cáo sức khỏe tức thì.
+            <div style="font-size: 11px; line-height: 1.5; color: #64748b;">
+              Nhấp chọn một Box 3D trên Canvas hoặc chọn một ID trong danh sách để kiểm định danh sách lỗi qua từng Frame.
             </div>
           </div>
         </div>
       `;
     }
 
-    // Tạo đối tượng hiện tại
-    const curObj: QCObjectInstance = {
-      frame: this.currentFrameNumber,
-      trackId: this.selectedUiId,
-      label: this.currentLabel,
-      group: classifyLabelGroup(this.currentLabel, this.qcEngine.getConfig()),
-      x: this.currentX,
-      y: this.currentY,
-      z: this.currentZ,
-      yaw: (this.currentYawDeg * Math.PI) / 180,
-      yawDeg: this.currentYawDeg,
-      l: this.currentL,
-      w: this.currentW,
-      h: this.currentH,
-    };
+    // 2. Trường hợp ĐANG CHỌN 1 TRACK ID: Lấy dữ liệu từ RAM Cache
+    const cachedResult = this.trackQCRamCache.get(this.selectedUiId);
 
-    // Danh sách các đối tượng khác trong cùng frame
-    const currentFrameObjects: QCObjectInstance[] = this.frameTracks.map((t) => ({
-      frame: this.currentFrameNumber,
-      trackId: t.uiId,
-      label: t.label,
-      group: classifyLabelGroup(t.label, this.qcEngine.getConfig()),
-      x: t.x,
-      y: t.y,
-      z: t.z,
-      yaw: (t.yawDeg * Math.PI) / 180,
-      yawDeg: t.yawDeg,
-      l: t.l,
-      w: t.w,
-      h: t.h,
-    }));
-
-    // Chạy bộ kiểm tra tức thì
-    const summary = this.qcEngine.checkSingleObject(curObj, [curObj], currentFrameObjects);
-
-    const isClean = summary.overallStatus === "clean";
-    const isError = summary.overallStatus === "error";
-
-    const statusBg = isClean ? "#ecfdf5" : isError ? "#fef2f2" : "#fffbeb";
-    const statusBorder = isClean ? "#a7f3d0" : isError ? "#fecaca" : "#fef08a";
-    const statusText = isClean ? "#059669" : isError ? "#dc2626" : "#d97706";
-    const statusTitle = isClean
-      ? "✓ ĐẠT CHUẨN KIỂM ĐỊNH"
-      : isError
-      ? `✖ CÓ ${summary.issues.length} LỖI CẦN SỬA`
-      : `⚠ CÓ ${summary.issues.length} CẢNH BÁO`;
-
-    // Render danh sách tiêu chí kiểm tra
-    const renderCheckItem = (code: string, name: string, chk: any) => {
-      const ok = chk.passed;
-      const color = ok ? "#059669" : chk.severity === "error" ? "#dc2626" : "#d97706";
-      const bg = ok ? "#f0fdf4" : chk.severity === "error" ? "#fef2f2" : "#fffbeb";
-      const icon = ok ? "✓" : chk.severity === "error" ? "✖" : "⚠";
-
+    // Nếu chưa có trong cache hoặc đang ở trạng thái idle, kích hoạt nạp ngầm
+    if (!cachedResult || cachedResult.status === "idle") {
+      this.preloadTrackQCInBackground(this.selectedUiId, this.selectedServerId);
       return `
-        <div style="
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 5px 8px;
-          border-radius: 6px;
-          background: ${bg};
-          border: 1px solid ${color}20;
-          font-size: 11px;
-        ">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="font-weight: 700; color: ${color}; font-family: monospace;">[${code}]</span>
-            <span style="color: #334155; font-weight: 500;">${name}</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 4px; color: ${color}; font-weight: 600; font-size: 10px;">
-            <span>${icon}</span>
-            <span>${ok ? "Đạt" : "Chưa đạt"}</span>
-          </div>
-        </div>
-      `;
-    };
-
-    // Render chi tiết lỗi nếu có
-    let issuesDetailHtml = "";
-    if (summary.issues.length > 0) {
-      issuesDetailHtml = `
-        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
-          <div style="font-size: 11px; font-weight: 700; color: #475569;">Chi tiết cảnh báo & lỗi:</div>
-          ${summary.issues
-            .map(
-              (iss) => `
-            <div style="
-              padding: 6px 8px;
-              border-radius: 6px;
-              background: ${iss.severity === "error" ? "#fef2f2" : "#fffbeb"};
-              border: 1px solid ${iss.severity === "error" ? "#fca5a5" : "#fde047"};
-              font-size: 10.5px;
-              color: #0f172a;
-              display: flex;
-              flex-direction: column;
-              gap: 2px;
-            ">
-              <div style="display: flex; justify-content: space-between; font-weight: 700; color: ${iss.severity === "error" ? "#dc2626" : "#b45309"};">
-                <span>[${iss.symbol}] ${iss.name}</span>
-                <span style="font-family: monospace;">${iss.value}</span>
-              </div>
-              <div style="color: #475569; font-size: 10px;">${iss.detail}</div>
-              <div style="color: #64748b; font-size: 9.5px; font-family: monospace;">Chuẩn: ${iss.ref}</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          ${openModalBtnHtml}
+          <div style="
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 22px 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+          ">
+            <div style="display: flex; align-items: center; justify-content: center; animation: spin 1s linear infinite; color: #2563eb;">
+              ${ICONS.radar}
             </div>
-          `
-            )
-            .join("")}
+            <div style="font-size: 11.5px; font-weight: 700; color: #1e293b;">
+              Đang nạp kiểm tra QC ngầm vào RAM...
+            </div>
+            <div style="font-size: 10.5px; color: #64748b;">
+              Đang phân tích các frames của Track #${this.selectedUiId} (${this.currentLabel})
+            </div>
+          </div>
         </div>
       `;
     }
 
-    return `
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <!-- NÚT MỞ TOÀN MÀN HÌNH -->
-        ${openModalBtnHtml}
-
-        <!-- THẺ TỔNG HỢP SỨC KHỎE OBJECT ĐANG CHỌN -->
-        <div style="
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
-          padding: 10px;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        ">
-          <!-- HEADER THẺ: ID & TRẠNG THÁI TỔNG THỂ -->
+    // Trạng thái đang tải
+    if (cachedResult.status === "loading") {
+      return `
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          ${openModalBtnHtml}
           <div style="
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 22px 16px;
+            text-align: center;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            padding: 6px 10px;
-            border-radius: 6px;
-            background: ${statusBg};
-            border: 1px solid ${statusBorder};
+            gap: 8px;
           ">
-            <div style="font-weight: 700; font-size: 12px; color: ${statusText};">
-              #${this.selectedUiId} · ${this.currentLabel}
+            <div style="display: flex; align-items: center; justify-content: center; animation: spin 1s linear infinite; color: #2563eb;">
+              ${ICONS.radar}
             </div>
-            <div style="font-size: 10.5px; font-weight: 700; color: ${statusText};">
-              ${statusTitle}
+            <div style="font-size: 11.5px; font-weight: 700; color: #1e293b;">
+              Đang nạp kiểm tra QC ngầm vào RAM...
+            </div>
+            <div style="font-size: 10.5px; color: #64748b;">
+              Đang phân tích các frames của Track #${cachedResult.trackId} (${cachedResult.label})
             </div>
           </div>
+        </div>
+      `;
+    }
 
-          <!-- THÔNG SỐ HIỆN TẠI -->
+    // Trạng thái lỗi tải
+    if (cachedResult.status === "error") {
+      return `
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          ${openModalBtnHtml}
           <div style="
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            padding: 16px 12px;
             display: flex;
-            justify-content: space-between;
-            padding: 4px 6px;
-            background: #f8fafc;
-            border-radius: 6px;
-            font-size: 10px;
-            font-family: monospace;
-            color: #64748b;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-align: center;
           ">
-            <span>Size: ${this.currentL.toFixed(2)}x${this.currentW.toFixed(2)}x${this.currentH.toFixed(2)}m</span>
-            <span>Z: ${this.currentZ.toFixed(2)}m</span>
-            <span>Yaw: ${this.currentYawDeg.toFixed(0)}°</span>
+            <div style="font-size: 11.5px; font-weight: 700; color: #dc2626;">
+              Không thể nạp dữ liệu QC cho Track #${cachedResult.trackId}
+            </div>
+            <div style="font-size: 10px; color: #991b1b;">
+              ${cachedResult.errorMessage || "Vui lòng thử lại"}
+            </div>
+            <button id="btn-retry-track-qc" style="
+              background: #ffffff;
+              border: 1px solid #fca5a5;
+              border-radius: 6px;
+              padding: 4px 10px;
+              font-size: 10.5px;
+              font-weight: 600;
+              color: #dc2626;
+              cursor: pointer;
+            ">Thử lại</button>
           </div>
+        </div>
+      `;
+    }
 
-          <!-- BẢNG TIÊU CHÍ KIỂM TRA -->
-          <div style="display: flex; flex-direction: column; gap: 4px;">
-            ${renderCheckItem("S", "Scale Toàn Track", summary.checks.scale)}
-            ${renderCheckItem("K", "Kích Thước Catalog", summary.checks.size)}
-            ${renderCheckItem("Z", "Cao Độ Mặt Đường", summary.checks.z)}
-            ${renderCheckItem("H", "Hướng Đầu Xe (Yaw)", summary.checks.rot)}
-            ${renderCheckItem("O", "Chồng Lấn BEV", summary.checks.overlap)}
-            ${renderCheckItem("D", "Khoảng Cách LiDAR", summary.checks.dist)}
-            ${renderCheckItem("L", "Mây Điểm LiDAR Thực", summary.checks.empty_box)}
+    // Trạng thái READY: Hiển thị đầy đủ thông tin Track và danh sách lỗi theo từng Frame
+    const isClean = cachedResult.errorFrames.length === 0;
+
+    const headerHtml = `
+      <div style="
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      ">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 12.5px; font-weight: 800; color: #0f172a; font-family: monospace;">
+              #${cachedResult.trackId}
+            </span>
+            <span style="font-size: 11px; font-weight: 600; color: #475569;">
+              ${cachedResult.label}
+            </span>
           </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="
+              font-size: 10.5px;
+              font-weight: 700;
+              padding: 2px 8px;
+              border-radius: 6px;
+              background: ${isClean ? "#ecfdf5" : "#fef2f2"};
+              color: ${isClean ? "#059669" : "#dc2626"};
+              border: 1px solid ${isClean ? "#a7f3d0" : "#fecaca"};
+            ">
+              ${isClean ? "✓ Đạt chuẩn 100%" : `${cachedResult.errorFrames.length} frame lỗi`}
+            </span>
+            <button id="btn-refresh-track-qc" title="Quét lại toàn bộ frames của track này vào RAM" style="
+              background: #f8fafc;
+              border: 1px solid #cbd5e1;
+              border-radius: 6px;
+              padding: 3px 6px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #475569;
+              transition: all 0.15s ease;
+            ">
+              ${ICONS.refresh}
+            </button>
+          </div>
+        </div>
 
-          <!-- CHI TIẾT CẢNH BÁO / LỖI NẾU CÓ -->
-          ${issuesDetailHtml}
+        <div style="
+          display: flex;
+          justify-content: space-between;
+          font-size: 10px;
+          color: #64748b;
+          border-top: 1px dashed #e2e8f0;
+          padding-top: 6px;
+        ">
+          <span>Tổng: <strong>${cachedResult.totalFrames} frames</strong></span>
+          <span>Chuẩn: <strong style="color: #059669;">${cachedResult.cleanFramesCount}</strong></span>
+          <span>Lỗi: <strong style="color: ${cachedResult.errorFrames.length > 0 ? "#dc2626" : "#64748b"};">${cachedResult.errorFrames.length}</strong></span>
         </div>
       </div>
     `;
+
+    // Nếu Track ID hoàn toàn sạch lỗi:
+    if (isClean) {
+      return `
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          ${openModalBtnHtml}
+          ${headerHtml}
+          <div style="
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            padding: 18px 14px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+          ">
+            <div style="color: #059669; font-size: 12.5px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+              <span>✓</span>
+              <span>ĐẠT CHUẨN KIỂM ĐỊNH 100%</span>
+            </div>
+            <div style="font-size: 10.5px; color: #047857; line-height: 1.5;">
+              Toàn bộ ${cachedResult.totalFrames} frames của Track #${cachedResult.trackId} đều đạt chuẩn kích thước Catalog, cao độ Z, hướng xoay Yaw và tính đồng bộ Scale.
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Nếu Track ID có frame lỗi: Render danh sách theo từng Frame lỗi
+    const errorFramesListHtml = `
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2px;
+      ">
+        <span style="font-size: 11px; font-weight: 700; color: #0f172a;">
+          Danh sách frame lỗi (${cachedResult.errorFrames.length} frame):
+        </span>
+        <span style="font-size: 9.5px; color: #64748b;">
+          Nhấp để tua tới frame
+        </span>
+      </div>
+
+      <div style="
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 320px;
+        overflow-y: auto;
+        padding-right: 2px;
+      ">
+        ${cachedResult.errorFrames
+          .map((group) => {
+            const isCurFrame = group.frame === this.currentFrameNumber;
+            return `
+              <div class="btn-jump-to-qc-issue"
+                   data-frame="${group.frame}"
+                   data-track-id="${cachedResult.trackId}"
+                   data-issue-title="Frame #${group.frame}"
+                   title="Nhấp để tua CVAT tới Frame #${group.frame} và căn chỉnh camera 3D"
+                   style="
+                     padding: 8px 10px;
+                     border-radius: 8px;
+                     background: ${group.topSeverity === "error" ? "#fef2f2" : "#fffbeb"};
+                     border: 1px solid ${isCurFrame ? "#2563eb" : group.topSeverity === "error" ? "#fca5a5" : "#fde047"};
+                     box-shadow: ${isCurFrame ? "0 0 0 2px #93c5fd" : "none"};
+                     cursor: pointer;
+                     display: flex;
+                     flex-direction: column;
+                     gap: 4px;
+                     transition: all 0.12s ease;
+                   ">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="
+                      font-size: 10px;
+                      font-family: monospace;
+                      font-weight: 800;
+                      padding: 2px 6px;
+                      border-radius: 4px;
+                      background: ${group.topSeverity === "error" ? "#dc2626" : "#d97706"};
+                      color: #ffffff;
+                    ">Frame #${group.frame}</span>
+                    <span style="font-size: 10px; font-weight: 700; color: ${group.topSeverity === "error" ? "#b91c1c" : "#b45309"};">
+                      ${group.issues.length} lỗi
+                    </span>
+                  </div>
+                  <span style="font-size: 11px; color: #1d4ed8; font-weight: 700; white-space: nowrap; margin-left: 6px;">
+                    Tua tới ➔
+                  </span>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 3px; margin-top: 2px;">
+                  ${group.issues
+                    .map(
+                      (iss) => `
+                    <div style="
+                      font-size: 10px;
+                      background: rgba(255, 255, 255, 0.85);
+                      padding: 4px 6px;
+                      border-radius: 4px;
+                      border-left: 2px solid ${iss.severity === "error" ? "#dc2626" : "#d97706"};
+                      display: flex;
+                      flex-direction: column;
+                      gap: 2px;
+                    ">
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; color: ${iss.severity === "error" ? "#dc2626" : "#b45309"};">
+                          [${iss.symbol}] ${iss.name}
+                        </span>
+                        <span style="font-family: monospace; font-size: 9.5px; color: #2563eb; font-weight: 600;">
+                          ${iss.value} ➔ ${iss.ref}
+                        </span>
+                      </div>
+                      <div style="font-size: 9px; color: #64748b;">
+                        ${iss.detail}
+                      </div>
+                    </div>
+                  `
+                    )
+                    .join("")}
+                </div>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+    `;
+
+    return `
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        ${openModalBtnHtml}
+        ${headerHtml}
+        ${errorFramesListHtml}
+      </div>
+    `;
+  }
+
+  /**
+   * Tua trực tiếp đến một lỗi cụ thể và focus camera 3D vào đối tượng (Tab QC)
+   */
+  public jumpToSpecificIssue(frame: number, trackId: number, issueTitle?: string): void {
+    const isSameFrame = this.currentFrameNumber === frame;
+
+    // 1. Nhảy Timeline chỉ khi khác frame
+    if (!isSameFrame) {
+      CVATBridge.jumpToFrame(frame);
+    }
+
+    // Lấy trước thông số tọa độ đã lưu trong RAM cache của đối tượng tại frame đó nếu có
+    const cached = this.trackQCRamCache.get(trackId);
+    const targetObj = cached?.trackObjects?.find((o) => o.frame === frame);
+    const targetPos = targetObj ? { x: targetObj.x, y: targetObj.y, z: targetObj.z } : undefined;
+
+    // 2. Kích hoạt và pan camera: nếu cùng frame thì chạy ngay lập tức (0ms), nếu khác frame thì chờ 100ms
+    const delay = isSameFrame ? 0 : 100;
+    setTimeout(() => {
+      CVATBridge.activateObject(trackId, targetPos);
+      CVATBridge.centerCanvas3DOnTrack(trackId, targetPos);
+      this.selectedUiId = trackId;
+      if (targetObj) {
+        if (targetObj.label) {
+          this.currentLabel = targetObj.label;
+          this.syncCategoryFromLabel(this.currentLabel);
+        } else if (cached?.label) {
+          this.currentLabel = cached.label;
+          this.syncCategoryFromLabel(this.currentLabel);
+        }
+        this.currentX = targetObj.x;
+        this.currentY = targetObj.y;
+        this.currentZ = targetObj.z;
+        this.currentYawDeg = targetObj.yawDeg;
+        this.currentL = targetObj.l;
+        this.currentW = targetObj.w;
+        this.currentH = targetObj.h;
+        this.editL = targetObj.l;
+        this.editW = targetObj.w;
+        this.editH = targetObj.h;
+      }
+      this.scheduleUpdate();
+    }, delay);
+
+    this.scheduleUpdate();
+    this.showToast(
+      `Đã chuyển đến Track #${trackId} @ Frame ${frame}${issueTitle ? `: ${issueTitle}` : ""}`,
+      "info"
+    );
+  }
+
+  /**
+   * Cập nhật danh sách toàn bộ đối tượng của Job (ví dụ khi QC Studio quét xong toàn Job)
+   */
+  public setCachedAllJobObjects(objects: QCObjectInstance[]): void {
+    this.cachedAllJobObjects = Array.isArray(objects) ? objects : [];
+  }
+
+  /**
+   * Tự động nạp ngầm kiểm tra QC toàn bộ các frame của riêng một Track ID vào bộ nhớ RAM
+   * Chạy bất đồng bộ ngầm, không khóa Main Thread, lưu kết quả vào trackQCRamCache
+   */
+  public async preloadTrackQCInBackground(
+    uiId: number,
+    serverId?: number | null,
+    forceRefresh: boolean = false
+  ): Promise<TrackQCResult> {
+    const existing = this.trackQCRamCache.get(uiId);
+    if (!forceRefresh && existing && (existing.status === "ready" || existing.status === "loading")) {
+      return existing;
+    }
+
+    const currentJobId = this.currentCtx?.jobId;
+    if (!currentJobId) {
+      const idleResult: TrackQCResult = {
+        trackId: uiId,
+        serverId: serverId ?? null,
+        label: this.currentLabel || `Track #${uiId}`,
+        status: "idle",
+        totalFrames: 0,
+        errorFrames: [],
+        cleanFramesCount: 0,
+        lastScannedAt: Date.now(),
+      };
+      return idleResult;
+    }
+
+    const loadingResult: TrackQCResult = {
+      trackId: uiId,
+      serverId: serverId ?? null,
+      label: this.currentLabel || `Track #${uiId}`,
+      status: "loading",
+      totalFrames: 0,
+      errorFrames: [],
+      cleanFramesCount: 0,
+      lastScannedAt: Date.now(),
+    };
+    this.trackQCRamCache.set(uiId, loadingResult);
+
+    if (this.activeMainTab === "qc" && this.selectedUiId === uiId) {
+      this.scheduleUpdate();
+    }
+
+    this.pendingTrackQCPreloads.add(uiId);
+
+    try {
+      const frames = await CVATBridge.getTrackAllFrames(currentJobId, uiId, serverId ?? undefined);
+
+      const trackObjects: QCObjectInstance[] = [];
+      const trackLabel = this.currentLabel || `Track #${uiId}`;
+
+      for (const f of frames) {
+        if (f.outside || !Array.isArray(f.points) || f.points.length < 9) continue;
+        const yaw = f.points[5];
+        const objLabel = f.label || trackLabel;
+        trackObjects.push({
+          frame: f.frame,
+          trackId: uiId,
+          label: objLabel,
+          group: classifyLabelGroup(objLabel, this.qcEngine.getConfig()),
+          x: f.points[0],
+          y: f.points[1],
+          z: f.points[2],
+          yaw: yaw,
+          yawDeg: (yaw * 180) / Math.PI,
+          l: f.points[6],
+          w: f.points[7],
+          h: f.points[8],
+          outside: f.outside,
+        });
+      }
+
+      trackObjects.sort((a, b) => a.frame - b.frame);
+
+      // Cập nhật chuẩn xác số frame hiện tại từ CVAT Timeline
+      this.currentFrameNumber = CVATBridge.getCurrentFrame();
+
+      // Thu thập ngữ cảnh toàn bộ các đối tượng trong cùng frame để kiểm tra Overlap (O)
+      const frameContextMap = new Map<number, QCObjectInstance[]>();
+
+      // 1. Frame hiện tại: Lấy từ frameTracks (hoặc gọi getTracksInCurrentFrame nếu forceRefresh)
+      let curFrameTracks: FrameTrackItem[] = [];
+      if (!forceRefresh && Array.isArray(this.frameTracks) && this.frameTracks.length > 0) {
+        curFrameTracks = this.frameTracks;
+      } else {
+        try {
+          const fetched = await CVATBridge.getTracksInCurrentFrame(currentJobId, this.currentFrameNumber);
+          curFrameTracks = Array.isArray(fetched) ? fetched : [];
+        } catch (_) {
+          curFrameTracks = [];
+        }
+      }
+
+      if (Array.isArray(curFrameTracks) && curFrameTracks.length > 0) {
+        this.frameTracks = curFrameTracks;
+      }
+
+      const curFrameObjs: QCObjectInstance[] = (curFrameTracks || []).map((t) => ({
+        frame: this.currentFrameNumber,
+        trackId: t.uiId,
+        label: t.label,
+        group: classifyLabelGroup(t.label, this.qcEngine.getConfig()),
+        x: t.x,
+        y: t.y,
+        z: t.z,
+        yaw: (t.yawDeg * Math.PI) / 180,
+        yawDeg: t.yawDeg,
+        l: t.l,
+        w: t.w,
+        h: t.h,
+      }));
+      frameContextMap.set(this.currentFrameNumber, curFrameObjs);
+
+      // Nếu đối tượng uiId đang có mặt tại frame hiện tại nhưng trackObjects chưa có shape ở frame này, bổ sung ngay!
+      const curObjInFrame = curFrameObjs.find((o) => o.trackId === uiId);
+      if (curObjInFrame && !trackObjects.some((o) => o.frame === this.currentFrameNumber)) {
+        trackObjects.push({ ...curObjInFrame });
+        trackObjects.sort((a, b) => a.frame - b.frame);
+      }
+
+      // 2. Các frame khác: nếu đã từng nạp toàn Job thì lấy từ cachedAllJobObjects
+      if (Array.isArray(this.cachedAllJobObjects) && this.cachedAllJobObjects.length > 0) {
+        for (const o of this.cachedAllJobObjects) {
+          if (o.frame === this.currentFrameNumber) continue;
+          let list = frameContextMap.get(o.frame);
+          if (!list) {
+            list = [];
+            frameContextMap.set(o.frame, list);
+          }
+          list.push(o);
+        }
+      }
+
+      // Phân tích và nhóm lỗi theo từng frame
+      const frameGroupMap = new Map<number, QCIssue[]>();
+
+      for (const obj of trackObjects) {
+        // Nếu obj ở frame hiện tại, ƯU TIÊN cập nhật tọa độ live từ curObjInFrame!
+        if (obj.frame === this.currentFrameNumber && curObjInFrame) {
+          obj.x = curObjInFrame.x;
+          obj.y = curObjInFrame.y;
+          obj.z = curObjInFrame.z;
+          obj.yaw = curObjInFrame.yaw;
+          obj.yawDeg = curObjInFrame.yawDeg;
+          obj.l = curObjInFrame.l;
+          obj.w = curObjInFrame.w;
+          obj.h = curObjInFrame.h;
+        }
+
+        // Lấy danh sách đầy đủ các đối tượng trong cùng frame để phát hiện Overlap (O)
+        let frameObjs = frameContextMap.get(obj.frame);
+        if (!frameObjs || frameObjs.length === 0) {
+          frameObjs = [obj];
+        } else {
+          // Đảm bảo obj hiện tại có mặt trong frameObjs với tọa độ mới nhất
+          const existingIdx = frameObjs.findIndex((o) => o.trackId === obj.trackId);
+          if (existingIdx >= 0) {
+            frameObjs[existingIdx] = obj;
+          } else {
+            frameObjs = [...frameObjs, obj];
+          }
+        }
+
+        const summary = this.qcEngine.checkSingleObject(obj, trackObjects, frameObjs);
+        if (summary.issues.length > 0) {
+          frameGroupMap.set(obj.frame, summary.issues);
+        }
+      }
+
+      const errorFrames: FrameIssueGroup[] = [];
+      for (const [frame, issues] of frameGroupMap.entries()) {
+        const actionableIssues = issues.filter(
+          (iss) => iss.severity === "error" || iss.severity === "warning"
+        );
+        if (actionableIssues.length > 0) {
+          const hasError = actionableIssues.some((iss) => iss.severity === "error");
+          errorFrames.push({
+            frame,
+            issues: actionableIssues,
+            topSeverity: hasError ? "error" : "warning",
+          });
+        }
+      }
+
+      errorFrames.sort((a, b) => a.frame - b.frame);
+
+      const totalFrames = trackObjects.length;
+      const cleanFramesCount = Math.max(0, totalFrames - errorFrames.length);
+
+      const readyResult: TrackQCResult = {
+        trackId: uiId,
+        serverId: serverId ?? null,
+        label: trackObjects[0]?.label || trackLabel,
+        status: "ready",
+        totalFrames,
+        errorFrames,
+        cleanFramesCount,
+        lastScannedAt: Date.now(),
+        trackObjects,
+      };
+
+      this.trackQCRamCache.set(uiId, readyResult);
+
+      if (this.activeMainTab === "qc" && this.selectedUiId === uiId) {
+        this.scheduleUpdate();
+      }
+
+      return readyResult;
+    } catch (err: any) {
+      console.error(`[FloatingPanel] Lỗi nạp ngầm QC cho Track #${uiId}:`, err);
+      const errResult: TrackQCResult = {
+        trackId: uiId,
+        serverId: serverId ?? null,
+        label: this.currentLabel || `Track #${uiId}`,
+        status: "error",
+        totalFrames: 0,
+        errorFrames: [],
+        cleanFramesCount: 0,
+        lastScannedAt: Date.now(),
+        errorMessage: err?.message || "Lỗi tải thông tin frames",
+      };
+      this.trackQCRamCache.set(uiId, errResult);
+      if (this.activeMainTab === "qc" && this.selectedUiId === uiId) {
+        this.scheduleUpdate();
+      }
+      return errResult;
+    } finally {
+      this.pendingTrackQCPreloads.delete(uiId);
+    }
+  }
+
+
+  /**
+   * Helper kích hoạt live auto-update QC sau khi sửa đối tượng thành công
+   */
+  private onBoxModificationSuccess(applyToTrack: boolean = false): void {
+    if (this.selectedUiId !== null) {
+      this.revalidateAndSyncIssue(this.selectedUiId, this.currentFrameNumber, undefined, applyToTrack);
+      CVATBridge.requestEdgeContactsCalculation();
+    }
+  }
+
+  /**
+   * Tự động kiểm tra lại đối tượng sau khi sửa và cập nhật dữ liệu lưu trữ (Live Auto-Update)
+   * Loại bỏ lỗi khỏi danh sách kiểm định ngay khi sửa thành công mà không làm gián đoạn main process của CVAT.
+   */
+  public revalidateAndSyncIssue(
+    uiId: number,
+    frame: number,
+    newBoxPoints?: number[],
+    applyToTrack: boolean = false
+  ): void {
+    try {
+      // 1. Cập nhật bộ nhớ RAM cache của riêng Track ID này (trackQCRamCache)
+      if (this.trackQCRamCache.has(uiId)) {
+        const cached = this.trackQCRamCache.get(uiId)!;
+        if (cached.status === "ready" && cached.trackObjects) {
+          const pointsToUse = newBoxPoints || [
+            this.currentX,
+            this.currentY,
+            this.currentZ,
+            0,
+            0,
+            (this.currentYawDeg * Math.PI) / 180,
+            this.currentL,
+            this.currentW,
+            this.currentH,
+          ];
+
+          if (applyToTrack) {
+            // Khi áp dụng toàn bộ track: cập nhật kích thước cho toàn bộ các frame của track trong RAM cache
+            for (const obj of cached.trackObjects) {
+              obj.l = pointsToUse[6] ?? this.currentL;
+              obj.w = pointsToUse[7] ?? this.currentW;
+              obj.h = pointsToUse[8] ?? this.currentH;
+            }
+          } else {
+            // Cập nhật riêng cho frame được sửa
+            const yaw = pointsToUse[5];
+            const yawDeg = (yaw * 180) / Math.PI;
+            const targetObj = cached.trackObjects.find((o) => o.frame === frame);
+            if (targetObj) {
+              targetObj.x = pointsToUse[0];
+              targetObj.y = pointsToUse[1];
+              targetObj.z = pointsToUse[2];
+              targetObj.yaw = yaw;
+              targetObj.yawDeg = yawDeg;
+              targetObj.l = pointsToUse[6];
+              targetObj.w = pointsToUse[7];
+              targetObj.h = pointsToUse[8];
+            } else {
+              const newObj: QCObjectInstance = {
+                frame,
+                trackId: uiId,
+                label: cached.label || this.currentLabel,
+                group: classifyLabelGroup(cached.label || this.currentLabel, this.qcEngine.getConfig()),
+                x: pointsToUse[0],
+                y: pointsToUse[1],
+                z: pointsToUse[2],
+                yaw,
+                yawDeg,
+                l: pointsToUse[6],
+                w: pointsToUse[7],
+                h: pointsToUse[8],
+              };
+              cached.trackObjects.push(newObj);
+              cached.trackObjects.sort((a, b) => a.frame - b.frame);
+            }
+          }
+
+          // Chạy lại kiểm tra toàn bộ track với đầy đủ ngữ cảnh trackObjects và frameContext
+          const frameGroupMap = new Map<number, QCIssue[]>();
+          for (const obj of cached.trackObjects) {
+            let frameObjs = [obj];
+            if (obj.frame === this.currentFrameNumber && this.frameTracks.length > 0) {
+              frameObjs = this.frameTracks.map((t) => {
+                if (t.uiId === uiId) {
+                  return obj;
+                }
+                return {
+                  frame: this.currentFrameNumber,
+                  trackId: t.uiId,
+                  label: t.label,
+                  group: classifyLabelGroup(t.label, this.qcEngine.getConfig()),
+                  x: t.x,
+                  y: t.y,
+                  z: t.z,
+                  yaw: (t.yawDeg * Math.PI) / 180,
+                  yawDeg: t.yawDeg,
+                  l: t.l,
+                  w: t.w,
+                  h: t.h,
+                };
+              });
+              if (!frameObjs.some((o) => o.trackId === uiId)) {
+                frameObjs.push(obj);
+              }
+            } else if (Array.isArray(this.cachedAllJobObjects) && this.cachedAllJobObjects.length > 0) {
+              const fromAll = this.cachedAllJobObjects.filter((o) => o.frame === obj.frame);
+              if (fromAll.length > 0) {
+                frameObjs = fromAll.map((o) => (o.trackId === uiId ? obj : o));
+                if (!frameObjs.some((o) => o.trackId === uiId)) {
+                  frameObjs.push(obj);
+                }
+              }
+            }
+
+            const summary = this.qcEngine.checkSingleObject(obj, cached.trackObjects, frameObjs);
+            if (summary.issues.length > 0) {
+              frameGroupMap.set(obj.frame, summary.issues);
+            }
+          }
+
+          const hadIssueBeforeThisFrame = cached.errorFrames.some((ef) => ef.frame === frame);
+          const newErrorFrames: FrameIssueGroup[] = [];
+          for (const [f, issues] of frameGroupMap.entries()) {
+            const actionableIssues = issues.filter(
+              (iss) => iss.severity === "error" || iss.severity === "warning"
+            );
+            if (actionableIssues.length > 0) {
+              const hasError = actionableIssues.some((iss) => iss.severity === "error");
+              newErrorFrames.push({
+                frame: f,
+                issues: actionableIssues,
+                topSeverity: hasError ? "error" : "warning",
+              });
+            }
+          }
+          newErrorFrames.sort((a, b) => a.frame - b.frame);
+
+          const hasIssueNowThisFrame = newErrorFrames.some((ef) => ef.frame === frame);
+          cached.errorFrames = newErrorFrames;
+          cached.totalFrames = cached.trackObjects.length;
+          cached.cleanFramesCount = Math.max(0, cached.totalFrames - cached.errorFrames.length);
+          cached.lastScannedAt = Date.now();
+
+          if (hadIssueBeforeThisFrame && !hasIssueNowThisFrame) {
+            this.showToast(`✓ Đã sửa đạt chuẩn! Frame #${frame} đã được xóa khỏi danh sách lỗi.`, "success");
+          }
+
+          if (this.activeMainTab === "qc") {
+            this.scheduleUpdate();
+          }
+
+          // 1b. Khắc phục Cross-Track Cache Stale:
+          // Nếu có track khác trong RAM cache đang ghi nhận lỗi overlap với uiId, tự động revalidate để xóa sạch lỗi cho cả 2 track
+          for (const [otherUiId, otherCached] of this.trackQCRamCache.entries()) {
+            if (otherUiId === uiId || otherCached.status !== "ready" || !otherCached.trackObjects) continue;
+
+            const hasRelatedOverlap = otherCached.errorFrames.some((ef) =>
+              ef.issues.some((iss) => iss.check === "overlap" && (iss as any).otherTrackId === uiId)
+            );
+
+            if (hasRelatedOverlap) {
+              const otherFrameGroupMap = new Map<number, QCIssue[]>();
+              for (const otherObj of otherCached.trackObjects) {
+                let otherFrameObjs = [otherObj];
+                if (otherObj.frame === this.currentFrameNumber && this.frameTracks.length > 0) {
+                  otherFrameObjs = this.frameTracks.map((t) => {
+                    if (t.uiId === uiId) {
+                      return (
+                        cached.trackObjects.find((o) => o.frame === this.currentFrameNumber) || {
+                          frame: this.currentFrameNumber,
+                          trackId: uiId,
+                          label: cached.label || this.currentLabel,
+                          group: classifyLabelGroup(cached.label || this.currentLabel, this.qcEngine.getConfig()),
+                          x: pointsToUse[0],
+                          y: pointsToUse[1],
+                          z: pointsToUse[2],
+                          yaw: pointsToUse[5],
+                          yawDeg: (pointsToUse[5] * 180) / Math.PI,
+                          l: pointsToUse[6],
+                          w: pointsToUse[7],
+                          h: pointsToUse[8],
+                        }
+                      );
+                    }
+                    if (t.uiId === otherUiId) return otherObj;
+                    return {
+                      frame: this.currentFrameNumber,
+                      trackId: t.uiId,
+                      label: t.label,
+                      group: classifyLabelGroup(t.label, this.qcEngine.getConfig()),
+                      x: t.x,
+                      y: t.y,
+                      z: t.z,
+                      yaw: (t.yawDeg * Math.PI) / 180,
+                      yawDeg: t.yawDeg,
+                      l: t.l,
+                      w: t.w,
+                      h: t.h,
+                    };
+                  });
+                  if (!otherFrameObjs.some((o) => o.trackId === otherUiId)) {
+                    otherFrameObjs.push(otherObj);
+                  }
+                } else if (Array.isArray(this.cachedAllJobObjects) && this.cachedAllJobObjects.length > 0) {
+                  const fromAll = this.cachedAllJobObjects.filter((o) => o.frame === otherObj.frame);
+                  if (fromAll.length > 0) {
+                    otherFrameObjs = fromAll.map((o) => {
+                      if (o.trackId === otherUiId) return otherObj;
+                      if (o.trackId === uiId) {
+                        const inCached = cached.trackObjects.find((co) => co.frame === otherObj.frame);
+                        return inCached || o;
+                      }
+                      return o;
+                    });
+                    if (!otherFrameObjs.some((o) => o.trackId === otherUiId)) {
+                      otherFrameObjs.push(otherObj);
+                    }
+                  }
+                }
+
+                const otherSummary = this.qcEngine.checkSingleObject(otherObj, otherCached.trackObjects, otherFrameObjs);
+                if (otherSummary.issues.length > 0) {
+                  otherFrameGroupMap.set(otherObj.frame, otherSummary.issues);
+                }
+              }
+
+              const newOtherErrorFrames: FrameIssueGroup[] = [];
+              for (const [f, issues] of otherFrameGroupMap.entries()) {
+                const actionableIssues = issues.filter(
+                  (iss) => iss.severity === "error" || iss.severity === "warning"
+                );
+                if (actionableIssues.length > 0) {
+                  const hasError = actionableIssues.some((iss) => iss.severity === "error");
+                  newOtherErrorFrames.push({
+                    frame: f,
+                    issues: actionableIssues,
+                    topSeverity: hasError ? "error" : "warning",
+                  });
+                }
+              }
+              newOtherErrorFrames.sort((a, b) => a.frame - b.frame);
+              otherCached.errorFrames = newOtherErrorFrames;
+              otherCached.cleanFramesCount = Math.max(0, otherCached.totalFrames - otherCached.errorFrames.length);
+              otherCached.lastScannedAt = Date.now();
+            }
+          }
+        }
+      }
+
+    } catch (e) {
+      console.warn("[FloatingPanel] Lỗi live revalidate:", e);
+    }
   }
 
   private updateContent(): void {
@@ -2636,6 +3769,10 @@ export class FloatingPanel {
       this.currentActiveView,
       this.pointColorMode,
       this.colorizeBoxedPoints,
+      this.canvasTheme,
+      this.selectedUiId ? this.trackQCRamCache.get(this.selectedUiId)?.status : "",
+      this.selectedUiId ? this.trackQCRamCache.get(this.selectedUiId)?.errorFrames.length : 0,
+      this.selectedUiId ? this.trackQCRamCache.get(this.selectedUiId)?.lastScannedAt : 0,
     ].join("|");
 
     if (stateHash === this.lastRenderedHash && this.container.children.length > 0) {
@@ -2809,8 +3946,8 @@ export class FloatingPanel {
                 <span>Dốc Side (Pitch)</span>
               </span>
               <div style="display: flex; gap: 3px;">
-                <button class="btn-micro-pitch" data-delta="-1" style="flex: 1; background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer;">-1°</button>
-                <button class="btn-micro-pitch" data-delta="1" style="flex: 1; background: #f0f9ff; border: 1px solid #bae6fd; color: #0284c7; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer; font-weight: 600;">+1°</button>
+                <button class="btn-micro-pitch" data-delta="-1" title="Vi chỉnh dốc Side -1° (Phím .)" style="flex: 1; background: #f8fafc; border: 1px solid #cbd5e1; color: #334155; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer;">-1° [ . ]</button>
+                <button class="btn-micro-pitch" data-delta="1" title="Vi chỉnh dốc Side +1° (Phím /)" style="flex: 1; background: #f0f9ff; border: 1px solid #bae6fd; color: #0284c7; font-size: 9px; padding: 3px 0; border-radius: 4px; cursor: pointer; font-weight: 600;">+1° [ / ]</button>
               </div>
             </div>
 
@@ -2887,6 +4024,11 @@ export class FloatingPanel {
       `;
     }
 
+    const hasUndo = this.undoStack.length > 0;
+    const hasRedo = this.redoStack.length > 0;
+    const lastUndoAction = hasUndo ? this.undoStack[this.undoStack.length - 1].actionName : "";
+    const lastRedoAction = hasRedo ? this.redoStack[this.redoStack.length - 1].actionName : "";
+
     this.container.innerHTML = `
       <!-- HEADER CHUẨN SHADCN (LIGHT) -->
       <div id="floating-drag-header" style="
@@ -2930,11 +4072,12 @@ export class FloatingPanel {
         </div>
 
         <div style="display: flex; align-items: center; gap: 3px;">
-          <button id="floating-btn-undo" title="Hoàn tác thao tác vừa thực hiện (Ctrl+Z / Cmd+Z)" style="
+          <button id="floating-btn-undo" title="${hasUndo ? `Hoàn tác: ${lastUndoAction} (Ctrl+Z / Cmd+Z)` : 'Không có thao tác nào để hoàn tác (Ctrl+Z)'}" style="
             background: #ffffff;
             border: 1px solid #e2e8f0;
             color: #0f172a;
-            cursor: pointer;
+            cursor: ${hasUndo ? 'pointer' : 'not-allowed'};
+            opacity: ${hasUndo ? '1' : '0.35'};
             padding: 3px 6px;
             border-radius: 4px;
             display: flex;
@@ -2947,6 +4090,25 @@ export class FloatingPanel {
           ">
             <span style="display: flex; align-items: center;">${ICONS.undo}</span>
             <span>Pre</span>
+          </button>
+          <button id="floating-btn-redo" title="${hasRedo ? `Làm lại: ${lastRedoAction} (Ctrl+Y / Ctrl+Shift+Z)` : 'Không có thao tác nào để làm lại (Ctrl+Y / Ctrl+Shift+Z)'}" style="
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #0f172a;
+            cursor: ${hasRedo ? 'pointer' : 'not-allowed'};
+            opacity: ${hasRedo ? '1' : '0.35'};
+            padding: 3px 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            transition: all 0.12s;
+          ">
+            <span style="display: flex; align-items: center;">${ICONS.redo}</span>
+            <span>Redo</span>
           </button>
           <button id="floating-btn-fullscreen" title="Mở Rộng Toàn Màn Hình · Duyệt Toàn Bộ Track ID (Shift+M)" style="
             background: #eff6ff;
@@ -3173,6 +4335,25 @@ export class FloatingPanel {
             </div>
 
             <div style="display: flex; align-items: center; gap: 4px;">
+              <!-- NÚT TOGGLE THEME CANVAS: NỀN TRẮNG / NỀN TỐI -->
+              <button id="btn-toggle-canvas-theme" title="Chuyển đổi giữa Canvas Nền Trắng (Mây điểm Đen) và Canvas Nền Tối (Mây điểm Sáng)" style="
+                background: ${this.canvasTheme === "light" ? "#f8fafc" : "#1e293b"};
+                border: 1px solid ${this.canvasTheme === "light" ? "#cbd5e1" : "#475569"};
+                color: ${this.canvasTheme === "light" ? "#0f172a" : "#f8fafc"};
+                padding: 3px 7px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 10px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 3px;
+                transition: all 0.12s;
+              ">
+                <span style="display: flex; align-items: center;">${this.canvasTheme === "light" ? ICONS.sun : ICONS.moon}</span>
+                <span>${this.canvasTheme === "light" ? "Nền Trắng" : "Nền Tối"}</span>
+              </button>
+
               <!-- NÚT CHUYỂN ĐỔI CHẾ ĐỘ MÀU: INTENSITY VS PLAIN -->
               <button id="btn-toggle-point-color-mode" title="Chuyển đổi giữa chế độ Độ phản xạ (Intensity - Soi vạch sơn, biển báo) và Màu phẳng không xét intensity (Plain - Rõ khối 3D)" style="
                 background: ${this.pointColorMode === "intensity" ? "#eff6ff" : "#ffffff"};
@@ -3188,7 +4369,9 @@ export class FloatingPanel {
                 gap: 3px;
                 transition: all 0.12s;
               ">
-                <span>${this.pointColorMode === "intensity" ? "⚡ Intensity" : "⚪ Plain"}</span>
+                <span style="display: flex; align-items: center; gap: 3px;">
+                  ${this.pointColorMode === "intensity" ? `${ICONS.zap} Intensity` : `${ICONS.sun} Plain`}
+                </span>
               </button>
 
               <!-- NÚT TOGGLE NHUỘM MÀU XE BỌC -->
@@ -3209,11 +4392,11 @@ export class FloatingPanel {
                 <span>📦 Xe bọc: ${this.colorizeBoxedPoints ? "BẬT" : "TẮT"}</span>
               </button>
 
-              <!-- NÚT TOGGLE MẶT SÀN POLYGON 3D MỜ (MẶT ĐƯỜNG & VỈA HÈ) -->
-              <button id="btn-toggle-ground-plane" title="Bật/Tắt hiển thị Mặt Sàn Polygon 3D Mờ (Mặt đường & Vỉa hè) giúp annotator dễ thấy đáy xe có chạm sàn" style="
-                background: ${this.groundPlaneVisible ? "#f0fdf4" : "#ffffff"};
-                border: 1px solid ${this.groundPlaneVisible ? "#86efac" : "#cbd5e1"};
-                color: ${this.groundPlaneVisible ? "#15803d" : "#64748b"};
+              <!-- NÚT CHUYỂN ĐỔI KÍCH THƯỚC POINT CLOUD (2.0px / 3.5px / 5.0px) -->
+              <button id="btn-toggle-ortho-point-size" title="Kích thước hạt điểm mây LiDAR trên 3 khung nhìn trực giao 2D Top/Side/Front (2.0px ➔ 3.5px ➔ 5.0px)" style="
+                background: #f0f9ff;
+                border: 1px solid #bae6fd;
+                color: #0369a1;
                 padding: 3px 7px;
                 border-radius: 5px;
                 cursor: pointer;
@@ -3224,7 +4407,8 @@ export class FloatingPanel {
                 gap: 3px;
                 transition: all 0.12s;
               ">
-                <span>🛣️ Sàn: ${this.groundPlaneVisible ? "BẬT" : "TẮT"}</span>
+                <span style="display: flex; align-items: center; color: #0284c7;">${ICONS.target}</span>
+                <span>Điểm: ${this.orthoPointSize.toFixed(1)}px</span>
               </button>
             </div>
           </div>
@@ -3352,20 +4536,61 @@ export class FloatingPanel {
               border: 1px solid #e2e8f0;
             ">
               <span style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase;">Loại đối tượng:</span>
-              <div style="
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                padding: 2px 8px;
-                border-radius: 5px;
-                font-size: 11px;
-                font-weight: 700;
-                background: ${this.selectedCategory === "car" ? "#ecfdf5" : this.selectedCategory === "pedestrian" ? "#faf5ff" : "#fffbeb"};
-                border: 1px solid ${this.selectedCategory === "car" ? "#a7f3d0" : this.selectedCategory === "pedestrian" ? "#d8b4fe" : "#fcd34d"};
-                color: ${this.selectedCategory === "car" ? "#047857" : this.selectedCategory === "pedestrian" ? "#6b21a8" : "#b45309"};
-              ">
-                <span style="display: flex; align-items: center;">${this.selectedCategory === "car" ? ICONS.car : this.selectedCategory === "pedestrian" ? ICONS.user : ICONS.bicycle}</span>
-                <span>${this.selectedCategory === "car" ? "Ô tô / Xe cơ giới" : this.selectedCategory === "pedestrian" ? "Người đi bộ" : "Xe 2 bánh (Cyclist)"}</span>
+              <div style="display: inline-flex; align-items: center; gap: 3px; background: #e2e8f0; padding: 2px; border-radius: 6px;">
+                <button type="button" class="btn-category-chip" data-cat="car" title="Chế độ Ô tô / Xe cơ giới (Catalog xe chuẩn - Phím B)" style="
+                  border: ${this.selectedCategory === "car" ? "1px solid #a7f3d0" : "1px solid transparent"};
+                  background: ${this.selectedCategory === "car" ? "#ecfdf5" : "transparent"};
+                  color: ${this.selectedCategory === "car" ? "#047857" : "#475569"};
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  font-size: 10px;
+                  font-weight: ${this.selectedCategory === "car" ? "700" : "500"};
+                  cursor: pointer;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 3px;
+                  box-shadow: ${this.selectedCategory === "car" ? "0 1px 2px rgba(0,0,0,0.05)" : "none"};
+                  transition: all 0.12s;
+                ">
+                  <span style="display: flex; align-items: center;">${ICONS.car}</span>
+                  <span>Ô tô</span>
+                </button>
+                <button type="button" class="btn-category-chip" data-cat="pedestrian" title="Chế độ Người đi bộ (Fit L, W phím 4, H phím 5)" style="
+                  border: ${this.selectedCategory === "pedestrian" ? "1px solid #d8b4fe" : "1px solid transparent"};
+                  background: ${this.selectedCategory === "pedestrian" ? "#faf5ff" : "transparent"};
+                  color: ${this.selectedCategory === "pedestrian" ? "#6b21a8" : "#475569"};
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  font-size: 10px;
+                  font-weight: ${this.selectedCategory === "pedestrian" ? "700" : "500"};
+                  cursor: pointer;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 3px;
+                  box-shadow: ${this.selectedCategory === "pedestrian" ? "0 1px 2px rgba(0,0,0,0.05)" : "none"};
+                  transition: all 0.12s;
+                ">
+                  <span style="display: flex; align-items: center;">${ICONS.user}</span>
+                  <span>Người</span>
+                </button>
+                <button type="button" class="btn-category-chip" data-cat="cyclist" title="Chế độ Xe 2 bánh (Fit Rộng W phím 4, Fit Cao H phím 5, Khóa L)" style="
+                  border: ${this.selectedCategory === "cyclist" ? "1px solid #fcd34d" : "1px solid transparent"};
+                  background: ${this.selectedCategory === "cyclist" ? "#fffbeb" : "transparent"};
+                  color: ${this.selectedCategory === "cyclist" ? "#b45309" : "#475569"};
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  font-size: 10px;
+                  font-weight: ${this.selectedCategory === "cyclist" ? "700" : "500"};
+                  cursor: pointer;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 3px;
+                  box-shadow: ${this.selectedCategory === "cyclist" ? "0 1px 2px rgba(0,0,0,0.05)" : "none"};
+                  transition: all 0.12s;
+                ">
+                  <span style="display: flex; align-items: center;">${ICONS.bicycle}</span>
+                  <span>Xe 2 bánh</span>
+                </button>
               </div>
             </div>
 
@@ -3405,6 +4630,24 @@ export class FloatingPanel {
           flex-direction: column;
           gap: 6px;
         ">
+          <!-- DẢI BADGE CẢNH BÁO VIỀN CHẠM POINT TRỰC TIẾP (TOP - SIDE - FRONT HUD) -->
+          <div style="
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 3px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 3px 4px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+          ">
+            ${this.renderEdgeContactBadge("Trước (X+)", this.edgeContacts?.front)}
+            ${this.renderEdgeContactBadge("Sau (X-)", this.edgeContacts?.rear)}
+            ${this.renderEdgeContactBadge("Trái (Y+)", this.edgeContacts?.left)}
+            ${this.renderEdgeContactBadge("Phải (Y-)", this.edgeContacts?.right)}
+            ${this.renderEdgeContactBadge("Nóc (Z+)", this.edgeContacts?.roof)}
+          </div>
+
           ${
             this.selectedCategory === "car"
               ? `
@@ -3483,65 +4726,6 @@ export class FloatingPanel {
                   <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #f3e8ff; color: #7e22ce;">3</kbd>
                 </div>
                 <span style="font-size: 9px; opacity: 0.9; text-align: center; white-space: nowrap;">Sườn xe W</span>
-              </button>
-            </div>
-
-            <!-- THANH 2 NÚT TÁCH BIỆT CHO CAR: FIT RỘNG (W) & FIT CAO (H GROUND-LOCK) -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-              <!-- 1. NÚT FIT RỘNG W -->
-              <button id="btn-fit-car-w" title="Tự động đo mây điểm và fit riêng chiều rộng W (bám khít 2 sườn xe +8cm đệm), giữ nguyên L, H và Z (Phím 4)" style="
-                background: #faf5ff;
-                border: 1px solid #d8b4fe;
-                color: #7e22ce;
-                padding: 6px 8px;
-                border-radius: 7px;
-                font-size: 10px;
-                font-weight: 600;
-                cursor: pointer;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 2px;
-                transition: all 0.12s;
-                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-              ">
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                  <span style="display: flex; align-items: center; gap: 4px; font-weight: 700;">
-                    ${ICONS.sparkles}
-                    <span>Fit Rộng (W)</span>
-                  </span>
-                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #e9d5ff; color: #7e22ce;">4</kbd>
-                </div>
-                <span style="font-size: 8.5px; opacity: 0.85;">+8cm đệm vỏ</span>
-              </button>
-
-              <!-- 2. NÚT FIT CAO H -->
-              <button id="btn-fit-car-h" title="Tự động đo mây điểm nóc xe và fit riêng chiều cao H (Mặt đáy tiếp đất bám sàn cố định tại groundZ, nở lên nóc xe +5cm), giữ nguyên L, W và XY (Phím 5)" style="
-                background: #fff7ed;
-                border: 1px solid #fdba74;
-                color: #c2410c;
-                padding: 6px 8px;
-                border-radius: 7px;
-                font-size: 10px;
-                font-weight: 600;
-                cursor: pointer;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 2px;
-                transition: all 0.12s;
-                box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-              ">
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                  <span style="display: flex; align-items: center; gap: 4px; font-weight: 700;">
-                    ${ICONS.arrowUpDown}
-                    <span>Fit Cao (H)</span>
-                  </span>
-                  <kbd style="font-size: 8.5px; font-family: monospace; background: #ffffff; padding: 1px 4px; border-radius: 3px; border: 1px solid #fed7aa; color: #c2410c;">5</kbd>
-                </div>
-                <span style="font-size: 8.5px; opacity: 0.85;">Ground-Lock nở nóc</span>
               </button>
             </div>
           `
@@ -3848,9 +5032,6 @@ export class FloatingPanel {
                 </span>
                 <kbd style="font-size: 8px; font-family: monospace; background: #ffffff; padding: 1px 3px; border-radius: 3px; border: 1px solid #fed7aa; color: #c2410c;">5</kbd>
               </button>
-                <span style="display: flex; align-items: center; color: #ea580c;">${ICONS.arrowUpDown}</span>
-                <span>Fit Cao (H)</span>
-              </button>
             </div>
 
             <!-- NÚT FIT TOÀN DIỆN CHO NGƯỜI ĐI BỘ (1-CHẠM CHU TRÌNH HOÀN CHỈNH) -->
@@ -3952,6 +5133,124 @@ export class FloatingPanel {
               <span style="display: flex; align-items: center; gap: 4px;">
                 <span style="font-size: 9px; background: #dcfce7; color: #15803d; padding: 1px 6px; border-radius: 4px; font-weight: 700; border: 1px solid #bbf7d0;">All Track</span>
               </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KHỐI 2.5: LÁT CẮT & LỌC 3 KHUNG NHÌN TRỰC GIAO (TOP, SIDE, FRONT) -->
+        <div style="
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+          padding: 8px 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        ">
+          <!-- HEADER LÁT CẮT & TOGGLE BẬT/TẮT CHÍNH -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px solid #f1f5f9;">
+            <span style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; display: flex; align-items: center; gap: 4px;">
+              <span style="color: #6366f1; display: flex; align-items: center;">${ICONS.scissors}</span>
+              <span>Lát cắt & Lọc trực giao:</span>
+            </span>
+            <button id="btn-toggle-ortho-slicing" title="Bật/Tắt Lát cắt mỏng trên Side & Front views (GPU Hardware Clipping 60 FPS)" style="
+              background: ${this.orthoSlicing.enabled ? '#eef2ff' : '#f8fafc'};
+              border: 1px solid ${this.orthoSlicing.enabled ? '#c7d2fe' : '#e2e8f0'};
+              color: ${this.orthoSlicing.enabled ? '#4338ca' : '#64748b'};
+              padding: 2px 7px;
+              border-radius: 5px;
+              cursor: pointer;
+              font-size: 9.5px;
+              font-weight: 700;
+              display: flex;
+              align-items: center;
+              gap: 4px;
+              transition: all 0.12s;
+            ">
+              <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: ${this.orthoSlicing.enabled ? '#4f46e5' : '#94a3b8'};"></span>
+              <span>${this.orthoSlicing.enabled ? 'Đang BẬT' : 'Đang TẮT'}</span>
+            </button>
+          </div>
+
+          <!-- THANH ĐIỀU KHIỂN ĐỘ DÀY SLAB & CÁC BỘ LỌC ĐẤT/ROI -->
+          <div style="display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 5px;">
+            <!-- STEPPER ĐỘ DÀY LÁT CẮT (SLAB) -->
+            <div style="
+              background: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 6px;
+              padding: 3px 6px;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            " title="Độ dày lát cắt Side/Front (m)">
+              <button id="btn-slab-minus" style="
+                background: #ffffff;
+                border: 1px solid #cbd5e1;
+                border-radius: 4px;
+                width: 18px;
+                height: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                color: #475569;
+                padding: 0;
+              ">${ICONS.minus}</button>
+              <span style="font-size: 10px; font-weight: 700; color: #1e293b; font-family: monospace;">±${this.orthoSlicing.slab}m</span>
+              <button id="btn-slab-plus" style="
+                background: #ffffff;
+                border: 1px solid #cbd5e1;
+                border-radius: 4px;
+                width: 18px;
+                height: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                color: #475569;
+                padding: 0;
+              ">${ICONS.plus}</button>
+            </div>
+
+            <!-- TOGGLE TẮT MẶT ĐẤT TOP VIEW -->
+            <button id="btn-toggle-hide-ground" title="Top View: Cắt mây điểm mặt đất cao hơn đáy xe +12cm để nhìn rõ viền xe" style="
+              background: ${this.orthoSlicing.hideGround ? '#f0fdf4' : '#ffffff'};
+              border: 1px solid ${this.orthoSlicing.hideGround ? '#86efac' : '#e2e8f0'};
+              color: ${this.orthoSlicing.hideGround ? '#15803d' : '#64748b'};
+              padding: 3px 5px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 10px;
+              font-weight: 600;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 4px;
+              transition: all 0.12s;
+            ">
+              <span style="display: flex; align-items: center;">${ICONS.mountain}</span>
+              <span>Tắt Đất</span>
+            </button>
+
+            <!-- TOGGLE KHÓA VÙNG ROI XUNG QUANH -->
+            <button id="btn-toggle-isolate-roi" title="Xóa cây cối, nhà cửa ngoài vùng ±1.0m quanh xe trên 3 view trực giao" style="
+              background: ${this.orthoSlicing.isolateROI ? '#eff6ff' : '#ffffff'};
+              border: 1px solid ${this.orthoSlicing.isolateROI ? '#93c5fd' : '#e2e8f0'};
+              color: ${this.orthoSlicing.isolateROI ? '#1d4ed8' : '#64748b'};
+              padding: 3px 5px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 10px;
+              font-weight: 600;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 4px;
+              transition: all 0.12s;
+            ">
+              <span style="display: flex; align-items: center;">${ICONS.focus}</span>
+              <span>Khóa ROI</span>
             </button>
           </div>
         </div>
@@ -4195,24 +5494,6 @@ export class FloatingPanel {
                 font-weight: 600;
               ">Áp dụng</button>
             </span>
-
-            <button id="btn-apply-dimensions" style="
-              background: #0f172a;
-              border: 1px solid #0f172a;
-              color: #ffffff;
-              padding: 4px 10px;
-              border-radius: 5px;
-              font-size: 10px;
-              font-weight: 600;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              gap: 4px;
-              transition: background 0.12s;
-            ">
-              ${ICONS.save}
-              <span>Lưu</span>
-            </button>
           </div>
         </div>
 
@@ -4311,9 +5592,13 @@ export class FloatingPanel {
 
     const tabQcBtn = this.container.querySelector("#main-tab-qc");
     if (tabQcBtn) {
-      tabQcBtn.addEventListener("click", () => {
+      tabQcBtn.addEventListener("click", async () => {
         if (this.activeMainTab !== "qc") {
           this.activeMainTab = "qc";
+          if (this.selectedUiId !== null) {
+            await this.syncFrameTracks();
+            this.preloadTrackQCInBackground(this.selectedUiId, this.selectedServerId, true);
+          }
           this.updateContent();
         }
       });
@@ -4328,6 +5613,65 @@ export class FloatingPanel {
         }
       });
     }
+
+
+    // Nút thử lại tải QC theo Track ID nếu gặp sự cố mạng/bridge
+    const retryTrackQcBtn = this.container.querySelector<HTMLButtonElement>("#btn-retry-track-qc");
+    if (retryTrackQcBtn && this.selectedUiId !== null) {
+      retryTrackQcBtn.addEventListener("click", async () => {
+        if (this.selectedUiId !== null) {
+          this.trackQCRamCache.delete(this.selectedUiId);
+          await this.syncFrameTracks();
+          await this.preloadTrackQCInBackground(this.selectedUiId, this.selectedServerId, true);
+          this.updateContent();
+        }
+      });
+    }
+
+    // Nút quét lại toàn bộ frames của Track ID vào RAM (Refresh Track QC)
+    const refreshTrackQcBtn = this.container.querySelector<HTMLButtonElement>("#btn-refresh-track-qc");
+    if (refreshTrackQcBtn && this.selectedUiId !== null) {
+      refreshTrackQcBtn.addEventListener("click", async () => {
+        if (this.selectedUiId !== null) {
+          this.showToast(`Đang quét lại QC cho Track #${this.selectedUiId}...`, "info");
+          // 1. Xóa cache cũ của track này để ép nạp mới hoàn toàn
+          this.trackQCRamCache.delete(this.selectedUiId);
+          // 2. Đồng bộ lại danh sách và tọa độ live của tất cả các box trong frame hiện tại từ Canvas/Redux
+          await this.syncFrameTracks();
+          // 3. Cập nhật lại các biến hiển thị nếu track này vẫn còn trong frameTracks
+          const currentTrack = this.frameTracks.find((t) => t.uiId === this.selectedUiId);
+          if (currentTrack) {
+            this.currentX = currentTrack.x;
+            this.currentY = currentTrack.y;
+            this.currentZ = currentTrack.z;
+            this.currentYawDeg = currentTrack.yawDeg;
+            this.currentL = currentTrack.l;
+            this.currentW = currentTrack.w;
+            this.currentH = currentTrack.h;
+          }
+          // 4. Chạy lại QC ngầm cho Track ID này với đầy đủ ngữ cảnh các xe khác trong frame
+          await this.preloadTrackQCInBackground(this.selectedUiId, this.selectedServerId, true);
+          this.updateContent();
+        }
+      });
+    }
+
+    // Gắn sự kiện click vào từng dòng cảnh báo & lỗi để tua Timeline và chuyển góc nhìn đến đối tượng đó luôn
+    const issueCards = this.container.querySelectorAll<HTMLElement>(".btn-jump-to-qc-issue");
+    issueCards.forEach((card) => {
+      card.addEventListener("click", () => {
+        const fStr = card.dataset.frame;
+        const tStr = card.dataset.trackId;
+        const title = card.dataset.issueTitle || "";
+        if (fStr !== undefined && tStr !== undefined) {
+          const f = parseInt(fStr, 10);
+          const t = parseInt(tStr, 10);
+          if (!isNaN(f) && !isNaN(t)) {
+            this.jumpToSpecificIssue(f, t, title);
+          }
+        }
+      });
+    });
 
     // 1. Gắn sự kiện chọn nhanh Loại đối tượng (Category Chips)
     const catChips = this.container.querySelectorAll<HTMLButtonElement>(".btn-category-chip");
@@ -4351,13 +5695,6 @@ export class FloatingPanel {
 
     const fitFrontBtn = this.container.querySelector("#btn-fit-front");
     if (fitFrontBtn) fitFrontBtn.addEventListener("click", () => this.handleFitFront());
-
-    // Nút Fit riêng W và H cho Xe Ô tô (Car)
-    const fitCarWBtn = this.container.querySelector("#btn-fit-car-w");
-    if (fitCarWBtn) fitCarWBtn.addEventListener("click", () => this.handleFitWidth());
-
-    const fitCarHBtn = this.container.querySelector("#btn-fit-car-h");
-    if (fitCarHBtn) fitCarHBtn.addEventListener("click", () => this.handleFitHeight());
 
     // Nút Hero 1-Click Smart Fit (dành riêng cho Người Đi Bộ hoặc Xe 2 bánh)
     const heroBtn = this.container.querySelector("#btn-hero-smart-fit");
@@ -4424,6 +5761,22 @@ export class FloatingPanel {
     const quickGroundTrackBtn = this.container.querySelector("#btn-snap-ground-track");
     if (quickGroundTrackBtn) quickGroundTrackBtn.addEventListener("click", () => this.handleSnapGroundTrack());
 
+    // 3.5. Gắn sự kiện Lát cắt (Slicing) & Lọc trực giao (Top, Side, Front)
+    const toggleSlicingBtn = this.container.querySelector("#btn-toggle-ortho-slicing");
+    if (toggleSlicingBtn) toggleSlicingBtn.addEventListener("click", () => this.toggleOrthoSlicing());
+
+    const slabMinusBtn = this.container.querySelector("#btn-slab-minus");
+    if (slabMinusBtn) slabMinusBtn.addEventListener("click", () => this.stepOrthoSlab(-1));
+
+    const slabPlusBtn = this.container.querySelector("#btn-slab-plus");
+    if (slabPlusBtn) slabPlusBtn.addEventListener("click", () => this.stepOrthoSlab(1));
+
+    const hideGroundBtn = this.container.querySelector("#btn-toggle-hide-ground");
+    if (hideGroundBtn) hideGroundBtn.addEventListener("click", () => this.toggleHideGround());
+
+    const isolateRoiBtn = this.container.querySelector("#btn-toggle-isolate-roi");
+    if (isolateRoiBtn) isolateRoiBtn.addEventListener("click", () => this.toggleIsolateROI());
+
     // 4. Gắn sự kiện Mở rộng / Thu gọn Accordion Tinh chỉnh nâng cao
     const toggleAdvancedBtn = this.container.querySelector("#btn-toggle-advanced");
     if (toggleAdvancedBtn) {
@@ -4433,9 +5786,12 @@ export class FloatingPanel {
       });
     }
 
-    // 5. Gắn sự kiện nút Hoàn Tác (Pre), Thu nhỏ & Quét Frame
+    // 5. Gắn sự kiện nút Hoàn Tác (Pre), Làm Lại (Redo), Thu nhỏ & Quét Frame
     const undoBtn = this.container.querySelector("#floating-btn-undo");
     if (undoBtn) undoBtn.addEventListener("click", () => this.handleUndo());
+
+    const redoBtn = this.container.querySelector("#floating-btn-redo");
+    if (redoBtn) redoBtn.addEventListener("click", () => this.handleRedo());
 
     const minBtn = this.container.querySelector("#floating-btn-minimize");
     if (minBtn) minBtn.addEventListener("click", () => this.toggleMinimize());
@@ -4459,6 +5815,11 @@ export class FloatingPanel {
       syncBtn.addEventListener("click", async () => {
         this.showToast("Đang quét lại xe ở frame này...", "info");
         await this.syncFrameTracks();
+        if (this.selectedUiId !== null) {
+          this.trackQCRamCache.delete(this.selectedUiId);
+          await this.preloadTrackQCInBackground(this.selectedUiId, this.selectedServerId, true);
+        }
+        this.updateContent();
       });
     }
 
@@ -4602,6 +5963,23 @@ export class FloatingPanel {
       });
     }
 
+    // 7b2. Gắn sự kiện Chuyển đổi Theme Canvas 3D (Nền Trắng ⇄ Nền Tối)
+    const canvasThemeBtn = this.container.querySelector("#btn-toggle-canvas-theme");
+    if (canvasThemeBtn) {
+      canvasThemeBtn.addEventListener("click", async () => {
+        this.canvasTheme = this.canvasTheme === "light" ? "dark" : "light";
+        localStorage.setItem("cvat_3d_canvas_theme", this.canvasTheme);
+        await CVATBridge.setCanvasTheme(this.canvasTheme);
+        this.showToast(
+          this.canvasTheme === "light"
+            ? "Theme Canvas: Nền Trắng (Mây điểm Đen High-Contrast)"
+            : "Theme Canvas: Nền Tối (Mây điểm Sáng Nguyên bản)",
+          "info"
+        );
+        this.updateContent();
+      });
+    }
+
     // 7c. Gắn sự kiện Chuyển đổi Chế độ màu mây điểm LiDAR (Intensity vs Plain)
     const colorModeBtn = this.container.querySelector("#btn-toggle-point-color-mode");
     if (colorModeBtn) {
@@ -4634,17 +6012,21 @@ export class FloatingPanel {
       });
     }
 
-    // 7e. Gắn sự kiện Bật/Tắt Mặt Sàn Polygon 3D Mờ (Mặt đường & Vỉa hè)
-    const groundPlaneBtn = this.container.querySelector("#btn-toggle-ground-plane");
-    if (groundPlaneBtn) {
-      groundPlaneBtn.addEventListener("click", async () => {
-        this.groundPlaneVisible = !this.groundPlaneVisible;
-        localStorage.setItem("cvat_3d_ground_plane_visible", String(this.groundPlaneVisible));
-        await CVATBridge.setGroundPlaneVisible(this.groundPlaneVisible);
-        this.showToast(
-          `Đã ${this.groundPlaneVisible ? "BẬT" : "TẮT"} mặt sàn polygon mờ (Đường & Vỉa hè)`,
-          this.groundPlaneVisible ? "success" : "info"
-        );
+    // 7e. Gắn sự kiện Chuyển đổi Kích thước Hạt Điểm Mây 2D (Top / Side / Front)
+    const pointSizeBtn = this.container.querySelector("#btn-toggle-ortho-point-size");
+    if (pointSizeBtn) {
+      pointSizeBtn.addEventListener("click", async () => {
+        // Xoay vòng: 2.0px -> 3.5px -> 5.0px -> 2.0px
+        if (this.orthoPointSize < 3.0) {
+          this.orthoPointSize = 3.5;
+        } else if (this.orthoPointSize < 4.5) {
+          this.orthoPointSize = 5.0;
+        } else {
+          this.orthoPointSize = 2.0;
+        }
+        localStorage.setItem("cvat_3d_ortho_point_size", String(this.orthoPointSize));
+        await CVATBridge.setOrthoPointSize(this.orthoPointSize);
+        this.showToast(`Cỡ điểm 2D: ${this.orthoPointSize.toFixed(1)}px`, "info");
         this.updateContent();
       });
     }
@@ -4671,22 +6053,36 @@ export class FloatingPanel {
       });
     });
 
-    // Gắn sự kiện Input trực tiếp (L, W, H)
+    // Gắn sự kiện Input trực tiếp (L, W, H) - Tự động áp dụng Realtime khi đổi số (Enter hoặc blur)
     const inpL = this.container.querySelector<HTMLInputElement>("#input-dim-l");
     const inpW = this.container.querySelector<HTMLInputElement>("#input-dim-w");
     const inpH = this.container.querySelector<HTMLInputElement>("#input-dim-h");
 
-    if (inpL) inpL.addEventListener("change", () => (this.editL = parseFloat(inpL.value) || this.currentL));
-    if (inpW) inpW.addEventListener("change", () => (this.editW = parseFloat(inpW.value) || this.currentW));
-    if (inpH) inpH.addEventListener("change", () => (this.editH = parseFloat(inpH.value) || this.currentH));
-
-    const applyDimBtn = this.container.querySelector("#btn-apply-dimensions");
-    if (applyDimBtn) {
-      applyDimBtn.addEventListener("click", () => {
-        const l = inpL ? parseFloat(inpL.value) : this.editL;
-        const w = inpW ? parseFloat(inpW.value) : this.editW;
-        const h = inpH ? parseFloat(inpH.value) : this.editH;
+    const onDimInputChange = () => {
+      const l = inpL ? parseFloat(inpL.value) || this.currentL : this.currentL;
+      const w = inpW ? parseFloat(inpW.value) || this.currentW : this.currentW;
+      const h = inpH ? parseFloat(inpH.value) || this.currentH : this.currentH;
+      if (l > 0 && w > 0 && h > 0 && (l !== this.currentL || w !== this.currentW || h !== this.currentH)) {
         this.handleUpdateDimensions(l, w, h, this.applyToTrack);
+      }
+    };
+
+    if (inpL) {
+      inpL.addEventListener("change", onDimInputChange);
+      inpL.addEventListener("keydown", (e: KeyboardEvent) => {
+        if (e.key === "Enter") inpL.blur();
+      });
+    }
+    if (inpW) {
+      inpW.addEventListener("change", onDimInputChange);
+      inpW.addEventListener("keydown", (e: KeyboardEvent) => {
+        if (e.key === "Enter") inpW.blur();
+      });
+    }
+    if (inpH) {
+      inpH.addEventListener("change", onDimInputChange);
+      inpH.addEventListener("keydown", (e: KeyboardEvent) => {
+        if (e.key === "Enter") inpH.blur();
       });
     }
 
@@ -4802,7 +6198,7 @@ export class FloatingPanel {
       btn.addEventListener("click", () => {
         const deltaDeg = parseFloat(btn.dataset.delta || "0");
         if (deltaDeg !== 0) {
-          this.handleSnapGround("micro_adjust_pitch", { deltaDeg });
+          this.rotatePitchByDelta(deltaDeg);
         }
       });
     });
@@ -4956,11 +6352,11 @@ export class FloatingPanel {
                 <kbd style="background: #faf5ff; border: 1px solid #e9d5ff; color: #7e22ce; padding: 1px 5px; border-radius: 4px; font-weight: 700;">3</kbd>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Fit Rộng (W) [Mọi đối tượng]</span>
+                <span>Fit Rộng (W) [Người & Xe 2 bánh]</span>
                 <kbd style="background: #faf5ff; border: 1px solid #d8b4fe; color: #7e22ce; padding: 1px 5px; border-radius: 4px; font-weight: 700;">4</kbd>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Fit Cao (H) [Ground-Lock nở nóc]</span>
+                <span>Fit Cao (H) [Người & Xe 2 bánh]</span>
                 <kbd style="background: #fff7ed; border: 1px solid #fdba74; color: #c2410c; padding: 1px 5px; border-radius: 4px; font-weight: 700;">5</kbd>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -5016,6 +6412,10 @@ export class FloatingPanel {
                 <span>Đặt lại Dốc 0° (Reset phẳng hoàn toàn)</span>
                 <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">Alt+R</kbd>
               </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Xoay dốc Side (Pitch) ±1°</span>
+                <div><kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 5px; border-radius: 4px; font-weight: 700;">.</kbd> / <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 5px; border-radius: 4px; font-weight: 700;">/</kbd></div>
+              </div>
               <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 4px; margin-top: 2px;">
                 <span style="font-size: 9.5px; color: #64748b;">Chưa đủ điểm mặt đất</span>
                 <span style="font-size: 9.5px; color: #b45309; font-weight: 600;">Fit cao & góc thẳng theo Ego</span>
@@ -5046,8 +6446,12 @@ export class FloatingPanel {
                 <div><kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">Tab</kbd> / <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px;">X</kbd></div>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Hoàn Tác Thao Tác Vừa Làm (Pre)</span>
+                <span>Hoàn Tác Thao Tác (Undo / Pre)</span>
                 <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Ctrl+Z</kbd>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Làm Lại Thao Tác (Redo)</span>
+                <div><kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Ctrl+Y</kbd> / <kbd style="background: #ffffff; border: 1px solid #cbd5e1; padding: 1px 4px; border-radius: 4px; font-weight: 700;">Shift+Z</kbd></div>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Ẩn / Hiện Toàn Bộ Track</span>

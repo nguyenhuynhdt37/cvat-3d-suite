@@ -51,8 +51,8 @@ function dualBuildPlugin() {
         fs.writeFileSync(path.join(extensionDir, "content.js"), bundleCode, "utf-8");
         console.log("✅ Đã xuất Chrome Extension (world: MAIN): dist/extension/");
 
-        // 3. Tự động reload các tab chrome://extensions/ trên Google Chrome
-        await reloadChromeExtensions();
+        // 3. Tự động reload các tab chrome://extensions/ và tab CVAT trên Google Chrome
+        await reloadChromeExtensions({ reloadCVAT: true });
       }
     },
   };

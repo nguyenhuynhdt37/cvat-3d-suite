@@ -240,9 +240,6 @@ export function renderDay14WireframeOnContext(
 
   const cornersLidar = d14BoxCorners(box.c, box.r, box.s);
 
-  // Debug: Log tóm tắt projection pipeline
-  console.log(`[Day14 Proj] cam=${cameraName}, pos=[${box.c.map(v => v.toFixed(2))}], rot=[${box.r.map(v => v.toFixed(3))}], scale=[${box.s.map(v => v.toFixed(2))}]`);
-
   // Chuyển 8 đỉnh sang hệ camera: lidar → ego → cam
   const cornersCam = cornersLidar.map((p) => {
     const ego = storedVinCalib!.pcd_frame === "ego" ? p : d14Transform(p, storedVinCalib!.lidar.sensor2ego);
@@ -262,7 +259,6 @@ export function renderDay14WireframeOnContext(
   });
 
   const inImage = projected.filter((q) => q.valid && q.u >= 0 && q.u < W && q.v >= 0 && q.v < H).length;
-  console.log(`[Day14 Proj] → inImage=${inImage}/8, pixel[0]=(${projected[0].u.toFixed(0)}, ${projected[0].v.toFixed(0)})`);
   if (inImage === 0) return false;
 
   // Vẽ 12 cạnh
@@ -733,6 +729,16 @@ export class CameraOverlayManager {
     if (this.container) {
       this.container.style.display = "flex";
     }
+  }
+
+  /**
+   * Kiểm tra xem HUD Camera có đang hiển thị trên màn hình hay không
+   */
+  public isVisible(): boolean {
+    if (!this.container || !this.container.isConnected) return false;
+    if (this.container.style.display === "none") return false;
+    if (this.isCollapsed) return false;
+    return true;
   }
 
   /**
