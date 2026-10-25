@@ -73,7 +73,7 @@ function float32ToPointObjects(arr: Float32Array): Array<{ x: number; y: number;
 }
 
 const VIEW_NAMES: Record<ViewType, string> = { top: 'Top', side: 'Side', front: 'Front' };
-const BIG = { fullScene: true, sceneSpan: 40, slab: 3 };
+const BIG = { fullScene: true, sceneSpan: 40, slab: 3, hideGround: undefined as boolean | undefined };
 
 export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: number): Case2Mount {
   const store = app.store!;
@@ -117,6 +117,7 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
     imgLoaded: boolean;
   }>();
   let crops = new Map<number, { arr: Float32Array; center: number[] }>();
+  let isDragging = false;
   let observer: IntersectionObserver | null = null;
   let cameraNames: string[] = [];
 
@@ -348,7 +349,7 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
     if (!pos) return null;
     const c = pos.box.c;
     const old = crops.get(frame);
-    if (old && Math.hypot(old.center[0] - c[0], old.center[1] - c[1], old.center[2] - c[2]) < 1.5) {
+    if (old && (isDragging || Math.hypot(old.center[0] - c[0], old.center[1] - c[1], old.center[2] - c[2]) < 2.5)) {
       return old.arr;
     }
     const ref = settings.refSize;
@@ -625,7 +626,10 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
       const pos = track.at(frame);
       return pos ? { box: pos.box, keyframe: pos.keyframe, outside: pos.outside } : null;
     },
-    onEditStart: () => app.snapshot([Number(track.id)]),
+    onEditStart: () => {
+      isDragging = true;
+      app.snapshot([Number(track.id)]);
+    },
     onEdit: (frame: number, box: Box3D) => {
       track.setBox(frame, box);
       rows.get(frame)?.refresh();
@@ -633,11 +637,15 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
       renderAll();
     },
     onEditEnd: async (frame: number, startBox: Box3D, endBox: Box3D) => {
+      isDragging = false;
       const sizeChanged = endBox.s.some((v, i) => Math.abs(v - startBox.s[i]) > 1e-6);
       if (S.syncSize && sizeChanged) await syncSize(frame, endBox.s);
       afterEdit();
     },
-    onEditCancel: () => app.dropLastSnapshot(),
+    onEditCancel: () => {
+      isDragging = false;
+      app.dropLastSnapshot();
+    },
   };
 
   // ---------- Row building ----------
@@ -860,7 +868,7 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
     const applyScene = (): void => {
       bigSettings.sceneSpan = BIG.fullScene ? BIG.sceneSpan : 0;
       bigSettings.topAll = BIG.fullScene;
-      bigSettings.hideGround = BIG.fullScene ? false : settings.hideGround;
+      bigSettings.hideGround = BIG.hideGround !== undefined ? BIG.hideGround : settings.hideGround;
       bigSettings.slab = BIG.fullScene ? BIG.slab : settings.slab;
     };
     applyScene();
@@ -869,8 +877,33 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
       wrap: bwrap,
       scroller: inner,
       settings: bigSettings,
-      ...editCallbacks,
       getCloud: (f: number) => (BIG.fullScene ? frameData.clouds.get(f) || null : getCloud(f)),
+      getBox: editCallbacks.getBox,
+      onEditStart: () => {
+        isDragging = true;
+        app.snapshot([Number(track.id)]);
+      },
+      onEdit: (f: number, box: Box3D) => {
+        track.setBox(f, box);
+        // Isolated Drag Mode: Khi kéo trong modal Big View, chỉ render duy nhất Big View!
+        big.requestRender();
+      },
+      onEditEnd: async (f: number, startBox: Box3D, endBox: Box3D) => {
+        isDragging = false;
+        rows.get(f)?.refresh();
+        select(f);
+        renderAll();
+        const sizeChanged = endBox.s.some((v, i) => Math.abs(v - startBox.s[i]) > 1e-6);
+        if (S.syncSize && sizeChanged) await syncSize(f, endBox.s);
+        afterEdit();
+      },
+      onEditCancel: () => {
+        isDragging = false;
+        rows.get(cell.frame)?.refresh();
+        select(cell.frame);
+        renderAll();
+        app.dropLastSnapshot();
+      },
       onZoom: () => updateBar(),
     });
     extraGrids.add(big);
@@ -942,6 +975,20 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
             },
           }),
           'Toàn cảnh'
+        ),
+        h(
+          'label',
+          { title: 'Top: ẩn mặt đất (chỉ hiện điểm cao hơn đáy box 12cm)' },
+          h('input', {
+            type: 'checkbox',
+            checked: BIG.hideGround !== undefined ? BIG.hideGround : settings.hideGround,
+            onchange: (e: Event) => {
+              BIG.hideGround = (e.target as HTMLInputElement).checked;
+              applyScene();
+              big.requestRender();
+            },
+          }),
+          'Tắt đất (Top)'
         ),
         h(
           'label',

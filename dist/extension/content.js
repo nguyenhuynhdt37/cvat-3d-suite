@@ -5298,10 +5298,196 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     } catch (_) {
     }
+    class ThreeCompatibleVector3 {
+      constructor(x = 0, y = 0, z = 0) {
+        __publicField(this, "isVector3");
+        __publicField(this, "x");
+        __publicField(this, "y");
+        __publicField(this, "z");
+        this.isVector3 = true;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+      }
+      set(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        return this;
+      }
+      copy(v) {
+        this.x = (v == null ? void 0 : v.x) || 0;
+        this.y = (v == null ? void 0 : v.y) || 0;
+        this.z = (v == null ? void 0 : v.z) || 0;
+        return this;
+      }
+      clone() {
+        return new ThreeCompatibleVector3(this.x, this.y, this.z);
+      }
+      dot(v) {
+        return this.x * ((v == null ? void 0 : v.x) || 0) + this.y * ((v == null ? void 0 : v.y) || 0) + this.z * ((v == null ? void 0 : v.z) || 0);
+      }
+      multiplyScalar(s) {
+        this.x *= s;
+        this.y *= s;
+        this.z *= s;
+        return this;
+      }
+      normalize() {
+        const l = Math.hypot(this.x, this.y, this.z) || 1;
+        this.x /= l;
+        this.y /= l;
+        this.z /= l;
+        return this;
+      }
+      applyMatrix3(m) {
+        const e = m.elements;
+        const x = this.x, y = this.y, z = this.z;
+        this.x = e[0] * x + e[3] * y + e[6] * z;
+        this.y = e[1] * x + e[4] * y + e[7] * z;
+        this.z = e[2] * x + e[5] * y + e[8] * z;
+        return this;
+      }
+      applyMatrix4(m) {
+        const e = m.elements;
+        const x = this.x, y = this.y, z = this.z;
+        const w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
+        this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
+        this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
+        this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
+        return this;
+      }
+      toArray(array = [], offset = 0) {
+        array[offset] = this.x;
+        array[offset + 1] = this.y;
+        array[offset + 2] = this.z;
+        return array;
+      }
+    }
+    class ThreeCompatibleMatrix3 {
+      constructor() {
+        __publicField(this, "isMatrix3", true);
+        __publicField(this, "elements", [1, 0, 0, 0, 1, 0, 0, 0, 1]);
+      }
+      set(n11, n12, n13, n21, n22, n23, n31, n32, n33) {
+        const te = this.elements;
+        te[0] = n11;
+        te[1] = n21;
+        te[2] = n31;
+        te[3] = n12;
+        te[4] = n22;
+        te[5] = n32;
+        te[6] = n13;
+        te[7] = n23;
+        te[8] = n33;
+        return this;
+      }
+      setFromMatrix4(m) {
+        const me = m.elements;
+        return this.set(
+          me[0],
+          me[4],
+          me[8],
+          me[1],
+          me[5],
+          me[9],
+          me[2],
+          me[6],
+          me[10]
+        );
+      }
+      getNormalMatrix(matrix4) {
+        return this.setFromMatrix4(matrix4).invert().transpose();
+      }
+      invert() {
+        const te = this.elements;
+        const m11 = te[0], m21 = te[1], m31 = te[2], m12 = te[3], m22 = te[4], m32 = te[5], m13 = te[6], m23 = te[7], m33 = te[8];
+        const t11 = m33 * m22 - m32 * m23;
+        const t12 = -m33 * m12 + m32 * m13;
+        const t13 = m23 * m12 - m22 * m13;
+        const det = m11 * t11 + m21 * t12 + m31 * t13;
+        if (det === 0) {
+          te[0] = 1;
+          te[1] = 0;
+          te[2] = 0;
+          te[3] = 0;
+          te[4] = 1;
+          te[5] = 0;
+          te[6] = 0;
+          te[7] = 0;
+          te[8] = 1;
+          return this;
+        }
+        const invDet = 1 / det;
+        te[0] = t11 * invDet;
+        te[1] = (-m33 * m21 + m31 * m23) * invDet;
+        te[2] = (m32 * m21 - m31 * m22) * invDet;
+        te[3] = t12 * invDet;
+        te[4] = (m33 * m11 - m31 * m13) * invDet;
+        te[5] = (-m32 * m11 + m31 * m12) * invDet;
+        te[6] = t13 * invDet;
+        te[7] = (-m23 * m11 + m21 * m13) * invDet;
+        te[8] = (m22 * m11 - m21 * m12) * invDet;
+        return this;
+      }
+      transpose() {
+        const te = this.elements;
+        let m = te[1];
+        te[1] = te[3];
+        te[3] = m;
+        m = te[2];
+        te[2] = te[6];
+        te[6] = m;
+        m = te[5];
+        te[5] = te[7];
+        te[7] = m;
+        return this;
+      }
+    }
+    class ThreeCompatiblePlane {
+      constructor(normal, constant = 0) {
+        __publicField(this, "isPlane", true);
+        __publicField(this, "normal");
+        __publicField(this, "constant");
+        this.normal = normal && typeof normal.clone === "function" ? normal.clone() : new ThreeCompatibleVector3((normal == null ? void 0 : normal.x) || 0, (normal == null ? void 0 : normal.y) || 0, (normal == null ? void 0 : normal.z) || 1);
+        this.constant = constant || 0;
+      }
+      set(normal, constant) {
+        this.normal.copy(normal);
+        this.constant = constant;
+        return this;
+      }
+      setComponents(x, y, z, w) {
+        this.normal.set(x, y, z);
+        this.constant = w;
+        return this;
+      }
+      copy(source) {
+        this.normal.copy(source.normal);
+        this.constant = source.constant;
+        return this;
+      }
+      clone() {
+        return new ThreeCompatiblePlane(this.normal, this.constant);
+      }
+      coplanarPoint(target) {
+        const t = target || new ThreeCompatibleVector3();
+        return t.copy(this.normal).multiplyScalar(-this.constant);
+      }
+      applyMatrix4(matrix, optionalNormalMatrix) {
+        const normalMatrix = optionalNormalMatrix || new ThreeCompatibleMatrix3().getNormalMatrix(matrix);
+        const refPt = this.coplanarPoint(new ThreeCompatibleVector3()).applyMatrix4(matrix);
+        const norm = this.normal.clone().applyMatrix3(normalMatrix).normalize();
+        this.constant = -refPt.dot(norm);
+        this.normal.copy(norm);
+        return this;
+      }
+    }
     const cachedTopPlanes = [];
     const cachedSidePlanes = [];
     const cachedFrontPlanes = [];
     let clippingThreeEngine = null;
+    let lastGlobalClippingActive = false;
     function getClippingThree() {
       var _a, _b, _c, _d;
       if (clippingThreeEngine) return clippingThreeEngine;
@@ -5320,16 +5506,37 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         clippingThreeEngine = canvas.view.THREE;
         return clippingThreeEngine;
       }
-      return null;
+      clippingThreeEngine = {
+        Plane: ThreeCompatiblePlane,
+        Vector3: ThreeCompatibleVector3,
+        Matrix3: ThreeCompatibleMatrix3
+      };
+      return clippingThreeEngine;
     }
     function ensurePlaneAt(arr, index, ThreeClass) {
       while (arr.length <= index) {
-        arr.push(new ThreeClass.Plane(new ThreeClass.Vector3(0, 0, 1), 0));
+        const PlaneCtor = (ThreeClass == null ? void 0 : ThreeClass.Plane) || ThreeCompatiblePlane;
+        const VecCtor = (ThreeClass == null ? void 0 : ThreeClass.Vector3) || ThreeCompatibleVector3;
+        arr.push(new PlaneCtor(new VecCtor(0, 0, 1), 0));
       }
       return arr[index];
     }
+    function applyClippingPlanesToView(view, planes, isSharedScene) {
+      if (!view) return;
+      if (view.renderer) {
+        view.renderer.localClippingEnabled = true;
+        view.renderer.clippingPlanes = planes;
+      }
+      if (!isSharedScene && view.scene && typeof view.scene.traverse === "function") {
+        view.scene.traverse((obj) => {
+          if (obj && (obj.isPoints || obj.type === "Points") && obj.material) {
+            obj.material.clippingPlanes = planes;
+          }
+        });
+      }
+    }
     function updateOrthoClippingPlanes(overrideTarget, forceRender = true) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
       try {
         const Three = getClippingThree();
         const store = getReduxStore();
@@ -5343,12 +5550,31 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if ((perspectiveView == null ? void 0 : perspectiveView.renderer) && perspectiveView.renderer.clippingPlanes && perspectiveView.renderer.clippingPlanes.length > 0) {
           perspectiveView.renderer.clippingPlanes = [];
         }
-        const isAnyClippingActive = currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI;
         const activeId = (overrideTarget == null ? void 0 : overrideTarget.clientId) ?? ((_e = canvas == null ? void 0 : canvas.view) == null ? void 0 : _e.activatedElementID) ?? ((_h = (_g = (_f = store == null ? void 0 : store.getState()) == null ? void 0 : _f.annotation) == null ? void 0 : _g.annotations) == null ? void 0 : _h.activatedStateClientID) ?? lastActiveTrackId;
-        if (!isAnyClippingActive || !Three || !activeId || isNaN(Number(activeId)) || Number(activeId) <= 0) {
-          if (topView == null ? void 0 : topView.renderer) topView.renderer.clippingPlanes = [];
-          if (sideView == null ? void 0 : sideView.renderer) sideView.renderer.clippingPlanes = [];
-          if (frontView == null ? void 0 : frontView.renderer) frontView.renderer.clippingPlanes = [];
+        const isAnyClippingActive = !!((currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI) && activeId && !isNaN(Number(activeId)) && Number(activeId) > 0);
+        if (lastGlobalClippingActive !== isAnyClippingActive) {
+          lastGlobalClippingActive = isAnyClippingActive;
+          const scenesToNotify = [];
+          for (const k of ["top", "side", "front", "perspective"]) {
+            const sc = (_i = views[k]) == null ? void 0 : _i.scene;
+            if (sc && !scenesToNotify.includes(sc)) scenesToNotify.push(sc);
+          }
+          for (const sc of scenesToNotify) {
+            if (typeof (sc == null ? void 0 : sc.traverse) === "function") {
+              sc.traverse((obj) => {
+                if (obj && (obj.isPoints || obj.type === "Points") && obj.material) {
+                  obj.material.needsUpdate = true;
+                }
+              });
+            }
+          }
+        }
+        const isSharedScene = !!((topView == null ? void 0 : topView.scene) && (perspectiveView == null ? void 0 : perspectiveView.scene) && topView.scene === perspectiveView.scene);
+        if (!isAnyClippingActive || !Three) {
+          applyClippingPlanesToView(topView, [], isSharedScene);
+          applyClippingPlanesToView(sideView, [], isSharedScene);
+          applyClippingPlanesToView(frontView, [], isSharedScene);
+          applyClippingPlanesToView(perspectiveView, [], isSharedScene);
           return;
         }
         const numId = Number(activeId);
@@ -5356,9 +5582,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if ((overrideTarget == null ? void 0 : overrideTarget.points) && Array.isArray(overrideTarget.points)) {
           p = overrideTarget.points;
         } else {
-          const drawnItem = (_j = (_i = canvas == null ? void 0 : canvas.view) == null ? void 0 : _i.drawnObjects) == null ? void 0 : _j[String(numId)];
+          const drawnItem = (_k = (_j = canvas == null ? void 0 : canvas.view) == null ? void 0 : _j.drawnObjects) == null ? void 0 : _k[String(numId)];
           if (drawnItem) {
-            const states = ((_m = (_l = (_k = store == null ? void 0 : store.getState()) == null ? void 0 : _k.annotation) == null ? void 0 : _l.annotations) == null ? void 0 : _m.states) || [];
+            const states = ((_n = (_m = (_l = store == null ? void 0 : store.getState()) == null ? void 0 : _l.annotation) == null ? void 0 : _m.annotations) == null ? void 0 : _n.states) || [];
             const matched = states.find((s) => s.clientID === numId);
             p = extractLivePointsFromDrawnAndState(drawnItem, matched);
           }
@@ -5368,9 +5594,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
         if (!p || p.length < 9) {
-          if (topView == null ? void 0 : topView.renderer) topView.renderer.clippingPlanes = [];
-          if (sideView == null ? void 0 : sideView.renderer) sideView.renderer.clippingPlanes = [];
-          if (frontView == null ? void 0 : frontView.renderer) frontView.renderer.clippingPlanes = [];
+          applyClippingPlanesToView(topView, [], isSharedScene);
+          applyClippingPlanesToView(sideView, [], isSharedScene);
+          applyClippingPlanesToView(frontView, [], isSharedScene);
+          applyClippingPlanesToView(perspectiveView, [], isSharedScene);
           return;
         }
         const cx = p[0], cy = p[1], cz = p[2];
@@ -5507,18 +5734,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           setPlane(plT, -uzx, -uzy, -uzz, pTx, pTy, pTz);
           activeFrontPlanes.push(plT);
         }
-        if (topView == null ? void 0 : topView.renderer) {
-          topView.renderer.localClippingEnabled = true;
-          topView.renderer.clippingPlanes = activeTopPlanes;
-        }
-        if (sideView == null ? void 0 : sideView.renderer) {
-          sideView.renderer.localClippingEnabled = true;
-          sideView.renderer.clippingPlanes = activeSidePlanes;
-        }
-        if (frontView == null ? void 0 : frontView.renderer) {
-          frontView.renderer.localClippingEnabled = true;
-          frontView.renderer.clippingPlanes = activeFrontPlanes;
-        }
+        applyClippingPlanesToView(topView, activeTopPlanes, isSharedScene);
+        applyClippingPlanesToView(sideView, activeSidePlanes, isSharedScene);
+        applyClippingPlanesToView(frontView, activeFrontPlanes, isSharedScene);
+        applyClippingPlanesToView(perspectiveView, [], isSharedScene);
         if (forceRender && typeof (canvas == null ? void 0 : canvas.render) === "function") {
           canvas.render();
         }
@@ -20979,6 +21198,11 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
       __publicField(this, "drag", null);
       __publicField(this, "pending", false);
       __publicField(this, "dpr", 1);
+      // Cache Bounding Rects để đạt 60 FPS, 0ms Layout Thrashing
+      __publicField(this, "cachedCellRects", /* @__PURE__ */ new Map());
+      __publicField(this, "cachedVisRect", null);
+      __publicField(this, "cachedWrapRect", null);
+      __publicField(this, "rectsDirty", true);
       __publicField(this, "glCanvas");
       __publicField(this, "uiCanvas");
       __publicField(this, "gl");
@@ -21049,16 +21273,35 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
       }
       this.aPos = gl.getAttribLocation(prog, "aPos");
       this.vao = gl.createVertexArray();
-      this.onScroll = () => this.requestRender();
+      this.onScroll = () => {
+        this.invalidateRects();
+        this.requestRender();
+      };
       this.scroller.addEventListener("scroll", this.onScroll, { passive: true });
-      this.resizeObs = new ResizeObserver(() => this.resize());
+      this.resizeObs = new ResizeObserver(() => {
+        this.invalidateRects();
+        this.resize();
+      });
       this.resizeObs.observe(this.wrap);
       this.resize();
+    }
+    invalidateRects() {
+      this.rectsDirty = true;
+      this.cachedWrapRect = null;
+      this.cachedVisRect = null;
+      this.cachedCellRects.clear();
+    }
+    getWrapRect() {
+      if (!this.cachedWrapRect || this.rectsDirty) {
+        this.cachedWrapRect = this.wrap.getBoundingClientRect();
+      }
+      return this.cachedWrapRect;
     }
     destroy() {
       var _a;
       this.scroller.removeEventListener("scroll", this.onScroll);
       this.resizeObs.disconnect();
+      this.invalidateRects();
       for (const b of this.buffers.values()) {
         this.gl.deleteBuffer(b.buf);
       }
@@ -21068,6 +21311,7 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
       this.uiCanvas.remove();
     }
     resize() {
+      this.invalidateRects();
       const dpr = window.devicePixelRatio || 1;
       const w = this.wrap.clientWidth;
       const h2 = this.wrap.clientHeight;
@@ -21081,6 +21325,7 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
       this.requestRender();
     }
     addCell(el, frame, view) {
+      this.invalidateRects();
       const cell = { el, frame, view, zoom: 1, pan: [0, 0] };
       this.cells.add(cell);
       el.addEventListener("pointerdown", (e) => this.pointerDown(e, cell));
@@ -21088,14 +21333,16 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
       el.addEventListener("wheel", (e) => this.wheel(e, cell), { passive: false });
       el.addEventListener("contextmenu", (e) => e.preventDefault());
       el.addEventListener("dblclick", (e) => {
-        const r = el.getBoundingClientRect();
-        if (!this.hit(cell, e.clientX - r.left, e.clientY - r.top)) {
+        const r = this.cellRect(cell);
+        const wr = this.getWrapRect();
+        if (!this.hit(cell, e.clientX - (wr.left + r.x), e.clientY - (wr.top + r.y))) {
           this.resetCell(cell);
         }
       });
       return cell;
     }
     removeCell(cell) {
+      this.invalidateRects();
       this.cells.delete(cell);
       this.requestRender();
     }
@@ -21162,19 +21409,28 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
       };
     }
     cellRect(cell) {
+      if (!this.rectsDirty && this.cachedCellRects.has(cell)) {
+        return this.cachedCellRects.get(cell);
+      }
       const r = cell.el.getBoundingClientRect();
-      const wr = this.wrap.getBoundingClientRect();
-      return { x: r.left - wr.left, y: r.top - wr.top, w: r.width, h: r.height };
+      const wr = this.getWrapRect();
+      const res = { x: r.left - wr.left, y: r.top - wr.top, w: r.width, h: r.height };
+      this.cachedCellRects.set(cell, res);
+      return res;
     }
     visibleRect() {
+      if (!this.rectsDirty && this.cachedVisRect) {
+        return this.cachedVisRect;
+      }
       const sr = this.scroller.getBoundingClientRect();
-      const wr = this.wrap.getBoundingClientRect();
-      return {
+      const wr = this.getWrapRect();
+      this.cachedVisRect = {
         x: sr.left - wr.left,
         y: sr.top - wr.top,
         w: this.scroller.clientWidth,
         h: this.scroller.clientHeight
       };
+      return this.cachedVisRect;
     }
     project(p, cam, view, rect, ppm) {
       const V = VIEWS[view];
@@ -21192,18 +21448,23 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
     }
     // ---------- render ----------
     uploadCloud(frame) {
+      let b = this.buffers.get(frame);
+      if (this.drag && b) return b;
       const array = this.getCloud(frame);
       if (!array) return null;
-      let b = this.buffers.get(frame);
       if (b && b.array === array) return b;
       const gl = this.gl;
-      if (b) gl.deleteBuffer(b.buf);
-      const buf = gl.createBuffer();
+      const buf = (b == null ? void 0 : b.buf) || gl.createBuffer();
       if (!buf) return null;
       gl.bindBuffer(gl.ARRAY_BUFFER, buf);
       gl.bufferData(gl.ARRAY_BUFFER, array, gl.STATIC_DRAW);
-      b = { array, buf, count: array.length / 3 };
-      this.buffers.set(frame, b);
+      if (!b) {
+        b = { array, buf, count: array.length / 3 };
+        this.buffers.set(frame, b);
+      } else {
+        b.array = array;
+        b.count = array.length / 3;
+      }
       return b;
     }
     render() {
@@ -21296,6 +21557,7 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
         ctx.restore();
       }
       gl.disable(gl.SCISSOR_TEST);
+      this.rectsDirty = false;
     }
     handles(cell, pos, cam, rect, ppm) {
       const V = VIEWS[cell.view];
@@ -21420,8 +21682,9 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
     }
     pointerHover(e, cell) {
       if (this.drag) return;
-      const r = cell.el.getBoundingClientRect();
-      const h2 = this.hit(cell, e.clientX - r.left, e.clientY - r.top);
+      const r = this.cellRect(cell);
+      const wr = this.getWrapRect();
+      const h2 = this.hit(cell, e.clientX - (wr.left + r.x), e.clientY - (wr.top + r.y));
       let cursor = "grab";
       if (h2) {
         if (h2.kind === "move") cursor = "move";
@@ -21457,9 +21720,10 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
     pointerDown(e, cell) {
       var _a;
       if (e.target !== cell.el) return;
-      const r = cell.el.getBoundingClientRect();
-      const mx = e.clientX - r.left;
-      const my = e.clientY - r.top;
+      const r = this.cellRect(cell);
+      const wr = this.getWrapRect();
+      const mx = e.clientX - (wr.left + r.x);
+      const my = e.clientY - (wr.top + r.y);
       if (e.button === 1 || e.button === 2) {
         this.panDrag(e, cell);
         return;
@@ -21521,9 +21785,10 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
       var _a;
       const d = this.drag;
       if (!d || d.cell !== cell) return;
-      const r = cell.el.getBoundingClientRect();
-      const mx = e.clientX - r.left;
-      const my = e.clientY - r.top;
+      const r = this.cellRect(cell);
+      const wr = this.getWrapRect();
+      const mx = e.clientX - (wr.left + r.x);
+      const my = e.clientY - (wr.top + r.y);
       const V = VIEWS[cell.view];
       const box = cloneBox(d.startBox);
       const p = this.unproject(mx, my, d.cam, cell.view, d.rect, d.ppm);
@@ -21579,8 +21844,9 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
         this.requestRender();
         return;
       }
-      const r = cell.el.getBoundingClientRect();
-      this.zoomCell(cell, k, e.clientX - r.left, e.clientY - r.top);
+      const r = this.cellRect(cell);
+      const wr = this.getWrapRect();
+      this.zoomCell(cell, k, e.clientX - (wr.left + r.x), e.clientY - (wr.top + r.y));
     }
   }
   const HELPER_CSS = `
@@ -21875,7 +22141,7 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
     return out;
   }
   const VIEW_NAMES = { top: "Top", side: "Side", front: "Front" };
-  const BIG = { fullScene: true, sceneSpan: 40, slab: 3 };
+  const BIG = { fullScene: true, sceneSpan: 40, slab: 3, hideGround: void 0 };
   function mountCase2(app, root, initialTrackId) {
     var _a;
     const store = app.store;
@@ -21911,6 +22177,7 @@ max ${hi.map((v) => fmt$1(v)).join(" / ")}` : ""
     const extraGrids = /* @__PURE__ */ new Set();
     let rows = /* @__PURE__ */ new Map();
     let crops = /* @__PURE__ */ new Map();
+    let isDragging = false;
     let observer = null;
     let cameraNames = [];
     const settings = {
@@ -22114,7 +22381,7 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
       if (!pos) return null;
       const c = pos.box.c;
       const old = crops.get(frame);
-      if (old && Math.hypot(old.center[0] - c[0], old.center[1] - c[1], old.center[2] - c[2]) < 1.5) {
+      if (old && (isDragging || Math.hypot(old.center[0] - c[0], old.center[1] - c[1], old.center[2] - c[2]) < 2.5)) {
         return old.arr;
       }
       const ref = settings.refSize;
@@ -22358,7 +22625,10 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
         const pos = track.at(frame);
         return pos ? { box: pos.box, keyframe: pos.keyframe, outside: pos.outside } : null;
       },
-      onEditStart: () => app.snapshot([Number(track.id)]),
+      onEditStart: () => {
+        isDragging = true;
+        app.snapshot([Number(track.id)]);
+      },
       onEdit: (frame, box) => {
         var _a2;
         track.setBox(frame, box);
@@ -22367,11 +22637,15 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
         renderAll();
       },
       onEditEnd: async (frame, startBox, endBox) => {
+        isDragging = false;
         const sizeChanged = endBox.s.some((v, i) => Math.abs(v - startBox.s[i]) > 1e-6);
         if (S.syncSize && sizeChanged) await syncSize(frame, endBox.s);
         afterEdit();
       },
-      onEditCancel: () => app.dropLastSnapshot()
+      onEditCancel: () => {
+        isDragging = false;
+        app.dropLastSnapshot();
+      }
     };
     function outsideSwitch(getFrame) {
       const el = h$2(
@@ -22575,7 +22849,7 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
       const applyScene = () => {
         bigSettings.sceneSpan = BIG.fullScene ? BIG.sceneSpan : 0;
         bigSettings.topAll = BIG.fullScene;
-        bigSettings.hideGround = BIG.fullScene ? false : settings.hideGround;
+        bigSettings.hideGround = BIG.hideGround !== void 0 ? BIG.hideGround : settings.hideGround;
         bigSettings.slab = BIG.fullScene ? BIG.slab : settings.slab;
       };
       applyScene();
@@ -22583,8 +22857,34 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
         wrap: bwrap,
         scroller: inner,
         settings: bigSettings,
-        ...editCallbacks,
         getCloud: (f) => BIG.fullScene ? frameData.clouds.get(f) || null : getCloud(f),
+        getBox: editCallbacks.getBox,
+        onEditStart: () => {
+          isDragging = true;
+          app.snapshot([Number(track.id)]);
+        },
+        onEdit: (f, box) => {
+          track.setBox(f, box);
+          big.requestRender();
+        },
+        onEditEnd: async (f, startBox, endBox) => {
+          var _a2;
+          isDragging = false;
+          (_a2 = rows.get(f)) == null ? void 0 : _a2.refresh();
+          select(f);
+          renderAll();
+          const sizeChanged = endBox.s.some((v, i) => Math.abs(v - startBox.s[i]) > 1e-6);
+          if (S.syncSize && sizeChanged) await syncSize(f, endBox.s);
+          afterEdit();
+        },
+        onEditCancel: () => {
+          var _a2;
+          isDragging = false;
+          (_a2 = rows.get(cell.frame)) == null ? void 0 : _a2.refresh();
+          select(cell.frame);
+          renderAll();
+          app.dropLastSnapshot();
+        },
         onZoom: () => updateBar()
       });
       extraGrids.add(big);
@@ -22651,6 +22951,20 @@ Bạn có muốn XÓA cache này để giải phóng ổ cứng không?`;
               }
             }),
             "Toàn cảnh"
+          ),
+          h$2(
+            "label",
+            { title: "Top: ẩn mặt đất (chỉ hiện điểm cao hơn đáy box 12cm)" },
+            h$2("input", {
+              type: "checkbox",
+              checked: BIG.hideGround !== void 0 ? BIG.hideGround : settings.hideGround,
+              onchange: (e) => {
+                BIG.hideGround = e.target.checked;
+                applyScene();
+                big.requestRender();
+              }
+            }),
+            "Tắt đất (Top)"
           ),
           h$2(
             "label",

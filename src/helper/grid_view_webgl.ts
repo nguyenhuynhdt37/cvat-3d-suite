@@ -191,6 +191,12 @@ export class GridViewWebGL {
   private pending: boolean = false;
   private dpr: number = 1;
 
+  // Cache Bounding Rects để đạt 60 FPS, 0ms Layout Thrashing
+  private cachedCellRects: Map<GridCell, { x: number; y: number; w: number; h: number }> = new Map();
+  private cachedVisRect: { x: number; y: number; w: number; h: number } | null = null;
+  private cachedWrapRect: DOMRect | null = null;
+  private rectsDirty: boolean = true;
+
   private glCanvas: HTMLCanvasElement;
   private uiCanvas: HTMLCanvasElement;
   private gl: WebGL2RenderingContext;
@@ -201,6 +207,20 @@ export class GridViewWebGL {
   private vao: WebGLVertexArrayObject | null;
   private onScroll: () => void;
   private resizeObs: ResizeObserver;
+
+  public invalidateRects(): void {
+    this.rectsDirty = true;
+    this.cachedWrapRect = null;
+    this.cachedVisRect = null;
+    this.cachedCellRects.clear();
+  }
+
+  public getWrapRect(): DOMRect {
+    if (!this.cachedWrapRect || this.rectsDirty) {
+      this.cachedWrapRect = this.wrap.getBoundingClientRect();
+    }
+    return this.cachedWrapRect;
+  }
 
   constructor(opts: GridViewOptions) {
     this.wrap = opts.wrap;
@@ -258,9 +278,15 @@ export class GridViewWebGL {
     this.aPos = gl.getAttribLocation(prog, 'aPos');
     this.vao = gl.createVertexArray();
 
-    this.onScroll = () => this.requestRender();
+    this.onScroll = () => {
+      this.invalidateRects();
+      this.requestRender();
+    };
     this.scroller.addEventListener('scroll', this.onScroll, { passive: true });
-    this.resizeObs = new ResizeObserver(() => this.resize());
+    this.resizeObs = new ResizeObserver(() => {
+      this.invalidateRects();
+      this.resize();
+    });
     this.resizeObs.observe(this.wrap);
     this.resize();
   }
@@ -268,6 +294,7 @@ export class GridViewWebGL {
   destroy(): void {
     this.scroller.removeEventListener('scroll', this.onScroll);
     this.resizeObs.disconnect();
+    this.invalidateRects();
     for (const b of this.buffers.values()) {
       this.gl.deleteBuffer(b.buf);
     }
@@ -278,6 +305,7 @@ export class GridViewWebGL {
   }
 
   resize(): void {
+    this.invalidateRects();
     const dpr = window.devicePixelRatio || 1;
     const w = this.wrap.clientWidth;
     const h = this.wrap.clientHeight;
@@ -292,6 +320,7 @@ export class GridViewWebGL {
   }
 
   addCell(el: HTMLElement, frame: number, view: ViewType): GridCell {
+    this.invalidateRects();
     const cell: GridCell = { el, frame, view, zoom: 1, pan: [0, 0] };
     this.cells.add(cell);
 
@@ -300,8 +329,9 @@ export class GridViewWebGL {
     el.addEventListener('wheel', (e) => this.wheel(e, cell), { passive: false });
     el.addEventListener('contextmenu', (e) => e.preventDefault());
     el.addEventListener('dblclick', (e) => {
-      const r = el.getBoundingClientRect();
-      if (!this.hit(cell, e.clientX - r.left, e.clientY - r.top)) {
+      const r = this.cellRect(cell);
+      const wr = this.getWrapRect();
+      if (!this.hit(cell, e.clientX - (wr.left + r.x), e.clientY - (wr.top + r.y))) {
         this.resetCell(cell);
       }
     });
@@ -309,6 +339,7 @@ export class GridViewWebGL {
   }
 
   removeCell(cell: GridCell): void {
+    this.invalidateRects();
     this.cells.delete(cell);
     this.requestRender();
   }
@@ -382,20 +413,29 @@ export class GridViewWebGL {
   }
 
   cellRect(cell: GridCell): { x: number; y: number; w: number; h: number } {
+    if (!this.rectsDirty && this.cachedCellRects.has(cell)) {
+      return this.cachedCellRects.get(cell)!;
+    }
     const r = cell.el.getBoundingClientRect();
-    const wr = this.wrap.getBoundingClientRect();
-    return { x: r.left - wr.left, y: r.top - wr.top, w: r.width, h: r.height };
+    const wr = this.getWrapRect();
+    const res = { x: r.left - wr.left, y: r.top - wr.top, w: r.width, h: r.height };
+    this.cachedCellRects.set(cell, res);
+    return res;
   }
 
   visibleRect(): { x: number; y: number; w: number; h: number } {
+    if (!this.rectsDirty && this.cachedVisRect) {
+      return this.cachedVisRect;
+    }
     const sr = this.scroller.getBoundingClientRect();
-    const wr = this.wrap.getBoundingClientRect();
-    return {
+    const wr = this.getWrapRect();
+    this.cachedVisRect = {
       x: sr.left - wr.left,
       y: sr.top - wr.top,
       w: this.scroller.clientWidth,
       h: this.scroller.clientHeight,
     };
+    return this.cachedVisRect;
   }
 
   project(
@@ -430,18 +470,26 @@ export class GridViewWebGL {
   // ---------- render ----------
 
   private uploadCloud(frame: number): { array: Float32Array; buf: WebGLBuffer; count: number } | null {
+    let b = this.buffers.get(frame);
+    if (this.drag && b) return b;
+
     const array = this.getCloud(frame);
     if (!array) return null;
-    let b = this.buffers.get(frame);
     if (b && b.array === array) return b;
+
     const gl = this.gl;
-    if (b) gl.deleteBuffer(b.buf);
-    const buf = gl.createBuffer();
+    const buf = b?.buf || gl.createBuffer();
     if (!buf) return null;
+
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
     gl.bufferData(gl.ARRAY_BUFFER, array, gl.STATIC_DRAW);
-    b = { array, buf, count: array.length / 3 };
-    this.buffers.set(frame, b);
+    if (!b) {
+      b = { array, buf, count: array.length / 3 };
+      this.buffers.set(frame, b);
+    } else {
+      b.array = array;
+      b.count = array.length / 3;
+    }
     return b;
   }
 
@@ -542,6 +590,7 @@ export class GridViewWebGL {
       ctx.restore();
     }
     gl.disable(gl.SCISSOR_TEST);
+    this.rectsDirty = false;
   }
 
   handles(
@@ -704,8 +753,9 @@ export class GridViewWebGL {
 
   pointerHover(e: PointerEvent, cell: GridCell): void {
     if (this.drag) return;
-    const r = cell.el.getBoundingClientRect();
-    const h = this.hit(cell, e.clientX - r.left, e.clientY - r.top);
+    const r = this.cellRect(cell);
+    const wr = this.getWrapRect();
+    const h = this.hit(cell, e.clientX - (wr.left + r.x), e.clientY - (wr.top + r.y));
     let cursor = 'grab';
     if (h) {
       if (h.kind === 'move') cursor = 'move';
@@ -745,9 +795,10 @@ export class GridViewWebGL {
 
   pointerDown(e: PointerEvent, cell: GridCell): void {
     if (e.target !== cell.el) return;
-    const r = cell.el.getBoundingClientRect();
-    const mx = e.clientX - r.left;
-    const my = e.clientY - r.top;
+    const r = this.cellRect(cell);
+    const wr = this.getWrapRect();
+    const mx = e.clientX - (wr.left + r.x);
+    const my = e.clientY - (wr.top + r.y);
 
     if (e.button === 1 || e.button === 2) {
       this.panDrag(e, cell);
@@ -814,9 +865,10 @@ export class GridViewWebGL {
   pointerMove(e: PointerEvent, cell: GridCell): void {
     const d = this.drag;
     if (!d || d.cell !== cell) return;
-    const r = cell.el.getBoundingClientRect();
-    const mx = e.clientX - r.left;
-    const my = e.clientY - r.top;
+    const r = this.cellRect(cell);
+    const wr = this.getWrapRect();
+    const mx = e.clientX - (wr.left + r.x);
+    const my = e.clientY - (wr.top + r.y);
     const V = VIEWS[cell.view];
     const box = cloneBox(d.startBox);
     const p = this.unproject(mx, my, d.cam, cell.view, d.rect, d.ppm);
@@ -874,7 +926,8 @@ export class GridViewWebGL {
       this.requestRender();
       return;
     }
-    const r = cell.el.getBoundingClientRect();
-    this.zoomCell(cell, k, e.clientX - r.left, e.clientY - r.top);
+    const r = this.cellRect(cell);
+    const wr = this.getWrapRect();
+    this.zoomCell(cell, k, e.clientX - (wr.left + r.x), e.clientY - (wr.top + r.y));
   }
 }

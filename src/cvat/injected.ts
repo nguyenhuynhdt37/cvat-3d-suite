@@ -1404,11 +1404,208 @@ export function mainWorldScript(): void {
     }
   } catch (_) {}
 
+  // =========================================================================
+  // CÁC LỚP THUẦN TOÁN HỌC TƯƠNG THÍCH THREE.JS WEBGL CLIPPING (ZERO-DEPENDENCY)
+  // Đảm bảo WebGLRenderer thực thi Clipping Planes chuẩn 100% kể cả khi Three.js bị Webpack đóng gói kín
+  // =========================================================================
+  class ThreeCompatibleVector3 {
+    public isVector3: boolean;
+    public x: number;
+    public y: number;
+    public z: number;
+
+    constructor(x: number = 0, y: number = 0, z: number = 0) {
+      this.isVector3 = true;
+      this.x = x;
+      this.y = y;
+      this.z = z;
+    }
+
+    set(x: number, y: number, z: number) {
+      this.x = x;
+      this.y = y;
+      this.z = z;
+      return this;
+    }
+
+    copy(v: any) {
+      this.x = v?.x || 0;
+      this.y = v?.y || 0;
+      this.z = v?.z || 0;
+      return this;
+    }
+
+    clone() {
+      return new ThreeCompatibleVector3(this.x, this.y, this.z);
+    }
+
+    dot(v: any) {
+      return this.x * (v?.x || 0) + this.y * (v?.y || 0) + this.z * (v?.z || 0);
+    }
+
+    multiplyScalar(s: number) {
+      this.x *= s;
+      this.y *= s;
+      this.z *= s;
+      return this;
+    }
+
+    normalize() {
+      const l = Math.hypot(this.x, this.y, this.z) || 1;
+      this.x /= l;
+      this.y /= l;
+      this.z /= l;
+      return this;
+    }
+
+    applyMatrix3(m: any) {
+      const e = m.elements;
+      const x = this.x, y = this.y, z = this.z;
+      this.x = e[0] * x + e[3] * y + e[6] * z;
+      this.y = e[1] * x + e[4] * y + e[7] * z;
+      this.z = e[2] * x + e[5] * y + e[8] * z;
+      return this;
+    }
+
+    applyMatrix4(m: any) {
+      const e = m.elements;
+      const x = this.x, y = this.y, z = this.z;
+      const w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
+      this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
+      this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
+      this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
+      return this;
+    }
+
+    toArray(array: number[] | Float32Array = [], offset: number = 0) {
+      array[offset] = this.x;
+      array[offset + 1] = this.y;
+      array[offset + 2] = this.z;
+      return array;
+    }
+  }
+
+  class ThreeCompatibleMatrix3 {
+    public isMatrix3 = true;
+    public elements: number[] = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+
+    set(
+      n11: number, n12: number, n13: number,
+      n21: number, n22: number, n23: number,
+      n31: number, n32: number, n33: number
+    ) {
+      const te = this.elements;
+      te[0] = n11; te[1] = n21; te[2] = n31;
+      te[3] = n12; te[4] = n22; te[5] = n32;
+      te[6] = n13; te[7] = n23; te[8] = n33;
+      return this;
+    }
+
+    setFromMatrix4(m: any) {
+      const me = m.elements;
+      return this.set(
+        me[0], me[4], me[8],
+        me[1], me[5], me[9],
+        me[2], me[6], me[10]
+      );
+    }
+
+    getNormalMatrix(matrix4: any) {
+      return this.setFromMatrix4(matrix4).invert().transpose();
+    }
+
+    invert() {
+      const te = this.elements;
+      const m11 = te[0], m21 = te[1], m31 = te[2],
+            m12 = te[3], m22 = te[4], m32 = te[5],
+            m13 = te[6], m23 = te[7], m33 = te[8];
+      const t11 = m33 * m22 - m32 * m23;
+      const t12 = -m33 * m12 + m32 * m13;
+      const t13 = m23 * m12 - m22 * m13;
+      const det = m11 * t11 + m21 * t12 + m31 * t13;
+      if (det === 0) {
+        te[0] = 1; te[1] = 0; te[2] = 0;
+        te[3] = 0; te[4] = 1; te[5] = 0;
+        te[6] = 0; te[7] = 0; te[8] = 1;
+        return this;
+      }
+      const invDet = 1 / det;
+      te[0] = t11 * invDet;
+      te[1] = (-m33 * m21 + m31 * m23) * invDet;
+      te[2] = (m32 * m21 - m31 * m22) * invDet;
+      te[3] = t12 * invDet;
+      te[4] = (m33 * m11 - m31 * m13) * invDet;
+      te[5] = (-m32 * m11 + m31 * m12) * invDet;
+      te[6] = t13 * invDet;
+      te[7] = (-m23 * m11 + m21 * m13) * invDet;
+      te[8] = (m22 * m11 - m21 * m12) * invDet;
+      return this;
+    }
+
+    transpose() {
+      const te = this.elements;
+      let m = te[1]; te[1] = te[3]; te[3] = m;
+      m = te[2]; te[2] = te[6]; te[6] = m;
+      m = te[5]; te[5] = te[7]; te[7] = m;
+      return this;
+    }
+  }
+
+  class ThreeCompatiblePlane {
+    public isPlane = true;
+    public normal: any;
+    public constant: number;
+
+    constructor(normal?: any, constant: number = 0) {
+      this.normal = normal && typeof normal.clone === "function"
+        ? normal.clone()
+        : new ThreeCompatibleVector3(normal?.x || 0, normal?.y || 0, normal?.z || 1);
+      this.constant = constant || 0;
+    }
+
+    set(normal: any, constant: number) {
+      this.normal.copy(normal);
+      this.constant = constant;
+      return this;
+    }
+
+    setComponents(x: number, y: number, z: number, w: number) {
+      this.normal.set(x, y, z);
+      this.constant = w;
+      return this;
+    }
+
+    copy(source: any) {
+      this.normal.copy(source.normal);
+      this.constant = source.constant;
+      return this;
+    }
+
+    clone() {
+      return new ThreeCompatiblePlane(this.normal, this.constant);
+    }
+
+    coplanarPoint(target?: any) {
+      const t = target || new ThreeCompatibleVector3();
+      return t.copy(this.normal).multiplyScalar(-this.constant);
+    }
+
+    applyMatrix4(matrix: any, optionalNormalMatrix?: any) {
+      const normalMatrix = optionalNormalMatrix || new ThreeCompatibleMatrix3().getNormalMatrix(matrix);
+      const refPt = this.coplanarPoint(new ThreeCompatibleVector3()).applyMatrix4(matrix);
+      const norm = this.normal.clone().applyMatrix3(normalMatrix).normalize();
+      this.constant = -refPt.dot(norm);
+      this.normal.copy(norm);
+      return this;
+    }
+  }
+
   // Pre-allocated THREE.Plane pools để 0ms Garbage Collection
   const cachedTopPlanes: any[] = [];
   const cachedSidePlanes: any[] = [];
   const cachedFrontPlanes: any[] = [];
   let clippingThreeEngine: any = null;
+  let lastGlobalClippingActive: boolean = false;
 
   function getClippingThree(): any {
     if (clippingThreeEngine) return clippingThreeEngine;
@@ -1427,14 +1624,37 @@ export function mainWorldScript(): void {
       clippingThreeEngine = canvas.view.THREE;
       return clippingThreeEngine;
     }
-    return null;
+    // Fallback độc lập tương thích 100% Three.js WebGLClipping
+    clippingThreeEngine = {
+      Plane: ThreeCompatiblePlane,
+      Vector3: ThreeCompatibleVector3,
+      Matrix3: ThreeCompatibleMatrix3,
+    };
+    return clippingThreeEngine;
   }
 
   function ensurePlaneAt(arr: any[], index: number, ThreeClass: any): any {
     while (arr.length <= index) {
-      arr.push(new ThreeClass.Plane(new ThreeClass.Vector3(0, 0, 1), 0));
+      const PlaneCtor = ThreeClass?.Plane || ThreeCompatiblePlane;
+      const VecCtor = ThreeClass?.Vector3 || ThreeCompatibleVector3;
+      arr.push(new PlaneCtor(new VecCtor(0, 0, 1), 0));
     }
     return arr[index];
+  }
+
+  function applyClippingPlanesToView(view: any, planes: any[], isSharedScene: boolean): void {
+    if (!view) return;
+    if (view.renderer) {
+      view.renderer.localClippingEnabled = true;
+      view.renderer.clippingPlanes = planes;
+    }
+    if (!isSharedScene && view.scene && typeof view.scene.traverse === "function") {
+      view.scene.traverse((obj: any) => {
+        if (obj && (obj.isPoints || obj.type === "Points") && obj.material) {
+          obj.material.clippingPlanes = planes;
+        }
+      });
+    }
   }
 
   /**
@@ -1460,20 +1680,45 @@ export function mainWorldScript(): void {
         perspectiveView.renderer.clippingPlanes = [];
       }
 
-      // Nếu tính năng cắt bị tắt hoàn toàn cả 3 chế độ:
-      const isAnyClippingActive = currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI;
-
       const activeId =
         overrideTarget?.clientId ??
         canvas?.view?.activatedElementID ??
         store?.getState()?.annotation?.annotations?.activatedStateClientID ??
         lastActiveTrackId;
 
-      if (!isAnyClippingActive || !Three || !activeId || isNaN(Number(activeId)) || Number(activeId) <= 0) {
+      const isAnyClippingActive = !!(
+        (currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI) &&
+        activeId && !isNaN(Number(activeId)) && Number(activeId) > 0
+      );
+
+      // Quản lý trạng thái compile shader: Chỉ ép material.needsUpdate khi trạng thái bật/tắt thay đổi (0ms micro-stutter)
+      if (lastGlobalClippingActive !== isAnyClippingActive) {
+        lastGlobalClippingActive = isAnyClippingActive;
+        const scenesToNotify: any[] = [];
+        for (const k of ["top", "side", "front", "perspective"]) {
+          const sc = views[k]?.scene;
+          if (sc && !scenesToNotify.includes(sc)) scenesToNotify.push(sc);
+        }
+        for (const sc of scenesToNotify) {
+          if (typeof sc?.traverse === "function") {
+            sc.traverse((obj: any) => {
+              if (obj && (obj.isPoints || obj.type === "Points") && obj.material) {
+                obj.material.needsUpdate = true;
+              }
+            });
+          }
+        }
+      }
+
+      const isSharedScene =
+        !!(topView?.scene && perspectiveView?.scene && topView.scene === perspectiveView.scene);
+
+      if (!isAnyClippingActive || !Three) {
         // Reset sạch sẽ clipping planes trên cả 3 view trực giao
-        if (topView?.renderer) topView.renderer.clippingPlanes = [];
-        if (sideView?.renderer) sideView.renderer.clippingPlanes = [];
-        if (frontView?.renderer) frontView.renderer.clippingPlanes = [];
+        applyClippingPlanesToView(topView, [], isSharedScene);
+        applyClippingPlanesToView(sideView, [], isSharedScene);
+        applyClippingPlanesToView(frontView, [], isSharedScene);
+        applyClippingPlanesToView(perspectiveView, [], isSharedScene);
         return;
       }
 
@@ -1495,9 +1740,10 @@ export function mainWorldScript(): void {
       }
 
       if (!p || p.length < 9) {
-        if (topView?.renderer) topView.renderer.clippingPlanes = [];
-        if (sideView?.renderer) sideView.renderer.clippingPlanes = [];
-        if (frontView?.renderer) frontView.renderer.clippingPlanes = [];
+        applyClippingPlanesToView(topView, [], isSharedScene);
+        applyClippingPlanesToView(sideView, [], isSharedScene);
+        applyClippingPlanesToView(frontView, [], isSharedScene);
+        applyClippingPlanesToView(perspectiveView, [], isSharedScene);
         return;
       }
 
@@ -1682,19 +1928,11 @@ export function mainWorldScript(): void {
         activeFrontPlanes.push(plT);
       }
 
-      // Áp dụng clippingPlanes trực tiếp lên WebGLRenderer của từng View (0ms CPU)
-      if (topView?.renderer) {
-        topView.renderer.localClippingEnabled = true;
-        topView.renderer.clippingPlanes = activeTopPlanes;
-      }
-      if (sideView?.renderer) {
-        sideView.renderer.localClippingEnabled = true;
-        sideView.renderer.clippingPlanes = activeSidePlanes;
-      }
-      if (frontView?.renderer) {
-        frontView.renderer.localClippingEnabled = true;
-        frontView.renderer.clippingPlanes = activeFrontPlanes;
-      }
+      // Áp dụng clippingPlanes trực tiếp lên WebGLRenderer và Material của từng View (0ms CPU)
+      applyClippingPlanesToView(topView, activeTopPlanes, isSharedScene);
+      applyClippingPlanesToView(sideView, activeSidePlanes, isSharedScene);
+      applyClippingPlanesToView(frontView, activeFrontPlanes, isSharedScene);
+      applyClippingPlanesToView(perspectiveView, [], isSharedScene);
 
       // Trigger render Three.js nhẹ (chỉ khi forceRender = true, tránh bão render GPU khi đang drag chuột)
       if (forceRender && typeof canvas?.render === "function") {
