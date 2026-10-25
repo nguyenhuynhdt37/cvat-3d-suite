@@ -220,6 +220,222 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   function degToRad(deg2) {
     return Number((deg2 * Math.PI / 180).toFixed(6));
   }
+  function pointsToBox(points) {
+    return {
+      c: [points[0], points[1], points[2]],
+      r: [points[3], points[4], points[5]],
+      s: [points[6], points[7], points[8]]
+    };
+  }
+  function boxToPoints(box, basePoints) {
+    const out = basePoints ? basePoints.slice() : new Array(16).fill(0);
+    while (out.length < 16) out.push(0);
+    out[0] = Number(box.c[0].toFixed(4));
+    out[1] = Number(box.c[1].toFixed(4));
+    out[2] = Number(box.c[2].toFixed(4));
+    out[3] = Number(box.r[0].toFixed(5));
+    out[4] = Number(box.r[1].toFixed(5));
+    out[5] = Number(box.r[2].toFixed(5));
+    out[6] = Number(box.s[0].toFixed(4));
+    out[7] = Number(box.s[1].toFixed(4));
+    out[8] = Number(box.s[2].toFixed(4));
+    return out;
+  }
+  function cloneBox(box) {
+    return {
+      c: [box.c[0], box.c[1], box.c[2]],
+      r: [box.r[0], box.r[1], box.r[2]],
+      s: [box.s[0], box.s[1], box.s[2]]
+    };
+  }
+  function axes(r) {
+    const a = Math.cos(r[0]), b = Math.sin(r[0]);
+    const c = Math.cos(r[1]), d = Math.sin(r[1]);
+    const e = Math.cos(r[2]), f = Math.sin(r[2]);
+    const ae = a * e, af = a * f, be = b * e, bf = b * f;
+    return {
+      ex: [c * e, af + be * d, bf - ae * d],
+      ey: [-c * f, ae - bf * d, be + af * d],
+      ez: [d, -b * c, a * c]
+    };
+  }
+  function axesToEuler(ax) {
+    const m11 = ax.ex[0], m12 = ax.ey[0], m13 = ax.ez[0];
+    const m22 = ax.ey[1], m23 = ax.ez[1];
+    const m32 = ax.ey[2], m33 = ax.ez[2];
+    const y = Math.asin(Math.min(1, Math.max(-1, m13)));
+    if (Math.abs(m13) < 0.9999999) {
+      return [Math.atan2(-m23, m33), y, Math.atan2(-m12, m11)];
+    }
+    return [Math.atan2(m32, m22), y, 0];
+  }
+  function rotateLocal(r, axis, angle) {
+    const ax = axes(r);
+    const keys = ["ex", "ey", "ez"];
+    const j = keys[(axis + 1) % 3];
+    const k = keys[(axis + 2) % 3];
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    const ej = ax[j];
+    const ek = ax[k];
+    const out = { ...ax };
+    out[j] = [0, 1, 2].map((i) => c * ej[i] + s * ek[i]);
+    out[k] = [0, 1, 2].map((i) => -s * ej[i] + c * ek[i]);
+    return axesToEuler(out);
+  }
+  const addVec$1 = (u, v) => [
+    u[0] + v[0],
+    u[1] + v[1],
+    u[2] + v[2]
+  ];
+  const scaleVec$1 = (u, k) => [
+    u[0] * k,
+    u[1] * k,
+    u[2] * k
+  ];
+  function localToWorld(q, c, ax) {
+    return addVec$1(
+      c,
+      addVec$1(
+        scaleVec$1(ax.ex, q[0]),
+        addVec$1(scaleVec$1(ax.ey, q[1]), scaleVec$1(ax.ez, q[2]))
+      )
+    );
+  }
+  function boxCorners(box) {
+    const ax = axes(box.r);
+    const [hx, hy, hz] = box.s.map((v) => v / 2);
+    const out = [];
+    for (const sx of [-1, 1]) {
+      for (const sy of [-1, 1]) {
+        for (const sz of [-1, 1]) {
+          out.push(localToWorld([sx * hx, sy * hy, sz * hz], box.c, ax));
+        }
+      }
+    }
+    return out;
+  }
+  const BOX_EDGES = [
+    [0, 1],
+    [2, 3],
+    [4, 5],
+    [6, 7],
+    // dọc z
+    [0, 2],
+    [1, 3],
+    [4, 6],
+    [5, 7],
+    // dọc y
+    [0, 4],
+    [1, 5],
+    [2, 6],
+    [3, 7]
+    // dọc x
+  ];
+  function resizeKeepBottom(box, newSize) {
+    const out = cloneBox(box);
+    const ax = axes(box.r);
+    const dh = (newSize[2] - box.s[2]) / 2;
+    out.c = addVec$1(box.c, scaleVec$1(ax.ez, dh));
+    out.s = [newSize[0], newSize[1], newSize[2]];
+    return out;
+  }
+  function findAngleDiff(rightAngle, leftAngle) {
+    let angleDiff = rightAngle - leftAngle;
+    angleDiff = (angleDiff + 180) % 360 - 180;
+    if (Math.abs(angleDiff) >= 180) {
+      angleDiff = 360 - Math.abs(angleDiff) * Math.sign(angleDiff) * -1;
+    }
+    return angleDiff;
+  }
+  function interpolatePoints$1(left, right, offset) {
+    const out = left.map((v, i) => v + (right[i] - v) * offset);
+    const angles = left.slice(3, 6).concat(right.slice(3, 6)).map((a) => a < 0 ? a + Math.PI * 2 : a).map((a) => a * (180 / Math.PI));
+    for (let i = 0; i < 3; i++) {
+      let angle = (angles[i] + findAngleDiff(angles[i + 3], angles[i]) * offset) * (Math.PI / 180);
+      if (angle > Math.PI) angle -= Math.PI * 2;
+      out[3 + i] = angle;
+    }
+    return out;
+  }
+  function transformVectorInverseEuler(v, rx = 0, ry = 0, rz = 0) {
+    const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
+    const x1 = v.x * cosZ + v.y * sinZ;
+    const y1 = -v.x * sinZ + v.y * cosZ;
+    const z1 = v.z;
+    const cosY = Math.cos(ry), sinY = Math.sin(ry);
+    const x2 = x1 * cosY - z1 * sinY;
+    const y2 = y1;
+    const z2 = x1 * sinY + z1 * cosY;
+    const cosX = Math.cos(rx), sinX = Math.sin(rx);
+    const x3 = x2;
+    const y3 = y2 * cosX + z2 * sinX;
+    const z3 = -y2 * sinX + z2 * cosX;
+    return { x: x3, y: y3, z: z3 };
+  }
+  function intersectRayWithOBB(ray, box, padding = 0.12) {
+    if (box.l <= 0 || box.w <= 0 || box.h <= 0) return null;
+    const hx = box.l / 2 + padding;
+    const hy = box.w / 2 + padding;
+    const hz = box.h / 2 + padding;
+    const P = {
+      x: ray.origin.x - box.x,
+      y: ray.origin.y - box.y,
+      z: ray.origin.z - box.z
+    };
+    const D = ray.direction;
+    const rx = box.roll || 0;
+    const ry = box.pitch || 0;
+    const rz = box.yaw || 0;
+    const Ploc = transformVectorInverseEuler(P, rx, ry, rz);
+    const Dloc = transformVectorInverseEuler(D, rx, ry, rz);
+    let tMin = -Infinity;
+    let tMax = Infinity;
+    if (Math.abs(Dloc.x) > 1e-7) {
+      let t1 = (-hx - Ploc.x) / Dloc.x;
+      let t2 = (hx - Ploc.x) / Dloc.x;
+      if (t1 > t2) {
+        const t = t1;
+        t1 = t2;
+        t2 = t;
+      }
+      tMin = Math.max(tMin, t1);
+      tMax = Math.min(tMax, t2);
+      if (tMin > tMax) return null;
+    } else if (Math.abs(Ploc.x) > hx) {
+      return null;
+    }
+    if (Math.abs(Dloc.y) > 1e-7) {
+      let t1 = (-hy - Ploc.y) / Dloc.y;
+      let t2 = (hy - Ploc.y) / Dloc.y;
+      if (t1 > t2) {
+        const t = t1;
+        t1 = t2;
+        t2 = t;
+      }
+      tMin = Math.max(tMin, t1);
+      tMax = Math.min(tMax, t2);
+      if (tMin > tMax) return null;
+    } else if (Math.abs(Ploc.y) > hy) {
+      return null;
+    }
+    if (Math.abs(Dloc.z) > 1e-7) {
+      let t1 = (-hz - Ploc.z) / Dloc.z;
+      let t2 = (hz - Ploc.z) / Dloc.z;
+      if (t1 > t2) {
+        const t = t1;
+        t1 = t2;
+        t2 = t;
+      }
+      tMin = Math.max(tMin, t1);
+      tMax = Math.min(tMax, t2);
+      if (tMin > tMax) return null;
+    } else if (Math.abs(Ploc.z) > hz) {
+      return null;
+    }
+    if (tMax < 0) return null;
+    return tMin >= 0 ? tMin : tMax;
+  }
   function filterDenseConnectedCluster1D(pts, axis, maxGap = 0.22, centerBias = 0) {
     if (pts.length < 8) return pts;
     const sorted = [...pts].sort((a, b) => a[axis] - b[axis]);
@@ -469,55 +685,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       max: Number(maxVal.toFixed(2))
     };
   }
-  function detectLateralWallBoundsWithStatus(pts, halfW, visibleLateral, binSize = 0.025) {
-    const isLeft = visibleLateral === "left";
-    const sidePts = pts.filter((p) => isLeft ? p.ly > 0 : p.ly < 0);
-    if (sidePts.length < 4) {
-      return { edge: isLeft ? halfW : -halfW, found: false, peakCount: 0 };
-    }
-    const minRange = Math.max(0.1, halfW - 0.35);
-    const maxRange = halfW + 0.35;
-    const numBins = Math.ceil(maxRange / binSize) + 1;
-    const bins = new Array(numBins).fill(0);
-    const binMaxLy = new Array(numBins).fill(-Infinity);
-    const binMinLy = new Array(numBins).fill(Infinity);
-    for (const p of sidePts) {
-      const absLy = Math.abs(p.ly);
-      if (absLy <= maxRange) {
-        const idx = Math.min(numBins - 1, Math.floor(absLy / binSize));
-        bins[idx]++;
-        if (p.ly > binMaxLy[idx]) binMaxLy[idx] = p.ly;
-        if (p.ly < binMinLy[idx]) binMinLy[idx] = p.ly;
-      }
-    }
-    const startBin = Math.floor(minRange / binSize);
-    const endBin = Math.min(numBins - 1, Math.floor(maxRange / binSize));
-    let peakCount = 0;
-    let peakIdx = startBin;
-    for (let i = startBin; i <= endBin; i++) {
-      if (bins[i] >= peakCount && bins[i] > 0) {
-        peakCount = bins[i];
-        peakIdx = i;
-      }
-    }
-    if (peakCount < 2) {
-      return { edge: isLeft ? halfW : -halfW, found: false, peakCount };
-    }
-    const minWallDensity = Math.max(2, Math.floor(peakCount * 0.12));
-    let wallIdx = peakIdx;
-    for (let i = peakIdx; i <= endBin; i++) {
-      if (bins[i] >= minWallDensity) {
-        wallIdx = i;
-      } else {
-        break;
-      }
-    }
-    const edge = isLeft ? binMaxLy[wallIdx] !== -Infinity ? Number(binMaxLy[wallIdx].toFixed(3)) : halfW : binMinLy[wallIdx] !== Infinity ? Number(binMinLy[wallIdx].toFixed(3)) : -halfW;
-    return { edge, found: true, peakCount };
-  }
-  function detectLateralWallBounds(pts, halfW, visibleLateral, binSize = 0.025) {
-    return detectLateralWallBoundsWithStatus(pts, halfW, visibleLateral, binSize).edge;
-  }
   function computeIntensityWeights(pts) {
     const n = pts.length;
     if (n === 0) {
@@ -564,288 +731,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       hasValidIntensity: true,
       highIntensityThreshold
     };
-  }
-  function detectDominantWallEdgeWithValleyCutoff(pts, axis, direction, nominalHalf, options = {}) {
-    const isPos = direction === "positive";
-    const orthAxis = axis === "ly" ? "lx" : "ly";
-    const binSize = options.binSize ?? 0.03;
-    const minSpanOrth = options.minSpanOrthogonal ?? (axis === "ly" ? 0.7 : 0.6);
-    const maxSearchExt = options.maxSearchExtension ?? 0.35;
-    const candidatePts = pts.filter((p) => isPos ? p[axis] > 0.02 : p[axis] < -0.02);
-    if (candidatePts.length < 3) {
-      return {
-        edge: isPos ? nominalHalf : -nominalHalf,
-        wallPoints: candidatePts,
-        peakDensity: candidatePts.length
-      };
-    }
-    const intensityData = options.useIntensity !== false ? computeIntensityWeights(candidatePts) : null;
-    const weights = (intensityData == null ? void 0 : intensityData.weights) || new Array(candidatePts.length).fill(1);
-    const highThreshold = (intensityData == null ? void 0 : intensityData.highIntensityThreshold) ?? Infinity;
-    const hasValidIntensity = (intensityData == null ? void 0 : intensityData.hasValidIntensity) ?? false;
-    const maxDist = nominalHalf + maxSearchExt;
-    const numBins = Math.ceil(maxDist / binSize) + 2;
-    const bins = Array.from(
-      { length: numBins },
-      () => []
-    );
-    const binWeights = new Array(numBins).fill(0);
-    for (let i = 0; i < candidatePts.length; i++) {
-      const p = candidatePts[i];
-      const w = weights[i];
-      const isBright = hasValidIntensity && typeof p.intensity === "number" && p.intensity >= highThreshold;
-      const dist = isPos ? p[axis] : -p[axis];
-      if (dist >= 0 && dist <= maxDist) {
-        const bIdx = Math.min(numBins - 1, Math.floor(dist / binSize));
-        bins[bIdx].push({ pt: p, weight: w, isBright });
-        binWeights[bIdx] += w;
-      }
-    }
-    const nominalMinBin = Math.max(0, Math.floor((nominalHalf - 0.45) / binSize));
-    const nominalMaxBin = Math.min(numBins - 1, Math.floor((nominalHalf + maxSearchExt) / binSize));
-    let peakBin = nominalMinBin;
-    let maxWeight = 0;
-    for (let b = nominalMinBin; b <= nominalMaxBin; b++) {
-      const bw = binWeights[b];
-      if (bw > maxWeight) {
-        maxWeight = bw;
-        peakBin = b;
-      }
-    }
-    if (maxWeight < 2) {
-      for (let b = 1; b < numBins - 1; b++) {
-        if (binWeights[b] > maxWeight) {
-          maxWeight = binWeights[b];
-          peakBin = b;
-        }
-      }
-    }
-    if (maxWeight === 0) {
-      return {
-        edge: isPos ? nominalHalf : -nominalHalf,
-        wallPoints: candidatePts,
-        peakDensity: 0
-      };
-    }
-    const minWallWeight = Math.max(1.8, maxWeight * 0.12);
-    let outerWallBin = peakBin;
-    let consecutiveEmptyBins = 0;
-    const maxGapBins = Math.round(0.12 / binSize);
-    for (let b = peakBin + 1; b < numBins; b++) {
-      const ptsInBin = bins[b];
-      const count = ptsInBin.length;
-      const bw = binWeights[b];
-      const hasBrightInBin = ptsInBin.some((item) => item.isBright);
-      if (count === 0) {
-        consecutiveEmptyBins++;
-        if (consecutiveEmptyBins >= maxGapBins) {
-          const nextBinHasBright = b + 1 < numBins && bins[b + 1].some((item) => item.isBright);
-          if (!nextBinHasBright) {
-            break;
-          }
-        }
-        continue;
-      }
-      if (hasBrightInBin) {
-        consecutiveEmptyBins = 0;
-        outerWallBin = b;
-        continue;
-      }
-      const distCenter = (b + 0.5) * binSize;
-      if (bw < minWallWeight && distCenter > nominalHalf) {
-        consecutiveEmptyBins++;
-        if (consecutiveEmptyBins >= maxGapBins) {
-          break;
-        }
-        continue;
-      }
-      if (distCenter > nominalHalf - 0.05) {
-        const orthVals = ptsInBin.map((item) => item.pt[orthAxis]);
-        const spanOrth = Math.max(...orthVals) - Math.min(...orthVals);
-        if (count <= 6 && spanOrth < minSpanOrth * 0.6) {
-          if (b > peakBin + 1) {
-            break;
-          }
-        }
-      }
-      consecutiveEmptyBins = 0;
-      outerWallBin = b;
-    }
-    const collectedWallPoints = [];
-    for (let b = 0; b <= outerWallBin; b++) {
-      for (const item of bins[b]) {
-        collectedWallPoints.push(item.pt);
-      }
-    }
-    const outerEdgeItems = [];
-    const edgeStartBin = Math.max(0, outerWallBin - 3);
-    for (let b = edgeStartBin; b <= outerWallBin; b++) {
-      for (const item of bins[b]) {
-        outerEdgeItems.push(item);
-      }
-    }
-    if (outerEdgeItems.length >= 3) {
-      const brightItems = outerEdgeItems.filter((i) => i.isBright);
-      const targetItems = brightItems.length >= 2 ? brightItems : outerEdgeItems;
-      const dists = targetItems.map((item) => isPos ? item.pt[axis] : -item.pt[axis]).sort((a, b) => a - b);
-      const pIdx = Math.max(0, Math.min(dists.length - 1, Math.floor(dists.length * 0.95)));
-      const chosenDist = dists[pIdx];
-      const edge2 = isPos ? Number(chosenDist.toFixed(3)) : Number((-chosenDist).toFixed(3));
-      return {
-        edge: edge2,
-        wallPoints: collectedWallPoints,
-        peakDensity: Math.round(maxWeight)
-      };
-    }
-    const fallbackDist = (outerWallBin + 1) * binSize;
-    const edge = isPos ? Number(fallbackDist.toFixed(3)) : Number((-fallbackDist).toFixed(3));
-    return {
-      edge,
-      wallPoints: collectedWallPoints.length > 0 ? collectedWallPoints : candidatePts,
-      peakDensity: Math.round(maxWeight)
-    };
-  }
-  function straightenYawFromBoundaryEdge(pts, currentYaw, _L, _W, visibleLateral, options = {}) {
-    const maxAdjDeg = options.maxAdjustmentDeg ?? 8;
-    const maxAdjRad = maxAdjDeg * Math.PI / 180;
-    const intensityData = options.useIntensity !== false ? computeIntensityWeights(pts) : null;
-    const highThreshold = (intensityData == null ? void 0 : intensityData.highIntensityThreshold) ?? Infinity;
-    const hasValidIntensity = (intensityData == null ? void 0 : intensityData.hasValidIntensity) ?? false;
-    const leftPts = pts.filter((p) => p.ly > 0);
-    const rightPts = pts.filter((p) => p.ly < 0);
-    let sidePts;
-    let isTargetLeft;
-    if (leftPts.length >= 8 && leftPts.length > rightPts.length * 1.3) {
-      sidePts = leftPts;
-      isTargetLeft = true;
-    } else if (rightPts.length >= 8 && rightPts.length > leftPts.length * 1.3) {
-      sidePts = rightPts;
-      isTargetLeft = false;
-    } else {
-      const isLeft = visibleLateral === "left";
-      const preferredPts = isLeft ? leftPts : rightPts;
-      if (preferredPts.length >= 8) {
-        sidePts = preferredPts;
-        isTargetLeft = isLeft;
-      } else {
-        sidePts = pts;
-        isTargetLeft = isLeft;
-      }
-    }
-    if (sidePts.length < 8) {
-      return {
-        newYawRad: currentYaw,
-        newYawDeg: Number((currentYaw * 180 / Math.PI).toFixed(2)),
-        deltaYawDeg: 0,
-        slope: 0
-      };
-    }
-    const sortedLx = sidePts.map((p) => p.lx).sort((a, b) => a - b);
-    const minLxBound = sortedLx[Math.floor(sortedLx.length * 0.05)];
-    const maxLxBound = sortedLx[Math.min(sortedLx.length - 1, Math.floor(sortedLx.length * 0.95))];
-    const spanLx = maxLxBound - minLxBound;
-    if (spanLx < 0.5) {
-      return {
-        newYawRad: currentYaw,
-        newYawDeg: Number((currentYaw * 180 / Math.PI).toFixed(2)),
-        deltaYawDeg: 0,
-        slope: 0
-      };
-    }
-    const numSlices = 10;
-    const sliceWidth = spanLx / numSlices;
-    const slicePoints = [];
-    for (let s = 0; s < numSlices; s++) {
-      const sMin = minLxBound + s * sliceWidth;
-      const sMax = sMin + sliceWidth;
-      const inSlice = sidePts.filter((p) => p.lx >= sMin && p.lx < sMax);
-      if (inSlice.length >= 1) {
-        const brightInSlice = hasValidIntensity ? inSlice.filter((p) => typeof p.intensity === "number" && p.intensity >= highThreshold) : [];
-        const targetSlicePts = brightInSlice.length >= 1 ? brightInSlice : inSlice;
-        const sliceWeight = brightInSlice.length >= 1 ? 2 : 1;
-        const sortedLy = targetSlicePts.map((p) => p.ly).sort((a, b) => a - b);
-        if (isTargetLeft) {
-          const pIdx = Math.max(0, Math.floor(sortedLy.length * 0.9));
-          slicePoints.push({ lx: (sMin + sMax) / 2, ly: sortedLy[pIdx], weight: sliceWeight });
-        } else {
-          const pIdx = Math.min(sortedLy.length - 1, Math.floor(sortedLy.length * 0.1));
-          slicePoints.push({ lx: (sMin + sMax) / 2, ly: sortedLy[pIdx], weight: sliceWeight });
-        }
-      }
-    }
-    if (slicePoints.length < 4) {
-      return {
-        newYawRad: currentYaw,
-        newYawDeg: Number((currentYaw * 180 / Math.PI).toFixed(2)),
-        deltaYawDeg: 0,
-        slope: 0
-      };
-    }
-    const slopesWithWeights = [];
-    for (let i = 0; i < slicePoints.length; i++) {
-      for (let j = i + 1; j < slicePoints.length; j++) {
-        const dx = slicePoints[j].lx - slicePoints[i].lx;
-        const dy = slicePoints[j].ly - slicePoints[i].ly;
-        if (Math.abs(dx) >= 0.25) {
-          const pairWeight = (slicePoints[i].weight + slicePoints[j].weight) / 2;
-          slopesWithWeights.push({ slope: dy / dx, weight: pairWeight });
-        }
-      }
-    }
-    let slope = 0;
-    if (slopesWithWeights.length >= 3) {
-      slopesWithWeights.sort((a, b) => a.slope - b.slope);
-      const totalW = slopesWithWeights.reduce((sum, item) => sum + item.weight, 0);
-      let cumulativeW = 0;
-      let chosenSlope = slopesWithWeights[Math.floor(slopesWithWeights.length / 2)].slope;
-      for (const item of slopesWithWeights) {
-        cumulativeW += item.weight;
-        if (cumulativeW >= totalW / 2) {
-          chosenSlope = item.slope;
-          break;
-        }
-      }
-      slope = chosenSlope;
-    } else {
-      let sumLx = 0;
-      let sumLy = 0;
-      let sumLxLy = 0;
-      let sumLx2 = 0;
-      const m = slicePoints.length;
-      for (const p of slicePoints) {
-        sumLx += p.lx;
-        sumLy += p.ly;
-        sumLxLy += p.lx * p.ly;
-        sumLx2 += p.lx * p.lx;
-      }
-      const denom = m * sumLx2 - sumLx * sumLx;
-      slope = Math.abs(denom) > 1e-6 ? (m * sumLxLy - sumLx * sumLy) / denom : 0;
-    }
-    let deltaYaw = Math.atan(slope);
-    deltaYaw = Math.max(-maxAdjRad, Math.min(maxAdjRad, deltaYaw));
-    let deltaYawDeg = Number((deltaYaw * 180 / Math.PI).toFixed(2));
-    if (Math.abs(deltaYawDeg) < 0.25) {
-      deltaYaw = 0;
-      deltaYawDeg = 0;
-    }
-    let newYaw = currentYaw + deltaYaw;
-    while (newYaw > Math.PI) newYaw -= 2 * Math.PI;
-    while (newYaw < -Math.PI) newYaw += 2 * Math.PI;
-    const newYawDeg = Number((newYaw * 180 / Math.PI).toFixed(2));
-    return {
-      newYawRad: Number(newYaw.toFixed(5)),
-      newYawDeg,
-      deltaYawDeg,
-      slope: Number(slope.toFixed(4))
-    };
-  }
-  function detectLongitudinalBumperBounds(pts, halfL, visibleLongitudinal) {
-    const isFront = visibleLongitudinal === "front";
-    if (pts.length < 4) {
-      return isFront ? halfL : -halfL;
-    }
-    const robustBounds = computeDensityRobustBounds(pts);
-    return isFront ? robustBounds.lxMax : robustBounds.lxMin;
   }
   function filterSparseNoiseByLocalDensity(pts, options = {}) {
     if (pts.length < 8) return pts;
@@ -938,26 +823,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       zTop,
       validPointsCount: cleanPts.length
     };
-  }
-  function detectTrueHeadZ(zArr, maxGap = 0.15, groundZ, maxNormalHeight = 1.75) {
-    if (zArr.length === 0) return 0;
-    if (zArr.length === 1) return zArr[0];
-    const sorted = [...zArr].sort((a, b) => a - b);
-    const baseZ = groundZ !== void 0 ? groundZ : sorted[0];
-    const suspiciousThresholdZ = baseZ + maxNormalHeight;
-    let cutoffIdx = sorted.length - 1;
-    for (let i = sorted.length - 1; i >= 1; i--) {
-      if (sorted[i] > suspiciousThresholdZ) {
-        const gap = sorted[i] - sorted[i - 1];
-        if (gap > maxGap) {
-          cutoffIdx = i - 1;
-        }
-      } else {
-        break;
-      }
-    }
-    const clusterPts = sorted.slice(0, cutoffIdx + 1);
-    return clusterPts[clusterPts.length - 1];
   }
   function estimateEgoRoadGroundZ(pts, egoPos = { x: 0, y: 0, z: 0 }, options = {}) {
     const minR = options.minRadius ?? 0.8;
@@ -1455,6 +1320,467 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       curbHeightCm
     };
   }
+  function estimateGroundSlopeInRadius$1(pts, cx, cy, cz, radius = 1, maxGroundZOffset = 0.35, baseZ) {
+    const groundPts = [];
+    const referenceBaseZ = baseZ !== void 0 ? baseZ : cz;
+    const maxZ = referenceBaseZ + maxGroundZOffset;
+    const minZ = referenceBaseZ - 1;
+    const rSq = radius * radius;
+    for (const p of pts) {
+      if (p.z > maxZ || p.z < minZ) continue;
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      if (dx * dx + dy * dy <= rSq) {
+        groundPts.push(p);
+      }
+    }
+    if (groundPts.length < 4) {
+      const fallbackZ = groundPts.length > 0 ? groundPts.map((p) => p.z).sort((a, b) => a - b)[0] : referenceBaseZ;
+      return { groundZ: fallbackZ, pitchDeg: 0, rollDeg: 0, pitchRad: 0, rollRad: 0, groundPointsCount: groundPts.length };
+    }
+    const sortedZ = groundPts.map((p) => p.z).sort((a, b) => a - b);
+    const groundZ = sortedZ[Math.max(0, Math.floor(sortedZ.length * 0.15))];
+    let sumDx2 = 0, sumDy2 = 0, sumDxDy = 0;
+    let sumDxDz = 0, sumDyDz = 0;
+    for (const p of groundPts) {
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      const dz = p.z - groundZ;
+      sumDx2 += dx * dx;
+      sumDy2 += dy * dy;
+      sumDxDy += dx * dy;
+      sumDxDz += dx * dz;
+      sumDyDz += dy * dz;
+    }
+    const denom = sumDx2 * sumDy2 - sumDxDy * sumDxDy;
+    let slopeX = 0;
+    let slopeY = 0;
+    if (Math.abs(denom) > 1e-5) {
+      slopeX = (sumDxDz * sumDy2 - sumDyDz * sumDxDy) / denom;
+      slopeY = (sumDyDz * sumDx2 - sumDxDz * sumDxDy) / denom;
+    }
+    const maxSlope = Math.tan(35 * Math.PI / 180);
+    slopeX = Math.max(-maxSlope, Math.min(maxSlope, slopeX));
+    slopeY = Math.max(-maxSlope, Math.min(maxSlope, slopeY));
+    const pitchRad = Math.atan(slopeX);
+    const rollRad = Math.atan(slopeY);
+    const pitchDeg = Number((pitchRad * 180 / Math.PI).toFixed(1));
+    const rollDeg = Number((rollRad * 180 / Math.PI).toFixed(1));
+    return { groundZ, pitchDeg, rollDeg, pitchRad, rollRad, groundPointsCount: groundPts.length };
+  }
+  function percentile(sorted, p) {
+    if (!sorted.length) return NaN;
+    const i = Math.min(
+      sorted.length - 1,
+      Math.max(0, Math.round((sorted.length - 1) * p))
+    );
+    return sorted[i];
+  }
+  function estimateGround(xyz, box, opts = {}) {
+    if (!xyz || !xyz.length || xyz.length < 3) return null;
+    const minPoints = opts.minPoints ?? 4;
+    const margin = opts.margin ?? 0.45;
+    const below = opts.below ?? 4;
+    const above = opts.above ?? 0.35;
+    const ax = axes(box.r);
+    const ix = box.s[0] / 2;
+    const iy = box.s[1] / 2;
+    const hx = ix + margin;
+    const hy = iy + margin;
+    const bottom = -box.s[2] / 2;
+    const ring = [];
+    const inner = [];
+    const c = box.c;
+    for (let i = 0; i < xyz.length; i += 3) {
+      const vx = xyz[i] - c[0];
+      const vy = xyz[i + 1] - c[1];
+      const vz = xyz[i + 2] - c[2];
+      const qx = vx * ax.ex[0] + vy * ax.ex[1] + vz * ax.ex[2];
+      if (qx < -hx || qx > hx) continue;
+      const qy = vx * ax.ey[0] + vy * ax.ey[1] + vz * ax.ey[2];
+      if (qy < -hy || qy > hy) continue;
+      const qz = vx * ax.ez[0] + vy * ax.ez[1] + vz * ax.ez[2];
+      if (qz < bottom - below || qz > bottom + above) continue;
+      if (Math.abs(qx) > ix || Math.abs(qy) > iy) {
+        ring.push(qz);
+      } else {
+        inner.push(qz);
+      }
+    }
+    if (ring.length >= minPoints) {
+      const bin = 0.02;
+      const lo = bottom - below;
+      const binCount = Math.ceil((below + above) / bin) + 1;
+      const bins = new Float64Array(binCount);
+      for (const z of ring) {
+        const idx = Math.min(bins.length - 1, Math.max(0, Math.floor((z - lo) / bin)));
+        bins[idx] += 1;
+      }
+      let best = 0;
+      let bestScore = -1;
+      for (let i = 0; i < bins.length; i++) {
+        const score = bins[i] + 0.5 * ((bins[i - 1] || 0) + (bins[i + 1] || 0));
+        if (score > bestScore) {
+          bestScore = score;
+          best = i;
+        }
+      }
+      const peak = lo + (best + 0.5) * bin;
+      const near = ring.filter((z) => Math.abs(z - peak) <= 0.05).sort((p, q) => p - q);
+      if (near.length >= minPoints) {
+        return { localZ: percentile(near, 0.5), count: near.length };
+      }
+    }
+    const all = ring.concat(inner).sort((p, q) => p - q);
+    if (all.length >= minPoints) {
+      return { localZ: percentile(all, 0.15), count: all.length };
+    }
+    if (margin < 0.8 && xyz.length >= 3) {
+      return estimateGround(xyz, box, { ...opts, margin: 0.85, below: 4.5, minPoints: 3 });
+    }
+    return null;
+  }
+  function snapToGround(xyz, box, opts) {
+    if (!xyz || !xyz.length) return null;
+    const g = estimateGround(xyz, box, opts);
+    if (!g) return null;
+    const ax = axes(box.r);
+    const shift = g.localZ + box.s[2] / 2;
+    const out = cloneBox(box);
+    out.c = addVec$1(box.c, scaleVec$1(ax.ez, shift));
+    return { box: out, shift, count: g.count };
+  }
+  function detectLateralWallBoundsWithStatus(pts, halfW, visibleLateral, binSize = 0.025) {
+    const isLeft = visibleLateral === "left";
+    const sidePts = pts.filter((p) => isLeft ? p.ly > 0 : p.ly < 0);
+    if (sidePts.length < 4) {
+      return { edge: isLeft ? halfW : -halfW, found: false, peakCount: 0 };
+    }
+    const minRange = Math.max(0.1, halfW - 0.35);
+    const maxRange = halfW + 0.35;
+    const numBins = Math.ceil(maxRange / binSize) + 1;
+    const bins = new Array(numBins).fill(0);
+    const binMaxLy = new Array(numBins).fill(-Infinity);
+    const binMinLy = new Array(numBins).fill(Infinity);
+    for (const p of sidePts) {
+      const absLy = Math.abs(p.ly);
+      if (absLy <= maxRange) {
+        const idx = Math.min(numBins - 1, Math.floor(absLy / binSize));
+        bins[idx]++;
+        if (p.ly > binMaxLy[idx]) binMaxLy[idx] = p.ly;
+        if (p.ly < binMinLy[idx]) binMinLy[idx] = p.ly;
+      }
+    }
+    const startBin = Math.floor(minRange / binSize);
+    const endBin = Math.min(numBins - 1, Math.floor(maxRange / binSize));
+    let peakCount = 0;
+    let peakIdx = startBin;
+    for (let i = startBin; i <= endBin; i++) {
+      if (bins[i] >= peakCount && bins[i] > 0) {
+        peakCount = bins[i];
+        peakIdx = i;
+      }
+    }
+    if (peakCount < 2) {
+      return { edge: isLeft ? halfW : -halfW, found: false, peakCount };
+    }
+    const minWallDensity = Math.max(2, Math.floor(peakCount * 0.12));
+    let wallIdx = peakIdx;
+    for (let i = peakIdx; i <= endBin; i++) {
+      if (bins[i] >= minWallDensity) {
+        wallIdx = i;
+      } else {
+        break;
+      }
+    }
+    const edge = isLeft ? binMaxLy[wallIdx] !== -Infinity ? Number(binMaxLy[wallIdx].toFixed(3)) : halfW : binMinLy[wallIdx] !== Infinity ? Number(binMinLy[wallIdx].toFixed(3)) : -halfW;
+    return { edge, found: true, peakCount };
+  }
+  function detectLateralWallBounds(pts, halfW, visibleLateral, binSize = 0.025) {
+    return detectLateralWallBoundsWithStatus(pts, halfW, visibleLateral, binSize).edge;
+  }
+  function detectDominantWallEdgeWithValleyCutoff(pts, axis, direction, nominalHalf, options = {}) {
+    const isPos = direction === "positive";
+    const orthAxis = axis === "ly" ? "lx" : "ly";
+    const binSize = options.binSize ?? 0.03;
+    const minSpanOrth = options.minSpanOrthogonal ?? (axis === "ly" ? 0.7 : 0.6);
+    const maxSearchExt = options.maxSearchExtension ?? 0.35;
+    const candidatePts = pts.filter((p) => isPos ? p[axis] > 0.02 : p[axis] < -0.02);
+    if (candidatePts.length < 3) {
+      return {
+        edge: isPos ? nominalHalf : -nominalHalf,
+        wallPoints: candidatePts,
+        peakDensity: candidatePts.length
+      };
+    }
+    const intensityData = options.useIntensity !== false ? computeIntensityWeights(candidatePts) : null;
+    const weights = (intensityData == null ? void 0 : intensityData.weights) || new Array(candidatePts.length).fill(1);
+    const highThreshold = (intensityData == null ? void 0 : intensityData.highIntensityThreshold) ?? Infinity;
+    const hasValidIntensity = (intensityData == null ? void 0 : intensityData.hasValidIntensity) ?? false;
+    const maxDist = nominalHalf + maxSearchExt;
+    const numBins = Math.ceil(maxDist / binSize) + 2;
+    const bins = Array.from(
+      { length: numBins },
+      () => []
+    );
+    const binWeights = new Array(numBins).fill(0);
+    for (let i = 0; i < candidatePts.length; i++) {
+      const p = candidatePts[i];
+      const w = weights[i];
+      const isBright = hasValidIntensity && typeof p.intensity === "number" && p.intensity >= highThreshold;
+      const dist = isPos ? p[axis] : -p[axis];
+      if (dist >= 0 && dist <= maxDist) {
+        const bIdx = Math.min(numBins - 1, Math.floor(dist / binSize));
+        bins[bIdx].push({ pt: p, weight: w, isBright });
+        binWeights[bIdx] += w;
+      }
+    }
+    const nominalMinBin = Math.max(0, Math.floor((nominalHalf - 0.45) / binSize));
+    const nominalMaxBin = Math.min(numBins - 1, Math.floor((nominalHalf + maxSearchExt) / binSize));
+    let peakBin = nominalMinBin;
+    let maxWeight = 0;
+    for (let b = nominalMinBin; b <= nominalMaxBin; b++) {
+      const bw = binWeights[b];
+      if (bw > maxWeight) {
+        maxWeight = bw;
+        peakBin = b;
+      }
+    }
+    if (maxWeight < 2) {
+      for (let b = 1; b < numBins - 1; b++) {
+        if (binWeights[b] > maxWeight) {
+          maxWeight = binWeights[b];
+          peakBin = b;
+        }
+      }
+    }
+    if (maxWeight === 0) {
+      return {
+        edge: isPos ? nominalHalf : -nominalHalf,
+        wallPoints: candidatePts,
+        peakDensity: 0
+      };
+    }
+    const minWallWeight = Math.max(1.8, maxWeight * 0.12);
+    let outerWallBin = peakBin;
+    let consecutiveEmptyBins = 0;
+    const maxGapBins = Math.round(0.12 / binSize);
+    for (let b = peakBin + 1; b < numBins; b++) {
+      const ptsInBin = bins[b];
+      const count = ptsInBin.length;
+      const bw = binWeights[b];
+      const hasBrightInBin = ptsInBin.some((item) => item.isBright);
+      if (count === 0) {
+        consecutiveEmptyBins++;
+        if (consecutiveEmptyBins >= maxGapBins) {
+          const nextBinHasBright = b + 1 < numBins && bins[b + 1].some((item) => item.isBright);
+          if (!nextBinHasBright) {
+            break;
+          }
+        }
+        continue;
+      }
+      if (hasBrightInBin) {
+        consecutiveEmptyBins = 0;
+        outerWallBin = b;
+        continue;
+      }
+      const distCenter = (b + 0.5) * binSize;
+      if (bw < minWallWeight && distCenter > nominalHalf) {
+        consecutiveEmptyBins++;
+        if (consecutiveEmptyBins >= maxGapBins) {
+          break;
+        }
+        continue;
+      }
+      if (distCenter > nominalHalf - 0.05) {
+        const orthVals = ptsInBin.map((item) => item.pt[orthAxis]);
+        const spanOrth = Math.max(...orthVals) - Math.min(...orthVals);
+        if (count <= 6 && spanOrth < minSpanOrth * 0.6) {
+          if (b > peakBin + 1) {
+            break;
+          }
+        }
+      }
+      consecutiveEmptyBins = 0;
+      outerWallBin = b;
+    }
+    const collectedWallPoints = [];
+    for (let b = 0; b <= outerWallBin; b++) {
+      for (const item of bins[b]) {
+        collectedWallPoints.push(item.pt);
+      }
+    }
+    const outerEdgeItems = [];
+    const edgeStartBin = Math.max(0, outerWallBin - 3);
+    for (let b = edgeStartBin; b <= outerWallBin; b++) {
+      for (const item of bins[b]) {
+        outerEdgeItems.push(item);
+      }
+    }
+    if (outerEdgeItems.length >= 3) {
+      const brightItems = outerEdgeItems.filter((i) => i.isBright);
+      const targetItems = brightItems.length >= 2 ? brightItems : outerEdgeItems;
+      const dists = targetItems.map((item) => isPos ? item.pt[axis] : -item.pt[axis]).sort((a, b) => a - b);
+      const pIdx = Math.max(0, Math.min(dists.length - 1, Math.floor(dists.length * 0.95)));
+      const chosenDist = dists[pIdx];
+      const edge2 = isPos ? Number(chosenDist.toFixed(3)) : Number((-chosenDist).toFixed(3));
+      return {
+        edge: edge2,
+        wallPoints: collectedWallPoints,
+        peakDensity: Math.round(maxWeight)
+      };
+    }
+    const fallbackDist = (outerWallBin + 1) * binSize;
+    const edge = isPos ? Number(fallbackDist.toFixed(3)) : Number((-fallbackDist).toFixed(3));
+    return {
+      edge,
+      wallPoints: collectedWallPoints.length > 0 ? collectedWallPoints : candidatePts,
+      peakDensity: Math.round(maxWeight)
+    };
+  }
+  function straightenYawFromBoundaryEdge(pts, currentYaw, _L, _W, visibleLateral, options = {}) {
+    const maxAdjDeg = options.maxAdjustmentDeg ?? 8;
+    const maxAdjRad = maxAdjDeg * Math.PI / 180;
+    const intensityData = options.useIntensity !== false ? computeIntensityWeights(pts) : null;
+    const highThreshold = (intensityData == null ? void 0 : intensityData.highIntensityThreshold) ?? Infinity;
+    const hasValidIntensity = (intensityData == null ? void 0 : intensityData.hasValidIntensity) ?? false;
+    const leftPts = pts.filter((p) => p.ly > 0);
+    const rightPts = pts.filter((p) => p.ly < 0);
+    let sidePts;
+    let isTargetLeft;
+    if (leftPts.length >= 8 && leftPts.length > rightPts.length * 1.3) {
+      sidePts = leftPts;
+      isTargetLeft = true;
+    } else if (rightPts.length >= 8 && rightPts.length > leftPts.length * 1.3) {
+      sidePts = rightPts;
+      isTargetLeft = false;
+    } else {
+      const isLeft = visibleLateral === "left";
+      const preferredPts = isLeft ? leftPts : rightPts;
+      if (preferredPts.length >= 8) {
+        sidePts = preferredPts;
+        isTargetLeft = isLeft;
+      } else {
+        sidePts = pts;
+        isTargetLeft = isLeft;
+      }
+    }
+    if (sidePts.length < 8) {
+      return {
+        newYawRad: currentYaw,
+        newYawDeg: Number((currentYaw * 180 / Math.PI).toFixed(2)),
+        deltaYawDeg: 0,
+        slope: 0
+      };
+    }
+    const sortedLx = sidePts.map((p) => p.lx).sort((a, b) => a - b);
+    const minLxBound = sortedLx[Math.floor(sortedLx.length * 0.05)];
+    const maxLxBound = sortedLx[Math.min(sortedLx.length - 1, Math.floor(sortedLx.length * 0.95))];
+    const spanLx = maxLxBound - minLxBound;
+    if (spanLx < 0.5) {
+      return {
+        newYawRad: currentYaw,
+        newYawDeg: Number((currentYaw * 180 / Math.PI).toFixed(2)),
+        deltaYawDeg: 0,
+        slope: 0
+      };
+    }
+    const numSlices = 10;
+    const sliceWidth = spanLx / numSlices;
+    const slicePoints = [];
+    for (let s = 0; s < numSlices; s++) {
+      const sMin = minLxBound + s * sliceWidth;
+      const sMax = sMin + sliceWidth;
+      const inSlice = sidePts.filter((p) => p.lx >= sMin && p.lx < sMax);
+      if (inSlice.length >= 1) {
+        const brightInSlice = hasValidIntensity ? inSlice.filter((p) => typeof p.intensity === "number" && p.intensity >= highThreshold) : [];
+        const targetSlicePts = brightInSlice.length >= 1 ? brightInSlice : inSlice;
+        const sliceWeight = brightInSlice.length >= 1 ? 2 : 1;
+        const sortedLy = targetSlicePts.map((p) => p.ly).sort((a, b) => a - b);
+        if (isTargetLeft) {
+          const pIdx = Math.max(0, Math.floor(sortedLy.length * 0.9));
+          slicePoints.push({ lx: (sMin + sMax) / 2, ly: sortedLy[pIdx], weight: sliceWeight });
+        } else {
+          const pIdx = Math.min(sortedLy.length - 1, Math.floor(sortedLy.length * 0.1));
+          slicePoints.push({ lx: (sMin + sMax) / 2, ly: sortedLy[pIdx], weight: sliceWeight });
+        }
+      }
+    }
+    if (slicePoints.length < 4) {
+      return {
+        newYawRad: currentYaw,
+        newYawDeg: Number((currentYaw * 180 / Math.PI).toFixed(2)),
+        deltaYawDeg: 0,
+        slope: 0
+      };
+    }
+    const slopesWithWeights = [];
+    for (let i = 0; i < slicePoints.length; i++) {
+      for (let j = i + 1; j < slicePoints.length; j++) {
+        const dx = slicePoints[j].lx - slicePoints[i].lx;
+        const dy = slicePoints[j].ly - slicePoints[i].ly;
+        if (Math.abs(dx) >= 0.25) {
+          const pairWeight = (slicePoints[i].weight + slicePoints[j].weight) / 2;
+          slopesWithWeights.push({ slope: dy / dx, weight: pairWeight });
+        }
+      }
+    }
+    let slope = 0;
+    if (slopesWithWeights.length >= 3) {
+      slopesWithWeights.sort((a, b) => a.slope - b.slope);
+      const totalW = slopesWithWeights.reduce((sum, item) => sum + item.weight, 0);
+      let cumulativeW = 0;
+      let chosenSlope = slopesWithWeights[Math.floor(slopesWithWeights.length / 2)].slope;
+      for (const item of slopesWithWeights) {
+        cumulativeW += item.weight;
+        if (cumulativeW >= totalW / 2) {
+          chosenSlope = item.slope;
+          break;
+        }
+      }
+      slope = chosenSlope;
+    } else {
+      let sumLx = 0;
+      let sumLy = 0;
+      let sumLxLy = 0;
+      let sumLx2 = 0;
+      const m = slicePoints.length;
+      for (const p of slicePoints) {
+        sumLx += p.lx;
+        sumLy += p.ly;
+        sumLxLy += p.lx * p.ly;
+        sumLx2 += p.lx * p.lx;
+      }
+      const denom = m * sumLx2 - sumLx * sumLx;
+      slope = Math.abs(denom) > 1e-6 ? (m * sumLxLy - sumLx * sumLy) / denom : 0;
+    }
+    let deltaYaw = Math.atan(slope);
+    deltaYaw = Math.max(-maxAdjRad, Math.min(maxAdjRad, deltaYaw));
+    let deltaYawDeg = Number((deltaYaw * 180 / Math.PI).toFixed(2));
+    if (Math.abs(deltaYawDeg) < 0.25) {
+      deltaYaw = 0;
+      deltaYawDeg = 0;
+    }
+    let newYaw = currentYaw + deltaYaw;
+    while (newYaw > Math.PI) newYaw -= 2 * Math.PI;
+    while (newYaw < -Math.PI) newYaw += 2 * Math.PI;
+    const newYawDeg = Number((newYaw * 180 / Math.PI).toFixed(2));
+    return {
+      newYawRad: Number(newYaw.toFixed(5)),
+      newYawDeg,
+      deltaYawDeg,
+      slope: Number(slope.toFixed(4))
+    };
+  }
+  function detectLongitudinalBumperBounds(pts, halfL, visibleLongitudinal) {
+    const isFront = visibleLongitudinal === "front";
+    if (pts.length < 4) {
+      return isFront ? halfL : -halfL;
+    }
+    const robustBounds = computeDensityRobustBounds(pts);
+    return isFront ? robustBounds.lxMax : robustBounds.lxMin;
+  }
   function determineBumperByDensity(pts, L, egoLocalX, egoLocalY) {
     if (pts.length === 0) {
       return {
@@ -1862,53 +2188,535 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       message: msg
     };
   }
-  function estimateGroundSlopeInRadius$1(pts, cx, cy, cz, radius = 1, maxGroundZOffset = 0.35, baseZ) {
+  function estimateTwoWheelerHeading(bodyPts, curYaw) {
+    if (bodyPts.length < 4) {
+      return { deltaYawRad: 0, deltaYawDeg: 0, newYawRad: curYaw, newYawDeg: radToDeg(curYaw) };
+    }
+    const n = bodyPts.length;
+    let sumLx = 0;
+    let sumLy = 0;
+    for (const p of bodyPts) {
+      sumLx += p.lx;
+      sumLy += p.ly;
+    }
+    const meanLx = sumLx / n;
+    const meanLy = sumLy / n;
+    let sxx = 0;
+    let syy = 0;
+    let sxy = 0;
+    for (const p of bodyPts) {
+      const dx = p.lx - meanLx;
+      const dy = p.ly - meanLy;
+      sxx += dx * dx;
+      syy += dy * dy;
+      sxy += dx * dy;
+    }
+    sxx /= n;
+    syy /= n;
+    sxy /= n;
+    const deltaThetaPca = 0.5 * Math.atan2(2 * sxy, sxx - syy);
+    const sortedByLx = [...bodyPts].sort((a, b) => a.lx - b.lx);
+    const sliceCount = Math.max(1, Math.floor(n * 0.3));
+    const rearSlice = sortedByLx.slice(0, sliceCount);
+    const frontSlice = sortedByLx.slice(Math.max(sliceCount, n - sliceCount));
+    const rearLx = rearSlice.reduce((s, p) => s + p.lx, 0) / rearSlice.length;
+    const rearLy = rearSlice.reduce((s, p) => s + p.ly, 0) / rearSlice.length;
+    const frontLx = frontSlice.reduce((s, p) => s + p.lx, 0) / frontSlice.length;
+    const frontLy = frontSlice.reduce((s, p) => s + p.ly, 0) / frontSlice.length;
+    const dLx = frontLx - rearLx;
+    const dLy = frontLy - rearLy;
+    let deltaThetaExt = deltaThetaPca;
+    if (dLx >= 0.3) {
+      deltaThetaExt = Math.atan2(dLy, dLx);
+    }
+    let deltaTheta = Math.abs(deltaThetaPca - deltaThetaExt) < 0.2 ? 0.7 * deltaThetaPca + 0.3 * deltaThetaExt : deltaThetaPca;
+    const maxDeltaRad = Math.PI / 4;
+    deltaTheta = Math.max(-maxDeltaRad, Math.min(maxDeltaRad, deltaTheta));
+    const newYawRad = normalizeAngle(curYaw + deltaTheta);
+    const deltaYawDeg = radToDeg(deltaTheta);
+    const newYawDeg = radToDeg(newYawRad);
+    return { deltaYawRad: deltaTheta, deltaYawDeg, newYawRad, newYawDeg };
+  }
+  function fitTwoWheelerBox(pts, cx, cy, cz, yaw, curL = 1.75, curW = 0.65, curH = 1.55, options = {}, stepParam = "all") {
+    var _a, _b, _c, _d, _e, _f, _g;
+    const step = options.step ?? stepParam;
+    const headBuffer = options.headBuffer ?? 0.05;
+    const margin = options.margin ?? 0.2;
+    const baseZ = cz - curH / 2;
+    const groundSlopeInfo = estimateGroundSlopeInRadius$1(pts, cx, cy, cz, 1.5, 0.35, baseZ);
+    const groundPitchDeg = groundSlopeInfo.pitchDeg;
+    const groundRollDeg = groundSlopeInfo.rollDeg;
+    const footRadius = Math.max(0.6, curL / 2 + margin);
     const groundPts = [];
-    const referenceBaseZ = baseZ !== void 0 ? baseZ : cz;
-    const maxZ = referenceBaseZ + maxGroundZOffset;
-    const minZ = referenceBaseZ - 1;
-    const rSq = radius * radius;
+    const maxGroundZ = baseZ + 0.35;
+    const minGroundZ = baseZ - 1;
     for (const p of pts) {
-      if (p.z > maxZ || p.z < minZ) continue;
+      if (p.z > maxGroundZ || p.z < minGroundZ) continue;
       const dx = p.x - cx;
       const dy = p.y - cy;
-      if (dx * dx + dy * dy <= rSq) {
-        groundPts.push(p);
+      if (dx * dx + dy * dy <= footRadius * footRadius) {
+        groundPts.push(p.z);
       }
     }
-    if (groundPts.length < 4) {
-      const fallbackZ = groundPts.length > 0 ? groundPts.map((p) => p.z).sort((a, b) => a - b)[0] : referenceBaseZ;
-      return { groundZ: fallbackZ, pitchDeg: 0, rollDeg: 0, pitchRad: 0, rollRad: 0, groundPointsCount: groundPts.length };
+    let groundZ = baseZ;
+    if (groundPts.length >= 3) {
+      groundPts.sort((a, b) => a - b);
+      groundZ = groundPts[Math.max(0, Math.floor(groundPts.length * 0.15))];
     }
-    const sortedZ = groundPts.map((p) => p.z).sort((a, b) => a - b);
-    const groundZ = sortedZ[Math.max(0, Math.floor(sortedZ.length * 0.15))];
-    let sumDx2 = 0, sumDy2 = 0, sumDxDy = 0;
-    let sumDxDz = 0, sumDyDz = 0;
-    for (const p of groundPts) {
+    const minCoreZ = groundZ + 0.25;
+    const maxBodyZ = groundZ + 2;
+    const minWheelZ = step === "side" || step === "front" ? groundZ + 0.02 : groundZ + 0.08;
+    const outerL = curL / 2 + 0.45;
+    const outerW = Math.max(curW, 0.85) / 2 + 0.45;
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+    const corePts = [];
+    const wheelPts = [];
+    for (const p of pts) {
+      if (p.z < minWheelZ || p.z > maxBodyZ) continue;
       const dx = p.x - cx;
       const dy = p.y - cy;
-      const dz = p.z - groundZ;
-      sumDx2 += dx * dx;
-      sumDy2 += dy * dy;
-      sumDxDy += dx * dy;
-      sumDxDz += dx * dz;
-      sumDyDz += dy * dz;
+      const lx = dx * cosY - dy * sinY;
+      const ly = dx * sinY + dy * cosY;
+      if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
+        if (p.z >= minCoreZ) {
+          corePts.push({ lx, ly, z: p.z });
+        } else {
+          if (Math.abs(ly) <= Math.max(0.25, curW / 2 + 0.08)) {
+            wheelPts.push({ lx, ly, z: p.z });
+          }
+        }
+      }
     }
-    const denom = sumDx2 * sumDy2 - sumDxDy * sumDxDy;
-    let slopeX = 0;
-    let slopeY = 0;
-    if (Math.abs(denom) > 1e-5) {
-      slopeX = (sumDxDz * sumDy2 - sumDyDz * sumDxDy) / denom;
-      slopeY = (sumDyDz * sumDx2 - sumDxDz * sumDxDy) / denom;
+    let rawPts;
+    if (step === "side" || step === "front") {
+      rawPts = [...corePts, ...wheelPts];
+    } else {
+      rawPts = corePts.length >= 8 ? corePts : [...corePts, ...wheelPts];
     }
-    const maxSlope = Math.tan(35 * Math.PI / 180);
-    slopeX = Math.max(-maxSlope, Math.min(maxSlope, slopeX));
-    slopeY = Math.max(-maxSlope, Math.min(maxSlope, slopeY));
-    const pitchRad = Math.atan(slopeX);
-    const rollRad = Math.atan(slopeY);
-    const pitchDeg = Number((pitchRad * 180 / Math.PI).toFixed(1));
-    const rollDeg = Number((rollRad * 180 / Math.PI).toFixed(1));
-    return { groundZ, pitchDeg, rollDeg, pitchRad, rollRad, groundPointsCount: groundPts.length };
+    const isSparse = rawPts.length <= 12;
+    let cleanCyclistPts = rawPts;
+    if (!isSparse) {
+      const cyclistDilationRes = clusterByPointDilation5x(rawPts, {
+        basePointSize: 0.03,
+        dilationFactor: 5,
+        connectDist: 0.3,
+        connectDistLx: 0.38,
+        connectDistLy: 0.32,
+        dim: "2d",
+        centerBias: { lx: 0, ly: 0 }
+      });
+      cleanCyclistPts = cyclistDilationRes.dominantPts.length >= 8 ? cyclistDilationRes.dominantPts : rawPts;
+    }
+    const aodeRes = analyzeOrientedDensityEnvelope(
+      cleanCyclistPts,
+      "two_wheel",
+      curL,
+      curW,
+      curH,
+      groundZ,
+      {
+        binSize: 0.02,
+        densityValleyGap: 0.12,
+        attributes: options.attributes,
+        isSideOrFrontStep: step === "side" || step === "front",
+        egoLocalPos: options.egoPos ? {
+          lx: (options.egoPos.x - cx) * Math.cos(yaw) + (options.egoPos.y - cy) * Math.sin(yaw),
+          ly: -(options.egoPos.x - cx) * Math.sin(yaw) + (options.egoPos.y - cy) * Math.cos(yaw)
+        } : void 0
+      }
+    );
+    const maxGapLx = step === "side" || isSparse ? 0.38 : 0.28;
+    const maxGapLy = step === "front" || isSparse ? 0.35 : 0.24;
+    const sourcePts = aodeRes.filteredPts.length >= 3 ? aodeRes.filteredPts : rawPts;
+    const clusterLy = filterDenseConnectedCluster1D(sourcePts, "ly", maxGapLy, 0);
+    const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxGapLx, 0);
+    let newCenterX = cx;
+    let newCenterY = cy;
+    let newCenterZ = cz;
+    let newYawRad = yaw;
+    let newYawDeg = radToDeg(yaw);
+    let deltaYawDeg = 0;
+    let newL = curL;
+    let newW = curW;
+    let newH = curH;
+    let shiftLx = 0;
+    let shiftLy = 0;
+    let roofTopZ = groundZ + curH;
+    let msg = "";
+    if (bodyPts.length < 3) {
+      return {
+        newCenterX,
+        newCenterY,
+        newCenterZ,
+        newYawRad,
+        newYawDeg,
+        deltaYawDeg: 0,
+        newL,
+        newW,
+        newH,
+        pitchRad: 0,
+        rollRad: 0,
+        pitchDeg: 0,
+        rollDeg: 0,
+        groundZ: Number(groundZ.toFixed(3)),
+        roofTopZ: Number(roofTopZ.toFixed(3)),
+        pointsCount: bodyPts.length,
+        step,
+        message: `Không đủ điểm LiDAR xe 2 bánh (${bodyPts.length} điểm), giữ nguyên box`,
+        aodeInfo: {
+          meanR: aodeRes.meanR,
+          meanAbsLx: aodeRes.meanAbsLx,
+          meanAbsLy: aodeRes.meanAbsLy,
+          uncoveredFront: aodeRes.uncoveredFront,
+          uncoveredRear: aodeRes.uncoveredRear,
+          uncoveredLeft: aodeRes.uncoveredLeft,
+          uncoveredRight: aodeRes.uncoveredRight,
+          lxPeak: aodeRes.lxPeak,
+          lyPeak: aodeRes.lyPeak,
+          hasCrowdSeparation: aodeRes.hasCrowdSeparation,
+          hasParallelVehicleSeparation: aodeRes.hasParallelVehicleSeparation
+        }
+      };
+    }
+    const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
+    const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
+    const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
+    const pMinIdx = !isSparse && bodyPts.length >= 30 ? Math.floor(bodyPts.length * 0.015) : 0;
+    const pMaxIdx = !isSparse && bodyPts.length >= 30 ? Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.985)) : bodyPts.length - 1;
+    const lxMin = allLx[pMinIdx];
+    const lxMax = allLx[pMaxIdx];
+    const lyMin = allLy[pMinIdx];
+    const lyMax = allLy[pMaxIdx];
+    const highestPtZ = detectTrueHeadZ(allZ, 0.15, groundZ, 1.6);
+    if (step === "top") {
+      const headingRes = estimateTwoWheelerHeading(bodyPts, yaw);
+      newYawRad = headingRes.newYawRad;
+      newYawDeg = headingRes.newYawDeg;
+      deltaYawDeg = headingRes.deltaYawDeg;
+      newCenterX = cx;
+      newCenterY = cy;
+      newCenterZ = cz;
+      newL = curL;
+      newW = curW;
+      newH = curH;
+      const deltaSign = deltaYawDeg >= 0 ? "+" : "";
+      msg = `Đã căn TOP Xe 2 bánh: Xoay Yaw (${newYawDeg}°, Δ=${deltaSign}${deltaYawDeg.toFixed(1)}°) theo trục Đầu - Đuôi, khóa tâm X/Y/Z và kích thước`;
+    } else if (step === "side") {
+      newYawRad = yaw;
+      newYawDeg = radToDeg(yaw);
+      deltaYawDeg = 0;
+      newL = curL;
+      newW = curW;
+      newH = curH;
+      shiftLx = 0;
+      let bumperLabel = "Đón tia";
+      const riderPts = bodyPts.filter((p) => p.z >= groundZ + 0.65);
+      const hasRider = riderPts.length >= 2;
+      let lxRider = 0;
+      if (hasRider) {
+        const sortedRiderLx = riderPts.map((p) => p.lx).sort((a, b) => a - b);
+        lxRider = sortedRiderLx[Math.floor(sortedRiderLx.length / 2)];
+      }
+      const distFront = hasRider ? lxMax - lxRider : curL / 2;
+      const distRear = hasRider ? lxRider - lxMin : curL / 2;
+      const isMissingFront = hasRider && distFront < 0.28 * curL;
+      const isMissingRear = hasRider && distRear < 0.38 * curL;
+      let toEgoX = 0;
+      let toEgoY = 0;
+      let egoLocalX = 0;
+      let egoLocalY = 0;
+      let hasEgo = false;
+      let isSideBeamParallel = false;
+      if (options.egoPos) {
+        toEgoX = options.egoPos.x - cx;
+        toEgoY = options.egoPos.y - cy;
+        egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
+        egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+        hasEgo = true;
+        isSideBeamParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * 0.466;
+      }
+      if (isMissingFront && isMissingRear) {
+        shiftLx = lxRider - 0.08 * curL;
+        bumperLabel = "Người lái 42% (Mất cả 2 bánh)";
+      } else if (isMissingFront) {
+        const estFrontEdge = lxRider + 0.42 * curL;
+        if (hasEgo && !isSideBeamParallel && egoLocalX < 0) {
+          shiftLx = lxMin - 0.02 + curL / 2;
+          bumperLabel = "Cản sau (Mất bánh trước)";
+        } else {
+          shiftLx = (lxMin + estFrontEdge) / 2;
+          bumperLabel = "Người lái 42% + Bánh sau (Mất bánh trước)";
+        }
+      } else if (isMissingRear) {
+        const estRearEdge = lxRider - 0.58 * curL;
+        if (hasEgo && !isSideBeamParallel && egoLocalX > 0) {
+          shiftLx = lxMax + 0.02 - curL / 2;
+          bumperLabel = "Cản trước (Mất bánh sau)";
+        } else {
+          shiftLx = (estRearEdge + lxMax) / 2;
+          bumperLabel = "Người lái 42% + Bánh trước (Mất bánh sau)";
+        }
+      } else {
+        if (hasEgo) {
+          if (isSideBeamParallel) {
+            shiftLx = (lxMin + lxMax) / 2;
+            bumperLabel = "Chiếu ngang sườn (Dàn đều 2 bánh)";
+          } else if (egoLocalX < 0) {
+            shiftLx = lxMin - 0.03 + curL / 2;
+            bumperLabel = "Cản/Bánh sau đón tia";
+          } else {
+            shiftLx = lxMax + 0.03 - curL / 2;
+            bumperLabel = "Cản/Bánh trước đón tia";
+          }
+        } else {
+          const frontCount = bodyPts.filter((p) => p.lx > 0).length;
+          const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
+          if (frontCount > rearCount * 1.5) {
+            shiftLx = lxMax + 0.03 - curL / 2;
+            bumperLabel = "Cản trước";
+          } else if (rearCount > frontCount * 1.5) {
+            shiftLx = lxMin - 0.03 + curL / 2;
+            bumperLabel = "Cản sau";
+          } else {
+            shiftLx = (lxMin + lxMax) / 2;
+            bumperLabel = "Cân đối";
+          }
+        }
+      }
+      shiftLx = Math.max(-0.6, Math.min(0.6, shiftLx));
+      if (Math.abs(shiftLx) < 5e-3) shiftLx = 0;
+      newCenterZ = cz;
+      newCenterX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
+      newCenterY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
+      const deltaXSign = shiftLx >= 0 ? "+" : "";
+      msg = `Đã căn SIDE Xe 2 bánh: [${bumperLabel}] bám vệt lốp (ΔX: ${deltaXSign}${(shiftLx * 100).toFixed(1)}cm, giữ nguyên cao độ Z), Khóa L: ${newL}m`;
+    } else if (step === "front") {
+      newYawRad = yaw;
+      newYawDeg = radToDeg(yaw);
+      deltaYawDeg = 0;
+      newL = curL;
+      newW = curW;
+      newH = curH;
+      newCenterZ = cz;
+      let visibleSide = "center";
+      const edgePadding = 0.03;
+      shiftLy = 0;
+      if (options.egoPos) {
+        const toEgoX = options.egoPos.x - cx;
+        const toEgoY = options.egoPos.y - cy;
+        const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
+        const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+        if (Math.abs(egoLocalY) <= Math.abs(egoLocalX) * 0.15 && Math.abs(egoLocalY) < 0.15) {
+          visibleSide = "center";
+          shiftLy = (lyMin + lyMax) / 2;
+        } else if (egoLocalY >= 0) {
+          visibleSide = "left";
+          shiftLy = lyMax + edgePadding - curW / 2;
+        } else {
+          visibleSide = "right";
+          shiftLy = lyMin - edgePadding + curW / 2;
+        }
+      } else {
+        const leftCount = bodyPts.filter((p) => p.ly > 0.05).length;
+        const rightCount = bodyPts.filter((p) => p.ly < -0.05).length;
+        if (leftCount > rightCount * 1.3) {
+          visibleSide = "left";
+          shiftLy = lyMax + edgePadding - curW / 2;
+        } else if (rightCount > leftCount * 1.3) {
+          visibleSide = "right";
+          shiftLy = lyMin - edgePadding + curW / 2;
+        } else {
+          visibleSide = "center";
+          shiftLy = (lyMin + lyMax) / 2;
+        }
+      }
+      shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      if (Math.abs(shiftLy) < 5e-3) shiftLy = 0;
+      newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
+      newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
+      const deltaYSign = shiftLy >= 0 ? "+" : "";
+      const sideText = visibleSide === "left" ? "Sườn Trái" : visibleSide === "right" ? "Sườn Phải" : "Cân đối 2 sườn";
+      msg = `Đã căn FRONT Xe 2 bánh: [${sideText}] đón tia ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm), giữ nguyên cao độ Z và kích thước (chuẩn Car)`;
+    } else if (step === "w") {
+      newYawRad = yaw;
+      newYawDeg = radToDeg(yaw);
+      deltaYawDeg = 0;
+      newL = curL;
+      newH = curH;
+      newCenterZ = cz;
+      shiftLy = 0;
+      let measuredW = curW;
+      if (lyMin <= -0.06 && lyMax >= 0.06) {
+        measuredW = lyMax - lyMin + 0.06;
+        shiftLy = (lyMin + lyMax) / 2;
+        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      } else if (lyMax > 0 && lyMin > -0.06) {
+        measuredW = 2 * (lyMax + 0.05);
+        shiftLy = 0;
+      } else if (lyMin < 0 && lyMax < 0.06) {
+        measuredW = 2 * (Math.abs(lyMin) + 0.05);
+        shiftLy = 0;
+      } else {
+        measuredW = lyMax - lyMin + 0.06;
+        shiftLy = (lyMin + lyMax) / 2;
+        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      }
+      const hasSideLuggage = bodyPts.filter((p) => p.z >= groundZ + 0.35 && Math.abs(p.ly) > 0.35).length >= 3;
+      const maxCapW = hasSideLuggage ? 0.9 : 0.85;
+      if (measuredW > maxCapW) {
+        newW = maxCapW;
+        if (options.egoPos) {
+          const toEgoX = options.egoPos.x - cx;
+          const toEgoY = options.egoPos.y - cy;
+          const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
+          if (egoLocalY > 0.05) {
+            shiftLy = lyMax + 0.03 - newW / 2;
+          } else if (egoLocalY < -0.05) {
+            shiftLy = lyMin - 0.03 + newW / 2;
+          }
+        }
+      } else {
+        newW = Number(Math.max(0.6, Math.min(maxCapW, measuredW)).toFixed(2));
+      }
+      shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
+      newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
+      const deltaYSign = shiftLy >= 0 ? "+" : "";
+      const cargoTag = hasSideLuggage ? " [📦 Giá chở hàng]" : "";
+      msg = `Đã fit Rộng (W) Xe 2 bánh${cargoTag}: W=${newW}m (Đệm vừa khít tay lái/gương/thùng hàng, chuẩn Tool_QC), căn Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên L, H & Z`;
+    } else if (step === "h") {
+      newYawRad = yaw;
+      newYawDeg = radToDeg(yaw);
+      deltaYawDeg = 0;
+      newL = curL;
+      newW = curW;
+      newCenterX = cx;
+      newCenterY = cy;
+      const currentBaseZ = cz - curH / 2;
+      const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
+      const roofTopZ2 = highestPtZ + headBuffer;
+      const isParkedNoRider = Boolean(((_a = options.attributes) == null ? void 0 : _a.parked) || ((_b = options.attributes) == null ? void 0 : _b.rider) === false);
+      const maxCap2WH = 1.8;
+      const minCap2WH = isParkedNoRider ? 1 : 1.5;
+      newH = Number(Math.max(minCap2WH, Math.min(maxCap2WH, roofTopZ2 - effectiveBaseZ)).toFixed(2));
+      newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
+      const parkedTag = isParkedNoRider ? " [🅿️ Xe đỗ không người]" : "";
+      msg = `Đã fit Cao (H) Xe 2 bánh${parkedTag}: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, chuẩn Tool_QC), giữ nguyên L, W & XY`;
+    } else {
+      const headingRes = estimateTwoWheelerHeading(bodyPts, yaw);
+      newYawRad = headingRes.newYawRad;
+      newYawDeg = headingRes.newYawDeg;
+      deltaYawDeg = headingRes.deltaYawDeg;
+      const hasCargo = bodyPts.filter((p) => p.z >= groundZ + 0.45 && p.lx < -0.25).length >= 3 || Boolean(((_c = options.attributes) == null ? void 0 : _c.cargo) || ((_d = options.attributes) == null ? void 0 : _d.delivery_box));
+      const maxCapL = hasCargo ? 2 : 1.95;
+      newL = Number(Math.max(1.5, Math.min(maxCapL, curL)).toFixed(2));
+      shiftLx = 0;
+      const frontCount = bodyPts.filter((p) => p.lx > 0).length;
+      const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
+      if (frontCount > rearCount * 1.5) {
+        shiftLx = lxMax - newL / 2;
+      } else if (rearCount > frontCount * 1.5) {
+        shiftLx = lxMin + newL / 2;
+      } else {
+        shiftLx = (lxMin + lxMax) / 2;
+      }
+      shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
+      shiftLy = 0;
+      let measuredW = curW;
+      if (lyMin <= -0.06 && lyMax >= 0.06) {
+        measuredW = lyMax - lyMin + 0.06;
+        shiftLy = (lyMin + lyMax) / 2;
+        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      } else if (lyMax > 0 && lyMin > -0.06) {
+        measuredW = 2 * (lyMax + 0.05);
+        shiftLy = 0;
+      } else if (lyMin < 0 && lyMax < 0.06) {
+        measuredW = 2 * (Math.abs(lyMin) + 0.05);
+        shiftLy = 0;
+      } else {
+        measuredW = lyMax - lyMin + 0.06;
+        shiftLy = (lyMin + lyMax) / 2;
+        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
+      }
+      const hasSideLuggage = bodyPts.filter((p) => p.z >= groundZ + 0.35 && Math.abs(p.ly) > 0.35).length >= 3;
+      const maxCapW = hasSideLuggage ? 0.9 : 0.85;
+      newW = Number(Math.max(0.6, Math.min(maxCapW, measuredW)).toFixed(2));
+      roofTopZ = highestPtZ + headBuffer;
+      const isParkedNoRider = Boolean(((_e = options.attributes) == null ? void 0 : _e.parked) || ((_f = options.attributes) == null ? void 0 : _f.rider) === false);
+      const maxCap2WH = 1.8;
+      const minCap2WH = isParkedNoRider ? 1 : 1.5;
+      newH = Number(Math.max(minCap2WH, Math.min(maxCap2WH, roofTopZ - groundZ)).toFixed(2));
+      newCenterZ = Number((groundZ + newH / 2).toFixed(3));
+      const cosWorld = Math.cos(newYawRad);
+      const sinWorld = Math.sin(newYawRad);
+      newCenterX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
+      newCenterY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
+      const cargoMsg = hasCargo ? " [📦 Chở hàng]" : isParkedNoRider ? " [🅿️ Xe đỗ]" : "";
+      msg = `Đã fit toàn diện Xe 2 bánh${cargoMsg}: ${newL}x${newW}x${newH}m (Chuẩn Tool_QC, Khóa L, Xoay Yaw ${newYawDeg}°, Ghim Z: ${newCenterZ}m, Dốc địa hình: ${groundPitchDeg}°/${groundRollDeg}°)`;
+    }
+    return {
+      newCenterX,
+      newCenterY,
+      newCenterZ,
+      newYawRad,
+      newYawDeg,
+      deltaYawDeg,
+      newL,
+      newW,
+      newH,
+      pitchRad: 0,
+      rollRad: 0,
+      pitchDeg: 0,
+      rollDeg: 0,
+      groundZ: Number(groundZ.toFixed(3)),
+      roofTopZ: Number(roofTopZ.toFixed(3)),
+      groundPitchDeg,
+      groundRollDeg,
+      hasCargo: bodyPts.filter((p) => p.z >= groundZ + 0.45 && p.lx < -0.25).length >= 3 || Boolean((_g = options.attributes) == null ? void 0 : _g.cargo),
+      shiftLx: Number(shiftLx.toFixed(3)),
+      shiftLy: Number(shiftLy.toFixed(3)),
+      pointsCount: bodyPts.length,
+      step,
+      message: msg,
+      aodeInfo: {
+        meanR: aodeRes.meanR,
+        meanAbsLx: aodeRes.meanAbsLx,
+        meanAbsLy: aodeRes.meanAbsLy,
+        uncoveredFront: aodeRes.uncoveredFront,
+        uncoveredRear: aodeRes.uncoveredRear,
+        uncoveredLeft: aodeRes.uncoveredLeft,
+        uncoveredRight: aodeRes.uncoveredRight,
+        lxPeak: aodeRes.lxPeak,
+        lyPeak: aodeRes.lyPeak,
+        hasCrowdSeparation: aodeRes.hasCrowdSeparation,
+        hasParallelVehicleSeparation: aodeRes.hasParallelVehicleSeparation
+      }
+    };
+  }
+  function fitCyclistBox(pts, cx, cy, cz, yaw, curL = 1.75, curW = 0.65, curH = 1.55, options = {}, step = "all") {
+    const mergedOptions = { headBuffer: options.headBuffer ?? 0.1, ...options };
+    return fitTwoWheelerBox(pts, cx, cy, cz, yaw, curL, curW, curH, mergedOptions, step);
+  }
+  function detectTrueHeadZ(zArr, maxGap = 0.15, groundZ, maxNormalHeight = 1.75) {
+    if (zArr.length === 0) return 0;
+    if (zArr.length === 1) return zArr[0];
+    const sorted = [...zArr].sort((a, b) => a - b);
+    const baseZ = groundZ !== void 0 ? groundZ : sorted[0];
+    const suspiciousThresholdZ = baseZ + maxNormalHeight;
+    let cutoffIdx = sorted.length - 1;
+    for (let i = sorted.length - 1; i >= 1; i--) {
+      if (sorted[i] > suspiciousThresholdZ) {
+        const gap = sorted[i] - sorted[i - 1];
+        if (gap > maxGap) {
+          cutoffIdx = i - 1;
+        }
+      } else {
+        break;
+      }
+    }
+    const clusterPts = sorted.slice(0, cutoffIdx + 1);
+    return clusterPts[clusterPts.length - 1];
   }
   const CLASS_SIZE_LIMITS = {
     pedestrian: {
@@ -2609,512 +3417,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     };
   }
-  function estimateTwoWheelerHeading(bodyPts, curYaw) {
-    if (bodyPts.length < 4) {
-      return { deltaYawRad: 0, deltaYawDeg: 0, newYawRad: curYaw, newYawDeg: radToDeg(curYaw) };
-    }
-    const n = bodyPts.length;
-    let sumLx = 0;
-    let sumLy = 0;
-    for (const p of bodyPts) {
-      sumLx += p.lx;
-      sumLy += p.ly;
-    }
-    const meanLx = sumLx / n;
-    const meanLy = sumLy / n;
-    let sxx = 0;
-    let syy = 0;
-    let sxy = 0;
-    for (const p of bodyPts) {
-      const dx = p.lx - meanLx;
-      const dy = p.ly - meanLy;
-      sxx += dx * dx;
-      syy += dy * dy;
-      sxy += dx * dy;
-    }
-    sxx /= n;
-    syy /= n;
-    sxy /= n;
-    const deltaThetaPca = 0.5 * Math.atan2(2 * sxy, sxx - syy);
-    const sortedByLx = [...bodyPts].sort((a, b) => a.lx - b.lx);
-    const sliceCount = Math.max(1, Math.floor(n * 0.3));
-    const rearSlice = sortedByLx.slice(0, sliceCount);
-    const frontSlice = sortedByLx.slice(Math.max(sliceCount, n - sliceCount));
-    const rearLx = rearSlice.reduce((s, p) => s + p.lx, 0) / rearSlice.length;
-    const rearLy = rearSlice.reduce((s, p) => s + p.ly, 0) / rearSlice.length;
-    const frontLx = frontSlice.reduce((s, p) => s + p.lx, 0) / frontSlice.length;
-    const frontLy = frontSlice.reduce((s, p) => s + p.ly, 0) / frontSlice.length;
-    const dLx = frontLx - rearLx;
-    const dLy = frontLy - rearLy;
-    let deltaThetaExt = deltaThetaPca;
-    if (dLx >= 0.3) {
-      deltaThetaExt = Math.atan2(dLy, dLx);
-    }
-    let deltaTheta = Math.abs(deltaThetaPca - deltaThetaExt) < 0.2 ? 0.7 * deltaThetaPca + 0.3 * deltaThetaExt : deltaThetaPca;
-    const maxDeltaRad = Math.PI / 4;
-    deltaTheta = Math.max(-maxDeltaRad, Math.min(maxDeltaRad, deltaTheta));
-    const newYawRad = normalizeAngle(curYaw + deltaTheta);
-    const deltaYawDeg = radToDeg(deltaTheta);
-    const newYawDeg = radToDeg(newYawRad);
-    return { deltaYawRad: deltaTheta, deltaYawDeg, newYawRad, newYawDeg };
-  }
-  function fitTwoWheelerBox(pts, cx, cy, cz, yaw, curL = 1.75, curW = 0.65, curH = 1.55, options = {}, stepParam = "all") {
-    var _a, _b, _c, _d, _e, _f, _g;
-    const step = options.step ?? stepParam;
-    const headBuffer = options.headBuffer ?? 0.05;
-    const margin = options.margin ?? 0.2;
-    const baseZ = cz - curH / 2;
-    const groundSlopeInfo = estimateGroundSlopeInRadius$1(pts, cx, cy, cz, 1.5, 0.35, baseZ);
-    const groundPitchDeg = groundSlopeInfo.pitchDeg;
-    const groundRollDeg = groundSlopeInfo.rollDeg;
-    const footRadius = Math.max(0.6, curL / 2 + margin);
-    const groundPts = [];
-    const maxGroundZ = baseZ + 0.35;
-    const minGroundZ = baseZ - 1;
-    for (const p of pts) {
-      if (p.z > maxGroundZ || p.z < minGroundZ) continue;
-      const dx = p.x - cx;
-      const dy = p.y - cy;
-      if (dx * dx + dy * dy <= footRadius * footRadius) {
-        groundPts.push(p.z);
-      }
-    }
-    let groundZ = baseZ;
-    if (groundPts.length >= 3) {
-      groundPts.sort((a, b) => a - b);
-      groundZ = groundPts[Math.max(0, Math.floor(groundPts.length * 0.15))];
-    }
-    const minCoreZ = groundZ + 0.25;
-    const maxBodyZ = groundZ + 2;
-    const minWheelZ = step === "side" || step === "front" ? groundZ + 0.02 : groundZ + 0.08;
-    const outerL = curL / 2 + 0.45;
-    const outerW = Math.max(curW, 0.85) / 2 + 0.45;
-    const cosY = Math.cos(-yaw);
-    const sinY = Math.sin(-yaw);
-    const corePts = [];
-    const wheelPts = [];
-    for (const p of pts) {
-      if (p.z < minWheelZ || p.z > maxBodyZ) continue;
-      const dx = p.x - cx;
-      const dy = p.y - cy;
-      const lx = dx * cosY - dy * sinY;
-      const ly = dx * sinY + dy * cosY;
-      if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
-        if (p.z >= minCoreZ) {
-          corePts.push({ lx, ly, z: p.z });
-        } else {
-          if (Math.abs(ly) <= Math.max(0.25, curW / 2 + 0.08)) {
-            wheelPts.push({ lx, ly, z: p.z });
-          }
-        }
-      }
-    }
-    let rawPts;
-    if (step === "side" || step === "front") {
-      rawPts = [...corePts, ...wheelPts];
-    } else {
-      rawPts = corePts.length >= 8 ? corePts : [...corePts, ...wheelPts];
-    }
-    const isSparse = rawPts.length <= 12;
-    let cleanCyclistPts = rawPts;
-    if (!isSparse) {
-      const cyclistDilationRes = clusterByPointDilation5x(rawPts, {
-        basePointSize: 0.03,
-        dilationFactor: 5,
-        connectDist: 0.3,
-        connectDistLx: 0.38,
-        connectDistLy: 0.32,
-        dim: "2d",
-        centerBias: { lx: 0, ly: 0 }
-      });
-      cleanCyclistPts = cyclistDilationRes.dominantPts.length >= 8 ? cyclistDilationRes.dominantPts : rawPts;
-    }
-    const aodeRes = analyzeOrientedDensityEnvelope(
-      cleanCyclistPts,
-      "two_wheel",
-      curL,
-      curW,
-      curH,
-      groundZ,
-      {
-        binSize: 0.02,
-        densityValleyGap: 0.12,
-        attributes: options.attributes,
-        isSideOrFrontStep: step === "side" || step === "front",
-        egoLocalPos: options.egoPos ? {
-          lx: (options.egoPos.x - cx) * Math.cos(yaw) + (options.egoPos.y - cy) * Math.sin(yaw),
-          ly: -(options.egoPos.x - cx) * Math.sin(yaw) + (options.egoPos.y - cy) * Math.cos(yaw)
-        } : void 0
-      }
-    );
-    const maxGapLx = step === "side" || isSparse ? 0.38 : 0.28;
-    const maxGapLy = step === "front" || isSparse ? 0.35 : 0.24;
-    const sourcePts = aodeRes.filteredPts.length >= 3 ? aodeRes.filteredPts : rawPts;
-    const clusterLy = filterDenseConnectedCluster1D(sourcePts, "ly", maxGapLy, 0);
-    const bodyPts = filterDenseConnectedCluster1D(clusterLy, "lx", maxGapLx, 0);
-    let newCenterX = cx;
-    let newCenterY = cy;
-    let newCenterZ = cz;
-    let newYawRad = yaw;
-    let newYawDeg = radToDeg(yaw);
-    let deltaYawDeg = 0;
-    let newL = curL;
-    let newW = curW;
-    let newH = curH;
-    let shiftLx = 0;
-    let shiftLy = 0;
-    let roofTopZ = groundZ + curH;
-    let msg = "";
-    if (bodyPts.length < 3) {
-      return {
-        newCenterX,
-        newCenterY,
-        newCenterZ,
-        newYawRad,
-        newYawDeg,
-        deltaYawDeg: 0,
-        newL,
-        newW,
-        newH,
-        pitchRad: 0,
-        rollRad: 0,
-        pitchDeg: 0,
-        rollDeg: 0,
-        groundZ: Number(groundZ.toFixed(3)),
-        roofTopZ: Number(roofTopZ.toFixed(3)),
-        pointsCount: bodyPts.length,
-        step,
-        message: `Không đủ điểm LiDAR xe 2 bánh (${bodyPts.length} điểm), giữ nguyên box`,
-        aodeInfo: {
-          meanR: aodeRes.meanR,
-          meanAbsLx: aodeRes.meanAbsLx,
-          meanAbsLy: aodeRes.meanAbsLy,
-          uncoveredFront: aodeRes.uncoveredFront,
-          uncoveredRear: aodeRes.uncoveredRear,
-          uncoveredLeft: aodeRes.uncoveredLeft,
-          uncoveredRight: aodeRes.uncoveredRight,
-          lxPeak: aodeRes.lxPeak,
-          lyPeak: aodeRes.lyPeak,
-          hasCrowdSeparation: aodeRes.hasCrowdSeparation,
-          hasParallelVehicleSeparation: aodeRes.hasParallelVehicleSeparation
-        }
-      };
-    }
-    const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
-    const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
-    const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
-    const pMinIdx = !isSparse && bodyPts.length >= 30 ? Math.floor(bodyPts.length * 0.015) : 0;
-    const pMaxIdx = !isSparse && bodyPts.length >= 30 ? Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.985)) : bodyPts.length - 1;
-    const lxMin = allLx[pMinIdx];
-    const lxMax = allLx[pMaxIdx];
-    const lyMin = allLy[pMinIdx];
-    const lyMax = allLy[pMaxIdx];
-    const highestPtZ = detectTrueHeadZ(allZ, 0.15, groundZ, 1.6);
-    if (step === "top") {
-      const headingRes = estimateTwoWheelerHeading(bodyPts, yaw);
-      newYawRad = headingRes.newYawRad;
-      newYawDeg = headingRes.newYawDeg;
-      deltaYawDeg = headingRes.deltaYawDeg;
-      newCenterX = cx;
-      newCenterY = cy;
-      newCenterZ = cz;
-      newL = curL;
-      newW = curW;
-      newH = curH;
-      const deltaSign = deltaYawDeg >= 0 ? "+" : "";
-      msg = `Đã căn TOP Xe 2 bánh: Xoay Yaw (${newYawDeg}°, Δ=${deltaSign}${deltaYawDeg.toFixed(1)}°) theo trục Đầu - Đuôi, khóa tâm X/Y/Z và kích thước`;
-    } else if (step === "side") {
-      newYawRad = yaw;
-      newYawDeg = radToDeg(yaw);
-      deltaYawDeg = 0;
-      newL = curL;
-      newW = curW;
-      newH = curH;
-      shiftLx = 0;
-      let bumperLabel = "Đón tia";
-      const riderPts = bodyPts.filter((p) => p.z >= groundZ + 0.65);
-      const hasRider = riderPts.length >= 2;
-      let lxRider = 0;
-      if (hasRider) {
-        const sortedRiderLx = riderPts.map((p) => p.lx).sort((a, b) => a - b);
-        lxRider = sortedRiderLx[Math.floor(sortedRiderLx.length / 2)];
-      }
-      const distFront = hasRider ? lxMax - lxRider : curL / 2;
-      const distRear = hasRider ? lxRider - lxMin : curL / 2;
-      const isMissingFront = hasRider && distFront < 0.28 * curL;
-      const isMissingRear = hasRider && distRear < 0.38 * curL;
-      let toEgoX = 0;
-      let toEgoY = 0;
-      let egoLocalX = 0;
-      let egoLocalY = 0;
-      let hasEgo = false;
-      let isSideBeamParallel = false;
-      if (options.egoPos) {
-        toEgoX = options.egoPos.x - cx;
-        toEgoY = options.egoPos.y - cy;
-        egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
-        egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-        hasEgo = true;
-        isSideBeamParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * 0.466;
-      }
-      if (isMissingFront && isMissingRear) {
-        shiftLx = lxRider - 0.08 * curL;
-        bumperLabel = "Người lái 42% (Mất cả 2 bánh)";
-      } else if (isMissingFront) {
-        const estFrontEdge = lxRider + 0.42 * curL;
-        if (hasEgo && !isSideBeamParallel && egoLocalX < 0) {
-          shiftLx = lxMin - 0.02 + curL / 2;
-          bumperLabel = "Cản sau (Mất bánh trước)";
-        } else {
-          shiftLx = (lxMin + estFrontEdge) / 2;
-          bumperLabel = "Người lái 42% + Bánh sau (Mất bánh trước)";
-        }
-      } else if (isMissingRear) {
-        const estRearEdge = lxRider - 0.58 * curL;
-        if (hasEgo && !isSideBeamParallel && egoLocalX > 0) {
-          shiftLx = lxMax + 0.02 - curL / 2;
-          bumperLabel = "Cản trước (Mất bánh sau)";
-        } else {
-          shiftLx = (estRearEdge + lxMax) / 2;
-          bumperLabel = "Người lái 42% + Bánh trước (Mất bánh sau)";
-        }
-      } else {
-        if (hasEgo) {
-          if (isSideBeamParallel) {
-            shiftLx = (lxMin + lxMax) / 2;
-            bumperLabel = "Chiếu ngang sườn (Dàn đều 2 bánh)";
-          } else if (egoLocalX < 0) {
-            shiftLx = lxMin - 0.03 + curL / 2;
-            bumperLabel = "Cản/Bánh sau đón tia";
-          } else {
-            shiftLx = lxMax + 0.03 - curL / 2;
-            bumperLabel = "Cản/Bánh trước đón tia";
-          }
-        } else {
-          const frontCount = bodyPts.filter((p) => p.lx > 0).length;
-          const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
-          if (frontCount > rearCount * 1.5) {
-            shiftLx = lxMax + 0.03 - curL / 2;
-            bumperLabel = "Cản trước";
-          } else if (rearCount > frontCount * 1.5) {
-            shiftLx = lxMin - 0.03 + curL / 2;
-            bumperLabel = "Cản sau";
-          } else {
-            shiftLx = (lxMin + lxMax) / 2;
-            bumperLabel = "Cân đối";
-          }
-        }
-      }
-      shiftLx = Math.max(-0.6, Math.min(0.6, shiftLx));
-      if (Math.abs(shiftLx) < 5e-3) shiftLx = 0;
-      newCenterZ = cz;
-      newCenterX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
-      newCenterY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
-      const deltaXSign = shiftLx >= 0 ? "+" : "";
-      msg = `Đã căn SIDE Xe 2 bánh: [${bumperLabel}] bám vệt lốp (ΔX: ${deltaXSign}${(shiftLx * 100).toFixed(1)}cm, giữ nguyên cao độ Z), Khóa L: ${newL}m`;
-    } else if (step === "front") {
-      newYawRad = yaw;
-      newYawDeg = radToDeg(yaw);
-      deltaYawDeg = 0;
-      newL = curL;
-      newW = curW;
-      newH = curH;
-      newCenterZ = cz;
-      let visibleSide = "center";
-      const edgePadding = 0.03;
-      shiftLy = 0;
-      if (options.egoPos) {
-        const toEgoX = options.egoPos.x - cx;
-        const toEgoY = options.egoPos.y - cy;
-        const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
-        const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-        if (Math.abs(egoLocalY) <= Math.abs(egoLocalX) * 0.15 && Math.abs(egoLocalY) < 0.15) {
-          visibleSide = "center";
-          shiftLy = (lyMin + lyMax) / 2;
-        } else if (egoLocalY >= 0) {
-          visibleSide = "left";
-          shiftLy = lyMax + edgePadding - curW / 2;
-        } else {
-          visibleSide = "right";
-          shiftLy = lyMin - edgePadding + curW / 2;
-        }
-      } else {
-        const leftCount = bodyPts.filter((p) => p.ly > 0.05).length;
-        const rightCount = bodyPts.filter((p) => p.ly < -0.05).length;
-        if (leftCount > rightCount * 1.3) {
-          visibleSide = "left";
-          shiftLy = lyMax + edgePadding - curW / 2;
-        } else if (rightCount > leftCount * 1.3) {
-          visibleSide = "right";
-          shiftLy = lyMin - edgePadding + curW / 2;
-        } else {
-          visibleSide = "center";
-          shiftLy = (lyMin + lyMax) / 2;
-        }
-      }
-      shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
-      if (Math.abs(shiftLy) < 5e-3) shiftLy = 0;
-      newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
-      newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
-      const deltaYSign = shiftLy >= 0 ? "+" : "";
-      const sideText = visibleSide === "left" ? "Sườn Trái" : visibleSide === "right" ? "Sườn Phải" : "Cân đối 2 sườn";
-      msg = `Đã căn FRONT Xe 2 bánh: [${sideText}] đón tia ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm), giữ nguyên cao độ Z và kích thước (chuẩn Car)`;
-    } else if (step === "w") {
-      newYawRad = yaw;
-      newYawDeg = radToDeg(yaw);
-      deltaYawDeg = 0;
-      newL = curL;
-      newH = curH;
-      newCenterZ = cz;
-      shiftLy = 0;
-      let measuredW = curW;
-      if (lyMin <= -0.06 && lyMax >= 0.06) {
-        measuredW = lyMax - lyMin + 0.06;
-        shiftLy = (lyMin + lyMax) / 2;
-        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
-      } else if (lyMax > 0 && lyMin > -0.06) {
-        measuredW = 2 * (lyMax + 0.05);
-        shiftLy = 0;
-      } else if (lyMin < 0 && lyMax < 0.06) {
-        measuredW = 2 * (Math.abs(lyMin) + 0.05);
-        shiftLy = 0;
-      } else {
-        measuredW = lyMax - lyMin + 0.06;
-        shiftLy = (lyMin + lyMax) / 2;
-        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
-      }
-      const hasSideLuggage = bodyPts.filter((p) => p.z >= groundZ + 0.35 && Math.abs(p.ly) > 0.35).length >= 3;
-      const maxCapW = hasSideLuggage ? 0.9 : 0.85;
-      if (measuredW > maxCapW) {
-        newW = maxCapW;
-        if (options.egoPos) {
-          const toEgoX = options.egoPos.x - cx;
-          const toEgoY = options.egoPos.y - cy;
-          const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-          if (egoLocalY > 0.05) {
-            shiftLy = lyMax + 0.03 - newW / 2;
-          } else if (egoLocalY < -0.05) {
-            shiftLy = lyMin - 0.03 + newW / 2;
-          }
-        }
-      } else {
-        newW = Number(Math.max(0.6, Math.min(maxCapW, measuredW)).toFixed(2));
-      }
-      shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
-      newCenterX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
-      newCenterY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
-      const deltaYSign = shiftLy >= 0 ? "+" : "";
-      const cargoTag = hasSideLuggage ? " [📦 Giá chở hàng]" : "";
-      msg = `Đã fit Rộng (W) Xe 2 bánh${cargoTag}: W=${newW}m (Đệm vừa khít tay lái/gương/thùng hàng, chuẩn Tool_QC), căn Y: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên L, H & Z`;
-    } else if (step === "h") {
-      newYawRad = yaw;
-      newYawDeg = radToDeg(yaw);
-      deltaYawDeg = 0;
-      newL = curL;
-      newW = curW;
-      newCenterX = cx;
-      newCenterY = cy;
-      const currentBaseZ = cz - curH / 2;
-      const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
-      const roofTopZ2 = highestPtZ + headBuffer;
-      const isParkedNoRider = Boolean(((_a = options.attributes) == null ? void 0 : _a.parked) || ((_b = options.attributes) == null ? void 0 : _b.rider) === false);
-      const maxCap2WH = 1.8;
-      const minCap2WH = isParkedNoRider ? 1 : 1.5;
-      newH = Number(Math.max(minCap2WH, Math.min(maxCap2WH, roofTopZ2 - effectiveBaseZ)).toFixed(2));
-      newCenterZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
-      const parkedTag = isParkedNoRider ? " [🅿️ Xe đỗ không người]" : "";
-      msg = `Đã fit Cao (H) Xe 2 bánh${parkedTag}: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, chuẩn Tool_QC), giữ nguyên L, W & XY`;
-    } else {
-      const headingRes = estimateTwoWheelerHeading(bodyPts, yaw);
-      newYawRad = headingRes.newYawRad;
-      newYawDeg = headingRes.newYawDeg;
-      deltaYawDeg = headingRes.deltaYawDeg;
-      const hasCargo = bodyPts.filter((p) => p.z >= groundZ + 0.45 && p.lx < -0.25).length >= 3 || Boolean(((_c = options.attributes) == null ? void 0 : _c.cargo) || ((_d = options.attributes) == null ? void 0 : _d.delivery_box));
-      const maxCapL = hasCargo ? 2 : 1.95;
-      newL = Number(Math.max(1.5, Math.min(maxCapL, curL)).toFixed(2));
-      shiftLx = 0;
-      const frontCount = bodyPts.filter((p) => p.lx > 0).length;
-      const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
-      if (frontCount > rearCount * 1.5) {
-        shiftLx = lxMax - newL / 2;
-      } else if (rearCount > frontCount * 1.5) {
-        shiftLx = lxMin + newL / 2;
-      } else {
-        shiftLx = (lxMin + lxMax) / 2;
-      }
-      shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
-      shiftLy = 0;
-      let measuredW = curW;
-      if (lyMin <= -0.06 && lyMax >= 0.06) {
-        measuredW = lyMax - lyMin + 0.06;
-        shiftLy = (lyMin + lyMax) / 2;
-        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
-      } else if (lyMax > 0 && lyMin > -0.06) {
-        measuredW = 2 * (lyMax + 0.05);
-        shiftLy = 0;
-      } else if (lyMin < 0 && lyMax < 0.06) {
-        measuredW = 2 * (Math.abs(lyMin) + 0.05);
-        shiftLy = 0;
-      } else {
-        measuredW = lyMax - lyMin + 0.06;
-        shiftLy = (lyMin + lyMax) / 2;
-        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
-      }
-      const hasSideLuggage = bodyPts.filter((p) => p.z >= groundZ + 0.35 && Math.abs(p.ly) > 0.35).length >= 3;
-      const maxCapW = hasSideLuggage ? 0.9 : 0.85;
-      newW = Number(Math.max(0.6, Math.min(maxCapW, measuredW)).toFixed(2));
-      roofTopZ = highestPtZ + headBuffer;
-      const isParkedNoRider = Boolean(((_e = options.attributes) == null ? void 0 : _e.parked) || ((_f = options.attributes) == null ? void 0 : _f.rider) === false);
-      const maxCap2WH = 1.8;
-      const minCap2WH = isParkedNoRider ? 1 : 1.5;
-      newH = Number(Math.max(minCap2WH, Math.min(maxCap2WH, roofTopZ - groundZ)).toFixed(2));
-      newCenterZ = Number((groundZ + newH / 2).toFixed(3));
-      const cosWorld = Math.cos(newYawRad);
-      const sinWorld = Math.sin(newYawRad);
-      newCenterX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
-      newCenterY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
-      const cargoMsg = hasCargo ? " [📦 Chở hàng]" : isParkedNoRider ? " [🅿️ Xe đỗ]" : "";
-      msg = `Đã fit toàn diện Xe 2 bánh${cargoMsg}: ${newL}x${newW}x${newH}m (Chuẩn Tool_QC, Khóa L, Xoay Yaw ${newYawDeg}°, Ghim Z: ${newCenterZ}m, Dốc địa hình: ${groundPitchDeg}°/${groundRollDeg}°)`;
-    }
-    return {
-      newCenterX,
-      newCenterY,
-      newCenterZ,
-      newYawRad,
-      newYawDeg,
-      deltaYawDeg,
-      newL,
-      newW,
-      newH,
-      pitchRad: 0,
-      rollRad: 0,
-      pitchDeg: 0,
-      rollDeg: 0,
-      groundZ: Number(groundZ.toFixed(3)),
-      roofTopZ: Number(roofTopZ.toFixed(3)),
-      groundPitchDeg,
-      groundRollDeg,
-      hasCargo: bodyPts.filter((p) => p.z >= groundZ + 0.45 && p.lx < -0.25).length >= 3 || Boolean((_g = options.attributes) == null ? void 0 : _g.cargo),
-      shiftLx: Number(shiftLx.toFixed(3)),
-      shiftLy: Number(shiftLy.toFixed(3)),
-      pointsCount: bodyPts.length,
-      step,
-      message: msg,
-      aodeInfo: {
-        meanR: aodeRes.meanR,
-        meanAbsLx: aodeRes.meanAbsLx,
-        meanAbsLy: aodeRes.meanAbsLy,
-        uncoveredFront: aodeRes.uncoveredFront,
-        uncoveredRear: aodeRes.uncoveredRear,
-        uncoveredLeft: aodeRes.uncoveredLeft,
-        uncoveredRight: aodeRes.uncoveredRight,
-        lxPeak: aodeRes.lxPeak,
-        lyPeak: aodeRes.lyPeak,
-        hasCrowdSeparation: aodeRes.hasCrowdSeparation,
-        hasParallelVehicleSeparation: aodeRes.hasParallelVehicleSeparation
-      }
-    };
-  }
   function fitPedestrianLength(pts, cx, cy, cz, yaw, curL = 0.65, curW = 0.65, curH = 1.7, options = {}) {
     return fitPedestrianBox(pts, cx, cy, cz, yaw, curL, curW, curH, options, "l");
   }
@@ -3123,230 +3425,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   }
   function fitPedestrianHeight(pts, cx, cy, cz, yaw, curL = 0.65, curW = 0.65, curH = 1.7, options = {}) {
     return fitPedestrianBox(pts, cx, cy, cz, yaw, curL, curW, curH, options, "h");
-  }
-  function fitCyclistBox(pts, cx, cy, cz, yaw, curL = 1.75, curW = 0.65, curH = 1.55, options = {}, step = "all") {
-    const mergedOptions = { headBuffer: options.headBuffer ?? 0.1, ...options };
-    return fitTwoWheelerBox(pts, cx, cy, cz, yaw, curL, curW, curH, mergedOptions, step);
-  }
-  function pointsToBox(points) {
-    return {
-      c: [points[0], points[1], points[2]],
-      r: [points[3], points[4], points[5]],
-      s: [points[6], points[7], points[8]]
-    };
-  }
-  function boxToPoints(box, basePoints) {
-    const out = basePoints ? basePoints.slice() : new Array(16).fill(0);
-    while (out.length < 16) out.push(0);
-    out[0] = Number(box.c[0].toFixed(4));
-    out[1] = Number(box.c[1].toFixed(4));
-    out[2] = Number(box.c[2].toFixed(4));
-    out[3] = Number(box.r[0].toFixed(5));
-    out[4] = Number(box.r[1].toFixed(5));
-    out[5] = Number(box.r[2].toFixed(5));
-    out[6] = Number(box.s[0].toFixed(4));
-    out[7] = Number(box.s[1].toFixed(4));
-    out[8] = Number(box.s[2].toFixed(4));
-    return out;
-  }
-  function cloneBox(box) {
-    return {
-      c: [box.c[0], box.c[1], box.c[2]],
-      r: [box.r[0], box.r[1], box.r[2]],
-      s: [box.s[0], box.s[1], box.s[2]]
-    };
-  }
-  function axes(r) {
-    const a = Math.cos(r[0]), b = Math.sin(r[0]);
-    const c = Math.cos(r[1]), d = Math.sin(r[1]);
-    const e = Math.cos(r[2]), f = Math.sin(r[2]);
-    const ae = a * e, af = a * f, be = b * e, bf = b * f;
-    return {
-      ex: [c * e, af + be * d, bf - ae * d],
-      ey: [-c * f, ae - bf * d, be + af * d],
-      ez: [d, -b * c, a * c]
-    };
-  }
-  function axesToEuler(ax) {
-    const m11 = ax.ex[0], m12 = ax.ey[0], m13 = ax.ez[0];
-    const m22 = ax.ey[1], m23 = ax.ez[1];
-    const m32 = ax.ey[2], m33 = ax.ez[2];
-    const y = Math.asin(Math.min(1, Math.max(-1, m13)));
-    if (Math.abs(m13) < 0.9999999) {
-      return [Math.atan2(-m23, m33), y, Math.atan2(-m12, m11)];
-    }
-    return [Math.atan2(m32, m22), y, 0];
-  }
-  function rotateLocal(r, axis, angle) {
-    const ax = axes(r);
-    const keys = ["ex", "ey", "ez"];
-    const j = keys[(axis + 1) % 3];
-    const k = keys[(axis + 2) % 3];
-    const c = Math.cos(angle);
-    const s = Math.sin(angle);
-    const ej = ax[j];
-    const ek = ax[k];
-    const out = { ...ax };
-    out[j] = [0, 1, 2].map((i) => c * ej[i] + s * ek[i]);
-    out[k] = [0, 1, 2].map((i) => -s * ej[i] + c * ek[i]);
-    return axesToEuler(out);
-  }
-  const addVec$1 = (u, v) => [
-    u[0] + v[0],
-    u[1] + v[1],
-    u[2] + v[2]
-  ];
-  const scaleVec$1 = (u, k) => [
-    u[0] * k,
-    u[1] * k,
-    u[2] * k
-  ];
-  function localToWorld(q, c, ax) {
-    return addVec$1(
-      c,
-      addVec$1(
-        scaleVec$1(ax.ex, q[0]),
-        addVec$1(scaleVec$1(ax.ey, q[1]), scaleVec$1(ax.ez, q[2]))
-      )
-    );
-  }
-  function boxCorners(box) {
-    const ax = axes(box.r);
-    const [hx, hy, hz] = box.s.map((v) => v / 2);
-    const out = [];
-    for (const sx of [-1, 1]) {
-      for (const sy of [-1, 1]) {
-        for (const sz of [-1, 1]) {
-          out.push(localToWorld([sx * hx, sy * hy, sz * hz], box.c, ax));
-        }
-      }
-    }
-    return out;
-  }
-  const BOX_EDGES = [
-    [0, 1],
-    [2, 3],
-    [4, 5],
-    [6, 7],
-    // dọc z
-    [0, 2],
-    [1, 3],
-    [4, 6],
-    [5, 7],
-    // dọc y
-    [0, 4],
-    [1, 5],
-    [2, 6],
-    [3, 7]
-    // dọc x
-  ];
-  function resizeKeepBottom(box, newSize) {
-    const out = cloneBox(box);
-    const ax = axes(box.r);
-    const dh = (newSize[2] - box.s[2]) / 2;
-    out.c = addVec$1(box.c, scaleVec$1(ax.ez, dh));
-    out.s = [newSize[0], newSize[1], newSize[2]];
-    return out;
-  }
-  function findAngleDiff(rightAngle, leftAngle) {
-    let angleDiff = rightAngle - leftAngle;
-    angleDiff = (angleDiff + 180) % 360 - 180;
-    if (Math.abs(angleDiff) >= 180) {
-      angleDiff = 360 - Math.abs(angleDiff) * Math.sign(angleDiff) * -1;
-    }
-    return angleDiff;
-  }
-  function interpolatePoints$1(left, right, offset) {
-    const out = left.map((v, i) => v + (right[i] - v) * offset);
-    const angles = left.slice(3, 6).concat(right.slice(3, 6)).map((a) => a < 0 ? a + Math.PI * 2 : a).map((a) => a * (180 / Math.PI));
-    for (let i = 0; i < 3; i++) {
-      let angle = (angles[i] + findAngleDiff(angles[i + 3], angles[i]) * offset) * (Math.PI / 180);
-      if (angle > Math.PI) angle -= Math.PI * 2;
-      out[3 + i] = angle;
-    }
-    return out;
-  }
-  function percentile(sorted, p) {
-    if (!sorted.length) return NaN;
-    const i = Math.min(
-      sorted.length - 1,
-      Math.max(0, Math.round((sorted.length - 1) * p))
-    );
-    return sorted[i];
-  }
-  function estimateGround(xyz, box, opts = {}) {
-    if (!xyz || !xyz.length || xyz.length < 3) return null;
-    const minPoints = opts.minPoints ?? 4;
-    const margin = opts.margin ?? 0.45;
-    const below = opts.below ?? 4;
-    const above = opts.above ?? 0.35;
-    const ax = axes(box.r);
-    const ix = box.s[0] / 2;
-    const iy = box.s[1] / 2;
-    const hx = ix + margin;
-    const hy = iy + margin;
-    const bottom = -box.s[2] / 2;
-    const ring = [];
-    const inner = [];
-    const c = box.c;
-    for (let i = 0; i < xyz.length; i += 3) {
-      const vx = xyz[i] - c[0];
-      const vy = xyz[i + 1] - c[1];
-      const vz = xyz[i + 2] - c[2];
-      const qx = vx * ax.ex[0] + vy * ax.ex[1] + vz * ax.ex[2];
-      if (qx < -hx || qx > hx) continue;
-      const qy = vx * ax.ey[0] + vy * ax.ey[1] + vz * ax.ey[2];
-      if (qy < -hy || qy > hy) continue;
-      const qz = vx * ax.ez[0] + vy * ax.ez[1] + vz * ax.ez[2];
-      if (qz < bottom - below || qz > bottom + above) continue;
-      if (Math.abs(qx) > ix || Math.abs(qy) > iy) {
-        ring.push(qz);
-      } else {
-        inner.push(qz);
-      }
-    }
-    if (ring.length >= minPoints) {
-      const bin = 0.02;
-      const lo = bottom - below;
-      const binCount = Math.ceil((below + above) / bin) + 1;
-      const bins = new Float64Array(binCount);
-      for (const z of ring) {
-        const idx = Math.min(bins.length - 1, Math.max(0, Math.floor((z - lo) / bin)));
-        bins[idx] += 1;
-      }
-      let best = 0;
-      let bestScore = -1;
-      for (let i = 0; i < bins.length; i++) {
-        const score = bins[i] + 0.5 * ((bins[i - 1] || 0) + (bins[i + 1] || 0));
-        if (score > bestScore) {
-          bestScore = score;
-          best = i;
-        }
-      }
-      const peak = lo + (best + 0.5) * bin;
-      const near = ring.filter((z) => Math.abs(z - peak) <= 0.05).sort((p, q) => p - q);
-      if (near.length >= minPoints) {
-        return { localZ: percentile(near, 0.5), count: near.length };
-      }
-    }
-    const all = ring.concat(inner).sort((p, q) => p - q);
-    if (all.length >= minPoints) {
-      return { localZ: percentile(all, 0.15), count: all.length };
-    }
-    if (margin < 0.8 && xyz.length >= 3) {
-      return estimateGround(xyz, box, { ...opts, margin: 0.85, below: 4.5, minPoints: 3 });
-    }
-    return null;
-  }
-  function snapToGround(xyz, box, opts) {
-    if (!xyz || !xyz.length) return null;
-    const g = estimateGround(xyz, box, opts);
-    if (!g) return null;
-    const ax = axes(box.r);
-    const shift = g.localZ + box.s[2] / 2;
-    const out = cloneBox(box);
-    out.c = addVec$1(box.c, scaleVec$1(ax.ez, shift));
-    return { box: out, shift, count: g.count };
   }
   function fitYawToLaneIntensity$1(pts, cx, cy, cz, curYaw, curL = 4.6, curW = 1.85, curH = 1.5, options = {}) {
     const defaultYawDeg = radToDeg(curYaw);
@@ -3983,84 +4061,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
     return colors;
-  }
-  function transformVectorInverseEuler(v, rx = 0, ry = 0, rz = 0) {
-    const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
-    const x1 = v.x * cosZ + v.y * sinZ;
-    const y1 = -v.x * sinZ + v.y * cosZ;
-    const z1 = v.z;
-    const cosY = Math.cos(ry), sinY = Math.sin(ry);
-    const x2 = x1 * cosY - z1 * sinY;
-    const y2 = y1;
-    const z2 = x1 * sinY + z1 * cosY;
-    const cosX = Math.cos(rx), sinX = Math.sin(rx);
-    const x3 = x2;
-    const y3 = y2 * cosX + z2 * sinX;
-    const z3 = -y2 * sinX + z2 * cosX;
-    return { x: x3, y: y3, z: z3 };
-  }
-  function intersectRayWithOBB(ray, box, padding = 0.12) {
-    if (box.l <= 0 || box.w <= 0 || box.h <= 0) return null;
-    const hx = box.l / 2 + padding;
-    const hy = box.w / 2 + padding;
-    const hz = box.h / 2 + padding;
-    const P = {
-      x: ray.origin.x - box.x,
-      y: ray.origin.y - box.y,
-      z: ray.origin.z - box.z
-    };
-    const D = ray.direction;
-    const rx = box.roll || 0;
-    const ry = box.pitch || 0;
-    const rz = box.yaw || 0;
-    const Ploc = transformVectorInverseEuler(P, rx, ry, rz);
-    const Dloc = transformVectorInverseEuler(D, rx, ry, rz);
-    let tMin = -Infinity;
-    let tMax = Infinity;
-    if (Math.abs(Dloc.x) > 1e-7) {
-      let t1 = (-hx - Ploc.x) / Dloc.x;
-      let t2 = (hx - Ploc.x) / Dloc.x;
-      if (t1 > t2) {
-        const t = t1;
-        t1 = t2;
-        t2 = t;
-      }
-      tMin = Math.max(tMin, t1);
-      tMax = Math.min(tMax, t2);
-      if (tMin > tMax) return null;
-    } else if (Math.abs(Ploc.x) > hx) {
-      return null;
-    }
-    if (Math.abs(Dloc.y) > 1e-7) {
-      let t1 = (-hy - Ploc.y) / Dloc.y;
-      let t2 = (hy - Ploc.y) / Dloc.y;
-      if (t1 > t2) {
-        const t = t1;
-        t1 = t2;
-        t2 = t;
-      }
-      tMin = Math.max(tMin, t1);
-      tMax = Math.min(tMax, t2);
-      if (tMin > tMax) return null;
-    } else if (Math.abs(Ploc.y) > hy) {
-      return null;
-    }
-    if (Math.abs(Dloc.z) > 1e-7) {
-      let t1 = (-hz - Ploc.z) / Dloc.z;
-      let t2 = (hz - Ploc.z) / Dloc.z;
-      if (t1 > t2) {
-        const t = t1;
-        t1 = t2;
-        t2 = t;
-      }
-      tMin = Math.max(tMin, t1);
-      tMax = Math.min(tMax, t2);
-      if (tMin > tMax) return null;
-    } else if (Math.abs(Ploc.z) > hz) {
-      return null;
-    }
-    if (tMax < 0) return null;
-    return tMin >= 0 ? tMin : tMax;
   }
   if (typeof globalThis !== "undefined") {
     globalThis.boxCorners = boxCorners;
