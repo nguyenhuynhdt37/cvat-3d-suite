@@ -1255,7 +1255,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       curbHeightCm
     };
   }
-  function estimateGroundSlopeInRadius$1(pts, cx, cy, cz, radius = 1, maxGroundZOffset = 0.35, baseZ) {
+  function estimateGroundSlopeInRadius(pts, cx, cy, cz, radius = 1, maxGroundZOffset = 0.35, baseZ) {
     const groundPts = [];
     const referenceBaseZ = baseZ !== void 0 ? baseZ : cz;
     const maxZ = referenceBaseZ + maxGroundZOffset;
@@ -2178,7 +2178,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const headBuffer = options.headBuffer ?? 0.05;
     const margin = options.margin ?? 0.2;
     const baseZ = cz - curH / 2;
-    const groundSlopeInfo = estimateGroundSlopeInRadius$1(pts, cx, cy, cz, 1.5, 0.35, baseZ);
+    const groundSlopeInfo = estimateGroundSlopeInRadius(pts, cx, cy, cz, 1.5, 0.35, baseZ);
     const groundPitchDeg = groundSlopeInfo.pitchDeg;
     const groundRollDeg = groundSlopeInfo.rollDeg;
     const footRadius = Math.max(0.6, curL / 2 + margin);
@@ -2928,7 +2928,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const headBuffer = options.headBuffer ?? 0.05;
     const margin = options.margin ?? 0.15;
     const baseZ = cz - curH / 2;
-    const groundSlopeInfo = estimateGroundSlopeInRadius$1(pts, cx, cy, cz, 1, 0.35, baseZ);
+    const groundSlopeInfo = estimateGroundSlopeInRadius(pts, cx, cy, cz, 1, 0.35, baseZ);
     const groundPitchDeg = groundSlopeInfo.pitchDeg;
     const groundRollDeg = groundSlopeInfo.rollDeg;
     const footRadius = Math.max(0.35, Math.max(curL, curW) / 2 + margin);
@@ -3361,7 +3361,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   function fitPedestrianHeight(pts, cx, cy, cz, yaw, curL = 0.65, curW = 0.65, curH = 1.7, options = {}) {
     return fitPedestrianBox(pts, cx, cy, cz, yaw, curL, curW, curH, options, "h");
   }
-  function fitYawToLaneIntensity$1(pts, cx, cy, cz, curYaw, curL = 4.6, curW = 1.85, curH = 1.5, options = {}) {
+  function fitYawToLaneIntensity(pts, cx, cy, cz, curYaw, curL = 4.6, curW = 1.85, curH = 1.5, options = {}) {
     const defaultYawDeg = radToDeg(curYaw);
     const fallbackResult = (msg2) => ({
       hasLane: false,
@@ -3548,6 +3548,1226 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     active: { r: 0.98, g: 0.8, b: 0.08 }
     // Vàng chanh Neon (#facc15)
   };
+  const DISTINCT_TRACK_PALETTE$1 = [
+    { r: 0, g: 0.95, b: 1 },
+    // 0: Cyan Neon (#00f2fe)
+    { r: 0.96, g: 0.62, b: 0.04 },
+    // 1: Vàng Cam Amber (#f59e0b)
+    { r: 0.66, g: 0.33, b: 0.97 },
+    // 2: Tím Violet (#a855f7)
+    { r: 0.06, g: 0.73, b: 0.51 },
+    // 3: Xanh Lục Emerald (#10b981)
+    { r: 0.93, g: 0.28, b: 0.6 },
+    // 4: Hồng Sen Neon (#ec4899)
+    { r: 0.23, g: 0.51, b: 0.96 },
+    // 5: Xanh Biển Electric Blue (#3b82f6)
+    { r: 0.52, g: 0.8, b: 0.09 },
+    // 6: Xanh Chuối Chartreuse (#84cc16)
+    { r: 0.98, g: 0.57, b: 0.24 },
+    // 7: Cam San Hô Coral (#fb923c)
+    { r: 0.08, g: 0.72, b: 0.65 },
+    // 8: Xanh Ngọc Lục Bảo Teal (#14b8a6)
+    { r: 0.92, g: 0.7, b: 0.03 },
+    // 9: Vàng Gold (#eab308)
+    { r: 0.39, g: 0.4, b: 0.95 },
+    // 10: Tím Indigo (#6366f1)
+    { r: 0.2, g: 0.83, b: 0.6 },
+    // 11: Xanh Lục Mint (#34d399)
+    { r: 0.85, g: 0.27, b: 0.94 },
+    // 12: Hồng Tím Fuchsia (#d946ef)
+    { r: 0.22, g: 0.74, b: 0.97 },
+    // 13: Xanh Trời Sky (#38bdf8)
+    { r: 0.98, g: 0.45, b: 0.09 },
+    // 14: Cam Đỏ Nhẹ Warm Orange (#f97316)
+    { r: 0.13, g: 0.77, b: 0.37 },
+    // 15: Xanh Lá Spring Green (#22c55e)
+    { r: 0.75, g: 0.52, b: 0.99 },
+    // 16: Tím Lavender (#c084fc)
+    { r: 0.02, g: 0.71, b: 0.83 },
+    // 17: Xanh Biển Aqua (#06b6d4)
+    { r: 0.98, g: 0.44, b: 0.52 },
+    // 18: Hồng Phấn Rose (#fb7185)
+    { r: 0.64, g: 0.9, b: 0.21 },
+    // 19: Vàng Chanh Lemon Lime (#a3e635)
+    { r: 0.4, g: 0.91, b: 0.98 },
+    // 20: Xanh Băng Glacier (#67e8f9)
+    { r: 0.99, g: 0.73, b: 0.45 },
+    // 21: Cam Nắng Peach (#fdba74)
+    { r: 0.58, g: 0.2, b: 0.92 },
+    // 22: Tím Orchid (#9333ea)
+    { r: 0.09, g: 0.64, b: 0.29 },
+    // 23: Xanh Clover (#16a34a)
+    { r: 0.96, g: 0.25, b: 0.37 },
+    // 24: Hồng Magenta (#f43f5e)
+    { r: 0.15, g: 0.39, b: 0.92 },
+    // 25: Xanh Sapphire (#2563eb)
+    { r: 0.05, g: 0.58, b: 0.53 },
+    // 26: Xanh Ngọc Jade (#0d9488)
+    { r: 0.85, g: 0.47, b: 0.02 },
+    // 27: Vàng Hổ Phách Đậm (#d97706)
+    { r: 0.31, g: 0.27, b: 0.9 },
+    // 28: Xanh Cobalt (#4f46e5)
+    { r: 0.13, g: 0.83, b: 0.93 },
+    // 29: Xanh Cyan Sáng (#22d3ee)
+    { r: 0.96, g: 0.45, b: 0.71 },
+    // 30: Hồng Pink Light (#f472b6)
+    { r: 0.29, g: 0.87, b: 0.5 }
+    // 31: Xanh Táo Apple Green (#4ade80)
+  ];
+  const DEEP_VIVID_TRACK_PALETTE$1 = [
+    { r: 0.02, g: 0.38, b: 0.68 },
+    // 0: Xanh Ocean Đậm Sâu (#0369a1)
+    { r: 0.7, g: 0.32, b: 0.02 },
+    // 1: Vàng Hổ Phách Nâu Đậm (#b45309)
+    { r: 0.4, g: 0.08, b: 0.68 },
+    // 2: Tím Hoàng Gia Đậm (#6b21a8)
+    { r: 0.01, g: 0.45, b: 0.28 },
+    // 3: Xanh Lục Bảo Đậm Sâu (#047857)
+    { r: 0.65, g: 0.05, b: 0.15 },
+    // 4: Đỏ Ruby / Đỏ Mận Đậm (#991b1b)
+    { r: 0.08, g: 0.22, b: 0.72 },
+    // 5: Xanh Cobalt Đậm (#1e40af)
+    { r: 0.22, g: 0.38, b: 0.04 },
+    // 6: Xanh Rêu Đậm Sâu (#3f6212)
+    { r: 0.65, g: 0.18, b: 0.04 },
+    // 7: Cam Cháy Đậm (#9a3412)
+    { r: 0.04, g: 0.36, b: 0.34 },
+    // 8: Xanh Teal Đậm Sâu (#115e59)
+    { r: 0.58, g: 0.25, b: 0.02 },
+    // 9: Nâu Đồng Đậm (#78350f)
+    { r: 0.2, g: 0.16, b: 0.65 },
+    // 10: Tím Indigo Đậm Sâu (#3730a3)
+    { r: 0.01, g: 0.38, b: 0.24 },
+    // 11: Xanh Thông Đậm (#064e3b)
+    { r: 0.52, g: 0.08, b: 0.58 },
+    // 12: Hồng Tím Fuchsia Đậm (#86198f)
+    { r: 0.01, g: 0.32, b: 0.58 },
+    // 13: Xanh Biển Đậm (#075985)
+    { r: 0.68, g: 0.1, b: 0.02 },
+    // 14: Đỏ Cam Đậm (#991b1b)
+    { r: 0.06, g: 0.42, b: 0.18 },
+    // 15: Xanh Lá Đậm Sâu (#166534)
+    { r: 0.35, g: 0.1, b: 0.62 },
+    // 16: Tím Mận Đậm (#581c87)
+    { r: 0.03, g: 0.35, b: 0.45 },
+    // 17: Xanh Petrol Đậm (#155e75)
+    { r: 0.62, g: 0.04, b: 0.12 },
+    // 18: Đỏ Rượu Vang Đậm (#881337)
+    { r: 0.3, g: 0.44, b: 0.05 },
+    // 19: Vàng Chanh Rêu Đậm (#4d7c0f)
+    { r: 0.02, g: 0.36, b: 0.5 },
+    // 20: Xanh Băng Đậm Sâu (#0e7490)
+    { r: 0.65, g: 0.28, b: 0.05 },
+    // 21: Cam Đất Đậm (#9a3412)
+    { r: 0.38, g: 0.06, b: 0.62 },
+    // 22: Tím Đậm Sâu (#581c87)
+    { r: 0.04, g: 0.32, b: 0.14 },
+    // 23: Xanh Rừng Đậm (#14532d)
+    { r: 0.6, g: 0.06, b: 0.22 },
+    // 24: Hồng Đậm Sâu (#881337)
+    { r: 0.08, g: 0.2, b: 0.58 },
+    // 25: Xanh Navy Đậm (#172554)
+    { r: 0.02, g: 0.3, b: 0.28 },
+    // 26: Xanh Rêu Đen (#042f2e)
+    { r: 0.58, g: 0.26, b: 0.02 },
+    // 27: Vàng Đất Nung Đậm (#78350f)
+    { r: 0.16, g: 0.12, b: 0.55 },
+    // 28: Tím Đêm Đậm (#312e81)
+    { r: 0.02, g: 0.38, b: 0.48 },
+    // 29: Xanh Lam Đậm Sâu (#155e75)
+    { r: 0.55, g: 0.08, b: 0.35 },
+    // 30: Hồng Sen Đậm Sâu (#701a75)
+    { r: 0.08, g: 0.4, b: 0.2 }
+    // 31: Xanh Táo Đậm Sâu (#166534)
+  ];
+  const OVERLAP_WARNING_COLOR$1 = { r: 1, g: 0, b: 0.2 };
+  const EDGE_SNAP_COLOR = { r: 0.98, g: 0.8, b: 0.08 };
+  const CUT_OUT_WARNING_COLOR = { r: 0.94, g: 0.27, b: 0.27 };
+  function computeBoxEdgeContacts(positions, box, options) {
+    if (!box || box.l <= 0 || box.w <= 0 || box.h <= 0) return null;
+    const count = Math.floor(positions.length / 3);
+    if (count === 0) return null;
+    const minPoints = (options == null ? void 0 : options.minPoints) ?? 3;
+    const groundMargin = (options == null ? void 0 : options.groundNoiseMargin) ?? 0.15;
+    const cosY = Math.cos(-box.rz);
+    const sinY = Math.sin(-box.rz);
+    const hasPitchRoll = !!(box.rx || box.ry);
+    const cosP = hasPitchRoll ? Math.cos(-(box.ry || 0)) : 1;
+    const sinP = hasPitchRoll ? Math.sin(-(box.ry || 0)) : 0;
+    const cosR = hasPitchRoll ? Math.cos(-(box.rx || 0)) : 1;
+    const sinR = hasPitchRoll ? Math.sin(-(box.rx || 0)) : 0;
+    const halfL = box.l / 2;
+    const halfW = box.w / 2;
+    const halfH = box.h / 2;
+    const maxR = Math.max(box.l, box.w, box.h) * 0.75 + 0.25;
+    const zFloor = -halfH + groundMargin;
+    const zCeil = halfH + 0.1;
+    let maxLx = -Infinity;
+    let minLx = Infinity;
+    let maxLy = -Infinity;
+    let minLy = Infinity;
+    let maxLz = -Infinity;
+    let validPointCount = 0;
+    for (let i = 0; i < count; i++) {
+      const idx3 = i * 3;
+      const px = positions[idx3];
+      const py = positions[idx3 + 1];
+      const pz = positions[idx3 + 2];
+      const dx = px - box.cx;
+      const dy = py - box.cy;
+      const dz = pz - box.cz;
+      if (Math.abs(dx) > maxR || Math.abs(dy) > maxR || Math.abs(dz) > maxR) {
+        continue;
+      }
+      let lx = dx * cosY - dy * sinY;
+      let ly = dx * sinY + dy * cosY;
+      let lz = dz;
+      if (hasPitchRoll) {
+        const lx2 = lx * cosP + lz * sinP;
+        const lz2 = -lx * sinP + lz * cosP;
+        const ly2 = ly * cosR - lz2 * sinR;
+        const lz3 = ly * sinR + lz2 * cosR;
+        lx = lx2;
+        ly = ly2;
+        lz = lz3;
+      }
+      if (lz < zFloor || lz > zCeil) continue;
+      if (Math.abs(lx) > halfL + 0.15 || Math.abs(ly) > halfW + 0.15) continue;
+      validPointCount++;
+      if (lx > 0 && Math.abs(ly) <= halfW + 0.05) {
+        if (lx > maxLx) maxLx = lx;
+      }
+      if (lx < 0 && Math.abs(ly) <= halfW + 0.05) {
+        if (lx < minLx) minLx = lx;
+      }
+      if (ly > 0 && Math.abs(lx) <= halfL + 0.05) {
+        if (ly > maxLy) maxLy = ly;
+      }
+      if (ly < 0 && Math.abs(lx) <= halfL + 0.05) {
+        if (ly < minLy) minLy = ly;
+      }
+      if (lz > 0 && Math.abs(lx) <= halfL + 0.05 && Math.abs(ly) <= halfW + 0.05) {
+        if (lz > maxLz) maxLz = lz;
+      }
+    }
+    if (validPointCount < minPoints) {
+      return null;
+    }
+    const evaluateSide = (diff, isFound, maxLooseGap = 0.35) => {
+      if (!isFound) return void 0;
+      if (diff > 0.01) {
+        return {
+          status: "cut",
+          gapCm: -Math.round(diff * 100),
+          label: "Cắt lẹm"
+        };
+      } else if (Math.abs(diff) <= 0.03) {
+        return {
+          status: "tight",
+          gapCm: -Math.round(diff * 100),
+          label: "Khít"
+        };
+      } else if (diff >= -maxLooseGap) {
+        return {
+          status: "loose",
+          gapCm: Math.round(-diff * 100),
+          label: "Hở"
+        };
+      } else {
+        return void 0;
+      }
+    };
+    const frontDiff = maxLx - halfL;
+    const rearDiff = -halfL - minLx;
+    const leftDiff = maxLy - halfW;
+    const rightDiff = -halfW - minLy;
+    const roofDiff = maxLz - halfH;
+    return {
+      clientId: box.id ?? box.trackId,
+      front: evaluateSide(frontDiff, maxLx !== -Infinity),
+      rear: evaluateSide(rearDiff, minLx !== Infinity),
+      left: evaluateSide(leftDiff, maxLy !== -Infinity),
+      right: evaluateSide(rightDiff, minLy !== Infinity),
+      roof: evaluateSide(roofDiff, maxLz !== -Infinity, 0.25),
+      pointCount: validPointCount
+    };
+  }
+  function getDistinctTrackColor$1(trackId, isActive, theme) {
+    let numId = 0;
+    if (typeof trackId === "number") {
+      numId = Math.abs(trackId);
+    } else if (typeof trackId === "string") {
+      const parsed = parseInt(trackId, 10);
+      if (!isNaN(parsed)) {
+        numId = Math.abs(parsed);
+      } else {
+        for (let i = 0; i < trackId.length; i++) {
+          numId = numId * 31 + trackId.charCodeAt(i) & 2147483647;
+        }
+      }
+    }
+    const palette = theme === "light" ? DEEP_VIVID_TRACK_PALETTE$1 : DISTINCT_TRACK_PALETTE$1;
+    const colorIndex = (numId * 13 + 7) % palette.length;
+    const baseColor = palette[colorIndex];
+    if (isActive) {
+      if (theme === "light") {
+        return {
+          r: Math.min(1, baseColor.r * 0.75 + 0.98 * 0.25),
+          g: Math.min(1, baseColor.g * 0.75 + 0.7 * 0.25),
+          b: Math.min(1, baseColor.b * 0.75 + 0.05 * 0.25)
+        };
+      }
+      return {
+        r: Math.min(1, baseColor.r * 0.8 + 0.98 * 0.2),
+        g: Math.min(1, baseColor.g * 0.8 + 0.8 * 0.2),
+        b: Math.min(1, baseColor.b * 0.8 + 0.08 * 0.2)
+      };
+    }
+    return baseColor;
+  }
+  function computePointCloudColors(positions, intensities, boxes, options, outColors) {
+    var _a, _b, _c;
+    const count = Math.floor(positions.length / 3);
+    const colors = outColors && outColors.length === count * 3 ? outColors : new Float32Array(count * 3);
+    const isLight = options.theme === "light";
+    options.mode === "plain";
+    const colorizeBoxed = options.colorizeBoxed !== false && boxes.length > 0;
+    const defaultBg = isLight ? 0 : 1;
+    const plainR = ((_a = options.plainColor) == null ? void 0 : _a.r) ?? defaultBg;
+    const plainG = ((_b = options.plainColor) == null ? void 0 : _b.g) ?? defaultBg;
+    const plainB = ((_c = options.plainColor) == null ? void 0 : _c.b) ?? defaultBg;
+    const fastBoxes = [];
+    if (colorizeBoxed) {
+      for (const b of boxes) {
+        if (!b || b.l <= 0 || b.w <= 0 || b.h <= 0) continue;
+        const cosY = Math.cos(-b.rz);
+        const sinY = Math.sin(-b.rz);
+        const maxR = Math.max(b.l, b.w, b.h) * 0.75;
+        let c = b.color;
+        if (!c) {
+          const boxId = b.trackId ?? b.id;
+          if (boxId !== void 0 && boxId !== null) {
+            c = getDistinctTrackColor$1(boxId, b.isActive, options.theme);
+          } else if (b.isActive) {
+            c = options.activeBoxColor || (options.theme === "light" ? { r: 0.85, g: 0.6, b: 0.02 } : DEFAULT_LABEL_COLORS.active);
+          } else {
+            const cat = (b.category || "car").toLowerCase();
+            c = DEFAULT_LABEL_COLORS[cat] || DEFAULT_LABEL_COLORS.car;
+          }
+        }
+        fastBoxes.push({
+          cx: b.cx,
+          cy: b.cy,
+          cz: b.cz,
+          rx: b.rx || 0,
+          ry: b.ry || 0,
+          rz: b.rz,
+          cosY,
+          sinY,
+          halfL: b.l / 2,
+          halfW: b.w / 2,
+          halfH: b.h / 2,
+          maxR,
+          colorR: c.r,
+          colorG: c.g,
+          colorB: c.b,
+          isActive: !!b.isActive
+        });
+      }
+    }
+    const numBoxes = fastBoxes.length;
+    const activeBox = fastBoxes.find((b) => b.isActive);
+    for (let i = 0; i < count; i++) {
+      const idx3 = i * 3;
+      const px = positions[idx3];
+      const py = positions[idx3 + 1];
+      const pz = positions[idx3 + 2];
+      if (intensities && i < intensities.length) {
+        intensities[i];
+      }
+      let matchedBox = null;
+      let matchCount = 0;
+      if (numBoxes > 0) {
+        for (let k = 0; k < numBoxes; k++) {
+          const b = fastBoxes[k];
+          const dx = px - b.cx;
+          const dy = py - b.cy;
+          const dz = pz - b.cz;
+          if (Math.abs(dx) > b.maxR || Math.abs(dy) > b.maxR || Math.abs(dz) > b.maxR) {
+            continue;
+          }
+          let lx = dx * b.cosY - dy * b.sinY;
+          let ly = dx * b.sinY + dy * b.cosY;
+          let lz = dz;
+          if (b.rx || b.ry) {
+            const cosP = Math.cos(-b.ry);
+            const sinP = Math.sin(-b.ry);
+            const lx2 = lx * cosP + lz * sinP;
+            const lz2 = -lx * sinP + lz * cosP;
+            const cosR = Math.cos(-b.rx);
+            const sinR = Math.sin(-b.rx);
+            const ly2 = ly * cosR - lz2 * sinR;
+            const lz3 = ly * sinR + lz2 * cosR;
+            lx = lx2;
+            ly = ly2;
+            lz = lz3;
+          }
+          if (Math.abs(lx) <= b.halfL && Math.abs(ly) <= b.halfW && Math.abs(lz) <= b.halfH) {
+            matchCount++;
+            if (matchCount === 1) {
+              matchedBox = b;
+            } else {
+              matchedBox = null;
+              break;
+            }
+          }
+        }
+      }
+      let isCutOut = false;
+      let isEdgeSnap = false;
+      if (activeBox) {
+        const adx = px - activeBox.cx;
+        const ady = py - activeBox.cy;
+        const adz = pz - activeBox.cz;
+        if (Math.abs(adx) <= activeBox.maxR + 0.15 && Math.abs(ady) <= activeBox.maxR + 0.15 && Math.abs(adz) <= activeBox.maxR + 0.15) {
+          let alx = adx * activeBox.cosY - ady * activeBox.sinY;
+          let aly = adx * activeBox.sinY + ady * activeBox.cosY;
+          let alz = adz;
+          if (activeBox.rx || activeBox.ry) {
+            const cosP = Math.cos(-activeBox.ry);
+            const sinP = Math.sin(-activeBox.ry);
+            const lx2 = alx * cosP + alz * sinP;
+            const lz2 = -alx * sinP + alz * cosP;
+            const cosR = Math.cos(-activeBox.rx);
+            const sinR = Math.sin(-activeBox.rx);
+            const ly2 = aly * cosR - lz2 * sinR;
+            const lz3 = aly * sinR + lz2 * cosR;
+            alx = lx2;
+            aly = ly2;
+            alz = lz3;
+          }
+          const zFloor = -activeBox.halfH + 0.15;
+          const zCeil = activeBox.halfH + 0.1;
+          if (alz >= zFloor && alz <= zCeil) {
+            const dFront = alx - activeBox.halfL;
+            const dRear = -activeBox.halfL - alx;
+            const dLeft = aly - activeBox.halfW;
+            const dRight = -activeBox.halfW - aly;
+            const dRoof = alz - activeBox.halfH;
+            const isCutFront = dFront > 0.01 && dFront <= 0.08 && Math.abs(aly) <= activeBox.halfW + 0.05;
+            const isCutRear = dRear > 0.01 && dRear <= 0.08 && Math.abs(aly) <= activeBox.halfW + 0.05;
+            const isCutLeft = dLeft > 0.01 && dLeft <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05;
+            const isCutRight = dRight > 0.01 && dRight <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05;
+            const isCutRoof = dRoof > 0.01 && dRoof <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05 && Math.abs(aly) <= activeBox.halfW + 0.05;
+            if (isCutFront || isCutRear || isCutLeft || isCutRight || isCutRoof) {
+              isCutOut = true;
+            } else if (Math.abs(alx) <= activeBox.halfL + 0.01 && Math.abs(aly) <= activeBox.halfW + 0.01 && alz <= activeBox.halfH + 0.01) {
+              const distX = Math.min(Math.abs(alx - activeBox.halfL), Math.abs(alx + activeBox.halfL));
+              const distY = Math.min(Math.abs(aly - activeBox.halfW), Math.abs(aly + activeBox.halfW));
+              const distZ = Math.abs(alz - activeBox.halfH);
+              if (Math.min(distX, distY, distZ) <= 0.03) {
+                isEdgeSnap = true;
+              }
+            }
+          }
+        }
+      }
+      if (matchCount >= 2) {
+        colors[idx3] = OVERLAP_WARNING_COLOR$1.r;
+        colors[idx3 + 1] = OVERLAP_WARNING_COLOR$1.g;
+        colors[idx3 + 2] = OVERLAP_WARNING_COLOR$1.b;
+      } else if (isCutOut) {
+        colors[idx3] = CUT_OUT_WARNING_COLOR.r;
+        colors[idx3 + 1] = CUT_OUT_WARNING_COLOR.g;
+        colors[idx3 + 2] = CUT_OUT_WARNING_COLOR.b;
+      } else if (isEdgeSnap) {
+        colors[idx3] = EDGE_SNAP_COLOR.r;
+        colors[idx3 + 1] = EDGE_SNAP_COLOR.g;
+        colors[idx3 + 2] = EDGE_SNAP_COLOR.b;
+      } else if (matchedBox) {
+        const factor = 1;
+        colors[idx3] = matchedBox.colorR * factor;
+        colors[idx3 + 1] = matchedBox.colorG * factor;
+        colors[idx3 + 2] = matchedBox.colorB * factor;
+      } else {
+        colors[idx3] = plainR;
+        colors[idx3 + 1] = plainG;
+        colors[idx3 + 2] = plainB;
+      }
+    }
+    return colors;
+  }
+  if (typeof globalThis !== "undefined") {
+    globalThis.boxCorners = boxCorners;
+    globalThis.BOX_EDGES = BOX_EDGES;
+    globalThis.fitBoxToEgoRayAndGround = fitBoxToEgoRayAndGround;
+    globalThis.fitPedestrianBox = fitPedestrianBox;
+    globalThis.fitPedestrianLength = fitPedestrianLength;
+    globalThis.fitPedestrianWidth = fitPedestrianWidth;
+    globalThis.fitPedestrianHeight = fitPedestrianHeight;
+    globalThis.fitCyclistBox = fitCyclistBox;
+    globalThis.fitTwoWheelerBox = fitTwoWheelerBox;
+    globalThis.estimateTwoWheelerHeading = estimateTwoWheelerHeading;
+    globalThis.estimateEgoRoadGroundZ = estimateEgoRoadGroundZ;
+    globalThis.detectTrueHeadZ = detectTrueHeadZ;
+    globalThis.computeGroundSlopesAndZ = computeGroundSlopesAndZ;
+    globalThis.estimateGroundSlopeInRadius = estimateGroundSlopeInRadius;
+    globalThis.fitYawToLaneIntensity = fitYawToLaneIntensity;
+    globalThis.isPointInsideBox3D = isPointInsideBox3D;
+    globalThis.computePointCloudColors = computePointCloudColors;
+    globalThis.DISTINCT_TRACK_PALETTE = DISTINCT_TRACK_PALETTE$1;
+    globalThis.OVERLAP_WARNING_COLOR = OVERLAP_WARNING_COLOR$1;
+    globalThis.EDGE_SNAP_COLOR = EDGE_SNAP_COLOR;
+    globalThis.CUT_OUT_WARNING_COLOR = CUT_OUT_WARNING_COLOR;
+    globalThis.computeBoxEdgeContacts = computeBoxEdgeContacts;
+    globalThis.getDistinctTrackColor = getDistinctTrackColor$1;
+    globalThis.analyzeOrientedDensityEnvelope = analyzeOrientedDensityEnvelope;
+    globalThis.computeAODEDensityEnvelope = computeAODEDensityEnvelope;
+    globalThis.CLASS_SIZE_LIMITS = CLASS_SIZE_LIMITS;
+    globalThis.axes = axes;
+    globalThis.transformVectorInverseEuler = transformVectorInverseEuler;
+    globalThis.intersectRayWithOBB = intersectRayWithOBB;
+    globalThis.clusterByPointDilation5x = clusterByPointDilation5x;
+  }
+  if (typeof window !== "undefined") {
+    window.boxCorners = boxCorners;
+    window.BOX_EDGES = BOX_EDGES;
+    window.fitBoxToEgoRayAndGround = fitBoxToEgoRayAndGround;
+    window.fitPedestrianBox = fitPedestrianBox;
+    window.fitPedestrianLength = fitPedestrianLength;
+    window.fitPedestrianWidth = fitPedestrianWidth;
+    window.fitPedestrianHeight = fitPedestrianHeight;
+    window.fitCyclistBox = fitCyclistBox;
+    window.fitTwoWheelerBox = fitTwoWheelerBox;
+    window.estimateTwoWheelerHeading = estimateTwoWheelerHeading;
+    window.estimateEgoRoadGroundZ = estimateEgoRoadGroundZ;
+    window.detectTrueHeadZ = detectTrueHeadZ;
+    window.computeGroundSlopesAndZ = computeGroundSlopesAndZ;
+    window.estimateGroundSlopeInRadius = estimateGroundSlopeInRadius;
+    window.fitYawToLaneIntensity = fitYawToLaneIntensity;
+    window.isPointInsideBox3D = isPointInsideBox3D;
+    window.computePointCloudColors = computePointCloudColors;
+    window.DISTINCT_TRACK_PALETTE = DISTINCT_TRACK_PALETTE$1;
+    window.OVERLAP_WARNING_COLOR = OVERLAP_WARNING_COLOR$1;
+    window.EDGE_SNAP_COLOR = EDGE_SNAP_COLOR;
+    window.CUT_OUT_WARNING_COLOR = CUT_OUT_WARNING_COLOR;
+    window.computeBoxEdgeContacts = computeBoxEdgeContacts;
+    window.getDistinctTrackColor = getDistinctTrackColor$1;
+    window.analyzeOrientedDensityEnvelope = analyzeOrientedDensityEnvelope;
+    window.computeAODEDensityEnvelope = computeAODEDensityEnvelope;
+    window.CLASS_SIZE_LIMITS = CLASS_SIZE_LIMITS;
+    window.axes = axes;
+    window.transformVectorInverseEuler = transformVectorInverseEuler;
+    window.intersectRayWithOBB = intersectRayWithOBB;
+    window.clusterByPointDilation5x = clusterByPointDilation5x;
+  }
+  function guardPointsInstance(obj) {
+    if (!obj) return;
+    if (!obj.__cvat_raycast_guarded__) {
+      obj.__cvat_raycast_guarded__ = true;
+      obj.raycast = () => {
+      };
+    }
+    try {
+      const proto = Object.getPrototypeOf(obj);
+      if (proto && !proto.__cvat_proto_guarded__) {
+        proto.__cvat_proto_guarded__ = true;
+        proto.raycast = () => {
+        };
+      }
+      if (obj.constructor && obj.constructor.prototype && !obj.constructor.prototype.__cvat_proto_guarded__) {
+        obj.constructor.prototype.__cvat_proto_guarded__ = true;
+        obj.constructor.prototype.raycast = () => {
+        };
+      }
+    } catch (_) {
+    }
+  }
+  function installGlobalThreeRaycastGuard(target, getReduxStore2) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+    try {
+      const candidates = [];
+      if (target) candidates.push(target);
+      if (typeof window !== "undefined") {
+        const win = window;
+        if (win.THREE) candidates.push(win.THREE);
+        if (win.__THREE__) candidates.push(win.__THREE__);
+      }
+      try {
+        const store = getReduxStore2 ? getReduxStore2() : window.__cvat_redux_store__;
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (canvas == null ? void 0 : canvas.THREE) candidates.push(canvas.THREE);
+        if ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.THREE) candidates.push(canvas.view.THREE);
+        if ((_e = canvas == null ? void 0 : canvas.view) == null ? void 0 : _e.rayCaster) candidates.push(canvas.view.rayCaster);
+        if ((_f = canvas == null ? void 0 : canvas.view) == null ? void 0 : _f.views) {
+          for (const k of ["perspective", "top", "side", "front"]) {
+            const v = canvas.view.views[k];
+            if (v == null ? void 0 : v.THREE) candidates.push(v.THREE);
+            if ((_g = v == null ? void 0 : v.renderer) == null ? void 0 : _g.constructor) candidates.push(v.renderer.constructor);
+            if (v == null ? void 0 : v.scene) candidates.push(v.scene);
+            if (v == null ? void 0 : v.rayCaster) candidates.push(v.rayCaster);
+            if ((_h = v == null ? void 0 : v.controls) == null ? void 0 : _h.raycaster) candidates.push(v.controls.raycaster);
+          }
+        }
+      } catch (_) {
+      }
+      for (const cand of candidates) {
+        if (!cand) continue;
+        let PointsCtor = cand.Points;
+        if (!PointsCtor) {
+          if (typeof cand === "function" && (cand.name === "Points" || ((_i = cand.prototype) == null ? void 0 : _i.isPoints))) {
+            PointsCtor = cand;
+          } else if (cand.isPoints && cand.constructor) {
+            PointsCtor = cand.constructor;
+          }
+        }
+        if (PointsCtor && PointsCtor.prototype && !PointsCtor.prototype.__cvat_proto_guarded__) {
+          PointsCtor.prototype.__cvat_proto_guarded__ = true;
+          PointsCtor.prototype.raycast = () => {
+          };
+          try {
+            Object.defineProperty(PointsCtor.prototype, "raycast", {
+              value: () => {
+              },
+              writable: true,
+              configurable: true
+            });
+          } catch (_) {
+          }
+        }
+        let RaycasterCtor = cand.Raycaster;
+        if (!RaycasterCtor) {
+          if (typeof cand === "function" && cand.name === "Raycaster") {
+            RaycasterCtor = cand;
+          } else if (cand.intersectObjects && cand.constructor) {
+            RaycasterCtor = cand.constructor;
+          }
+        }
+        if (cand && typeof cand.intersectObject === "function" && !cand.__cvat_instance_guarded__) {
+          cand.__cvat_instance_guarded__ = true;
+          const origInstIntersectObject = cand.intersectObject;
+          cand.intersectObject = function(object, recursive, optionalTarget) {
+            if (object && (object.isPoints || object.type === "Points")) {
+              return optionalTarget || [];
+            }
+            return origInstIntersectObject.call(this, object, recursive, optionalTarget);
+          };
+          const origInstIntersectObjects = cand.intersectObjects;
+          cand.intersectObjects = function(objects, recursive, optionalTarget) {
+            if (!Array.isArray(objects)) return optionalTarget || [];
+            const filtered = objects.filter((o) => o && !o.isPoints && o.type !== "Points");
+            return origInstIntersectObjects.call(this, filtered, recursive, optionalTarget);
+          };
+        }
+        if (RaycasterCtor && RaycasterCtor.prototype && !RaycasterCtor.prototype.__cvat_proto_guarded__) {
+          RaycasterCtor.prototype.__cvat_proto_guarded__ = true;
+          const origIntersectObject = RaycasterCtor.prototype.intersectObject;
+          RaycasterCtor.prototype.intersectObject = function(object, recursive, optionalTarget) {
+            if (object && (object.isPoints || object.type === "Points")) {
+              return optionalTarget || [];
+            }
+            return origIntersectObject.call(this, object, recursive, optionalTarget);
+          };
+          const origIntersectObjects = RaycasterCtor.prototype.intersectObjects;
+          RaycasterCtor.prototype.intersectObjects = function(objects, recursive, optionalTarget) {
+            if (!Array.isArray(objects)) return optionalTarget || [];
+            const filtered = objects.filter((o) => o && !o.isPoints && o.type !== "Points");
+            return origIntersectObjects.call(this, filtered, recursive, optionalTarget);
+          };
+        }
+      }
+    } catch (_) {
+    }
+  }
+  function hookSceneForPointsGuard(scene) {
+    if (!scene) return;
+    try {
+      const sceneProto = Object.getPrototypeOf(scene);
+      const obj3dProto = sceneProto ? Object.getPrototypeOf(sceneProto) : null;
+      if (obj3dProto && typeof obj3dProto.add === "function" && !obj3dProto.__cvat_obj3d_add_guarded__) {
+        obj3dProto.__cvat_obj3d_add_guarded__ = true;
+        const origObj3dAdd = obj3dProto.add;
+        obj3dProto.add = function(...objects) {
+          for (const item of objects) {
+            if (item) {
+              if (item.isPoints || item.type === "Points") {
+                guardPointsInstance(item);
+                installGlobalThreeRaycastGuard(item);
+              }
+              if (typeof item.traverse === "function") {
+                item.traverse((child) => {
+                  if (child && (child.isPoints || child.type === "Points")) {
+                    guardPointsInstance(child);
+                    installGlobalThreeRaycastGuard(child);
+                  }
+                });
+              }
+            }
+          }
+          return origObj3dAdd.apply(this, objects);
+        };
+      }
+    } catch (_) {
+    }
+    if (typeof scene.traverse === "function") {
+      scene.traverse((obj) => {
+        if (obj && (obj.isPoints || obj.type === "Points")) {
+          guardPointsInstance(obj);
+          installGlobalThreeRaycastGuard(obj);
+        }
+      });
+    }
+    if (typeof scene.add === "function" && !scene.__cvat_add_guarded__) {
+      scene.__cvat_add_guarded__ = true;
+      const origAdd = scene.add;
+      scene.add = function(...objects) {
+        for (const item of objects) {
+          if (item) {
+            if (item.isPoints || item.type === "Points") {
+              guardPointsInstance(item);
+              installGlobalThreeRaycastGuard(item);
+            }
+            if (typeof item.traverse === "function") {
+              item.traverse((child) => {
+                if (child && (child.isPoints || child.type === "Points")) {
+                  guardPointsInstance(child);
+                  installGlobalThreeRaycastGuard(child);
+                }
+              });
+            }
+          }
+        }
+        return origAdd.apply(this, objects);
+      };
+    }
+  }
+  function hookAllScenes(getReduxStore2) {
+    var _a, _b, _c, _d, _e, _f;
+    try {
+      const store = getReduxStore2 ? getReduxStore2() : window.__cvat_redux_store__;
+      const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+      const scenes = [];
+      if ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views) {
+        for (const k of ["perspective", "top", "side", "front"]) {
+          const s = (_e = canvas.view.views[k]) == null ? void 0 : _e.scene;
+          if (s && !scenes.includes(s)) scenes.push(s);
+        }
+      }
+      if (((_f = canvas == null ? void 0 : canvas.view) == null ? void 0 : _f.scene) && !scenes.includes(canvas.view.scene)) scenes.push(canvas.view.scene);
+      if ((canvas == null ? void 0 : canvas.scene) && !scenes.includes(canvas.scene)) scenes.push(canvas.scene);
+      for (const sc of scenes) {
+        hookSceneForPointsGuard(sc);
+      }
+    } catch (_) {
+    }
+  }
+  let cachedReduxStore = null;
+  function getReduxStore() {
+    var _a, _b;
+    if (cachedReduxStore && typeof cachedReduxStore.getState === "function") {
+      return cachedReduxStore;
+    }
+    if (typeof window !== "undefined" && window.__cvat_redux_store__) {
+      cachedReduxStore = window.__cvat_redux_store__;
+      return cachedReduxStore;
+    }
+    if (typeof document === "undefined") return null;
+    const rootEl = document.getElementById("root");
+    if (!rootEl) return null;
+    const rKey = Object.keys(rootEl).find(
+      (k) => k.startsWith("__reactContainer$") || k.startsWith("__reactFiber$")
+    );
+    if (!rKey) return null;
+    let rNode = rootEl[rKey];
+    while (rNode) {
+      if ((_a = rNode.memoizedProps) == null ? void 0 : _a.store) {
+        cachedReduxStore = rNode.memoizedProps.store;
+        return cachedReduxStore;
+      }
+      if ((_b = rNode.stateNode) == null ? void 0 : _b.store) {
+        cachedReduxStore = rNode.stateNode.store;
+        return cachedReduxStore;
+      }
+      rNode = rNode.child;
+    }
+    return null;
+  }
+  async function getActiveJobInstance(_jobId) {
+    var _a, _b, _c;
+    const store = getReduxStore();
+    const storeJob = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.job) == null ? void 0 : _c.instance;
+    if (storeJob) {
+      return storeJob;
+    }
+    return null;
+  }
+  const mainWorldLabelsCache = /* @__PURE__ */ new Map();
+  let lastHighlightedSidebarItem = null;
+  function syncSidebarItemHighlight(id) {
+    try {
+      if (id === null || id <= 0) {
+        if (lastHighlightedSidebarItem) {
+          lastHighlightedSidebarItem.classList.remove("cvat-objects-sidebar-state-item-active", "selected");
+          lastHighlightedSidebarItem = null;
+        }
+        return;
+      }
+      const sidebarItem = document.querySelector(`#cvat-objects-sidebar-state-item-${id}`) || document.querySelector(`[data-cvat-state-item-id="${id}"]`) || document.querySelector(`[class*="cvat-objects-sidebar-state-item"][id*="${id}"]`);
+      if (sidebarItem) {
+        if (lastHighlightedSidebarItem && lastHighlightedSidebarItem !== sidebarItem) {
+          lastHighlightedSidebarItem.classList.remove("cvat-objects-sidebar-state-item-active", "selected");
+        }
+        sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
+        lastHighlightedSidebarItem = sidebarItem;
+        sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    } catch (_) {
+    }
+  }
+  function updateMainWorldLabels(job) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
+    try {
+      const store = getReduxStore();
+      const state = (_a = store == null ? void 0 : store.getState) == null ? void 0 : _a.call(store);
+      const storeJob = ((_c = (_b = state == null ? void 0 : state.annotation) == null ? void 0 : _b.job) == null ? void 0 : _c.instance) || job;
+      const candidates = [
+        storeJob == null ? void 0 : storeJob.labels,
+        (_d = storeJob == null ? void 0 : storeJob.task) == null ? void 0 : _d.labels,
+        (_f = (_e = state == null ? void 0 : state.annotation) == null ? void 0 : _e.job) == null ? void 0 : _f.labels,
+        (_i = (_h = (_g = state == null ? void 0 : state.annotation) == null ? void 0 : _g.job) == null ? void 0 : _h.task) == null ? void 0 : _i.labels,
+        (_m = (_l = (_k = (_j = state == null ? void 0 : state.annotation) == null ? void 0 : _j.canvas) == null ? void 0 : _k.instance) == null ? void 0 : _l.setup) == null ? void 0 : _m.labels
+      ];
+      for (const labels of candidates) {
+        if (Array.isArray(labels)) {
+          for (const l of labels) {
+            if (l && l.id !== void 0) {
+              mainWorldLabelsCache.set(Number(l.id), {
+                name: l.name || "Object",
+                color: l.color || "#3b82f6"
+              });
+            }
+          }
+        }
+      }
+    } catch (_) {
+    }
+  }
+  function resolveLabelName(stateOrShape) {
+    var _a, _b, _c, _d, _e, _f;
+    if (!stateOrShape) return { name: "Object", color: "#22c55e" };
+    if ((stateOrShape == null ? void 0 : stateOrShape.label) && typeof stateOrShape.label.name === "string" && stateOrShape.label.name.trim()) {
+      return {
+        name: stateOrShape.label.name.trim(),
+        color: stateOrShape.label.color || "#22c55e"
+      };
+    }
+    if (((_a = stateOrShape == null ? void 0 : stateOrShape.data) == null ? void 0 : _a.label) && typeof stateOrShape.data.label.name === "string" && stateOrShape.data.label.name.trim()) {
+      return {
+        name: stateOrShape.data.label.name.trim(),
+        color: stateOrShape.data.label.color || "#22c55e"
+      };
+    }
+    const lblId = (stateOrShape == null ? void 0 : stateOrShape.labelID) ?? (stateOrShape == null ? void 0 : stateOrShape.labelId) ?? (stateOrShape == null ? void 0 : stateOrShape.label_id) ?? ((_b = stateOrShape == null ? void 0 : stateOrShape.label) == null ? void 0 : _b.id) ?? ((_c = stateOrShape == null ? void 0 : stateOrShape.data) == null ? void 0 : _c.labelID) ?? ((_d = stateOrShape == null ? void 0 : stateOrShape.data) == null ? void 0 : _d.labelId) ?? ((_f = (_e = stateOrShape == null ? void 0 : stateOrShape.data) == null ? void 0 : _e.label) == null ? void 0 : _f.id);
+    if (lblId !== void 0) {
+      if (!mainWorldLabelsCache.has(Number(lblId))) {
+        updateMainWorldLabels();
+      }
+      if (mainWorldLabelsCache.has(Number(lblId))) {
+        return mainWorldLabelsCache.get(Number(lblId));
+      }
+    }
+    const clientId = (stateOrShape == null ? void 0 : stateOrShape.clientID) ?? (stateOrShape == null ? void 0 : stateOrShape.clientId) ?? (stateOrShape == null ? void 0 : stateOrShape.id);
+    if (clientId !== void 0 && typeof document !== "undefined") {
+      try {
+        const sidebarItem = document.querySelector(`#cvat-objects-sidebar-state-item-${clientId}`) || document.querySelector(`[class*="cvat-objects-sidebar-state-item"][id*="${clientId}"]`);
+        if (sidebarItem) {
+          const labelEl = sidebarItem.querySelector(".cvat-objects-sidebar-state-item-label-selector .ant-select-selection-item") || sidebarItem.querySelector(".ant-select-selection-item") || sidebarItem.querySelector(".cvat-text");
+          if (labelEl && labelEl.textContent) {
+            return { name: labelEl.textContent.trim(), color: "#22c55e" };
+          }
+        }
+      } catch (_) {
+      }
+    }
+    return { name: "Object", color: "#22c55e" };
+  }
+  function toArray(val) {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    if (val instanceof Map || val instanceof Set) return Array.from(val.values());
+    if (typeof val === "object") {
+      const values = Object.values(val);
+      if (values.length > 0 && typeof values[0] === "object") return values;
+    }
+    return [];
+  }
+  function getJobTrackCollection(job) {
+    var _a, _b, _c, _d, _e;
+    if (!job) return [];
+    const list = [];
+    const anno = job.annotations;
+    if (anno) {
+      const col = anno._collection || anno.collection;
+      if (col) {
+        list.push(...toArray(col.tracks));
+      }
+    }
+    if (job.tracks) {
+      list.push(...toArray(job.tracks));
+    }
+    try {
+      const store = getReduxStore();
+      const storeJob = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.job) == null ? void 0 : _c.instance;
+      const storeCol = ((_d = storeJob == null ? void 0 : storeJob.annotations) == null ? void 0 : _d._collection) || ((_e = storeJob == null ? void 0 : storeJob.annotations) == null ? void 0 : _e.collection);
+      if (storeCol) {
+        list.push(...toArray(storeCol.tracks));
+      }
+    } catch (e) {
+    }
+    return list;
+  }
+  async function findTrackInJob(job, uiId, serverId, parentID) {
+    if (!job) return null;
+    if (!parentID && job.annotations) {
+      try {
+        const curFrame = typeof job.frame === "number" ? job.frame : 0;
+        const curStates = await job.annotations.get(curFrame);
+        if (Array.isArray(curStates)) {
+          const curSt = curStates.find(
+            (s) => Number(s.clientID) === Number(uiId) || serverId && Number(s.serverID) === Number(serverId)
+          );
+          if (curSt) {
+            parentID = curSt.parentID || curSt.trackID || curSt.parent && curSt.parent.clientID;
+          }
+        }
+      } catch (e) {
+      }
+    }
+    const tracks = getJobTrackCollection(job);
+    if (tracks && tracks.length > 0) {
+      let found = tracks.find(
+        (t) => Number(t.clientID) === Number(uiId) || Number(t.id) === Number(uiId) || String(t.clientID) === String(uiId)
+      );
+      if (found) return found;
+      if (serverId) {
+        found = tracks.find(
+          (t) => Number(t.serverID) === Number(serverId) || String(t.serverID) === String(serverId)
+        );
+        if (found) return found;
+      }
+      if (parentID) {
+        found = tracks.find(
+          (t) => Number(t.clientID) === Number(parentID) || Number(t.id) === Number(parentID) || String(t.clientID) === String(parentID)
+        );
+        if (found) return found;
+      }
+      found = tracks.find((t) => {
+        const shList = toArray(t.shapes || t.keyframes || t._shapes);
+        return shList.some(
+          (sh) => Number(sh.clientID) === Number(uiId) || serverId && Number(sh.serverID) === Number(serverId) || sh.parentID && Number(sh.parentID) === Number(uiId)
+        );
+      });
+      if (found) return found;
+    }
+    if (job.annotations) {
+      try {
+        const allObjects = await job.annotations.get(null, true);
+        if (Array.isArray(allObjects)) {
+          let found = allObjects.find(
+            (t) => Number(t.clientID) === Number(uiId) || Number(t.id) === Number(uiId) || serverId && Number(t.serverID) === Number(serverId) || parentID && (Number(t.clientID) === Number(parentID) || Number(t.id) === Number(parentID))
+          );
+          if (found) return found;
+        }
+      } catch (e) {
+      }
+      try {
+        const defaultTracks = await job.annotations.get();
+        if (Array.isArray(defaultTracks)) {
+          let found = defaultTracks.find(
+            (t) => Number(t.clientID) === Number(uiId) || Number(t.id) === Number(uiId) || serverId && Number(t.serverID) === Number(serverId) || parentID && (Number(t.clientID) === Number(parentID) || Number(t.id) === Number(parentID))
+          );
+          if (found) return found;
+        }
+      } catch (e) {
+      }
+    }
+    return null;
+  }
+  function markCvatSaveButtonUnsaved(job) {
+    var _a, _b, _c, _d, _e, _f, _g;
+    try {
+      window.__CVAT_HAS_UNSAVED_CHANGES__ = true;
+      const activeJob = job || ((_d = (_c = (_b = (_a = getReduxStore()) == null ? void 0 : _a.getState()) == null ? void 0 : _b.annotation) == null ? void 0 : _c.job) == null ? void 0 : _d.instance);
+      if (activeJob && activeJob.annotations) {
+        const col = activeJob.annotations._collection || activeJob.annotations.collection;
+        if (col) {
+          col._isModified = true;
+        }
+      }
+      const store = getReduxStore();
+      if (store && typeof store.dispatch === "function") {
+        try {
+          const historyState = ((_g = (_f = (_e = store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.history) || {};
+          store.dispatch({
+            type: "UPDATE_ANNOTATIONS_SUCCESS",
+            payload: {
+              history: historyState
+            }
+          });
+        } catch (_) {
+          try {
+            store.dispatch({ type: "CHANGE_ANNOTATIONS" });
+          } catch (__) {
+          }
+        }
+      }
+      const cvatSaveBtn = document.querySelector(
+        "button.cvat-annotation-header-save-button, .cvat-annotation-header-save-button, button[aria-label='Save annotations']"
+      );
+      if (cvatSaveBtn) {
+        cvatSaveBtn.disabled = false;
+        cvatSaveBtn.removeAttribute("disabled");
+        cvatSaveBtn.classList.remove("cvat-disabled-button");
+        cvatSaveBtn.style.opacity = "1";
+        cvatSaveBtn.style.cursor = "pointer";
+      }
+    } catch (e) {
+    }
+  }
+  async function persistJobAnnotations(job) {
+    var _a;
+    try {
+      if (job && typeof ((_a = job.annotations) == null ? void 0 : _a.save) === "function") {
+        await job.annotations.save();
+        window.__CVAT_HAS_UNSAVED_CHANGES__ = false;
+      }
+    } catch (err) {
+      console.warn("[CVAT 3D Suite] Lỗi lưu annotations:", err);
+    }
+  }
+  let currentPointColorMode = typeof localStorage !== "undefined" && localStorage.getItem("cvat_3d_point_color_mode") === "plain" ? "plain" : "intensity";
+  function setCurrentPointColorMode(mode) {
+    currentPointColorMode = mode;
+  }
+  let currentColorizeBoxed = typeof localStorage !== "undefined" ? localStorage.getItem("cvat_3d_colorize_boxed") !== "false" : true;
+  function setCurrentColorizeBoxed(val) {
+    currentColorizeBoxed = val;
+  }
+  let currentCanvasTheme = typeof localStorage !== "undefined" && localStorage.getItem("cvat_3d_canvas_theme") === "dark" ? "dark" : "light";
+  function setCurrentCanvasTheme(theme) {
+    currentCanvasTheme = theme;
+  }
+  let currentOrthoPointSize = 3.5;
+  try {
+    const savedOrthoSize = localStorage.getItem("cvat_3d_ortho_point_size");
+    if (savedOrthoSize) {
+      const parsed = parseFloat(savedOrthoSize);
+      if (!isNaN(parsed) && parsed >= 1 && parsed <= 10) {
+        currentOrthoPointSize = parsed;
+      }
+    }
+  } catch (_) {
+  }
+  function applyOrthoPointSize(size) {
+    var _a, _b, _c;
+    currentOrthoPointSize = size;
+    try {
+      localStorage.setItem("cvat_3d_ortho_point_size", String(size));
+    } catch (_) {
+    }
+    try {
+      const store = getReduxStore();
+      const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+      if (canvas && typeof canvas.render === "function") {
+        canvas.render();
+      }
+    } catch (_) {
+    }
+  }
+  let isColorizingRunning = false;
+  let isCanvasInteracting$1 = false;
+  let singleFrameColorizeTimer = null;
+  function applyCanvasThemeInMainWorld(theme) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+    try {
+      if (theme) currentCanvasTheme = theme;
+      if (typeof localStorage !== "undefined") {
+        try {
+          localStorage.setItem("cvat_3d_canvas_theme", currentCanvasTheme);
+        } catch (_) {
+        }
+      }
+      const store = getReduxStore();
+      const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+      const isLight = currentCanvasTheme === "light";
+      const bgColor = isLight ? 16777215 : 0;
+      const bgCss = isLight ? "#ffffff" : "#000000";
+      if ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views) {
+        const views2 = canvas.view.views;
+        const winThree = window.THREE;
+        let ColorCtor = (winThree == null ? void 0 : winThree.Color) || ((_e = canvas == null ? void 0 : canvas.THREE) == null ? void 0 : _e.Color) || ((_g = (_f = canvas == null ? void 0 : canvas.view) == null ? void 0 : _f.THREE) == null ? void 0 : _g.Color);
+        const viewKeys = Object.keys(views2);
+        for (const key of viewKeys) {
+          const v = views2[key];
+          if (!v) continue;
+          if (v.scene) {
+            if (v.scene.background && typeof v.scene.background.setHex === "function") {
+              v.scene.background.setHex(bgColor);
+            } else {
+              if (!ColorCtor) {
+                if (((_h = v.scene.background) == null ? void 0 : _h.constructor) && typeof v.scene.background.constructor === "function") {
+                  ColorCtor = v.scene.background.constructor;
+                } else {
+                  v.scene.traverse((obj) => {
+                    var _a2;
+                    if (!ColorCtor && ((_a2 = obj.material) == null ? void 0 : _a2.color) && typeof obj.material.color.setHex === "function") {
+                      ColorCtor = obj.material.color.constructor;
+                    }
+                  });
+                }
+              }
+              if (ColorCtor && typeof ColorCtor === "function") {
+                v.scene.background = new ColorCtor(bgColor);
+              } else {
+                v.scene.background = null;
+              }
+            }
+          }
+          if (v.renderer && typeof v.renderer.setClearColor === "function") {
+            v.renderer.setClearColor(bgColor, 1);
+          }
+        }
+      }
+      let styleEl = document.getElementById("cvat-3d-suite-canvas-theme-style");
+      if (!styleEl) {
+        styleEl = document.createElement("style");
+        styleEl.id = "cvat-3d-suite-canvas-theme-style";
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = `
+        .cvat-canvas-container,
+        .cvat-canvas3d-perspective,
+        .cvat-canvas3d-topview,
+        .cvat-canvas3d-sideview,
+        .cvat-canvas3d-frontview,
+        .cvat-canvas3d-orthographic-view {
+          background-color: ${bgCss} !important;
+          isolation: isolate !important;
+        }
+        .cvat-canvas3d-orthographic-view canvas,
+        .cvat-canvas-container canvas {
+          background-color: ${bgCss} !important;
+        }
+        .cvat-canvas3d-orthographic-view-header,
+        .cvat-canvas3d-perspective-header {
+          color: ${isLight ? "#1e293b" : "#f8fafc"} !important;
+        }
+
+        /* Tối ưu hóa sâu CSS Virtualization cho Sidebar CVAT: Ngắt render 85% thẻ ngoài màn hình */
+        .cvat-objects-sidebar-states-list > div,
+        .cvat-objects-sidebar-state-item {
+          content-visibility: auto !important;
+          contain-intrinsic-size: 0 46px !important;
+        }
+
+        /* Triệt tiêu độ trễ hoạt họa thừa trên Sidebar để phản hồi click tức thì 0ms */
+        .cvat-objects-sidebar-state-item,
+        .cvat-objects-sidebar-state-item * {
+          transition: none !important;
+        }
+      `;
+      if (canvas && typeof canvas.render === "function") {
+        canvas.render();
+      }
+      const views = (_i = canvas == null ? void 0 : canvas.view) == null ? void 0 : _i.views;
+      if (views) {
+        for (const key of ["perspective", "top", "side", "front"]) {
+          const v = views[key];
+          if (v && typeof v.render === "function") {
+            try {
+              v.render();
+            } catch (_) {
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("[CVAT 3D Suite] Lỗi applyCanvasThemeInMainWorld:", err);
+    }
+  }
+  function getAllScenePointsObjects() {
+    var _a, _b, _c, _d;
+    try {
+      const store = getReduxStore();
+      const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+      if (!canvas || !canvas.view) return [];
+      const pointsObjects = [];
+      const scenes = [];
+      const views = canvas.view.views;
+      if (views) {
+        const viewKeys = ["perspective", "top", "side", "front"];
+        for (const key of viewKeys) {
+          const s = (_d = views[key]) == null ? void 0 : _d.scene;
+          if (s && !scenes.includes(s)) scenes.push(s);
+        }
+      }
+      if (canvas.view.scene && !scenes.includes(canvas.view.scene)) {
+        scenes.push(canvas.view.scene);
+      }
+      if (canvas.scene && !scenes.includes(canvas.scene)) {
+        scenes.push(canvas.scene);
+      }
+      for (const scene of scenes) {
+        if (!scene) continue;
+        hookSceneForPointsGuard(scene);
+        if (typeof scene.traverse !== "function") continue;
+        scene.traverse((obj) => {
+          var _a2, _b2, _c2;
+          if ((obj.isPoints || obj.type === "Points") && ((_c2 = (_b2 = (_a2 = obj.geometry) == null ? void 0 : _a2.attributes) == null ? void 0 : _b2.position) == null ? void 0 : _c2.count) >= 10 && !pointsObjects.includes(obj)) {
+            guardPointsInstance(obj);
+            installGlobalThreeRaycastGuard(obj);
+            if (!obj.__cvat_ortho_size_hooked__) {
+              obj.__cvat_ortho_size_hooked__ = true;
+              const originalOnBeforeRender = obj.onBeforeRender;
+              obj.onBeforeRender = function(renderer, scene2, camera, geometry, material, group) {
+                if (typeof originalOnBeforeRender === "function") {
+                  try {
+                    originalOnBeforeRender.call(this, renderer, scene2, camera, geometry, material, group);
+                  } catch (_) {
+                  }
+                }
+                const isOrtho = camera && (camera.isOrthographicCamera || camera.type === "OrthographicCamera");
+                const mats = Array.isArray(this.material) ? this.material : this.material ? [this.material] : [];
+                for (const m of mats) {
+                  if (!m) continue;
+                  if (m.__cvat_native_point_size__ === void 0) {
+                    m.__cvat_native_point_size__ = typeof m.size === "number" ? m.size : 1;
+                  }
+                  if (isOrtho) {
+                    if (m.size !== currentOrthoPointSize) {
+                      m.size = currentOrthoPointSize;
+                    }
+                  } else {
+                    if (typeof m.size === "number" && m.size !== currentOrthoPointSize && m.size !== m.__cvat_native_point_size__) {
+                      m.__cvat_native_point_size__ = m.size;
+                    }
+                    const nativeSize = m.__cvat_native_point_size__;
+                    if (m.size !== nativeSize) {
+                      m.size = nativeSize;
+                    }
+                  }
+                }
+              };
+            }
+            pointsObjects.push(obj);
+          }
+        });
+      }
+      return pointsObjects;
+    } catch (e) {
+      return [];
+    }
+  }
   const DISTINCT_TRACK_PALETTE = [
     { r: 0, g: 0.95, b: 1 },
     // 0: Cyan Neon (#00f2fe)
@@ -3681,118 +4901,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     // 31: Xanh Táo Đậm Sâu (#166534)
   ];
   const OVERLAP_WARNING_COLOR = { r: 1, g: 0, b: 0.2 };
-  const EDGE_SNAP_COLOR = { r: 0.98, g: 0.8, b: 0.08 };
-  const CUT_OUT_WARNING_COLOR = { r: 0.94, g: 0.27, b: 0.27 };
-  function computeBoxEdgeContacts(positions, box, options) {
-    if (!box || box.l <= 0 || box.w <= 0 || box.h <= 0) return null;
-    const count = Math.floor(positions.length / 3);
-    if (count === 0) return null;
-    const minPoints = (options == null ? void 0 : options.minPoints) ?? 3;
-    const groundMargin = (options == null ? void 0 : options.groundNoiseMargin) ?? 0.15;
-    const cosY = Math.cos(-box.rz);
-    const sinY = Math.sin(-box.rz);
-    const hasPitchRoll = !!(box.rx || box.ry);
-    const cosP = hasPitchRoll ? Math.cos(-(box.ry || 0)) : 1;
-    const sinP = hasPitchRoll ? Math.sin(-(box.ry || 0)) : 0;
-    const cosR = hasPitchRoll ? Math.cos(-(box.rx || 0)) : 1;
-    const sinR = hasPitchRoll ? Math.sin(-(box.rx || 0)) : 0;
-    const halfL = box.l / 2;
-    const halfW = box.w / 2;
-    const halfH = box.h / 2;
-    const maxR = Math.max(box.l, box.w, box.h) * 0.75 + 0.25;
-    const zFloor = -halfH + groundMargin;
-    const zCeil = halfH + 0.1;
-    let maxLx = -Infinity;
-    let minLx = Infinity;
-    let maxLy = -Infinity;
-    let minLy = Infinity;
-    let maxLz = -Infinity;
-    let validPointCount = 0;
-    for (let i = 0; i < count; i++) {
-      const idx3 = i * 3;
-      const px = positions[idx3];
-      const py = positions[idx3 + 1];
-      const pz = positions[idx3 + 2];
-      const dx = px - box.cx;
-      const dy = py - box.cy;
-      const dz = pz - box.cz;
-      if (Math.abs(dx) > maxR || Math.abs(dy) > maxR || Math.abs(dz) > maxR) {
-        continue;
-      }
-      let lx = dx * cosY - dy * sinY;
-      let ly = dx * sinY + dy * cosY;
-      let lz = dz;
-      if (hasPitchRoll) {
-        const lx2 = lx * cosP + lz * sinP;
-        const lz2 = -lx * sinP + lz * cosP;
-        const ly2 = ly * cosR - lz2 * sinR;
-        const lz3 = ly * sinR + lz2 * cosR;
-        lx = lx2;
-        ly = ly2;
-        lz = lz3;
-      }
-      if (lz < zFloor || lz > zCeil) continue;
-      if (Math.abs(lx) > halfL + 0.15 || Math.abs(ly) > halfW + 0.15) continue;
-      validPointCount++;
-      if (lx > 0 && Math.abs(ly) <= halfW + 0.05) {
-        if (lx > maxLx) maxLx = lx;
-      }
-      if (lx < 0 && Math.abs(ly) <= halfW + 0.05) {
-        if (lx < minLx) minLx = lx;
-      }
-      if (ly > 0 && Math.abs(lx) <= halfL + 0.05) {
-        if (ly > maxLy) maxLy = ly;
-      }
-      if (ly < 0 && Math.abs(lx) <= halfL + 0.05) {
-        if (ly < minLy) minLy = ly;
-      }
-      if (lz > 0 && Math.abs(lx) <= halfL + 0.05 && Math.abs(ly) <= halfW + 0.05) {
-        if (lz > maxLz) maxLz = lz;
-      }
-    }
-    if (validPointCount < minPoints) {
-      return null;
-    }
-    const evaluateSide = (diff, isFound, maxLooseGap = 0.35) => {
-      if (!isFound) return void 0;
-      if (diff > 0.01) {
-        return {
-          status: "cut",
-          gapCm: -Math.round(diff * 100),
-          label: "Cắt lẹm"
-        };
-      } else if (Math.abs(diff) <= 0.03) {
-        return {
-          status: "tight",
-          gapCm: -Math.round(diff * 100),
-          label: "Khít"
-        };
-      } else if (diff >= -maxLooseGap) {
-        return {
-          status: "loose",
-          gapCm: Math.round(-diff * 100),
-          label: "Hở"
-        };
-      } else {
-        return void 0;
-      }
-    };
-    const frontDiff = maxLx - halfL;
-    const rearDiff = -halfL - minLx;
-    const leftDiff = maxLy - halfW;
-    const rightDiff = -halfW - minLy;
-    const roofDiff = maxLz - halfH;
-    return {
-      clientId: box.id ?? box.trackId,
-      front: evaluateSide(frontDiff, maxLx !== -Infinity),
-      rear: evaluateSide(rearDiff, minLx !== Infinity),
-      left: evaluateSide(leftDiff, maxLy !== -Infinity),
-      right: evaluateSide(rightDiff, minLy !== Infinity),
-      roof: evaluateSide(roofDiff, maxLz !== -Infinity, 0.25),
-      pointCount: validPointCount
-    };
-  }
-  function getDistinctTrackColor(trackId, isActive, theme) {
+  function getDistinctTrackColor(trackId, isActive) {
     let numId = 0;
     if (typeof trackId === "number") {
       numId = Math.abs(trackId);
@@ -3806,11 +4915,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
     }
-    const palette = theme === "light" ? DEEP_VIVID_TRACK_PALETTE : DISTINCT_TRACK_PALETTE;
+    const palette = currentCanvasTheme === "light" ? DEEP_VIVID_TRACK_PALETTE : DISTINCT_TRACK_PALETTE;
     const colorIndex = (numId * 13 + 7) % palette.length;
     const baseColor = palette[colorIndex];
     if (isActive) {
-      if (theme === "light") {
+      if (currentCanvasTheme === "light") {
         return {
           r: Math.min(1, baseColor.r * 0.75 + 0.98 * 0.25),
           g: Math.min(1, baseColor.g * 0.75 + 0.7 * 0.25),
@@ -3825,1422 +4934,311 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return baseColor;
   }
-  function computePointCloudColors(positions, intensities, boxes, options, outColors) {
-    var _a, _b, _c;
-    const count = Math.floor(positions.length / 3);
-    const colors = outColors && outColors.length === count * 3 ? outColors : new Float32Array(count * 3);
-    const isLight = options.theme === "light";
-    options.mode === "plain";
-    const colorizeBoxed = options.colorizeBoxed !== false && boxes.length > 0;
-    const defaultBg = isLight ? 0 : 1;
-    const plainR = ((_a = options.plainColor) == null ? void 0 : _a.r) ?? defaultBg;
-    const plainG = ((_b = options.plainColor) == null ? void 0 : _b.g) ?? defaultBg;
-    const plainB = ((_c = options.plainColor) == null ? void 0 : _c.b) ?? defaultBg;
-    const fastBoxes = [];
-    if (colorizeBoxed) {
-      for (const b of boxes) {
-        if (!b || b.l <= 0 || b.w <= 0 || b.h <= 0) continue;
-        const cosY = Math.cos(-b.rz);
-        const sinY = Math.sin(-b.rz);
-        const maxR = Math.max(b.l, b.w, b.h) * 0.75;
-        let c = b.color;
-        if (!c) {
-          const boxId = b.trackId ?? b.id;
-          if (boxId !== void 0 && boxId !== null) {
-            c = getDistinctTrackColor(boxId, b.isActive, options.theme);
-          } else if (b.isActive) {
-            c = options.activeBoxColor || (options.theme === "light" ? { r: 0.85, g: 0.6, b: 0.02 } : DEFAULT_LABEL_COLORS.active);
-          } else {
-            const cat = (b.category || "car").toLowerCase();
-            c = DEFAULT_LABEL_COLORS[cat] || DEFAULT_LABEL_COLORS.car;
-          }
-        }
-        fastBoxes.push({
-          cx: b.cx,
-          cy: b.cy,
-          cz: b.cz,
-          rx: b.rx || 0,
-          ry: b.ry || 0,
-          rz: b.rz,
-          cosY,
-          sinY,
-          halfL: b.l / 2,
-          halfW: b.w / 2,
-          halfH: b.h / 2,
-          maxR,
-          colorR: c.r,
-          colorG: c.g,
-          colorB: c.b,
-          isActive: !!b.isActive
-        });
-      }
-    }
-    const numBoxes = fastBoxes.length;
-    const activeBox = fastBoxes.find((b) => b.isActive);
-    for (let i = 0; i < count; i++) {
-      const idx3 = i * 3;
-      const px = positions[idx3];
-      const py = positions[idx3 + 1];
-      const pz = positions[idx3 + 2];
-      if (intensities && i < intensities.length) {
-        intensities[i];
-      }
-      let matchedBox = null;
-      let matchCount = 0;
-      if (numBoxes > 0) {
-        for (let k = 0; k < numBoxes; k++) {
-          const b = fastBoxes[k];
-          const dx = px - b.cx;
-          const dy = py - b.cy;
-          const dz = pz - b.cz;
-          if (Math.abs(dx) > b.maxR || Math.abs(dy) > b.maxR || Math.abs(dz) > b.maxR) {
-            continue;
-          }
-          let lx = dx * b.cosY - dy * b.sinY;
-          let ly = dx * b.sinY + dy * b.cosY;
-          let lz = dz;
-          if (b.rx || b.ry) {
-            const cosP = Math.cos(-b.ry);
-            const sinP = Math.sin(-b.ry);
-            const lx2 = lx * cosP + lz * sinP;
-            const lz2 = -lx * sinP + lz * cosP;
-            const cosR = Math.cos(-b.rx);
-            const sinR = Math.sin(-b.rx);
-            const ly2 = ly * cosR - lz2 * sinR;
-            const lz3 = ly * sinR + lz2 * cosR;
-            lx = lx2;
-            ly = ly2;
-            lz = lz3;
-          }
-          if (Math.abs(lx) <= b.halfL && Math.abs(ly) <= b.halfW && Math.abs(lz) <= b.halfH) {
-            matchCount++;
-            if (matchCount === 1) {
-              matchedBox = b;
-            } else {
-              matchedBox = null;
-              break;
-            }
-          }
-        }
-      }
-      let isCutOut = false;
-      let isEdgeSnap = false;
-      if (activeBox) {
-        const adx = px - activeBox.cx;
-        const ady = py - activeBox.cy;
-        const adz = pz - activeBox.cz;
-        if (Math.abs(adx) <= activeBox.maxR + 0.15 && Math.abs(ady) <= activeBox.maxR + 0.15 && Math.abs(adz) <= activeBox.maxR + 0.15) {
-          let alx = adx * activeBox.cosY - ady * activeBox.sinY;
-          let aly = adx * activeBox.sinY + ady * activeBox.cosY;
-          let alz = adz;
-          if (activeBox.rx || activeBox.ry) {
-            const cosP = Math.cos(-activeBox.ry);
-            const sinP = Math.sin(-activeBox.ry);
-            const lx2 = alx * cosP + alz * sinP;
-            const lz2 = -alx * sinP + alz * cosP;
-            const cosR = Math.cos(-activeBox.rx);
-            const sinR = Math.sin(-activeBox.rx);
-            const ly2 = aly * cosR - lz2 * sinR;
-            const lz3 = aly * sinR + lz2 * cosR;
-            alx = lx2;
-            aly = ly2;
-            alz = lz3;
-          }
-          const zFloor = -activeBox.halfH + 0.15;
-          const zCeil = activeBox.halfH + 0.1;
-          if (alz >= zFloor && alz <= zCeil) {
-            const dFront = alx - activeBox.halfL;
-            const dRear = -activeBox.halfL - alx;
-            const dLeft = aly - activeBox.halfW;
-            const dRight = -activeBox.halfW - aly;
-            const dRoof = alz - activeBox.halfH;
-            const isCutFront = dFront > 0.01 && dFront <= 0.08 && Math.abs(aly) <= activeBox.halfW + 0.05;
-            const isCutRear = dRear > 0.01 && dRear <= 0.08 && Math.abs(aly) <= activeBox.halfW + 0.05;
-            const isCutLeft = dLeft > 0.01 && dLeft <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05;
-            const isCutRight = dRight > 0.01 && dRight <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05;
-            const isCutRoof = dRoof > 0.01 && dRoof <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05 && Math.abs(aly) <= activeBox.halfW + 0.05;
-            if (isCutFront || isCutRear || isCutLeft || isCutRight || isCutRoof) {
-              isCutOut = true;
-            } else if (Math.abs(alx) <= activeBox.halfL + 0.01 && Math.abs(aly) <= activeBox.halfW + 0.01 && alz <= activeBox.halfH + 0.01) {
-              const distX = Math.min(Math.abs(alx - activeBox.halfL), Math.abs(alx + activeBox.halfL));
-              const distY = Math.min(Math.abs(aly - activeBox.halfW), Math.abs(aly + activeBox.halfW));
-              const distZ = Math.abs(alz - activeBox.halfH);
-              if (Math.min(distX, distY, distZ) <= 0.03) {
-                isEdgeSnap = true;
-              }
-            }
-          }
-        }
-      }
-      if (matchCount >= 2) {
-        colors[idx3] = OVERLAP_WARNING_COLOR.r;
-        colors[idx3 + 1] = OVERLAP_WARNING_COLOR.g;
-        colors[idx3 + 2] = OVERLAP_WARNING_COLOR.b;
-      } else if (isCutOut) {
-        colors[idx3] = CUT_OUT_WARNING_COLOR.r;
-        colors[idx3 + 1] = CUT_OUT_WARNING_COLOR.g;
-        colors[idx3 + 2] = CUT_OUT_WARNING_COLOR.b;
-      } else if (isEdgeSnap) {
-        colors[idx3] = EDGE_SNAP_COLOR.r;
-        colors[idx3 + 1] = EDGE_SNAP_COLOR.g;
-        colors[idx3 + 2] = EDGE_SNAP_COLOR.b;
-      } else if (matchedBox) {
-        const factor = 1;
-        colors[idx3] = matchedBox.colorR * factor;
-        colors[idx3 + 1] = matchedBox.colorG * factor;
-        colors[idx3 + 2] = matchedBox.colorB * factor;
-      } else {
-        colors[idx3] = plainR;
-        colors[idx3 + 1] = plainG;
-        colors[idx3 + 2] = plainB;
-      }
-    }
-    return colors;
-  }
-  if (typeof globalThis !== "undefined") {
-    globalThis.boxCorners = boxCorners;
-    globalThis.BOX_EDGES = BOX_EDGES;
-    globalThis.fitBoxToEgoRayAndGround = fitBoxToEgoRayAndGround;
-    globalThis.fitPedestrianBox = fitPedestrianBox;
-    globalThis.fitPedestrianLength = fitPedestrianLength;
-    globalThis.fitPedestrianWidth = fitPedestrianWidth;
-    globalThis.fitPedestrianHeight = fitPedestrianHeight;
-    globalThis.fitCyclistBox = fitCyclistBox;
-    globalThis.fitTwoWheelerBox = fitTwoWheelerBox;
-    globalThis.estimateTwoWheelerHeading = estimateTwoWheelerHeading;
-    globalThis.estimateEgoRoadGroundZ = estimateEgoRoadGroundZ;
-    globalThis.detectTrueHeadZ = detectTrueHeadZ;
-    globalThis.computeGroundSlopesAndZ = computeGroundSlopesAndZ;
-    globalThis.estimateGroundSlopeInRadius = estimateGroundSlopeInRadius$1;
-    globalThis.fitYawToLaneIntensity = fitYawToLaneIntensity$1;
-    globalThis.isPointInsideBox3D = isPointInsideBox3D;
-    globalThis.computePointCloudColors = computePointCloudColors;
-    globalThis.DISTINCT_TRACK_PALETTE = DISTINCT_TRACK_PALETTE;
-    globalThis.OVERLAP_WARNING_COLOR = OVERLAP_WARNING_COLOR;
-    globalThis.EDGE_SNAP_COLOR = EDGE_SNAP_COLOR;
-    globalThis.CUT_OUT_WARNING_COLOR = CUT_OUT_WARNING_COLOR;
-    globalThis.computeBoxEdgeContacts = computeBoxEdgeContacts;
-    globalThis.getDistinctTrackColor = getDistinctTrackColor;
-    globalThis.analyzeOrientedDensityEnvelope = analyzeOrientedDensityEnvelope;
-    globalThis.computeAODEDensityEnvelope = computeAODEDensityEnvelope;
-    globalThis.CLASS_SIZE_LIMITS = CLASS_SIZE_LIMITS;
-    globalThis.axes = axes;
-    globalThis.transformVectorInverseEuler = transformVectorInverseEuler;
-    globalThis.intersectRayWithOBB = intersectRayWithOBB;
-    globalThis.clusterByPointDilation5x = clusterByPointDilation5x;
-  }
-  if (typeof window !== "undefined") {
-    window.boxCorners = boxCorners;
-    window.BOX_EDGES = BOX_EDGES;
-    window.fitBoxToEgoRayAndGround = fitBoxToEgoRayAndGround;
-    window.fitPedestrianBox = fitPedestrianBox;
-    window.fitPedestrianLength = fitPedestrianLength;
-    window.fitPedestrianWidth = fitPedestrianWidth;
-    window.fitPedestrianHeight = fitPedestrianHeight;
-    window.fitCyclistBox = fitCyclistBox;
-    window.fitTwoWheelerBox = fitTwoWheelerBox;
-    window.estimateTwoWheelerHeading = estimateTwoWheelerHeading;
-    window.estimateEgoRoadGroundZ = estimateEgoRoadGroundZ;
-    window.detectTrueHeadZ = detectTrueHeadZ;
-    window.computeGroundSlopesAndZ = computeGroundSlopesAndZ;
-    window.estimateGroundSlopeInRadius = estimateGroundSlopeInRadius$1;
-    window.fitYawToLaneIntensity = fitYawToLaneIntensity$1;
-    window.isPointInsideBox3D = isPointInsideBox3D;
-    window.computePointCloudColors = computePointCloudColors;
-    window.DISTINCT_TRACK_PALETTE = DISTINCT_TRACK_PALETTE;
-    window.OVERLAP_WARNING_COLOR = OVERLAP_WARNING_COLOR;
-    window.EDGE_SNAP_COLOR = EDGE_SNAP_COLOR;
-    window.CUT_OUT_WARNING_COLOR = CUT_OUT_WARNING_COLOR;
-    window.computeBoxEdgeContacts = computeBoxEdgeContacts;
-    window.getDistinctTrackColor = getDistinctTrackColor;
-    window.analyzeOrientedDensityEnvelope = analyzeOrientedDensityEnvelope;
-    window.computeAODEDensityEnvelope = computeAODEDensityEnvelope;
-    window.CLASS_SIZE_LIMITS = CLASS_SIZE_LIMITS;
-    window.axes = axes;
-    window.transformVectorInverseEuler = transformVectorInverseEuler;
-    window.intersectRayWithOBB = intersectRayWithOBB;
-    window.clusterByPointDilation5x = clusterByPointDilation5x;
-  }
-  function mainWorldScript() {
-    if (window.__CVAT_3D_SUITE_INJECTED__) return;
-    window.__CVAT_3D_SUITE_INJECTED__ = true;
-    console.log("[CVAT 3D Suite] Main-World Injected Bridge đã sẵn sàng (LiDAR Point Cloud Engine, Auto-Fit & Canvas Select).");
-    function guardPointsInstance(obj) {
-      if (!obj) return;
-      if (!obj.__cvat_raycast_guarded__) {
-        obj.__cvat_raycast_guarded__ = true;
-        obj.raycast = () => {
-        };
-      }
-      try {
-        const proto = Object.getPrototypeOf(obj);
-        if (proto && !proto.__cvat_proto_guarded__) {
-          proto.__cvat_proto_guarded__ = true;
-          proto.raycast = () => {
-          };
-        }
-        if (obj.constructor && obj.constructor.prototype && !obj.constructor.prototype.__cvat_proto_guarded__) {
-          obj.constructor.prototype.__cvat_proto_guarded__ = true;
-          obj.constructor.prototype.raycast = () => {
-          };
-        }
-      } catch (_) {
-      }
-    }
-    function installGlobalThreeRaycastGuard(target) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i;
-      try {
-        const candidates = [];
-        if (target) candidates.push(target);
-        if (typeof window !== "undefined") {
-          const win = window;
-          if (win.THREE) candidates.push(win.THREE);
-          if (win.__THREE__) candidates.push(win.__THREE__);
-        }
-        try {
-          const store = getReduxStore();
-          const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-          if (canvas == null ? void 0 : canvas.THREE) candidates.push(canvas.THREE);
-          if ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.THREE) candidates.push(canvas.view.THREE);
-          if ((_e = canvas == null ? void 0 : canvas.view) == null ? void 0 : _e.rayCaster) candidates.push(canvas.view.rayCaster);
-          if ((_f = canvas == null ? void 0 : canvas.view) == null ? void 0 : _f.views) {
-            for (const k of ["perspective", "top", "side", "front"]) {
-              const v = canvas.view.views[k];
-              if (v == null ? void 0 : v.THREE) candidates.push(v.THREE);
-              if ((_g = v == null ? void 0 : v.renderer) == null ? void 0 : _g.constructor) candidates.push(v.renderer.constructor);
-              if (v == null ? void 0 : v.scene) candidates.push(v.scene);
-              if (v == null ? void 0 : v.rayCaster) candidates.push(v.rayCaster);
-              if ((_h = v == null ? void 0 : v.controls) == null ? void 0 : _h.raycaster) candidates.push(v.controls.raycaster);
-            }
-          }
-        } catch (_) {
-        }
-        for (const cand of candidates) {
-          if (!cand) continue;
-          let PointsCtor = cand.Points;
-          if (!PointsCtor) {
-            if (typeof cand === "function" && (cand.name === "Points" || ((_i = cand.prototype) == null ? void 0 : _i.isPoints))) {
-              PointsCtor = cand;
-            } else if (cand.isPoints && cand.constructor) {
-              PointsCtor = cand.constructor;
-            }
-          }
-          if (PointsCtor && PointsCtor.prototype && !PointsCtor.prototype.__cvat_proto_guarded__) {
-            PointsCtor.prototype.__cvat_proto_guarded__ = true;
-            PointsCtor.prototype.raycast = () => {
-            };
-            try {
-              Object.defineProperty(PointsCtor.prototype, "raycast", {
-                value: () => {
-                },
-                writable: true,
-                configurable: true
-              });
-            } catch (_) {
-            }
-          }
-          let RaycasterCtor = cand.Raycaster;
-          if (!RaycasterCtor) {
-            if (typeof cand === "function" && cand.name === "Raycaster") {
-              RaycasterCtor = cand;
-            } else if (cand.intersectObjects && cand.constructor) {
-              RaycasterCtor = cand.constructor;
-            }
-          }
-          if (cand && typeof cand.intersectObject === "function" && !cand.__cvat_instance_guarded__) {
-            cand.__cvat_instance_guarded__ = true;
-            const origInstIntersectObject = cand.intersectObject;
-            cand.intersectObject = function(object, recursive, optionalTarget) {
-              if (object && (object.isPoints || object.type === "Points")) {
-                return optionalTarget || [];
-              }
-              return origInstIntersectObject.call(this, object, recursive, optionalTarget);
-            };
-            const origInstIntersectObjects = cand.intersectObjects;
-            cand.intersectObjects = function(objects, recursive, optionalTarget) {
-              if (!Array.isArray(objects)) return optionalTarget || [];
-              const filtered = objects.filter((o) => o && !o.isPoints && o.type !== "Points");
-              return origInstIntersectObjects.call(this, filtered, recursive, optionalTarget);
-            };
-          }
-          if (RaycasterCtor && RaycasterCtor.prototype && !RaycasterCtor.prototype.__cvat_proto_guarded__) {
-            RaycasterCtor.prototype.__cvat_proto_guarded__ = true;
-            const origIntersectObject = RaycasterCtor.prototype.intersectObject;
-            RaycasterCtor.prototype.intersectObject = function(object, recursive, optionalTarget) {
-              if (object && (object.isPoints || object.type === "Points")) {
-                return optionalTarget || [];
-              }
-              return origIntersectObject.call(this, object, recursive, optionalTarget);
-            };
-            const origIntersectObjects = RaycasterCtor.prototype.intersectObjects;
-            RaycasterCtor.prototype.intersectObjects = function(objects, recursive, optionalTarget) {
-              if (!Array.isArray(objects)) return optionalTarget || [];
-              const filtered = objects.filter((o) => o && !o.isPoints && o.type !== "Points");
-              return origIntersectObjects.call(this, filtered, recursive, optionalTarget);
-            };
-          }
-        }
-      } catch (_) {
-      }
-    }
-    function hookSceneForPointsGuard(scene) {
-      if (!scene) return;
-      try {
-        const sceneProto = Object.getPrototypeOf(scene);
-        const obj3dProto = sceneProto ? Object.getPrototypeOf(sceneProto) : null;
-        if (obj3dProto && typeof obj3dProto.add === "function" && !obj3dProto.__cvat_obj3d_add_guarded__) {
-          obj3dProto.__cvat_obj3d_add_guarded__ = true;
-          const origObj3dAdd = obj3dProto.add;
-          obj3dProto.add = function(...objects) {
-            for (const item of objects) {
-              if (item) {
-                if (item.isPoints || item.type === "Points") {
-                  guardPointsInstance(item);
-                  installGlobalThreeRaycastGuard(item);
-                }
-                if (typeof item.traverse === "function") {
-                  item.traverse((child) => {
-                    if (child && (child.isPoints || child.type === "Points")) {
-                      guardPointsInstance(child);
-                      installGlobalThreeRaycastGuard(child);
-                    }
-                  });
-                }
-              }
-            }
-            return origObj3dAdd.apply(this, objects);
-          };
-        }
-      } catch (_) {
-      }
-      if (typeof scene.traverse === "function") {
-        scene.traverse((obj) => {
-          if (obj && (obj.isPoints || obj.type === "Points")) {
-            guardPointsInstance(obj);
-            installGlobalThreeRaycastGuard(obj);
-          }
-        });
-      }
-      if (typeof scene.add === "function" && !scene.__cvat_add_guarded__) {
-        scene.__cvat_add_guarded__ = true;
-        const origAdd = scene.add;
-        scene.add = function(...objects) {
-          for (const item of objects) {
-            if (item) {
-              if (item.isPoints || item.type === "Points") {
-                guardPointsInstance(item);
-                installGlobalThreeRaycastGuard(item);
-              }
-              if (typeof item.traverse === "function") {
-                item.traverse((child) => {
-                  if (child && (child.isPoints || child.type === "Points")) {
-                    guardPointsInstance(child);
-                    installGlobalThreeRaycastGuard(child);
-                  }
-                });
-              }
-            }
-          }
-          return origAdd.apply(this, objects);
-        };
-      }
-    }
-    function hookAllScenes() {
-      var _a, _b, _c, _d, _e, _f;
-      try {
-        const store = getReduxStore();
-        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        const scenes = [];
-        if ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views) {
-          for (const k of ["perspective", "top", "side", "front"]) {
-            const s = (_e = canvas.view.views[k]) == null ? void 0 : _e.scene;
-            if (s && !scenes.includes(s)) scenes.push(s);
-          }
-        }
-        if (((_f = canvas == null ? void 0 : canvas.view) == null ? void 0 : _f.scene) && !scenes.includes(canvas.view.scene)) scenes.push(canvas.view.scene);
-        if ((canvas == null ? void 0 : canvas.scene) && !scenes.includes(canvas.scene)) scenes.push(canvas.scene);
-        for (const sc of scenes) {
-          hookSceneForPointsGuard(sc);
-        }
-      } catch (_) {
-      }
-    }
-    installGlobalThreeRaycastGuard();
-    function flipYawRad(yaw) {
-      let newYaw = yaw + Math.PI;
-      while (newYaw > Math.PI) newYaw -= 2 * Math.PI;
-      while (newYaw < -Math.PI) newYaw += 2 * Math.PI;
-      return newYaw;
-    }
-    let cachedReduxStore = null;
-    function getReduxStore() {
-      var _a, _b;
-      if (cachedReduxStore && typeof cachedReduxStore.getState === "function") {
-        return cachedReduxStore;
-      }
-      const rootEl = document.getElementById("root");
-      if (!rootEl) return null;
-      const rKey = Object.keys(rootEl).find(
-        (k) => k.startsWith("__reactContainer$") || k.startsWith("__reactFiber$")
-      );
-      if (!rKey) return null;
-      let rNode = rootEl[rKey];
-      while (rNode) {
-        if ((_a = rNode.memoizedProps) == null ? void 0 : _a.store) {
-          cachedReduxStore = rNode.memoizedProps.store;
-          return cachedReduxStore;
-        }
-        if ((_b = rNode.stateNode) == null ? void 0 : _b.store) {
-          cachedReduxStore = rNode.stateNode.store;
-          return cachedReduxStore;
-        }
-        rNode = rNode.child;
-      }
-      return null;
-    }
-    async function getActiveJobInstance(jobId) {
-      var _a, _b, _c;
-      const store = getReduxStore();
-      const storeJob = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.job) == null ? void 0 : _c.instance;
-      if (storeJob) {
-        return storeJob;
-      }
-      return null;
-    }
-    function getSceneLidarPoints() {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r;
-      try {
-        const store = getReduxStore();
-        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        const pScene = (_f = (_e = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views) == null ? void 0 : _e.perspective) == null ? void 0 : _f.scene;
-        if (!pScene) return null;
-        let found = null;
-        pScene.traverse((obj) => {
-          var _a2, _b2, _c2;
-          if ((obj.isPoints || obj.type === "Points") && ((_c2 = (_b2 = (_a2 = obj.geometry) == null ? void 0 : _a2.attributes) == null ? void 0 : _b2.position) == null ? void 0 : _c2.count) > 5e3) {
-            found = obj;
-          }
-        });
-        if (!found) return null;
-        const posAttr = (_h = (_g = found.geometry) == null ? void 0 : _g.attributes) == null ? void 0 : _h.position;
-        if (!posAttr || !posAttr.array) return null;
-        const count = posAttr.count;
-        const array = posAttr.array;
-        const intensityAttr = (_m = ((_j = (_i = found.geometry) == null ? void 0 : _i.attributes) == null ? void 0 : _j.intensity) || ((_l = (_k = found.geometry) == null ? void 0 : _k.attributes) == null ? void 0 : _l.intensities)) == null ? void 0 : _m.array;
-        const colorAttr = (_r = ((_o = (_n = found.geometry) == null ? void 0 : _n.attributes) == null ? void 0 : _o.color) || ((_q = (_p = found.geometry) == null ? void 0 : _p.attributes) == null ? void 0 : _q.colors)) == null ? void 0 : _r.array;
-        const getIntensityAt = (idx) => {
-          if (intensityAttr && idx < intensityAttr.length) {
-            const val = intensityAttr[idx];
-            return val <= 1 ? val * 255 : val;
-          }
-          if (colorAttr && idx * 3 + 2 < colorAttr.length) {
-            const r = colorAttr[idx * 3];
-            const g = colorAttr[idx * 3 + 1];
-            const b = colorAttr[idx * 3 + 2];
-            const l = 0.299 * r + 0.587 * g + 0.114 * b;
-            return r <= 1 && g <= 1 && b <= 1 ? l * 255 : l;
-          }
-          return 0;
-        };
-        return {
-          count,
-          array,
-          intensity: intensityAttr || null,
-          color: colorAttr || null,
-          getIntensityAt
-        };
-      } catch (e) {
-        console.warn("[CVAT 3D Suite] Không thể trích xuất LiDAR points:", e);
-        return null;
-      }
-    }
-    let currentPointColorMode = typeof localStorage !== "undefined" && localStorage.getItem("cvat_3d_point_color_mode") === "plain" ? "plain" : "intensity";
-    let currentColorizeBoxed = typeof localStorage !== "undefined" ? localStorage.getItem("cvat_3d_colorize_boxed") !== "false" : true;
-    let currentCanvasTheme = typeof localStorage !== "undefined" && localStorage.getItem("cvat_3d_canvas_theme") === "dark" ? "dark" : "light";
-    let currentOrthoPointSize = 3.5;
+  function applyPointCloudColorizationInMainWorld(options) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+    if (isColorizingRunning) return false;
     try {
-      const savedOrthoSize = localStorage.getItem("cvat_3d_ortho_point_size");
-      if (savedOrthoSize) {
-        const parsed = parseFloat(savedOrthoSize);
-        if (!isNaN(parsed) && parsed >= 1 && parsed <= 10) {
-          currentOrthoPointSize = parsed;
-        }
-      }
-    } catch (_) {
-    }
-    function applyOrthoPointSize(size) {
-      var _a, _b, _c;
-      currentOrthoPointSize = size;
-      try {
-        localStorage.setItem("cvat_3d_ortho_point_size", String(size));
-      } catch (_) {
-      }
-      try {
-        const store = getReduxStore();
-        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        if (canvas && typeof canvas.render === "function") {
-          canvas.render();
-        }
-      } catch (_) {
-      }
-    }
-    let isColorizingRunning = false;
-    let isCanvasInteracting = false;
-    let singleFrameColorizeTimer = null;
-    function applyCanvasThemeInMainWorld(theme) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i;
-      try {
-        if (theme) currentCanvasTheme = theme;
-        if (typeof localStorage !== "undefined") {
-          try {
-            localStorage.setItem("cvat_3d_canvas_theme", currentCanvasTheme);
-          } catch (_) {
+      if (options == null ? void 0 : options.mode) currentPointColorMode = options.mode;
+      if ((options == null ? void 0 : options.colorizeBoxed) !== void 0) currentColorizeBoxed = !!options.colorizeBoxed;
+      const store = getReduxStore();
+      const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+      if (!canvas) return false;
+      const ptsObjs = getAllScenePointsObjects();
+      if (ptsObjs.length === 0) return false;
+      const EDGE_SNAP_COLOR2 = { r: 0.98, g: 0.8, b: 0.08 };
+      const CUT_OUT_WARNING_COLOR2 = { r: 0.94, g: 0.27, b: 0.27 };
+      const fastBoxesMap = /* @__PURE__ */ new Map();
+      const activeClientId = ((_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.annotations) == null ? void 0 : _f.activatedStateClientID) ?? (isCanvasInteracting$1 ? (_g = canvas.view) == null ? void 0 : _g.activatedElementID : null);
+      if (currentColorizeBoxed) {
+        const states = ((_j = (_i = (_h = store == null ? void 0 : store.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.annotations) == null ? void 0 : _j.states) || [];
+        for (const s of states) {
+          if (s && Array.isArray(s.points) && s.points.length >= 9 && !s.outside) {
+            const pts = s.points;
+            const l = pts[6];
+            const w = pts[7];
+            const h2 = pts[8];
+            if (l <= 0 || w <= 0 || h2 <= 0) continue;
+            const clientId = Number(s.clientID ?? s.id);
+            const isActive = clientId === Number(activeClientId);
+            const trackId = s.parentID ?? s.trackID ?? clientId;
+            const c = getDistinctTrackColor(trackId, isActive);
+            const yaw = pts[5] || 0;
+            const rx = pts[3] || 0;
+            const ry = pts[4] || 0;
+            const hasPitchRoll = rx !== 0 || ry !== 0;
+            const cosP = hasPitchRoll ? Math.cos(-ry) : 1;
+            const sinP = hasPitchRoll ? Math.sin(-ry) : 0;
+            const cosR = hasPitchRoll ? Math.cos(-rx) : 1;
+            const sinR = hasPitchRoll ? Math.sin(-rx) : 0;
+            const halfL = l / 2;
+            const halfW = w / 2;
+            const halfH = h2 / 2;
+            const maxR = Math.sqrt(halfL * halfL + halfW * halfW + halfH * halfH);
+            const maxR2 = maxR * maxR;
+            fastBoxesMap.set(clientId, {
+              cx: pts[0],
+              cy: pts[1],
+              cz: pts[2],
+              rx,
+              ry,
+              rz: yaw,
+              cosY: Math.cos(-yaw),
+              sinY: Math.sin(-yaw),
+              cosP,
+              sinP,
+              cosR,
+              sinR,
+              hasPitchRoll,
+              halfL,
+              halfW,
+              halfH,
+              maxR,
+              maxR2,
+              minX: pts[0] - maxR,
+              maxX: pts[0] + maxR,
+              minY: pts[1] - maxR,
+              maxY: pts[1] + maxR,
+              minZ: pts[2] - maxR,
+              maxZ: pts[2] + maxR,
+              colorR: c.r,
+              colorG: c.g,
+              colorB: c.b,
+              isActive
+            });
           }
         }
-        const store = getReduxStore();
-        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        const isLight = currentCanvasTheme === "light";
-        const bgColor = isLight ? 16777215 : 0;
-        const bgCss = isLight ? "#ffffff" : "#000000";
-        if ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views) {
-          const views2 = canvas.view.views;
-          const winThree = window.THREE;
-          let ColorCtor = (winThree == null ? void 0 : winThree.Color) || ((_e = canvas == null ? void 0 : canvas.THREE) == null ? void 0 : _e.Color) || ((_g = (_f = canvas == null ? void 0 : canvas.view) == null ? void 0 : _f.THREE) == null ? void 0 : _g.Color);
-          const viewKeys = Object.keys(views2);
-          for (const key of viewKeys) {
-            const v = views2[key];
-            if (!v) continue;
-            if (v.scene) {
-              if (v.scene.background && typeof v.scene.background.setHex === "function") {
-                v.scene.background.setHex(bgColor);
+        const drawnObjects = ((_k = canvas.view) == null ? void 0 : _k.drawnObjects) || {};
+        for (const idStr of Object.keys(drawnObjects)) {
+          const drawnItem = drawnObjects[idStr];
+          const data = drawnItem == null ? void 0 : drawnItem.data;
+          if (data && Array.isArray(data.points) && data.points.length >= 9 && !data.outside) {
+            const pts = data.points;
+            let cx = pts[0];
+            let cy = pts[1];
+            let cz = pts[2];
+            let yaw = pts[5] || 0;
+            let l = pts[6];
+            let w = pts[7];
+            let h2 = pts[8];
+            if (drawnItem.cuboid) {
+              const basePos = { x: pts[0], y: pts[1], z: pts[2] };
+              const baseYaw = pts[5] || 0;
+              const baseScale = { l: pts[6], w: pts[7], h: pts[8] };
+              const c2 = drawnItem.cuboid;
+              let bestDeltaPos = 0;
+              let bestPos = null;
+              const candidateViews = [
+                { name: "top", obj: c2.top },
+                { name: "side", obj: c2.side },
+                { name: "front", obj: c2.front },
+                { name: "perspective", obj: c2.perspective },
+                { name: "root", obj: c2 }
+              ];
+              for (const cand of candidateViews) {
+                const p = (_l = cand.obj) == null ? void 0 : _l.position;
+                if (p && typeof p.x === "number" && typeof p.y === "number" && typeof p.z === "number") {
+                  let dx = p.x - basePos.x;
+                  let dy = p.y - basePos.y;
+                  let dz = p.z - basePos.z;
+                  if (cand.name === "top") dz = 0;
+                  if (cand.name === "side") dy = 0;
+                  if (cand.name === "front") dx = 0;
+                  const delta = dx * dx + dy * dy + dz * dz;
+                  if (delta > bestDeltaPos && delta > 1e-4) {
+                    bestDeltaPos = delta;
+                    bestPos = {
+                      x: cand.name === "front" ? basePos.x : p.x,
+                      y: cand.name === "side" ? basePos.y : p.y,
+                      z: cand.name === "top" ? basePos.z : p.z
+                    };
+                  }
+                }
+              }
+              if (bestPos) {
+                cx = bestPos.x;
+                cy = bestPos.y;
+                cz = bestPos.z;
               } else {
-                if (!ColorCtor) {
-                  if (((_h = v.scene.background) == null ? void 0 : _h.constructor) && typeof v.scene.background.constructor === "function") {
-                    ColorCtor = v.scene.background.constructor;
-                  } else {
-                    v.scene.traverse((obj) => {
-                      var _a2;
-                      if (!ColorCtor && ((_a2 = obj.material) == null ? void 0 : _a2.color) && typeof obj.material.color.setHex === "function") {
-                        ColorCtor = obj.material.color.constructor;
-                      }
-                    });
-                  }
-                }
-                if (ColorCtor && typeof ColorCtor === "function") {
-                  v.scene.background = new ColorCtor(bgColor);
-                } else {
-                  v.scene.background = null;
+                const fallbackPos = c2.position || ((_m = c2.perspective) == null ? void 0 : _m.position) || ((_n = c2.top) == null ? void 0 : _n.position);
+                if (fallbackPos && typeof fallbackPos.x === "number") {
+                  cx = fallbackPos.x;
+                  cy = fallbackPos.y;
+                  cz = fallbackPos.z;
                 }
               }
-            }
-            if (v.renderer && typeof v.renderer.setClearColor === "function") {
-              v.renderer.setClearColor(bgColor, 1);
-            }
-          }
-        }
-        let styleEl = document.getElementById("cvat-3d-suite-canvas-theme-style");
-        if (!styleEl) {
-          styleEl = document.createElement("style");
-          styleEl.id = "cvat-3d-suite-canvas-theme-style";
-          document.head.appendChild(styleEl);
-        }
-        styleEl.textContent = `
-        .cvat-canvas-container,
-        .cvat-canvas3d-perspective,
-        .cvat-canvas3d-topview,
-        .cvat-canvas3d-sideview,
-        .cvat-canvas3d-frontview,
-        .cvat-canvas3d-orthographic-view {
-          background-color: ${bgCss} !important;
-          isolation: isolate !important;
-        }
-        .cvat-canvas3d-orthographic-view canvas,
-        .cvat-canvas-container canvas {
-          background-color: ${bgCss} !important;
-        }
-        .cvat-canvas3d-orthographic-view-header,
-        .cvat-canvas3d-perspective-header {
-          color: ${isLight ? "#1e293b" : "#f8fafc"} !important;
-        }
-
-        /* Tối ưu hóa sâu CSS Virtualization cho Sidebar CVAT: Ngắt render 85% thẻ ngoài màn hình */
-        .cvat-objects-sidebar-states-list > div,
-        .cvat-objects-sidebar-state-item {
-          content-visibility: auto !important;
-          contain-intrinsic-size: 0 46px !important;
-        }
-
-        /* Triệt tiêu độ trễ hoạt họa thừa trên Sidebar để phản hồi click tức thì 0ms */
-        .cvat-objects-sidebar-state-item,
-        .cvat-objects-sidebar-state-item * {
-          transition: none !important;
-        }
-      `;
-        if (canvas && typeof canvas.render === "function") {
-          canvas.render();
-        }
-        const views = (_i = canvas == null ? void 0 : canvas.view) == null ? void 0 : _i.views;
-        if (views) {
-          for (const key of ["perspective", "top", "side", "front"]) {
-            const v = views[key];
-            if (v && typeof v.render === "function") {
-              try {
-                v.render();
-              } catch (_) {
-              }
-            }
-          }
-        }
-      } catch (err) {
-        console.warn("[CVAT 3D Suite] Lỗi applyCanvasThemeInMainWorld:", err);
-      }
-    }
-    function getAllScenePointsObjects() {
-      var _a, _b, _c, _d;
-      try {
-        const store = getReduxStore();
-        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        if (!canvas || !canvas.view) return [];
-        const pointsObjects = [];
-        const scenes = [];
-        const views = canvas.view.views;
-        if (views) {
-          const viewKeys = ["perspective", "top", "side", "front"];
-          for (const key of viewKeys) {
-            const s = (_d = views[key]) == null ? void 0 : _d.scene;
-            if (s && !scenes.includes(s)) scenes.push(s);
-          }
-        }
-        if (canvas.view.scene && !scenes.includes(canvas.view.scene)) {
-          scenes.push(canvas.view.scene);
-        }
-        if (canvas.scene && !scenes.includes(canvas.scene)) {
-          scenes.push(canvas.scene);
-        }
-        for (const scene of scenes) {
-          if (!scene) continue;
-          hookSceneForPointsGuard(scene);
-          if (typeof scene.traverse !== "function") continue;
-          scene.traverse((obj) => {
-            var _a2, _b2, _c2;
-            if ((obj.isPoints || obj.type === "Points") && ((_c2 = (_b2 = (_a2 = obj.geometry) == null ? void 0 : _a2.attributes) == null ? void 0 : _b2.position) == null ? void 0 : _c2.count) >= 10 && !pointsObjects.includes(obj)) {
-              guardPointsInstance(obj);
-              installGlobalThreeRaycastGuard(obj);
-              if (!obj.__cvat_ortho_size_hooked__) {
-                obj.__cvat_ortho_size_hooked__ = true;
-                const originalOnBeforeRender = obj.onBeforeRender;
-                obj.onBeforeRender = function(renderer, scene2, camera, geometry, material, group) {
-                  if (typeof originalOnBeforeRender === "function") {
-                    try {
-                      originalOnBeforeRender.call(this, renderer, scene2, camera, geometry, material, group);
-                    } catch (_) {
-                    }
-                  }
-                  const isOrtho = camera && (camera.isOrthographicCamera || camera.type === "OrthographicCamera");
-                  const mats = Array.isArray(this.material) ? this.material : this.material ? [this.material] : [];
-                  for (const m of mats) {
-                    if (!m) continue;
-                    if (m.__cvat_native_point_size__ === void 0) {
-                      m.__cvat_native_point_size__ = typeof m.size === "number" ? m.size : 1;
-                    }
-                    if (isOrtho) {
-                      if (m.size !== currentOrthoPointSize) {
-                        m.size = currentOrthoPointSize;
-                      }
-                    } else {
-                      if (typeof m.size === "number" && m.size !== currentOrthoPointSize && m.size !== m.__cvat_native_point_size__) {
-                        m.__cvat_native_point_size__ = m.size;
-                      }
-                      const nativeSize = m.__cvat_native_point_size__;
-                      if (m.size !== nativeSize) {
-                        m.size = nativeSize;
-                      }
-                    }
-                  }
-                };
-              }
-              pointsObjects.push(obj);
-            }
-          });
-        }
-        return pointsObjects;
-      } catch (e) {
-        return [];
-      }
-    }
-    const DISTINCT_TRACK_PALETTE2 = [
-      { r: 0, g: 0.95, b: 1 },
-      // 0: Cyan Neon (#00f2fe)
-      { r: 0.96, g: 0.62, b: 0.04 },
-      // 1: Vàng Cam Amber (#f59e0b)
-      { r: 0.66, g: 0.33, b: 0.97 },
-      // 2: Tím Violet (#a855f7)
-      { r: 0.06, g: 0.73, b: 0.51 },
-      // 3: Xanh Lục Emerald (#10b981)
-      { r: 0.93, g: 0.28, b: 0.6 },
-      // 4: Hồng Sen Neon (#ec4899)
-      { r: 0.23, g: 0.51, b: 0.96 },
-      // 5: Xanh Biển Electric Blue (#3b82f6)
-      { r: 0.52, g: 0.8, b: 0.09 },
-      // 6: Xanh Chuối Chartreuse (#84cc16)
-      { r: 0.98, g: 0.57, b: 0.24 },
-      // 7: Cam San Hô Coral (#fb923c)
-      { r: 0.08, g: 0.72, b: 0.65 },
-      // 8: Xanh Ngọc Lục Bảo Teal (#14b8a6)
-      { r: 0.92, g: 0.7, b: 0.03 },
-      // 9: Vàng Gold (#eab308)
-      { r: 0.39, g: 0.4, b: 0.95 },
-      // 10: Tím Indigo (#6366f1)
-      { r: 0.2, g: 0.83, b: 0.6 },
-      // 11: Xanh Lục Mint (#34d399)
-      { r: 0.85, g: 0.27, b: 0.94 },
-      // 12: Hồng Tím Fuchsia (#d946ef)
-      { r: 0.22, g: 0.74, b: 0.97 },
-      // 13: Xanh Trời Sky (#38bdf8)
-      { r: 0.98, g: 0.45, b: 0.09 },
-      // 14: Cam Đỏ Nhẹ Warm Orange (#f97316)
-      { r: 0.13, g: 0.77, b: 0.37 },
-      // 15: Xanh Lá Spring Green (#22c55e)
-      { r: 0.75, g: 0.52, b: 0.99 },
-      // 16: Tím Lavender (#c084fc)
-      { r: 0.02, g: 0.71, b: 0.83 },
-      // 17: Xanh Biển Aqua (#06b6d4)
-      { r: 0.98, g: 0.44, b: 0.52 },
-      // 18: Hồng Phấn Rose (#fb7185)
-      { r: 0.64, g: 0.9, b: 0.21 },
-      // 19: Vàng Chanh Lemon Lime (#a3e635)
-      { r: 0.4, g: 0.91, b: 0.98 },
-      // 20: Xanh Băng Glacier (#67e8f9)
-      { r: 0.99, g: 0.73, b: 0.45 },
-      // 21: Cam Nắng Peach (#fdba74)
-      { r: 0.58, g: 0.2, b: 0.92 },
-      // 22: Tím Orchid (#9333ea)
-      { r: 0.09, g: 0.64, b: 0.29 },
-      // 23: Xanh Clover (#16a34a)
-      { r: 0.96, g: 0.25, b: 0.37 },
-      // 24: Hồng Magenta (#f43f5e)
-      { r: 0.15, g: 0.39, b: 0.92 },
-      // 25: Xanh Sapphire (#2563eb)
-      { r: 0.05, g: 0.58, b: 0.53 },
-      // 26: Xanh Ngọc Jade (#0d9488)
-      { r: 0.85, g: 0.47, b: 0.02 },
-      // 27: Vàng Hổ Phách Đậm (#d97706)
-      { r: 0.31, g: 0.27, b: 0.9 },
-      // 28: Xanh Cobalt (#4f46e5)
-      { r: 0.13, g: 0.83, b: 0.93 },
-      // 29: Xanh Cyan Sáng (#22d3ee)
-      { r: 0.96, g: 0.45, b: 0.71 },
-      // 30: Hồng Pink Light (#f472b6)
-      { r: 0.29, g: 0.87, b: 0.5 }
-      // 31: Xanh Táo Apple Green (#4ade80)
-    ];
-    const DEEP_VIVID_TRACK_PALETTE2 = [
-      { r: 0.02, g: 0.38, b: 0.68 },
-      // 0: Xanh Ocean Đậm Sâu (#0369a1)
-      { r: 0.7, g: 0.32, b: 0.02 },
-      // 1: Vàng Hổ Phách Nâu Đậm (#b45309)
-      { r: 0.4, g: 0.08, b: 0.68 },
-      // 2: Tím Hoàng Gia Đậm (#6b21a8)
-      { r: 0.01, g: 0.45, b: 0.28 },
-      // 3: Xanh Lục Bảo Đậm Sâu (#047857)
-      { r: 0.65, g: 0.05, b: 0.15 },
-      // 4: Đỏ Ruby / Đỏ Mận Đậm (#991b1b)
-      { r: 0.08, g: 0.22, b: 0.72 },
-      // 5: Xanh Cobalt Đậm (#1e40af)
-      { r: 0.22, g: 0.38, b: 0.04 },
-      // 6: Xanh Rêu Đậm Sâu (#3f6212)
-      { r: 0.65, g: 0.18, b: 0.04 },
-      // 7: Cam Cháy Đậm (#9a3412)
-      { r: 0.04, g: 0.36, b: 0.34 },
-      // 8: Xanh Teal Đậm Sâu (#115e59)
-      { r: 0.58, g: 0.25, b: 0.02 },
-      // 9: Nâu Đồng Đậm (#78350f)
-      { r: 0.2, g: 0.16, b: 0.65 },
-      // 10: Tím Indigo Đậm Sâu (#3730a3)
-      { r: 0.01, g: 0.38, b: 0.24 },
-      // 11: Xanh Thông Đậm (#064e3b)
-      { r: 0.52, g: 0.08, b: 0.58 },
-      // 12: Hồng Tím Fuchsia Đậm (#86198f)
-      { r: 0.01, g: 0.32, b: 0.58 },
-      // 13: Xanh Biển Đậm (#075985)
-      { r: 0.68, g: 0.1, b: 0.02 },
-      // 14: Đỏ Cam Đậm (#991b1b)
-      { r: 0.06, g: 0.42, b: 0.18 },
-      // 15: Xanh Lá Đậm Sâu (#166534)
-      { r: 0.35, g: 0.1, b: 0.62 },
-      // 16: Tím Mận Đậm (#581c87)
-      { r: 0.03, g: 0.35, b: 0.45 },
-      // 17: Xanh Petrol Đậm (#155e75)
-      { r: 0.62, g: 0.04, b: 0.12 },
-      // 18: Đỏ Rượu Vang Đậm (#881337)
-      { r: 0.3, g: 0.44, b: 0.05 },
-      // 19: Vàng Chanh Rêu Đậm (#4d7c0f)
-      { r: 0.02, g: 0.36, b: 0.5 },
-      // 20: Xanh Băng Đậm Sâu (#0e7490)
-      { r: 0.65, g: 0.28, b: 0.05 },
-      // 21: Cam Đất Đậm (#9a3412)
-      { r: 0.38, g: 0.06, b: 0.62 },
-      // 22: Tím Đậm Sâu (#581c87)
-      { r: 0.04, g: 0.32, b: 0.14 },
-      // 23: Xanh Rừng Đậm (#14532d)
-      { r: 0.6, g: 0.06, b: 0.22 },
-      // 24: Hồng Đậm Sâu (#881337)
-      { r: 0.08, g: 0.2, b: 0.58 },
-      // 25: Xanh Navy Đậm (#172554)
-      { r: 0.02, g: 0.3, b: 0.28 },
-      // 26: Xanh Rêu Đen (#042f2e)
-      { r: 0.58, g: 0.26, b: 0.02 },
-      // 27: Vàng Đất Nung Đậm (#78350f)
-      { r: 0.16, g: 0.12, b: 0.55 },
-      // 28: Tím Đêm Đậm (#312e81)
-      { r: 0.02, g: 0.38, b: 0.48 },
-      // 29: Xanh Lam Đậm Sâu (#155e75)
-      { r: 0.55, g: 0.08, b: 0.35 },
-      // 30: Hồng Sen Đậm Sâu (#701a75)
-      { r: 0.08, g: 0.4, b: 0.2 }
-      // 31: Xanh Táo Đậm Sâu (#166534)
-    ];
-    const OVERLAP_WARNING_COLOR2 = { r: 1, g: 0, b: 0.2 };
-    function getDistinctTrackColor2(trackId, isActive) {
-      let numId = 0;
-      if (typeof trackId === "number") {
-        numId = Math.abs(trackId);
-      } else if (typeof trackId === "string") {
-        const parsed = parseInt(trackId, 10);
-        if (!isNaN(parsed)) {
-          numId = Math.abs(parsed);
-        } else {
-          for (let i = 0; i < trackId.length; i++) {
-            numId = numId * 31 + trackId.charCodeAt(i) & 2147483647;
-          }
-        }
-      }
-      const palette = currentCanvasTheme === "light" ? DEEP_VIVID_TRACK_PALETTE2 : DISTINCT_TRACK_PALETTE2;
-      const colorIndex = (numId * 13 + 7) % palette.length;
-      const baseColor = palette[colorIndex];
-      if (isActive) {
-        if (currentCanvasTheme === "light") {
-          return {
-            r: Math.min(1, baseColor.r * 0.75 + 0.98 * 0.25),
-            g: Math.min(1, baseColor.g * 0.75 + 0.7 * 0.25),
-            b: Math.min(1, baseColor.b * 0.75 + 0.05 * 0.25)
-          };
-        }
-        return {
-          r: Math.min(1, baseColor.r * 0.8 + 0.98 * 0.2),
-          g: Math.min(1, baseColor.g * 0.8 + 0.8 * 0.2),
-          b: Math.min(1, baseColor.b * 0.8 + 0.08 * 0.2)
-        };
-      }
-      return baseColor;
-    }
-    function applyPointCloudColorizationInMainWorld(options) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _A, _B, _C, _D, _E;
-      if (isColorizingRunning) return false;
-      try {
-        if (options == null ? void 0 : options.mode) currentPointColorMode = options.mode;
-        if ((options == null ? void 0 : options.colorizeBoxed) !== void 0) currentColorizeBoxed = !!options.colorizeBoxed;
-        const store = getReduxStore();
-        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        if (!canvas) return false;
-        const ptsObjs = getAllScenePointsObjects();
-        if (ptsObjs.length === 0) return false;
-        const curFrame = ((_g = (_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.player) == null ? void 0 : _f.frame) == null ? void 0 : _g.number) ?? ((_k = (_j = (_i = (_h = store == null ? void 0 : store.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.job) == null ? void 0 : _j.instance) == null ? void 0 : _k.frame) ?? 0;
-        const defaultColors = {
-          car: { r: 0.96, g: 0.62, b: 0.04 },
-          // Cam hổ phách (#f59e0b)
-          pedestrian: { r: 0.51, g: 0.55, b: 0.97 },
-          // Xanh tím Indigo (#818cf8)
-          cyclist: { r: 0.06, g: 0.73, b: 0.51 },
-          // Xanh lục Emerald (#10b981)
-          truck: { r: 0.94, g: 0.38, b: 0.57 },
-          // Hồng Ruby (#f43f5e)
-          bus: { r: 0.65, g: 0.43, b: 0.95 },
-          // Tím tím Purple (#a855f7)
-          active: { r: 0.98, g: 0.8, b: 0.08 }
-          // Vàng chanh Neon (#facc15)
-        };
-        const EDGE_SNAP_COLOR2 = { r: 0.98, g: 0.8, b: 0.08 };
-        const CUT_OUT_WARNING_COLOR2 = { r: 0.94, g: 0.27, b: 0.27 };
-        const fastBoxesMap = /* @__PURE__ */ new Map();
-        const activeClientId = ((_n = (_m = (_l = store == null ? void 0 : store.getState()) == null ? void 0 : _l.annotation) == null ? void 0 : _m.annotations) == null ? void 0 : _n.activatedStateClientID) ?? (isCanvasInteracting ? (_o = canvas.view) == null ? void 0 : _o.activatedElementID : null);
-        if (currentColorizeBoxed) {
-          const states = ((_r = (_q = (_p = store == null ? void 0 : store.getState()) == null ? void 0 : _p.annotation) == null ? void 0 : _q.annotations) == null ? void 0 : _r.states) || [];
-          for (const s of states) {
-            if (s && Array.isArray(s.points) && s.points.length >= 9 && !s.outside) {
-              const pts = s.points;
-              const l = pts[6];
-              const w = pts[7];
-              const h2 = pts[8];
-              if (l <= 0 || w <= 0 || h2 <= 0) continue;
-              const clientId = Number(s.clientID ?? s.id);
-              const isActive = clientId === Number(activeClientId);
-              const trackId = s.parentID ?? s.trackID ?? clientId;
-              const c = getDistinctTrackColor2(trackId, isActive);
-              const yaw = pts[5] || 0;
-              const rx = pts[3] || 0;
-              const ry = pts[4] || 0;
-              const hasPitchRoll = rx !== 0 || ry !== 0;
-              const cosP = hasPitchRoll ? Math.cos(-ry) : 1;
-              const sinP = hasPitchRoll ? Math.sin(-ry) : 0;
-              const cosR = hasPitchRoll ? Math.cos(-rx) : 1;
-              const sinR = hasPitchRoll ? Math.sin(-rx) : 0;
-              const halfL = l / 2;
-              const halfW = w / 2;
-              const halfH = h2 / 2;
-              const maxR = Math.sqrt(halfL * halfL + halfW * halfW + halfH * halfH);
-              const maxR2 = maxR * maxR;
-              fastBoxesMap.set(clientId, {
-                cx: pts[0],
-                cy: pts[1],
-                cz: pts[2],
-                rx,
-                ry,
-                rz: yaw,
-                cosY: Math.cos(-yaw),
-                sinY: Math.sin(-yaw),
-                cosP,
-                sinP,
-                cosR,
-                sinR,
-                hasPitchRoll,
-                halfL,
-                halfW,
-                halfH,
-                maxR,
-                maxR2,
-                minX: pts[0] - maxR,
-                maxX: pts[0] + maxR,
-                minY: pts[1] - maxR,
-                maxY: pts[1] + maxR,
-                minZ: pts[2] - maxR,
-                maxZ: pts[2] + maxR,
-                colorR: c.r,
-                colorG: c.g,
-                colorB: c.b,
-                isActive
-              });
-            }
-          }
-          const drawnObjects = ((_s = canvas.view) == null ? void 0 : _s.drawnObjects) || {};
-          for (const idStr of Object.keys(drawnObjects)) {
-            const drawnItem = drawnObjects[idStr];
-            const data = drawnItem == null ? void 0 : drawnItem.data;
-            if (data && Array.isArray(data.points) && data.points.length >= 9 && !data.outside) {
-              const pts = data.points;
-              let cx = pts[0];
-              let cy = pts[1];
-              let cz = pts[2];
-              let yaw = pts[5] || 0;
-              let l = pts[6];
-              let w = pts[7];
-              let h2 = pts[8];
-              if (drawnItem.cuboid) {
-                const basePos = { x: pts[0], y: pts[1], z: pts[2] };
-                const baseYaw = pts[5] || 0;
-                const baseScale = { l: pts[6], w: pts[7], h: pts[8] };
-                const c2 = drawnItem.cuboid;
-                let bestDeltaPos = 0;
-                let bestPos = null;
-                const candidateViews = [
-                  { name: "top", obj: c2.top },
-                  { name: "side", obj: c2.side },
-                  { name: "front", obj: c2.front },
-                  { name: "perspective", obj: c2.perspective },
-                  { name: "root", obj: c2 }
-                ];
-                for (const cand of candidateViews) {
-                  const p = (_t = cand.obj) == null ? void 0 : _t.position;
-                  if (p && typeof p.x === "number" && typeof p.y === "number" && typeof p.z === "number") {
-                    let dx = p.x - basePos.x;
-                    let dy = p.y - basePos.y;
-                    let dz = p.z - basePos.z;
-                    if (cand.name === "top") dz = 0;
-                    if (cand.name === "side") dy = 0;
-                    if (cand.name === "front") dx = 0;
-                    const delta = dx * dx + dy * dy + dz * dz;
-                    if (delta > bestDeltaPos && delta > 1e-4) {
-                      bestDeltaPos = delta;
-                      bestPos = {
-                        x: cand.name === "front" ? basePos.x : p.x,
-                        y: cand.name === "side" ? basePos.y : p.y,
-                        z: cand.name === "top" ? basePos.z : p.z
-                      };
-                    }
-                  }
-                }
-                if (bestPos) {
-                  cx = bestPos.x;
-                  cy = bestPos.y;
-                  cz = bestPos.z;
-                } else {
-                  const fallbackPos = c2.position || ((_u = c2.perspective) == null ? void 0 : _u.position) || ((_v = c2.top) == null ? void 0 : _v.position);
-                  if (fallbackPos && typeof fallbackPos.x === "number") {
-                    cx = fallbackPos.x;
-                    cy = fallbackPos.y;
-                    cz = fallbackPos.z;
-                  }
-                }
-                let bestDeltaYaw = 0;
-                let bestYaw = null;
-                for (const cand of candidateViews) {
-                  const r = (_w = cand.obj) == null ? void 0 : _w.rotation;
-                  if (r && typeof r.z === "number") {
-                    const dYaw = Math.abs(r.z - baseYaw);
-                    if (dYaw > bestDeltaYaw && dYaw > 1e-4) {
-                      bestDeltaYaw = dYaw;
-                      bestYaw = r.z;
-                    }
-                  }
-                }
-                if (bestYaw !== null) {
-                  yaw = bestYaw;
-                } else {
-                  const fallbackRot = c2.rotation || ((_x = c2.perspective) == null ? void 0 : _x.rotation) || ((_y = c2.top) == null ? void 0 : _y.rotation);
-                  if (fallbackRot && typeof fallbackRot.z === "number") {
-                    yaw = fallbackRot.z;
-                  }
-                }
-                let bestDeltaScale = 0;
-                let bestScale = null;
-                for (const cand of candidateViews) {
-                  const s = (_z = cand.obj) == null ? void 0 : _z.scale;
-                  if (s && typeof s.x === "number" && s.x > 0) {
-                    let dl = Math.abs(s.x - baseScale.l);
-                    let dw = Math.abs(s.y - baseScale.w);
-                    let dh = Math.abs(s.z - baseScale.h);
-                    if (cand.name === "top") dh = 0;
-                    if (cand.name === "side") dw = 0;
-                    if (cand.name === "front") dl = 0;
-                    const delta = dl + dw + dh;
-                    if (delta > bestDeltaScale && delta > 1e-4) {
-                      bestDeltaScale = delta;
-                      bestScale = {
-                        x: cand.name === "front" ? baseScale.l : s.x,
-                        y: cand.name === "side" ? baseScale.w : s.y,
-                        z: cand.name === "top" ? baseScale.h : s.z
-                      };
-                    }
-                  }
-                }
-                if (bestScale) {
-                  l = bestScale.x;
-                  w = bestScale.y;
-                  h2 = bestScale.z;
-                } else {
-                  const fallbackScale = c2.scale || ((_A = c2.perspective) == null ? void 0 : _A.scale) || ((_B = c2.top) == null ? void 0 : _B.scale);
-                  if (fallbackScale && typeof fallbackScale.x === "number" && fallbackScale.x > 0) {
-                    l = fallbackScale.x;
-                    w = fallbackScale.y;
-                    h2 = fallbackScale.z;
+              let bestDeltaYaw = 0;
+              let bestYaw = null;
+              for (const cand of candidateViews) {
+                const r = (_o = cand.obj) == null ? void 0 : _o.rotation;
+                if (r && typeof r.z === "number") {
+                  const dYaw = Math.abs(r.z - baseYaw);
+                  if (dYaw > bestDeltaYaw && dYaw > 1e-4) {
+                    bestDeltaYaw = dYaw;
+                    bestYaw = r.z;
                   }
                 }
               }
-              if (l <= 0 || w <= 0 || h2 <= 0) continue;
-              const clientId = Number(idStr);
-              const isActive = clientId === Number(activeClientId);
-              const trackId = data.parentID ?? data.trackID ?? clientId;
-              const c = getDistinctTrackColor2(trackId, isActive);
-              const rx = pts[3] || 0;
-              const ry = pts[4] || 0;
-              const hasPitchRoll = rx !== 0 || ry !== 0;
-              const cosP = hasPitchRoll ? Math.cos(-ry) : 1;
-              const sinP = hasPitchRoll ? Math.sin(-ry) : 0;
-              const cosR = hasPitchRoll ? Math.cos(-rx) : 1;
-              const sinR = hasPitchRoll ? Math.sin(-rx) : 0;
-              const halfL = l / 2;
-              const halfW = w / 2;
-              const halfH = h2 / 2;
-              const maxR = Math.sqrt(halfL * halfL + halfW * halfW + halfH * halfH);
-              const maxR2 = maxR * maxR;
-              fastBoxesMap.set(clientId, {
-                cx,
-                cy,
-                cz,
-                rx,
-                ry,
-                rz: yaw,
-                cosY: Math.cos(-yaw),
-                sinY: Math.sin(-yaw),
-                cosP,
-                sinP,
-                cosR,
-                sinR,
-                hasPitchRoll,
-                halfL,
-                halfW,
-                halfH,
-                maxR,
-                maxR2,
-                minX: cx - maxR,
-                maxX: cx + maxR,
-                minY: cy - maxR,
-                maxY: cy + maxR,
-                minZ: cz - maxR,
-                maxZ: cz + maxR,
-                colorR: c.r,
-                colorG: c.g,
-                colorB: c.b,
-                isActive
-              });
+              if (bestYaw !== null) {
+                yaw = bestYaw;
+              } else {
+                const fallbackRot = c2.rotation || ((_p = c2.perspective) == null ? void 0 : _p.rotation) || ((_q = c2.top) == null ? void 0 : _q.rotation);
+                if (fallbackRot && typeof fallbackRot.z === "number") {
+                  yaw = fallbackRot.z;
+                }
+              }
+              let bestDeltaScale = 0;
+              let bestScale = null;
+              for (const cand of candidateViews) {
+                const s = (_r = cand.obj) == null ? void 0 : _r.scale;
+                if (s && typeof s.x === "number" && s.x > 0) {
+                  let dl = Math.abs(s.x - baseScale.l);
+                  let dw = Math.abs(s.y - baseScale.w);
+                  let dh = Math.abs(s.z - baseScale.h);
+                  if (cand.name === "top") dh = 0;
+                  if (cand.name === "side") dw = 0;
+                  if (cand.name === "front") dl = 0;
+                  const delta = dl + dw + dh;
+                  if (delta > bestDeltaScale && delta > 1e-4) {
+                    bestDeltaScale = delta;
+                    bestScale = {
+                      x: cand.name === "front" ? baseScale.l : s.x,
+                      y: cand.name === "side" ? baseScale.w : s.y,
+                      z: cand.name === "top" ? baseScale.h : s.z
+                    };
+                  }
+                }
+              }
+              if (bestScale) {
+                l = bestScale.x;
+                w = bestScale.y;
+                h2 = bestScale.z;
+              } else {
+                const fallbackScale = c2.scale || ((_s = c2.perspective) == null ? void 0 : _s.scale) || ((_t = c2.top) == null ? void 0 : _t.scale);
+                if (fallbackScale && typeof fallbackScale.x === "number" && fallbackScale.x > 0) {
+                  l = fallbackScale.x;
+                  w = fallbackScale.y;
+                  h2 = fallbackScale.z;
+                }
+              }
             }
+            if (l <= 0 || w <= 0 || h2 <= 0) continue;
+            const clientId = Number(idStr);
+            const isActive = clientId === Number(activeClientId);
+            const trackId = data.parentID ?? data.trackID ?? clientId;
+            const c = getDistinctTrackColor(trackId, isActive);
+            const rx = pts[3] || 0;
+            const ry = pts[4] || 0;
+            const hasPitchRoll = rx !== 0 || ry !== 0;
+            const cosP = hasPitchRoll ? Math.cos(-ry) : 1;
+            const sinP = hasPitchRoll ? Math.sin(-ry) : 0;
+            const cosR = hasPitchRoll ? Math.cos(-rx) : 1;
+            const sinR = hasPitchRoll ? Math.sin(-rx) : 0;
+            const halfL = l / 2;
+            const halfW = w / 2;
+            const halfH = h2 / 2;
+            const maxR = Math.sqrt(halfL * halfL + halfW * halfW + halfH * halfH);
+            const maxR2 = maxR * maxR;
+            fastBoxesMap.set(clientId, {
+              cx,
+              cy,
+              cz,
+              rx,
+              ry,
+              rz: yaw,
+              cosY: Math.cos(-yaw),
+              sinY: Math.sin(-yaw),
+              cosP,
+              sinP,
+              cosR,
+              sinR,
+              hasPitchRoll,
+              halfL,
+              halfW,
+              halfH,
+              maxR,
+              maxR2,
+              minX: cx - maxR,
+              maxX: cx + maxR,
+              minY: cy - maxR,
+              maxY: cy + maxR,
+              minZ: cz - maxR,
+              maxZ: cz + maxR,
+              colorR: c.r,
+              colorG: c.g,
+              colorB: c.b,
+              isActive
+            });
           }
         }
-        const fastBoxes = Array.from(fastBoxesMap.values());
-        const activeBox = fastBoxes.find((b) => b.isActive) || (activeClientId ? fastBoxesMap.get(Number(activeClientId)) : null);
-        const numBoxes = fastBoxes.length;
-        const isPlain = currentPointColorMode === "plain";
-        const isLight = currentCanvasTheme === "light";
-        const plainR = isLight ? 0 : 1;
-        const plainG = isLight ? 0 : 1;
-        const plainB = isLight ? 0 : 1;
-        let globalMinX = Infinity;
-        let globalMaxX = -Infinity;
-        let globalMinY = Infinity;
-        let globalMaxY = -Infinity;
-        let globalMinZ = Infinity;
-        let globalMaxZ = -Infinity;
+      }
+      const fastBoxes = Array.from(fastBoxesMap.values());
+      const activeBox = fastBoxes.find((b) => b.isActive) || (activeClientId ? fastBoxesMap.get(Number(activeClientId)) : null);
+      const numBoxes = fastBoxes.length;
+      const isLight = currentCanvasTheme === "light";
+      const plainR = isLight ? 0 : 1;
+      const plainG = isLight ? 0 : 1;
+      const plainB = isLight ? 0 : 1;
+      let globalMinX = Infinity;
+      let globalMaxX = -Infinity;
+      let globalMinY = Infinity;
+      let globalMaxY = -Infinity;
+      let globalMinZ = Infinity;
+      let globalMaxZ = -Infinity;
+      for (let k = 0; k < numBoxes; k++) {
+        const b = fastBoxes[k];
+        if (b.minX < globalMinX) globalMinX = b.minX;
+        if (b.maxX > globalMaxX) globalMaxX = b.maxX;
+        if (b.minY < globalMinY) globalMinY = b.minY;
+        if (b.maxY > globalMaxY) globalMaxY = b.maxY;
+        if (b.minZ < globalMinZ) globalMinZ = b.minZ;
+        if (b.maxZ > globalMaxZ) globalMaxZ = b.maxZ;
+      }
+      let activeMaxR15 = 0;
+      let activeMaxR15_2 = 0;
+      if (activeBox) {
+        activeMaxR15 = activeBox.maxR + 0.15;
+        activeMaxR15_2 = activeMaxR15 * activeMaxR15;
+        const aMinX = activeBox.minX - 0.15;
+        const aMaxX = activeBox.maxX + 0.15;
+        const aMinY = activeBox.minY - 0.15;
+        const aMaxY = activeBox.maxY + 0.15;
+        const aMinZ = activeBox.minZ - 0.15;
+        const aMaxZ = activeBox.maxZ + 0.15;
+        if (aMinX < globalMinX) globalMinX = aMinX;
+        if (aMaxX > globalMaxX) globalMaxX = aMaxX;
+        if (aMinY < globalMinY) globalMinY = aMinY;
+        if (aMaxY > globalMaxY) globalMaxY = aMaxY;
+        if (aMinZ < globalMinZ) globalMinZ = aMinZ;
+        if (aMaxZ > globalMaxZ) globalMaxZ = aMaxZ;
+      }
+      const SPATIAL_GRID_CELL = 8;
+      const spatialBoxGrid = /* @__PURE__ */ new Map();
+      if (numBoxes >= 4) {
         for (let k = 0; k < numBoxes; k++) {
           const b = fastBoxes[k];
-          if (b.minX < globalMinX) globalMinX = b.minX;
-          if (b.maxX > globalMaxX) globalMaxX = b.maxX;
-          if (b.minY < globalMinY) globalMinY = b.minY;
-          if (b.maxY > globalMaxY) globalMaxY = b.maxY;
-          if (b.minZ < globalMinZ) globalMinZ = b.minZ;
-          if (b.maxZ > globalMaxZ) globalMaxZ = b.maxZ;
-        }
-        let activeMaxR15 = 0;
-        let activeMaxR15_2 = 0;
-        if (activeBox) {
-          activeMaxR15 = activeBox.maxR + 0.15;
-          activeMaxR15_2 = activeMaxR15 * activeMaxR15;
-          const aMinX = activeBox.minX - 0.15;
-          const aMaxX = activeBox.maxX + 0.15;
-          const aMinY = activeBox.minY - 0.15;
-          const aMaxY = activeBox.maxY + 0.15;
-          const aMinZ = activeBox.minZ - 0.15;
-          const aMaxZ = activeBox.maxZ + 0.15;
-          if (aMinX < globalMinX) globalMinX = aMinX;
-          if (aMaxX > globalMaxX) globalMaxX = aMaxX;
-          if (aMinY < globalMinY) globalMinY = aMinY;
-          if (aMaxY > globalMaxY) globalMaxY = aMaxY;
-          if (aMinZ < globalMinZ) globalMinZ = aMinZ;
-          if (aMaxZ > globalMaxZ) globalMaxZ = aMaxZ;
-        }
-        const SPATIAL_GRID_CELL = 8;
-        const spatialBoxGrid = /* @__PURE__ */ new Map();
-        if (numBoxes >= 4) {
-          for (let k = 0; k < numBoxes; k++) {
-            const b = fastBoxes[k];
-            const minGx = Math.floor(b.minX / SPATIAL_GRID_CELL);
-            const maxGx = Math.floor(b.maxX / SPATIAL_GRID_CELL);
-            const minGy = Math.floor(b.minY / SPATIAL_GRID_CELL);
-            const maxGy = Math.floor(b.maxY / SPATIAL_GRID_CELL);
-            for (let gx = minGx; gx <= maxGx; gx++) {
-              for (let gy = minGy; gy <= maxGy; gy++) {
-                const key = gx + 2048 << 12 | gy + 2048 & 4095;
-                let bucket = spatialBoxGrid.get(key);
-                if (!bucket) {
-                  bucket = [];
-                  spatialBoxGrid.set(key, bucket);
-                }
-                bucket.push(k);
-              }
-            }
-          }
-        }
-        let anyUpdated = false;
-        const processedGeometries = /* @__PURE__ */ new Set();
-        for (const obj of ptsObjs) {
-          const geom = obj.geometry;
-          if (!geom) continue;
-          if (processedGeometries.has(geom)) {
-            if (obj.material) {
-              const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
-              for (const m of mats) {
-                if (m && !m.vertexColors) {
-                  m.vertexColors = true;
-                  m.needsUpdate = true;
-                }
-              }
-            }
-            anyUpdated = true;
-            continue;
-          }
-          processedGeometries.add(geom);
-          const posAttr = (_C = geom.attributes) == null ? void 0 : _C.position;
-          if (!posAttr || !posAttr.array) continue;
-          const count = posAttr.count;
-          const posArray = posAttr.array;
-          const intensityAttr = (_D = geom.attributes.intensity || geom.attributes.intensities) == null ? void 0 : _D.array;
-          let colorAttr = geom.attributes.color;
-          let colorArray;
-          const BufferAttrClass = posAttr.constructor;
-          const winThree = window.THREE;
-          if (!colorAttr || !colorAttr.array || colorAttr.array.length !== count * 3) {
-            colorArray = new Float32Array(count * 3);
-            let created = false;
-            if (typeof BufferAttrClass === "function") {
-              try {
-                geom.setAttribute("color", new BufferAttrClass(colorArray, 3));
-                colorAttr = geom.attributes.color;
-                created = !!colorAttr;
-              } catch (_) {
-              }
-            }
-            if (!created && winThree && typeof winThree.BufferAttribute === "function") {
-              try {
-                geom.setAttribute("color", new winThree.BufferAttribute(colorArray, 3));
-                colorAttr = geom.attributes.color;
-                created = !!colorAttr;
-              } catch (_) {
-              }
-            }
-            if (!colorAttr) {
-              colorAttr = { array: colorArray, needsUpdate: false };
-              geom.attributes.color = colorAttr;
-            }
-          } else {
-            colorArray = colorAttr.array;
-          }
-          for (let i = 0; i < count; i++) {
-            const idx3 = i * 3;
-            const px = posArray[idx3];
-            const py = posArray[idx3 + 1];
-            const pz = posArray[idx3 + 2];
-            if (numBoxes === 0 || px < globalMinX || px > globalMaxX || py < globalMinY || py > globalMaxY || pz < globalMinZ || pz > globalMaxZ) {
-              colorArray[idx3] = plainR;
-              colorArray[idx3 + 1] = plainG;
-              colorArray[idx3 + 2] = plainB;
-              continue;
-            }
-            let v = 0.5;
-            if (intensityAttr && i < intensityAttr.length) {
-              const rawInt = intensityAttr[i];
-              if (typeof rawInt === "number" && !isNaN(rawInt) && isFinite(rawInt)) {
-                v = rawInt <= 1 ? Math.max(0, rawInt) : Math.min(1, Math.max(0, rawInt) / 255);
-              }
-            }
-            let matched = null;
-            let matchCount = 0;
-            let candidateIndices = null;
-            if (numBoxes >= 4) {
-              const gx = Math.floor(px * 0.125);
-              const gy = Math.floor(py * 0.125);
+          const minGx = Math.floor(b.minX / SPATIAL_GRID_CELL);
+          const maxGx = Math.floor(b.maxX / SPATIAL_GRID_CELL);
+          const minGy = Math.floor(b.minY / SPATIAL_GRID_CELL);
+          const maxGy = Math.floor(b.maxY / SPATIAL_GRID_CELL);
+          for (let gx = minGx; gx <= maxGx; gx++) {
+            for (let gy = minGy; gy <= maxGy; gy++) {
               const key = gx + 2048 << 12 | gy + 2048 & 4095;
-              candidateIndices = spatialBoxGrid.get(key) || null;
-            }
-            if (numBoxes < 4 || candidateIndices && candidateIndices.length > 0) {
-              const candidatesLen = candidateIndices ? candidateIndices.length : numBoxes;
-              for (let cIdx = 0; cIdx < candidatesLen; cIdx++) {
-                const k = candidateIndices ? candidateIndices[cIdx] : cIdx;
-                const b = fastBoxes[k];
-                if (px < b.minX || px > b.maxX || py < b.minY || py > b.maxY || pz < b.minZ || pz > b.maxZ) {
-                  continue;
-                }
-                const dx = px - b.cx;
-                const dy = py - b.cy;
-                const dz = pz - b.cz;
-                if (dx * dx + dy * dy + dz * dz > b.maxR2) {
-                  continue;
-                }
-                let lx = dx * b.cosY - dy * b.sinY;
-                let ly = dx * b.sinY + dy * b.cosY;
-                let lz = dz;
-                if (b.hasPitchRoll) {
-                  const lx2 = lx * b.cosP + lz * b.sinP;
-                  const lz2 = -lx * b.sinP + lz * b.cosP;
-                  const ly2 = ly * b.cosR - lz2 * b.sinR;
-                  const lz3 = ly * b.sinR + lz2 * b.cosR;
-                  lx = lx2;
-                  ly = ly2;
-                  lz = lz3;
-                }
-                if (lx >= -b.halfL && lx <= b.halfL && ly >= -b.halfW && ly <= b.halfW && lz >= -b.halfH && lz <= b.halfH) {
-                  matchCount++;
-                  if (matchCount === 1) {
-                    matched = b;
-                  } else {
-                    matched = null;
-                    break;
-                  }
-                }
+              let bucket = spatialBoxGrid.get(key);
+              if (!bucket) {
+                bucket = [];
+                spatialBoxGrid.set(key, bucket);
               }
-            }
-            let isCutOut = false;
-            let isEdgeSnap = false;
-            if (activeBox) {
-              const adx = px - activeBox.cx;
-              const ady = py - activeBox.cy;
-              const adz = pz - activeBox.cz;
-              if (adx >= -activeMaxR15 && adx <= activeMaxR15 && ady >= -activeMaxR15 && ady <= activeMaxR15 && adz >= -activeMaxR15 && adz <= activeMaxR15 && adx * adx + ady * ady + adz * adz <= activeMaxR15_2) {
-                let alx = adx * activeBox.cosY - ady * activeBox.sinY;
-                let aly = adx * activeBox.sinY + ady * activeBox.cosY;
-                let alz = adz;
-                if (activeBox.hasPitchRoll) {
-                  const lx2 = alx * activeBox.cosP + alz * activeBox.sinP;
-                  const lz2 = -alx * activeBox.sinP + alz * activeBox.cosP;
-                  const ly2 = aly * activeBox.cosR - lz2 * activeBox.sinR;
-                  const lz3 = aly * activeBox.sinR + lz2 * activeBox.cosR;
-                  alx = lx2;
-                  aly = ly2;
-                  alz = lz3;
-                }
-                const zFloor = -activeBox.halfH + 0.15;
-                const zCeil = activeBox.halfH + 0.1;
-                if (alz >= zFloor && alz <= zCeil) {
-                  const dFront = alx - activeBox.halfL;
-                  const dRear = -activeBox.halfL - alx;
-                  const dLeft = aly - activeBox.halfW;
-                  const dRight = -activeBox.halfW - aly;
-                  const dRoof = alz - activeBox.halfH;
-                  const isCutFront = dFront > 0.01 && dFront <= 0.08 && Math.abs(aly) <= activeBox.halfW + 0.05;
-                  const isCutRear = dRear > 0.01 && dRear <= 0.08 && Math.abs(aly) <= activeBox.halfW + 0.05;
-                  const isCutLeft = dLeft > 0.01 && dLeft <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05;
-                  const isCutRight = dRight > 0.01 && dRight <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05;
-                  const isCutRoof = dRoof > 0.01 && dRoof <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05 && Math.abs(aly) <= activeBox.halfW + 0.05;
-                  if (isCutFront || isCutRear || isCutLeft || isCutRight || isCutRoof) {
-                    isCutOut = true;
-                  } else if (Math.abs(alx) <= activeBox.halfL + 0.01 && Math.abs(aly) <= activeBox.halfW + 0.01 && alz <= activeBox.halfH + 0.01) {
-                    const distX = Math.min(Math.abs(alx - activeBox.halfL), Math.abs(alx + activeBox.halfL));
-                    const distY = Math.min(Math.abs(aly - activeBox.halfW), Math.abs(aly + activeBox.halfW));
-                    const distZ = Math.abs(alz - activeBox.halfH);
-                    if (Math.min(distX, distY, distZ) <= 0.03) {
-                      isEdgeSnap = true;
-                    }
-                  }
-                }
-              }
-            }
-            if (matchCount >= 2) {
-              colorArray[idx3] = OVERLAP_WARNING_COLOR2.r;
-              colorArray[idx3 + 1] = OVERLAP_WARNING_COLOR2.g;
-              colorArray[idx3 + 2] = OVERLAP_WARNING_COLOR2.b;
-            } else if (isCutOut) {
-              colorArray[idx3] = CUT_OUT_WARNING_COLOR2.r;
-              colorArray[idx3 + 1] = CUT_OUT_WARNING_COLOR2.g;
-              colorArray[idx3 + 2] = CUT_OUT_WARNING_COLOR2.b;
-            } else if (isEdgeSnap) {
-              colorArray[idx3] = EDGE_SNAP_COLOR2.r;
-              colorArray[idx3 + 1] = EDGE_SNAP_COLOR2.g;
-              colorArray[idx3 + 2] = EDGE_SNAP_COLOR2.b;
-            } else if (matched) {
-              const factor = 1;
-              colorArray[idx3] = matched.colorR * factor;
-              colorArray[idx3 + 1] = matched.colorG * factor;
-              colorArray[idx3 + 2] = matched.colorB * factor;
-            } else {
-              colorArray[idx3] = plainR;
-              colorArray[idx3 + 1] = plainG;
-              colorArray[idx3 + 2] = plainB;
+              bucket.push(k);
             }
           }
-          if (colorAttr) {
-            colorAttr.needsUpdate = true;
-          }
-          if ((_E = geom.attributes) == null ? void 0 : _E.color) {
-            geom.attributes.color.needsUpdate = true;
-          }
+        }
+      }
+      let anyUpdated = false;
+      const processedGeometries = /* @__PURE__ */ new Set();
+      for (const obj of ptsObjs) {
+        const geom = obj.geometry;
+        if (!geom) continue;
+        if (processedGeometries.has(geom)) {
           if (obj.material) {
             const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
             for (const m of mats) {
@@ -5251,3399 +5249,545 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             }
           }
           anyUpdated = true;
-        }
-        if (anyUpdated) {
-          isColorizingRunning = true;
-          try {
-            if (typeof canvas.render === "function") {
-              canvas.render();
-            }
-          } finally {
-            isColorizingRunning = false;
-          }
-        }
-        return anyUpdated;
-      } catch (err) {
-        console.warn("[CVAT 3D Suite] Lỗi applyPointCloudColorizationInMainWorld:", err);
-        return false;
-      }
-    }
-    let colorizeRafId = null;
-    let colorizeDebounceTimer = null;
-    let pendingColorizeOptions = void 0;
-    function schedulePointCloudColorization(delayMs = 0, options) {
-      if (colorizeDebounceTimer) {
-        clearTimeout(colorizeDebounceTimer);
-        colorizeDebounceTimer = null;
-      }
-      if (colorizeRafId) {
-        cancelAnimationFrame(colorizeRafId);
-        colorizeRafId = null;
-      }
-      const execute = () => {
-        colorizeRafId = requestAnimationFrame(() => {
-          colorizeRafId = null;
-          const opts = pendingColorizeOptions;
-          pendingColorizeOptions = void 0;
-          applyPointCloudColorizationInMainWorld(opts);
-        });
-      };
-      if (delayMs > 0) {
-        colorizeDebounceTimer = setTimeout(execute, delayMs);
-      } else {
-        execute();
-      }
-    }
-    let currentOrthoSlicing = {
-      hideGround: true
-    };
-    try {
-      const savedSlicing = localStorage.getItem("cvat_3d_ortho_slicing");
-      if (savedSlicing) {
-        const parsed = JSON.parse(savedSlicing);
-        if (typeof parsed.hideGround === "boolean") currentOrthoSlicing.hideGround = parsed.hideGround;
-      }
-    } catch (_) {
-    }
-    class ThreeCompatibleVector3 {
-      constructor(x = 0, y = 0, z = 0) {
-        __publicField(this, "isVector3");
-        __publicField(this, "x");
-        __publicField(this, "y");
-        __publicField(this, "z");
-        this.isVector3 = true;
-        this.x = x;
-        this.y = y;
-        this.z = z;
-      }
-      set(x, y, z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        return this;
-      }
-      copy(v) {
-        this.x = (v == null ? void 0 : v.x) || 0;
-        this.y = (v == null ? void 0 : v.y) || 0;
-        this.z = (v == null ? void 0 : v.z) || 0;
-        return this;
-      }
-      clone() {
-        return new ThreeCompatibleVector3(this.x, this.y, this.z);
-      }
-      dot(v) {
-        return this.x * ((v == null ? void 0 : v.x) || 0) + this.y * ((v == null ? void 0 : v.y) || 0) + this.z * ((v == null ? void 0 : v.z) || 0);
-      }
-      multiplyScalar(s) {
-        this.x *= s;
-        this.y *= s;
-        this.z *= s;
-        return this;
-      }
-      normalize() {
-        const l = Math.hypot(this.x, this.y, this.z) || 1;
-        this.x /= l;
-        this.y /= l;
-        this.z /= l;
-        return this;
-      }
-      applyMatrix3(m) {
-        const e = m.elements;
-        const x = this.x, y = this.y, z = this.z;
-        this.x = e[0] * x + e[3] * y + e[6] * z;
-        this.y = e[1] * x + e[4] * y + e[7] * z;
-        this.z = e[2] * x + e[5] * y + e[8] * z;
-        return this;
-      }
-      applyMatrix4(m) {
-        const e = m.elements;
-        const x = this.x, y = this.y, z = this.z;
-        const w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
-        this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
-        this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
-        this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
-        return this;
-      }
-      toArray(array = [], offset = 0) {
-        array[offset] = this.x;
-        array[offset + 1] = this.y;
-        array[offset + 2] = this.z;
-        return array;
-      }
-    }
-    class ThreeCompatibleMatrix3 {
-      constructor() {
-        __publicField(this, "isMatrix3", true);
-        __publicField(this, "elements", [1, 0, 0, 0, 1, 0, 0, 0, 1]);
-      }
-      set(n11, n12, n13, n21, n22, n23, n31, n32, n33) {
-        const te = this.elements;
-        te[0] = n11;
-        te[1] = n21;
-        te[2] = n31;
-        te[3] = n12;
-        te[4] = n22;
-        te[5] = n32;
-        te[6] = n13;
-        te[7] = n23;
-        te[8] = n33;
-        return this;
-      }
-      setFromMatrix4(m) {
-        const me = m.elements;
-        return this.set(
-          me[0],
-          me[4],
-          me[8],
-          me[1],
-          me[5],
-          me[9],
-          me[2],
-          me[6],
-          me[10]
-        );
-      }
-      getNormalMatrix(matrix4) {
-        return this.setFromMatrix4(matrix4).invert().transpose();
-      }
-      invert() {
-        const te = this.elements;
-        const m11 = te[0], m21 = te[1], m31 = te[2], m12 = te[3], m22 = te[4], m32 = te[5], m13 = te[6], m23 = te[7], m33 = te[8];
-        const t11 = m33 * m22 - m32 * m23;
-        const t12 = -m33 * m12 + m32 * m13;
-        const t13 = m23 * m12 - m22 * m13;
-        const det = m11 * t11 + m21 * t12 + m31 * t13;
-        if (det === 0) {
-          te[0] = 1;
-          te[1] = 0;
-          te[2] = 0;
-          te[3] = 0;
-          te[4] = 1;
-          te[5] = 0;
-          te[6] = 0;
-          te[7] = 0;
-          te[8] = 1;
-          return this;
-        }
-        const invDet = 1 / det;
-        te[0] = t11 * invDet;
-        te[1] = (-m33 * m21 + m31 * m23) * invDet;
-        te[2] = (m32 * m21 - m31 * m22) * invDet;
-        te[3] = t12 * invDet;
-        te[4] = (m33 * m11 - m31 * m13) * invDet;
-        te[5] = (-m32 * m11 + m31 * m12) * invDet;
-        te[6] = t13 * invDet;
-        te[7] = (-m23 * m11 + m21 * m13) * invDet;
-        te[8] = (m22 * m11 - m21 * m12) * invDet;
-        return this;
-      }
-      transpose() {
-        const te = this.elements;
-        let m = te[1];
-        te[1] = te[3];
-        te[3] = m;
-        m = te[2];
-        te[2] = te[6];
-        te[6] = m;
-        m = te[5];
-        te[5] = te[7];
-        te[7] = m;
-        return this;
-      }
-    }
-    class ThreeCompatiblePlane {
-      constructor(normal, constant = 0) {
-        __publicField(this, "isPlane", true);
-        __publicField(this, "normal");
-        __publicField(this, "constant");
-        this.normal = normal && typeof normal.clone === "function" ? normal.clone() : new ThreeCompatibleVector3((normal == null ? void 0 : normal.x) || 0, (normal == null ? void 0 : normal.y) || 0, (normal == null ? void 0 : normal.z) || 1);
-        this.constant = constant || 0;
-      }
-      set(normal, constant) {
-        this.normal.copy(normal);
-        this.constant = constant;
-        return this;
-      }
-      setComponents(x, y, z, w) {
-        this.normal.set(x, y, z);
-        this.constant = w;
-        return this;
-      }
-      copy(source) {
-        this.normal.copy(source.normal);
-        this.constant = source.constant;
-        return this;
-      }
-      clone() {
-        return new ThreeCompatiblePlane(this.normal, this.constant);
-      }
-      coplanarPoint(target) {
-        const t = target || new ThreeCompatibleVector3();
-        return t.copy(this.normal).multiplyScalar(-this.constant);
-      }
-      applyMatrix4(matrix, optionalNormalMatrix) {
-        const normalMatrix = optionalNormalMatrix || new ThreeCompatibleMatrix3().getNormalMatrix(matrix);
-        const refPt = this.coplanarPoint(new ThreeCompatibleVector3()).applyMatrix4(matrix);
-        const norm = this.normal.clone().applyMatrix3(normalMatrix).normalize();
-        this.constant = -refPt.dot(norm);
-        this.normal.copy(norm);
-        return this;
-      }
-    }
-    const cachedTopPlanes = [];
-    let clippingThreeEngine = null;
-    let lastGlobalClippingActive = false;
-    function getClippingThree() {
-      var _a, _b, _c, _d;
-      if (clippingThreeEngine) return clippingThreeEngine;
-      const win = window;
-      if (win.THREE && typeof win.THREE.Plane === "function") {
-        clippingThreeEngine = win.THREE;
-        return clippingThreeEngine;
-      }
-      const store = getReduxStore();
-      const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-      if ((canvas == null ? void 0 : canvas.THREE) && typeof canvas.THREE.Plane === "function") {
-        clippingThreeEngine = canvas.THREE;
-        return clippingThreeEngine;
-      }
-      if (((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.THREE) && typeof canvas.view.THREE.Plane === "function") {
-        clippingThreeEngine = canvas.view.THREE;
-        return clippingThreeEngine;
-      }
-      clippingThreeEngine = {
-        Plane: ThreeCompatiblePlane,
-        Vector3: ThreeCompatibleVector3,
-        Matrix3: ThreeCompatibleMatrix3
-      };
-      return clippingThreeEngine;
-    }
-    function ensurePlaneAt(arr, index, ThreeClass) {
-      while (arr.length <= index) {
-        const PlaneCtor = (ThreeClass == null ? void 0 : ThreeClass.Plane) || ThreeCompatiblePlane;
-        const VecCtor = (ThreeClass == null ? void 0 : ThreeClass.Vector3) || ThreeCompatibleVector3;
-        arr.push(new PlaneCtor(new VecCtor(0, 0, 1), 0));
-      }
-      return arr[index];
-    }
-    function applyClippingPlanesToView(view, planes, isSharedScene) {
-      if (!view) return;
-      if (view.renderer) {
-        view.renderer.localClippingEnabled = planes.length > 0;
-        view.renderer.clippingPlanes = planes;
-      }
-    }
-    function updateOrthoClippingPlanes(overrideTarget, forceRender = true) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
-      try {
-        const Three = getClippingThree();
-        const store = getReduxStore();
-        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        const views = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views;
-        if (!views) return;
-        const topView = views.top;
-        const sideView = views.side;
-        const frontView = views.front;
-        const perspectiveView = views.perspective;
-        if ((perspectiveView == null ? void 0 : perspectiveView.renderer) && perspectiveView.renderer.clippingPlanes && perspectiveView.renderer.clippingPlanes.length > 0) {
-          perspectiveView.renderer.clippingPlanes = [];
-        }
-        const activeId = (overrideTarget == null ? void 0 : overrideTarget.clientId) ?? ((_e = canvas == null ? void 0 : canvas.view) == null ? void 0 : _e.activatedElementID) ?? ((_h = (_g = (_f = store == null ? void 0 : store.getState()) == null ? void 0 : _f.annotation) == null ? void 0 : _g.annotations) == null ? void 0 : _h.activatedStateClientID) ?? lastActiveTrackId;
-        const isAnyClippingActive = !!(currentOrthoSlicing.hideGround && activeId && !isNaN(Number(activeId)) && Number(activeId) > 0);
-        if (lastGlobalClippingActive !== isAnyClippingActive) {
-          lastGlobalClippingActive = isAnyClippingActive;
-          const scenesToNotify = [];
-          for (const k of ["top", "side", "front", "perspective"]) {
-            const sc = (_i = views[k]) == null ? void 0 : _i.scene;
-            if (sc && !scenesToNotify.includes(sc)) scenesToNotify.push(sc);
-          }
-          for (const sc of scenesToNotify) {
-            if (typeof (sc == null ? void 0 : sc.traverse) === "function") {
-              sc.traverse((obj) => {
-                if (obj && (obj.isPoints || obj.type === "Points") && obj.material) {
-                  obj.material.needsUpdate = true;
-                }
-              });
-            }
-          }
-        }
-        const isSharedScene = !!((topView == null ? void 0 : topView.scene) && (perspectiveView == null ? void 0 : perspectiveView.scene) && topView.scene === perspectiveView.scene);
-        if (!isAnyClippingActive || !Three) {
-          applyClippingPlanesToView(topView, [], isSharedScene);
-          applyClippingPlanesToView(sideView, [], isSharedScene);
-          applyClippingPlanesToView(frontView, [], isSharedScene);
-          applyClippingPlanesToView(perspectiveView, [], isSharedScene);
-          return;
-        }
-        const numId = Number(activeId);
-        let p = null;
-        if ((overrideTarget == null ? void 0 : overrideTarget.points) && Array.isArray(overrideTarget.points)) {
-          p = overrideTarget.points;
-        } else {
-          const drawnItem = (_k = (_j = canvas == null ? void 0 : canvas.view) == null ? void 0 : _j.drawnObjects) == null ? void 0 : _k[String(numId)];
-          if (drawnItem) {
-            const states = ((_n = (_m = (_l = store == null ? void 0 : store.getState()) == null ? void 0 : _l.annotation) == null ? void 0 : _m.annotations) == null ? void 0 : _n.states) || [];
-            const matched = states.find((s) => s.clientID === numId);
-            p = extractLivePointsFromDrawnAndState(drawnItem, matched);
-          }
-          if (!p) {
-            const details = extractObjectDetails(numId);
-            p = (details == null ? void 0 : details.points) || null;
-          }
-        }
-        if (!p || p.length < 9) {
-          applyClippingPlanesToView(topView, [], isSharedScene);
-          applyClippingPlanesToView(sideView, [], isSharedScene);
-          applyClippingPlanesToView(frontView, [], isSharedScene);
-          applyClippingPlanesToView(perspectiveView, [], isSharedScene);
-          return;
-        }
-        const cx = p[0], cy = p[1], cz = p[2];
-        const rx = p[3] || 0;
-        const ry = p[4] || 0;
-        const rz = p[5] || 0;
-        const h2 = p[8];
-        const halfH = h2 / 2;
-        const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
-        const cosY = Math.cos(ry), sinY = Math.sin(ry);
-        const cosX = Math.cos(rx), sinX = Math.sin(rx);
-        const uzx = cosZ * sinY * cosX + sinZ * sinX;
-        const uzy = sinZ * sinY * cosX - cosZ * sinX;
-        const uzz = cosY * cosX;
-        const setPlane = (plane, nx, ny, nz, px, py, pz) => {
-          plane.normal.set(nx, ny, nz);
-          plane.constant = -(nx * px + ny * py + nz * pz);
-        };
-        const activeTopPlanes = [];
-        if (currentOrthoSlicing.hideGround) {
-          const pzCutX = cx + (-halfH + 0.12) * uzx;
-          const pzCutY = cy + (-halfH + 0.12) * uzy;
-          const pzCutZ = cz + (-halfH + 0.12) * uzz;
-          const pl = ensurePlaneAt(cachedTopPlanes, 0, Three);
-          setPlane(pl, uzx, uzy, uzz, pzCutX, pzCutY, pzCutZ);
-          activeTopPlanes.push(pl);
-        }
-        applyClippingPlanesToView(topView, activeTopPlanes, isSharedScene);
-        applyClippingPlanesToView(sideView, [], isSharedScene);
-        applyClippingPlanesToView(frontView, [], isSharedScene);
-        applyClippingPlanesToView(perspectiveView, [], isSharedScene);
-        if (forceRender && typeof (canvas == null ? void 0 : canvas.render) === "function") {
-          canvas.render();
-        }
-      } catch (e) {
-        console.warn("[CVAT 3D Suite] Lỗi updateOrthoClippingPlanes:", e);
-      }
-    }
-    function scheduleSingleFrameColorizationAndGround(targetFrame, delayMs = 180) {
-      if (singleFrameColorizeTimer) {
-        clearTimeout(singleFrameColorizeTimer);
-        singleFrameColorizeTimer = null;
-      }
-      if (colorizeRafId) {
-        cancelAnimationFrame(colorizeRafId);
-        colorizeRafId = null;
-      }
-      const runAttempt = (attempt) => {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
-        try {
-          const store = getReduxStore();
-          const curF = ((_d = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.player) == null ? void 0 : _c.frame) == null ? void 0 : _d.number) ?? ((_h = (_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.job) == null ? void 0 : _g.instance) == null ? void 0 : _h.frame);
-          if (curF === targetFrame) {
-            applyCanvasThemeInMainWorld();
-            colorizeRafId = requestAnimationFrame(() => {
-              colorizeRafId = null;
-              const ok = applyPointCloudColorizationInMainWorld();
-              if (!ok && attempt < 3) {
-                singleFrameColorizeTimer = setTimeout(() => runAttempt(attempt + 1), 350);
-              }
-            });
-          }
-        } catch (_) {
-        }
-      };
-      singleFrameColorizeTimer = setTimeout(() => runAttempt(1), delayMs);
-    }
-    function getEgoRoadGroundZInMainWorld(egoPos = { x: 0, y: 0, z: 0 }) {
-      const lidar = getSceneLidarPoints();
-      if (!lidar || lidar.count === 0) return -1.75;
-      const { count, array } = lidar;
-      const minRSq = 0.8 * 0.8;
-      const maxRSq = 15 * 15;
-      const zArr = [];
-      for (let i = 0; i < count; i++) {
-        const x = array[i * 3];
-        const y = array[i * 3 + 1];
-        const z = array[i * 3 + 2];
-        const dx = x - egoPos.x;
-        const dy = y - egoPos.y;
-        const dSq = dx * dx + dy * dy;
-        if (dSq >= minRSq && dSq <= maxRSq) {
-          if (z >= egoPos.z - 3.5 && z <= egoPos.z + 0.5) {
-            zArr.push(z);
-          }
-        }
-      }
-      if (zArr.length < 8) return -1.75;
-      zArr.sort((a, b) => a - b);
-      const cutLow = Math.floor(zArr.length * 0.01);
-      const validZ = zArr.slice(cutLow);
-      const p15 = validZ[Math.floor(validZ.length * 0.15)];
-      return Number(p15.toFixed(3));
-    }
-    function detectAccurateGroundZ(cx, cy, cz, yaw, halfL, halfW, halfH = 0.8, isInitialBox = false, lockRollFlat = false, egoRoadZ) {
-      const lidar = getSceneLidarPoints();
-      if (!lidar || lidar.count === 0) {
-        return {
-          groundZ: -1.75,
-          pitchRad: 0,
-          rollRad: 0,
-          pitchDeg: 0,
-          rollDeg: 0,
-          groundPointsCount: 0,
-          isFallbackZeroGround: true,
-          isCurbGround: false,
-          isHalfCurb: false,
-          halfCurbSide: "none",
-          curbHeightCm: 0
-        };
-      }
-      const { count, array } = lidar;
-      const cosY = Math.cos(-yaw);
-      const sinY = Math.sin(-yaw);
-      const groundPts = [];
-      const outerL = isInitialBox ? 3 : halfL + 0.55;
-      const outerW = isInitialBox ? 2 : halfW + 0.45;
-      const innerL = isInitialBox ? 0.2 : Math.max(0.15, halfL - 0.35);
-      const innerW = isInitialBox ? 0.2 : Math.max(0.15, halfW - 0.35);
-      const maxGroundZ = cz - Math.max(0.15, halfH * 0.4);
-      const minGroundZ = Math.min(cz - 4.5, -4.5);
-      for (let i = 0; i < count; i++) {
-        const z = array[i * 3 + 2];
-        if (z > maxGroundZ || z < minGroundZ) continue;
-        const x = array[i * 3];
-        const y = array[i * 3 + 1];
-        const dx = x - cx;
-        const dy = y - cy;
-        const lx = dx * cosY - dy * sinY;
-        const ly = dx * sinY + dy * cosY;
-        const inOuter = Math.abs(lx) <= outerL && Math.abs(ly) <= outerW;
-        const inCore = !isInitialBox && Math.abs(lx) < innerL && Math.abs(ly) < innerW;
-        if (inOuter && !inCore) {
-          groundPts.push({ lx, ly, z });
-        }
-      }
-      if (groundPts.length < 8) {
-        const extL = outerL + 0.25;
-        const extW = outerW + 0.25;
-        for (let i = 0; i < count; i++) {
-          const z = array[i * 3 + 2];
-          if (z > maxGroundZ || z < minGroundZ) continue;
-          const dx = array[i * 3] - cx;
-          const dy = array[i * 3 + 1] - cy;
-          const lx = dx * cosY - dy * sinY;
-          const ly = dx * sinY + dy * cosY;
-          if (Math.abs(lx) <= extL && Math.abs(ly) <= extW) {
-            groundPts.push({ lx, ly, z });
-          }
-        }
-      }
-      const resolvedEgoRoadZ = getEgoRoadGroundZInMainWorld();
-      const computeSmartFallbackGroundZ = () => {
-        const curObjH = halfH * 2;
-        const searchL = halfL + 0.35;
-        const searchW = halfW + 0.25;
-        const bodyPtsZ = [];
-        for (let i = 0; i < count; i++) {
-          const z = array[i * 3 + 2];
-          if (z < cz - halfH - 0.4 || z > cz + halfH + 0.4) continue;
-          const dx = array[i * 3] - cx;
-          const dy = array[i * 3 + 1] - cy;
-          const lx = dx * cosY - dy * sinY;
-          const ly = dx * sinY + dy * cosY;
-          if (Math.abs(lx) <= searchL && Math.abs(ly) <= searchW) {
-            bodyPtsZ.push(z);
-          }
-        }
-        const currentBaseZ = cz - halfH;
-        if (bodyPtsZ.length >= 4) {
-          bodyPtsZ.sort((a2, b2) => a2 - b2);
-          const zRoof = bodyPtsZ[Math.floor(bodyPtsZ.length * 0.95)];
-          const zLowest = bodyPtsZ[Math.floor(bodyPtsZ.length * 0.05)];
-          const zFromRoof = zRoof - curObjH;
-          const zFromLowest = zLowest - 0.18;
-          const estimatedZ = Math.min(zFromRoof, zFromLowest);
-          if (Math.abs(estimatedZ - currentBaseZ) <= 0.45) {
-            return Number(estimatedZ.toFixed(3));
-          }
-        }
-        const localGround = [];
-        const minRSq = (halfL + 0.4) * (halfL + 0.4);
-        const maxRSq = 5 * 5;
-        for (let i = 0; i < count; i++) {
-          const z = array[i * 3 + 2];
-          if (z < currentBaseZ - 0.5 || z > currentBaseZ + 0.25) continue;
-          const dx = array[i * 3] - cx;
-          const dy = array[i * 3 + 1] - cy;
-          const dSq = dx * dx + dy * dy;
-          if (dSq >= minRSq && dSq <= maxRSq) {
-            localGround.push(z);
-          }
-        }
-        if (localGround.length >= 4) {
-          localGround.sort((a2, b2) => a2 - b2);
-          const p20 = localGround[Math.floor(localGround.length * 0.2)];
-          if (Math.abs(p20 - currentBaseZ) <= 0.4) {
-            return Number(p20.toFixed(3));
-          }
-        }
-        return Number(currentBaseZ.toFixed(3));
-      };
-      if (groundPts.length < 10) {
-        const fallbackGroundZ = computeSmartFallbackGroundZ();
-        return {
-          groundZ: fallbackGroundZ,
-          pitchRad: 0,
-          rollRad: 0,
-          pitchDeg: 0,
-          rollDeg: 0,
-          groundPointsCount: groundPts.length,
-          isFallbackZeroGround: true,
-          isCurbGround: false,
-          isHalfCurb: false,
-          halfCurbSide: "none",
-          curbHeightCm: 0
-        };
-      }
-      groundPts.sort((a2, b2) => a2.z - b2.z);
-      const cutLow = Math.floor(groundPts.length * 0.01);
-      const sorted = groundPts.slice(cutLow);
-      let validPts = sorted;
-      const seedCount = Math.max(6, Math.floor(sorted.length * 0.35));
-      const seedPts = sorted.slice(0, seedCount);
-      let sumSeedLx = 0, sumSeedLy = 0, sumSeedZ = 0;
-      for (const p of seedPts) {
-        sumSeedLx += p.lx;
-        sumSeedLy += p.ly;
-        sumSeedZ += p.z;
-      }
-      const meanSeedLx = sumSeedLx / seedCount;
-      const meanSeedLy = sumSeedLy / seedCount;
-      const meanSeedZ = sumSeedZ / seedCount;
-      let vSeedLx = 0, vSeedLy = 0, cSeedLxLy = 0, cSeedLxZ = 0, cSeedLyZ = 0;
-      for (const p of seedPts) {
-        const dlx = p.lx - meanSeedLx;
-        const dly = p.ly - meanSeedLy;
-        const dz = p.z - meanSeedZ;
-        vSeedLx += dlx * dlx;
-        vSeedLy += dly * dly;
-        cSeedLxLy += dlx * dly;
-        cSeedLxZ += dlx * dz;
-        cSeedLyZ += dly * dz;
-      }
-      const detSeed = vSeedLx * vSeedLy - cSeedLxLy * cSeedLxLy;
-      let aSeed = 0, bSeed = 0, c0Seed = meanSeedZ;
-      if (Math.abs(detSeed) > 1e-4) {
-        aSeed = (cSeedLxZ * vSeedLy - cSeedLyZ * cSeedLxLy) / detSeed;
-        bSeed = (cSeedLyZ * vSeedLx - cSeedLxZ * cSeedLxLy) / detSeed;
-        c0Seed = meanSeedZ - aSeed * meanSeedLx - bSeed * meanSeedLy;
-      }
-      const inliers = sorted.filter((p) => {
-        const expectedZ = aSeed * p.lx + bSeed * p.ly + c0Seed;
-        const diff = p.z - expectedZ;
-        return diff >= -0.08 && diff <= 0.08;
-      });
-      if (inliers.length >= 6 && inliers.length >= sorted.length * 0.2) {
-        validPts = inliers;
-      }
-      const qFL = [];
-      const qFR = [];
-      const qRL = [];
-      const qRR = [];
-      for (const p of validPts) {
-        if (p.lx >= 0 && p.ly >= 0) qFL.push(p);
-        else if (p.lx >= 0 && p.ly < 0) qFR.push(p);
-        else if (p.lx < 0 && p.ly >= 0) qRL.push(p);
-        else qRR.push(p);
-      }
-      const fitPts = [];
-      const takeRatio = 0.45;
-      const addLowestFromQuadrant = (q) => {
-        if (q.length === 0) return;
-        const count2 = Math.max(1, Math.floor(q.length * takeRatio));
-        fitPts.push(...q.slice(0, count2));
-      };
-      addLowestFromQuadrant(qFL);
-      addLowestFromQuadrant(qFR);
-      addLowestFromQuadrant(qRL);
-      addLowestFromQuadrant(qRR);
-      const finalPts = fitPts.length >= 4 ? fitPts : validPts.slice(0, Math.max(4, Math.floor(validPts.length * 0.45)));
-      if (finalPts.length < 6) {
-        const fallbackGroundZ = computeSmartFallbackGroundZ();
-        return {
-          groundZ: fallbackGroundZ,
-          pitchRad: 0,
-          rollRad: 0,
-          pitchDeg: 0,
-          rollDeg: 0,
-          groundPointsCount: finalPts.length,
-          isFallbackZeroGround: true,
-          isCurbGround: false,
-          isHalfCurb: false,
-          halfCurbSide: "none",
-          curbHeightCm: 0
-        };
-      }
-      let sumLx = 0;
-      let sumLy = 0;
-      let sumZ = 0;
-      const N = finalPts.length;
-      for (const p of finalPts) {
-        sumLx += p.lx;
-        sumLy += p.ly;
-        sumZ += p.z;
-      }
-      const meanLx = sumLx / N;
-      const meanLy = sumLy / N;
-      const meanZ = sumZ / N;
-      let varLx = 0;
-      let varLy = 0;
-      let covLxLy = 0;
-      let covLxZ = 0;
-      let covLyZ = 0;
-      for (const p of finalPts) {
-        const dlx = p.lx - meanLx;
-        const dly = p.ly - meanLy;
-        const dz = p.z - meanZ;
-        varLx += dlx * dlx;
-        varLy += dly * dly;
-        covLxLy += dlx * dly;
-        covLxZ += dlx * dz;
-        covLyZ += dly * dz;
-      }
-      const det = varLx * varLy - covLxLy * covLxLy;
-      let pitchRad = 0;
-      let rollRad = 0;
-      let c0 = meanZ;
-      let a = 0;
-      let b = 0;
-      const maxPitchRad = 20 * Math.PI / 180;
-      const maxRollRad = 25 * Math.PI / 180;
-      if (Math.abs(det) > 1e-4) {
-        a = (covLxZ * varLy - covLyZ * covLxLy) / det;
-        b = (covLyZ * varLx - covLxZ * covLxLy) / det;
-        pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(a)));
-        rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, Math.atan(b)));
-        c0 = meanZ - a * meanLx - b * meanLy;
-      } else {
-        const pIdx = Math.floor(finalPts.length * 0.15);
-        c0 = finalPts[pIdx].z;
-      }
-      if (Math.abs(det) > 1e-4) {
-        let sumRes = 0;
-        for (const p of finalPts) {
-          const expectedZ = a * p.lx + b * p.ly + c0;
-          sumRes += Math.abs(p.z - expectedZ);
-        }
-        sumRes / finalPts.length;
-      }
-      const p12Idx = Math.max(0, Math.floor(sorted.length * 0.12));
-      const lowestRoadZ = sorted[p12Idx].z;
-      const leftPtsZ = sorted.filter((p) => p.ly > 0.15).map((p) => p.z).sort((a2, b2) => a2 - b2);
-      const rightPtsZ = sorted.filter((p) => p.ly < -0.15).map((p) => p.z).sort((a2, b2) => a2 - b2);
-      let isCurbOrRamp = lockRollFlat === true;
-      let isHalfCurb = false;
-      let halfCurbSide = "none";
-      let curbHeightCm = 0;
-      if (!isCurbOrRamp && leftPtsZ.length >= 3 && rightPtsZ.length >= 3) {
-        const leftMedian = leftPtsZ[Math.floor(leftPtsZ.length * 0.25)];
-        const rightMedian = rightPtsZ[Math.floor(rightPtsZ.length * 0.25)];
-        const stepDeltaZ = Math.abs(leftMedian - rightMedian);
-        const lowerPts = leftMedian < rightMedian ? leftPtsZ : rightPtsZ;
-        const lowerSpread = lowerPts[Math.floor(lowerPts.length * 0.75)] - lowerPts[Math.floor(lowerPts.length * 0.25)];
-        if (stepDeltaZ >= 0.08 && lowerSpread < 0.05) {
-          isCurbOrRamp = true;
-        }
-      }
-      const W = halfW * 2;
-      const edgeRightPts = sorted.filter(
-        (p) => p.ly >= -halfW - 0.45 && p.ly <= -halfW + W * 0.3
-      );
-      const edgeLeftPts = sorted.filter(
-        (p) => p.ly >= halfW - W * 0.3 && p.ly <= halfW + 0.45
-      );
-      if (edgeRightPts.length >= 2 && edgeLeftPts.length >= 2) {
-        const aSlope = -Math.tan(pitchRad);
-        const baseFloorZ = sorted[0].z;
-        const extractEdgeZ = (edgePts) => {
-          const transPts = edgePts.map((p) => ({ lx: p.lx, ly: p.ly, zTrans: p.z - aSlope * p.lx })).sort((a2, b2) => a2.zTrans - b2.zTrans);
-          const basePts = transPts.filter((p) => p.zTrans <= baseFloorZ + 0.08);
-          if (basePts.length >= 2) {
-            return basePts[Math.floor(basePts.length / 2)].zTrans;
-          }
-          const curbPts = transPts.filter((p) => p.zTrans >= baseFloorZ + 0.07 && p.zTrans <= baseFloorZ + 0.35);
-          if (curbPts.length >= 2) {
-            return curbPts[Math.floor(curbPts.length * 0.25)].zTrans;
-          }
-          return transPts[0].zTrans;
-        };
-        const zRight = extractEdgeZ(edgeRightPts);
-        const zLeft = extractEdgeZ(edgeLeftPts);
-        const sumRightLy = edgeRightPts.reduce((s, p) => s + p.ly, 0);
-        const sumLeftLy = edgeLeftPts.reduce((s, p) => s + p.ly, 0);
-        const meanRightLy = sumRightLy / edgeRightPts.length;
-        const meanLeftLy = sumLeftLy / edgeLeftPts.length;
-        const spanY = Math.max(0.6, meanLeftLy - meanRightLy);
-        const deltaZ = zLeft - zRight;
-        const absDeltaZ = Math.abs(deltaZ);
-        const egoZ = resolvedEgoRoadZ;
-        const diffLeftEgo = zLeft - egoZ;
-        const diffRightEgo = zRight - egoZ;
-        if (absDeltaZ >= 0.07 && absDeltaZ <= 0.35) {
-          const isLeftCurb = Math.abs(diffRightEgo) <= 0.08 && diffLeftEgo >= 0.07 && diffLeftEgo <= 0.35;
-          const isRightCurb = Math.abs(diffLeftEgo) <= 0.08 && diffRightEgo >= 0.07 && diffRightEgo <= 0.35;
-          if (isLeftCurb || isRightCurb) {
-            isHalfCurb = true;
-            halfCurbSide = isLeftCurb ? "left" : "right";
-            curbHeightCm = Math.round(absDeltaZ * 100);
-            const edgeRoll = Math.atan(deltaZ / spanY);
-            rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, edgeRoll));
-            c0 = (zLeft + zRight) / 2;
-          }
-        }
-        if (!isHalfCurb) {
-          if (isCurbOrRamp) {
-            rollRad = 0;
-            c0 = lowestRoadZ;
-            const roadPts = validPts.filter((p) => p.z <= lowestRoadZ + 0.1);
-            if (roadPts.length >= 4) {
-              let sLx = 0;
-              let sZ = 0;
-              for (const p of roadPts) {
-                sLx += p.lx;
-                sZ += p.z;
-              }
-              const mLx = sLx / roadPts.length;
-              const mZ = sZ / roadPts.length;
-              let vLx = 0;
-              let cLxZ = 0;
-              for (const p of roadPts) {
-                const dlx = p.lx - mLx;
-                const dz = p.z - mZ;
-                vLx += dlx * dlx;
-                cLxZ += dlx * dz;
-              }
-              if (vLx > 1e-4) {
-                const aRoad = cLxZ / vLx;
-                pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(aRoad)));
-              }
-            }
-          } else {
-            const edgeRoll = Math.atan(deltaZ / spanY);
-            if (Math.abs(rollRad - edgeRoll) < 0.05) {
-              c0 = (zLeft + zRight) / 2;
-            } else {
-              rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, edgeRoll));
-              c0 = (zLeft + zRight) / 2;
-            }
-          }
-        }
-      } else {
-        rollRad = 0;
-        if (isCurbOrRamp) {
-          c0 = lowestRoadZ;
-        }
-      }
-      const L = halfL * 2;
-      const edgeFrontPts = sorted.filter(
-        (p) => p.lx >= halfL - L * 0.3 && p.lx <= halfL + 0.45
-      );
-      const edgeRearPts = sorted.filter(
-        (p) => p.lx >= -halfL - 0.45 && p.lx <= -halfL + L * 0.3
-      );
-      if (!isCurbOrRamp && !isHalfCurb && edgeFrontPts.length >= 2 && edgeRearPts.length >= 2) {
-        const bSlope = Math.tan(rollRad);
-        const extractSideZ = (edgePts) => {
-          const transPts = edgePts.map((p) => ({ lx: p.lx, ly: p.ly, zTrans: p.z - bSlope * p.ly })).sort((a2, b2) => a2.zTrans - b2.zTrans);
-          const floorZ = transPts[0].zTrans;
-          const basePts = transPts.filter((p) => p.zTrans <= floorZ + 0.08);
-          if (basePts.length >= 2) {
-            return basePts[Math.floor(basePts.length / 2)].zTrans;
-          }
-          return transPts[0].zTrans;
-        };
-        const zFront = extractSideZ(edgeFrontPts);
-        const zRear = extractSideZ(edgeRearPts);
-        const sumFrontLx = edgeFrontPts.reduce((s, p) => s + p.lx, 0);
-        const sumRearLx = edgeRearPts.reduce((s, p) => s + p.lx, 0);
-        const meanFrontLx = sumFrontLx / edgeFrontPts.length;
-        const meanRearLx = sumRearLx / edgeRearPts.length;
-        const spanX = Math.max(0.8, meanFrontLx - meanRearLx);
-        const deltaZSide = zFront - zRear;
-        const edgePitch = -Math.atan(deltaZSide / spanX);
-        if (Math.abs(pitchRad - edgePitch) < 0.05) {
-          pitchRad = edgePitch;
-        } else {
-          pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, edgePitch));
-        }
-        c0 = (zFront + zRear) / 2;
-      }
-      let isCurbGround = false;
-      const refEgoZ = getEgoRoadGroundZInMainWorld();
-      if (!isCurbOrRamp && !isHalfCurb) {
-        if (c0 >= refEgoZ + 0.08 && c0 <= refEgoZ + 0.35) {
-          isCurbGround = true;
-          curbHeightCm = Math.round((c0 - refEgoZ) * 100);
-          if (Math.abs(rollRad) < 5 * Math.PI / 180) {
-            rollRad = 0;
-          }
-        } else if (c0 < refEgoZ - 0.25 && validPts.length < 15) {
-          c0 = refEgoZ;
-          rollRad = 0;
-          pitchRad = 0;
-        }
-      }
-      let pitchRadVal = Number(pitchRad.toFixed(5));
-      let rollRadVal = Number(rollRad.toFixed(5));
-      let pitchDegVal = Number((pitchRad * 180 / Math.PI).toFixed(2));
-      let rollDegVal = Number((rollRad * 180 / Math.PI).toFixed(2));
-      if (Math.abs(pitchRadVal) < 1e-6) pitchRadVal = 0;
-      if (Math.abs(rollRadVal) < 1e-6) rollRadVal = 0;
-      if (Math.abs(pitchDegVal) < 1e-4) pitchDegVal = 0;
-      if (Math.abs(rollDegVal) < 1e-4) rollDegVal = 0;
-      return {
-        groundZ: Number(c0.toFixed(3)),
-        pitchRad: pitchRadVal,
-        rollRad: rollRadVal,
-        pitchDeg: pitchDegVal,
-        rollDeg: rollDegVal,
-        groundPointsCount: finalPts.length,
-        isCurbGround,
-        isHalfCurb,
-        halfCurbSide,
-        curbHeightCm
-      };
-    }
-    function detectCurbStepAndRollInMainWorld(cx, cy, cz, yaw, halfL, halfW, trackW) {
-      const lidar = getSceneLidarPoints();
-      if (!lidar || lidar.count === 0) {
-        return { hasCurb: false, side: "none", curbHeight: 0.15, curbHeightCm: 15, rollRad: 0, rollDeg: 0, roadGroundZ: cz - 0.7, deltaCenterZ: 0.075 };
-      }
-      const { count, array } = lidar;
-      const cosY = Math.cos(-yaw);
-      const sinY = Math.sin(-yaw);
-      const effectiveW = trackW !== void 0 ? trackW : halfW * 2;
-      const minLy = Math.max(0.2, halfW * 0.7);
-      const maxLy = halfW + 0.85;
-      const maxLx = halfL + 0.55;
-      const maxZ = cz - 0.15;
-      const minZ = cz - 4.5;
-      const leftPts = [];
-      const rightPts = [];
-      for (let i = 0; i < count; i++) {
-        const z = array[i * 3 + 2];
-        if (z > maxZ || z < minZ) continue;
-        const x = array[i * 3];
-        const y = array[i * 3 + 1];
-        const lx = (x - cx) * cosY - (y - cy) * sinY;
-        const ly = (x - cx) * sinY + (y - cy) * cosY;
-        if (Math.abs(lx) > maxLx) continue;
-        if (ly >= minLy && ly <= maxLy) {
-          leftPts.push(z);
-        } else if (ly <= -minLy && ly >= -maxLy) {
-          rightPts.push(z);
-        }
-      }
-      if (leftPts.length < 3 || rightPts.length < 3) {
-        return { hasCurb: false, side: "none", curbHeight: 0.15, curbHeightCm: 15, rollRad: 0, rollDeg: 0, roadGroundZ: cz - 0.7, deltaCenterZ: 0.075 };
-      }
-      leftPts.sort((a, b) => a - b);
-      rightPts.sort((a, b) => a - b);
-      const leftZ = leftPts[Math.floor(leftPts.length * 0.25)];
-      const rightZ = rightPts[Math.floor(rightPts.length * 0.25)];
-      const deltaZ = leftZ - rightZ;
-      const absDeltaZ = Math.abs(deltaZ);
-      if (absDeltaZ >= 0.07 && absDeltaZ <= 0.32) {
-        const curbHeight = Number(absDeltaZ.toFixed(3));
-        const curbHeightCm = Math.round(curbHeight * 100);
-        const side = deltaZ > 0 ? "left" : "right";
-        const ratio = Math.max(-0.6, Math.min(0.6, deltaZ / effectiveW));
-        const rollRad = Number(Math.asin(ratio).toFixed(5));
-        const rollDeg = Number((rollRad * 180 / Math.PI).toFixed(2));
-        const roadGroundZ = Number(Math.min(leftZ, rightZ).toFixed(3));
-        const deltaCenterZ = Number((curbHeight / 2).toFixed(3));
-        return {
-          hasCurb: true,
-          side,
-          curbHeight,
-          curbHeightCm,
-          rollRad,
-          rollDeg,
-          roadGroundZ,
-          deltaCenterZ
-        };
-      }
-      return {
-        hasCurb: false,
-        side: "none",
-        curbHeight: Number(absDeltaZ.toFixed(3)),
-        curbHeightCm: Math.round(absDeltaZ * 100),
-        rollRad: 0,
-        rollDeg: 0,
-        roadGroundZ: Number(Math.min(leftZ, rightZ).toFixed(3)),
-        deltaCenterZ: 0
-      };
-    }
-    function detectTrueHeadZInMainWorld(zArr, maxGap = 0.15, groundZ, maxNormalHeight = 1.75) {
-      if (zArr.length === 0) return 0;
-      if (zArr.length === 1) return zArr[0];
-      const sorted = [...zArr].sort((a, b) => a - b);
-      const baseZ = groundZ !== void 0 ? groundZ : sorted[0];
-      const suspiciousThresholdZ = baseZ + maxNormalHeight;
-      let cutoffIdx = sorted.length - 1;
-      for (let i = sorted.length - 1; i >= 1; i--) {
-        if (sorted[i] > suspiciousThresholdZ) {
-          const gap = sorted[i] - sorted[i - 1];
-          if (gap > maxGap) {
-            cutoffIdx = i - 1;
-          }
-        } else {
-          break;
-        }
-      }
-      const clusterPts = sorted.slice(0, cutoffIdx + 1);
-      const pIdx = clusterPts.length >= 20 ? Math.min(clusterPts.length - 1, Math.floor(clusterPts.length * 0.98)) : clusterPts.length - 1;
-      return clusterPts[pIdx];
-    }
-    function filterDenseConnectedCluster1D2(pts, axis, maxGap = 0.22, centerBias = 0) {
-      if (pts.length < 8) return pts;
-      const sorted = [...pts].sort((a, b) => a[axis] - b[axis]);
-      const clusters = [];
-      let currentCluster = [sorted[0]];
-      for (let i = 1; i < sorted.length; i++) {
-        const gap = sorted[i][axis] - sorted[i - 1][axis];
-        if (gap > maxGap) {
-          clusters.push(currentCluster);
-          currentCluster = [sorted[i]];
-        } else {
-          currentCluster.push(sorted[i]);
-        }
-      }
-      if (currentCluster.length > 0) {
-        clusters.push(currentCluster);
-      }
-      if (clusters.length === 1) {
-        return pts;
-      }
-      let bestCluster = clusters[0];
-      let minDistanceToCenter = Infinity;
-      for (const c of clusters) {
-        if (c.length < 2) continue;
-        let clusterMinDist = Infinity;
-        for (const p of c) {
-          const d = Math.abs(p[axis] - centerBias);
-          if (d < clusterMinDist) clusterMinDist = d;
-        }
-        if (clusterMinDist < minDistanceToCenter - 0.05) {
-          minDistanceToCenter = clusterMinDist;
-          bestCluster = c;
-        } else if (Math.abs(clusterMinDist - minDistanceToCenter) <= 0.05) {
-          if (c.length > bestCluster.length) {
-            bestCluster = c;
-          }
-        }
-      }
-      if (bestCluster.length >= 4) {
-        return bestCluster;
-      }
-      return pts;
-    }
-    function clusterByPointDilation5x2(pts, options = {}) {
-      var _a, _b;
-      const n = pts.length;
-      const baseR = options.basePointSize ?? 0.025;
-      const dilation = options.dilationFactor ?? 5;
-      const defaultConnect = options.connectDist ?? 2 * baseR * dilation;
-      const connectDistX = options.connectDistLx ?? defaultConnect;
-      const connectDistY = options.connectDistLy ?? defaultConnect;
-      const connectDistZ = defaultConnect;
-      const is3D = options.dim === "3d";
-      if (n <= 1) {
-        return {
-          dominantPts: pts,
-          noisePts: [],
-          clusters: n === 1 ? [[pts[0]]] : [],
-          dominantClusterIndex: 0,
-          connectDist: defaultConnect
-        };
-      }
-      const cellX = connectDistX;
-      const cellY = connectDistY;
-      const cellZ = connectDistZ;
-      const grid = /* @__PURE__ */ new Map();
-      for (let i = 0; i < n; i++) {
-        const p = pts[i];
-        const gx = Math.floor(p.lx / cellX);
-        const gy = Math.floor(p.ly / cellY);
-        const key = is3D ? `${gx}_${gy}_${Math.floor((p.z ?? 0) / cellZ)}` : `${gx}_${gy}`;
-        const bucket = grid.get(key);
-        if (bucket) {
-          bucket.push(i);
-        } else {
-          grid.set(key, [i]);
-        }
-      }
-      const parent = new Int32Array(n);
-      const rank = new Uint8Array(n);
-      for (let i = 0; i < n; i++) parent[i] = i;
-      function find(x) {
-        let root = x;
-        while (root !== parent[root]) root = parent[root];
-        let curr = x;
-        while (curr !== root) {
-          const next = parent[curr];
-          parent[curr] = root;
-          curr = next;
-        }
-        return root;
-      }
-      function union(x, y) {
-        const rootX = find(x);
-        const rootY = find(y);
-        if (rootX === rootY) return;
-        if (rank[rootX] < rank[rootY]) {
-          parent[rootX] = rootY;
-        } else if (rank[rootX] > rank[rootY]) {
-          parent[rootY] = rootX;
-        } else {
-          parent[rootY] = rootX;
-          rank[rootX]++;
-        }
-      }
-      for (let i = 0; i < n; i++) {
-        const pi = pts[i];
-        const gx = Math.floor(pi.lx / cellX);
-        const gy = Math.floor(pi.ly / cellY);
-        const gz = is3D ? Math.floor((pi.z ?? 0) / cellZ) : 0;
-        const zMin = is3D ? -1 : 0;
-        const zMax = is3D ? 1 : 0;
-        for (let dz = zMin; dz <= zMax; dz++) {
-          for (let dx = -1; dx <= 1; dx++) {
-            for (let dy = -1; dy <= 1; dy++) {
-              const neighborKey = is3D ? `${gx + dx}_${gy + dy}_${gz + dz}` : `${gx + dx}_${gy + dy}`;
-              const neighborIndices = grid.get(neighborKey);
-              if (!neighborIndices) continue;
-              for (let k = 0; k < neighborIndices.length; k++) {
-                const j = neighborIndices[k];
-                if (j <= i) continue;
-                const pj = pts[j];
-                const dX = (pi.lx - pj.lx) / connectDistX;
-                const dY = (pi.ly - pj.ly) / connectDistY;
-                let distNormSq = dX * dX + dY * dY;
-                if (is3D) {
-                  const dZ = ((pi.z ?? 0) - (pj.z ?? 0)) / connectDistZ;
-                  distNormSq += dZ * dZ;
-                }
-                if (distNormSq <= 1.000001) {
-                  union(i, j);
-                }
-              }
-            }
-          }
-        }
-      }
-      const groupMap = /* @__PURE__ */ new Map();
-      for (let i = 0; i < n; i++) {
-        const r = find(i);
-        const list = groupMap.get(r);
-        if (list) {
-          list.push(i);
-        } else {
-          groupMap.set(r, [i]);
-        }
-      }
-      const clusterIndices = Array.from(groupMap.values());
-      const clusters = clusterIndices.map((indices) => indices.map((idx) => pts[idx]));
-      if (clusters.length === 1) {
-        return {
-          dominantPts: pts,
-          noisePts: [],
-          clusters,
-          dominantClusterIndex: 0,
-          connectDist: defaultConnect
-        };
-      }
-      const biasX = ((_a = options.centerBias) == null ? void 0 : _a.lx) ?? 0;
-      const biasY = ((_b = options.centerBias) == null ? void 0 : _b.ly) ?? 0;
-      const minClusterPts = options.minClusterPts ?? 3;
-      const clusterStats = clusters.map((cluster, idx) => {
-        let dMin = Infinity;
-        let minLx = Infinity;
-        let maxLx = -Infinity;
-        let minLy = Infinity;
-        let maxLy = -Infinity;
-        for (let k = 0; k < cluster.length; k++) {
-          const p = cluster[k];
-          const d = Math.hypot(p.lx - biasX, p.ly - biasY);
-          if (d < dMin) dMin = d;
-          if (p.lx < minLx) minLx = p.lx;
-          if (p.lx > maxLx) maxLx = p.lx;
-          if (p.ly < minLy) minLy = p.ly;
-          if (p.ly > maxLy) maxLy = p.ly;
-        }
-        const span = Math.max(maxLx - minLx, maxLy - minLy);
-        return { idx, len: cluster.length, dMin, span };
-      });
-      const maxLen = Math.max(...clusterStats.map((s) => s.len));
-      let candidateStats = clusterStats.filter((s) => {
-        if (maxLen >= 8) {
-          if (s.len < Math.min(minClusterPts, 4)) return false;
-          const isSignificantSize = s.len >= maxLen * 0.15 || s.len >= 8;
-          const hasPhysicalSpan = s.span >= 0.25;
-          return isSignificantSize || hasPhysicalSpan;
-        } else {
-          return s.len >= Math.min(minClusterPts, 2);
-        }
-      });
-      if (candidateStats.length === 0) {
-        candidateStats = clusterStats;
-      }
-      candidateStats.sort((a, b) => {
-        const diffD = a.dMin - b.dMin;
-        if (Math.abs(diffD) > 0.2) {
-          return diffD;
-        }
-        return b.len - a.len;
-      });
-      const bestIdx = candidateStats[0].idx;
-      const dominantPts = clusters[bestIdx];
-      const noisePts = [];
-      for (let c = 0; c < clusters.length; c++) {
-        if (c === bestIdx) continue;
-        for (let k = 0; k < clusters[c].length; k++) {
-          noisePts.push(clusters[c][k]);
-        }
-      }
-      return {
-        dominantPts,
-        noisePts,
-        clusters,
-        dominantClusterIndex: bestIdx,
-        connectDist: defaultConnect
-      };
-    }
-    function detectAdaptiveBounds2(sortedValues, isYAxis = false) {
-      const n = sortedValues.length;
-      if (n < 8) {
-        return { min: sortedValues[0] ?? 0, max: sortedValues[n - 1] ?? 0 };
-      }
-      const pMinIdx = Math.max(0, Math.floor(n * 5e-3));
-      const pMaxIdx = Math.min(n - 1, Math.floor(n * 0.995));
-      let minVal = sortedValues[pMinIdx];
-      let maxVal = sortedValues[pMaxIdx];
-      const minGap = isYAxis ? 0.14 : 0.25;
-      const maxNoisePoints = Math.max(2, Math.min(12, Math.floor(n * 0.06)));
-      for (let i = n - 1; i >= Math.floor(n * 0.65); i--) {
-        const gap = sortedValues[i] - sortedValues[i - 1];
-        const pointsAfter = n - i;
-        if (gap >= minGap && pointsAfter <= maxNoisePoints) {
-          maxVal = sortedValues[i - 1];
-          break;
-        }
-      }
-      for (let i = 0; i <= Math.floor(n * 0.35); i++) {
-        const gap = sortedValues[i + 1] - sortedValues[i];
-        const pointsBefore = i + 1;
-        if (gap >= minGap && pointsBefore <= maxNoisePoints) {
-          minVal = sortedValues[i + 1];
-          break;
-        }
-      }
-      return {
-        min: Number(minVal.toFixed(2)),
-        max: Number(maxVal.toFixed(2))
-      };
-    }
-    function computeDensityRobustBounds2(pts, options = {}) {
-      if (pts.length === 0) {
-        return { lxMin: 0, lxMax: 0, lyMin: 0, lyMax: 0, zTop: 0, validPointsCount: 0 };
-      }
-      const rorRadius = options.rorRadius ?? 0.35;
-      const rorMinNeighbors = options.rorMinNeighbors ?? 1;
-      let cleanPts = pts;
-      if (pts.length >= 12) {
-        const rorFiltered = [];
-        const r2 = rorRadius * rorRadius;
-        for (let i = 0; i < pts.length; i++) {
-          let neighbors = 0;
-          const pi = pts[i];
-          for (let j = 0; j < pts.length; j++) {
-            if (i === j) continue;
-            const pj = pts[j];
-            const dx = pi.lx - pj.lx;
-            const dy = pi.ly - pj.ly;
-            const dz = pi.z - pj.z;
-            if (dx * dx + dy * dy + dz * dz <= r2) {
-              neighbors++;
-              if (neighbors >= rorMinNeighbors) break;
-            }
-          }
-          if (neighbors >= rorMinNeighbors) {
-            rorFiltered.push(pi);
-          }
-        }
-        if (rorFiltered.length >= 8 && rorFiltered.length >= pts.length * 0.5) {
-          cleanPts = rorFiltered;
-        }
-      }
-      const allLx = cleanPts.map((p) => p.lx).sort((a, b) => a - b);
-      const allLy = cleanPts.map((p) => p.ly).sort((a, b) => a - b);
-      const allZ = cleanPts.map((p) => p.z).sort((a, b) => a - b);
-      const fallbackLxMin = allLx[0];
-      const fallbackLxMax = allLx[allLx.length - 1];
-      const fallbackLyMin = allLy[0];
-      const fallbackLyMax = allLy[allLy.length - 1];
-      const zTop = allZ[allZ.length - 1];
-      if (cleanPts.length < 10) {
-        return {
-          lxMin: fallbackLxMin,
-          lxMax: fallbackLxMax,
-          lyMin: fallbackLyMin,
-          lyMax: fallbackLyMax,
-          zTop,
-          validPointsCount: cleanPts.length
-        };
-      }
-      const boundsX = detectAdaptiveBounds2(allLx, false);
-      const boundsY = detectAdaptiveBounds2(allLy, true);
-      return {
-        lxMin: boundsX.min,
-        lxMax: boundsX.max,
-        lyMin: boundsY.min,
-        lyMax: boundsY.max,
-        zTop,
-        validPointsCount: cleanPts.length
-      };
-    }
-    function filterSparseNoiseByLocalDensity2(pts, options = {}) {
-      if (pts.length < 8) return pts;
-      const radius = options.radius ?? 0.12;
-      const r2 = radius * radius;
-      const n = pts.length;
-      const densities = new Int32Array(n);
-      for (let i = 0; i < n; i++) {
-        const pi = pts[i];
-        let count = 0;
-        for (let j = 0; j < n; j++) {
-          const pj = pts[j];
-          const dx = pi.lx - pj.lx;
-          const dy = pi.ly - pj.ly;
-          const dz = pi.z - pj.z;
-          if (dx * dx + dy * dy + dz * dz <= r2) count++;
-        }
-        densities[i] = count;
-      }
-      const sorted = Array.from(densities).sort((a, b) => a - b);
-      const medianDensity = sorted[Math.floor(n / 2)];
-      const adaptiveRatio = options.adaptiveRatio ?? 0.25;
-      const userMin = options.minCoreNeighbors ?? 3;
-      const coreThreshold = Math.max(userMin, Math.floor(medianDensity * adaptiveRatio));
-      const corePts = [];
-      for (let i = 0; i < n; i++) {
-        if (densities[i] >= coreThreshold) corePts.push(pts[i]);
-      }
-      if (corePts.length >= 6 && corePts.length >= n * 0.4) return corePts;
-      return pts;
-    }
-    function computeIntensityWeights2(pts) {
-      const n = pts.length;
-      if (n === 0) {
-        return { weights: [], hasValidIntensity: false, highIntensityThreshold: 0 };
-      }
-      const intensities = [];
-      let validCount = 0;
-      for (let i = 0; i < n; i++) {
-        const val = pts[i].intensity;
-        if (typeof val === "number" && !isNaN(val)) {
-          intensities.push(val);
-          validCount++;
-        } else {
-          intensities.push(0);
-        }
-      }
-      if (validCount < 3) {
-        return {
-          weights: new Array(n).fill(1),
-          hasValidIntensity: false,
-          highIntensityThreshold: 0
-        };
-      }
-      const sorted = [...intensities].sort((a, b) => a - b);
-      const minI = sorted[0];
-      const maxI = sorted[sorted.length - 1];
-      if (maxI - minI < 15) {
-        return {
-          weights: new Array(n).fill(1),
-          hasValidIntensity: false,
-          highIntensityThreshold: maxI
-        };
-      }
-      const p75Idx = Math.min(sorted.length - 1, Math.floor(sorted.length * 0.75));
-      const highIntensityThreshold = Math.max(minI + 15, sorted[p75Idx]);
-      const range = maxI - minI;
-      const weights = new Array(n);
-      for (let i = 0; i < n; i++) {
-        const norm = Math.max(0, Math.min(1, (intensities[i] - minI) / range));
-        weights[i] = 1 + 1.5 * norm;
-      }
-      return {
-        weights,
-        hasValidIntensity: true,
-        highIntensityThreshold
-      };
-    }
-    function detectDominantWallEdgeWithValleyCutoff2(pts, axis, direction, nominalHalf, options = {}) {
-      const isPos = direction === "positive";
-      const orthAxis = axis === "ly" ? "lx" : "ly";
-      const binSize = options.binSize ?? 0.03;
-      const minSpanOrth = options.minSpanOrthogonal ?? (axis === "ly" ? 0.7 : 0.6);
-      const maxSearchExt = options.maxSearchExtension ?? 0.35;
-      const candidatePts = pts.filter((p) => isPos ? p[axis] > 0.02 : p[axis] < -0.02);
-      if (candidatePts.length < 3) {
-        return {
-          edge: isPos ? nominalHalf : -nominalHalf,
-          wallPoints: candidatePts,
-          peakDensity: candidatePts.length
-        };
-      }
-      const intensityData = options.useIntensity !== false ? computeIntensityWeights2(candidatePts) : null;
-      const weights = (intensityData == null ? void 0 : intensityData.weights) || new Array(candidatePts.length).fill(1);
-      const highThreshold = (intensityData == null ? void 0 : intensityData.highIntensityThreshold) ?? Infinity;
-      const hasValidIntensity = (intensityData == null ? void 0 : intensityData.hasValidIntensity) ?? false;
-      const maxDist = nominalHalf + maxSearchExt;
-      const numBins = Math.ceil(maxDist / binSize) + 2;
-      const bins = Array.from(
-        { length: numBins },
-        () => []
-      );
-      const binWeights = new Array(numBins).fill(0);
-      for (let i = 0; i < candidatePts.length; i++) {
-        const p = candidatePts[i];
-        const w = weights[i];
-        const isBright = hasValidIntensity && typeof p.intensity === "number" && p.intensity >= highThreshold;
-        const dist = isPos ? p[axis] : -p[axis];
-        if (dist >= 0 && dist <= maxDist) {
-          const bIdx = Math.min(numBins - 1, Math.floor(dist / binSize));
-          bins[bIdx].push({ pt: p, weight: w, isBright });
-          binWeights[bIdx] += w;
-        }
-      }
-      const nominalMinBin = Math.max(0, Math.floor((nominalHalf - 0.45) / binSize));
-      const nominalMaxBin = Math.min(numBins - 1, Math.floor((nominalHalf + maxSearchExt) / binSize));
-      let peakBin = nominalMinBin;
-      let maxWeight = 0;
-      for (let b = nominalMinBin; b <= nominalMaxBin; b++) {
-        const bw = binWeights[b];
-        if (bw > maxWeight) {
-          maxWeight = bw;
-          peakBin = b;
-        }
-      }
-      if (maxWeight < 2) {
-        for (let b = 1; b < numBins - 1; b++) {
-          if (binWeights[b] > maxWeight) {
-            maxWeight = binWeights[b];
-            peakBin = b;
-          }
-        }
-      }
-      if (maxWeight === 0) {
-        return {
-          edge: isPos ? nominalHalf : -nominalHalf,
-          wallPoints: candidatePts,
-          peakDensity: 0
-        };
-      }
-      const minWallWeight = Math.max(1.8, maxWeight * 0.12);
-      let outerWallBin = peakBin;
-      let consecutiveEmptyBins = 0;
-      for (let b = peakBin + 1; b < numBins; b++) {
-        const ptsInBin = bins[b];
-        const count = ptsInBin.length;
-        const bw = binWeights[b];
-        const hasBrightInBin = ptsInBin.some((item) => item.isBright);
-        if (count === 0) {
-          consecutiveEmptyBins++;
-          if (consecutiveEmptyBins >= 2) {
-            const nextBinHasBright = b + 1 < numBins && bins[b + 1].some((item) => item.isBright);
-            if (!nextBinHasBright) {
-              break;
-            }
-          }
           continue;
         }
-        if (hasBrightInBin) {
-          consecutiveEmptyBins = 0;
-          outerWallBin = b;
-          continue;
-        }
-        const distCenter = (b + 0.5) * binSize;
-        if (bw < minWallWeight && distCenter > nominalHalf) {
-          consecutiveEmptyBins++;
-          if (consecutiveEmptyBins >= 2) {
-            break;
-          }
-          continue;
-        }
-        if (distCenter > nominalHalf - 0.05) {
-          const orthVals = ptsInBin.map((item) => item.pt[orthAxis]);
-          const spanOrth = Math.max(...orthVals) - Math.min(...orthVals);
-          if (count <= 6 && spanOrth < minSpanOrth * 0.6) {
-            if (b > peakBin + 1) {
-              break;
+        processedGeometries.add(geom);
+        const posAttr = (_u = geom.attributes) == null ? void 0 : _u.position;
+        if (!posAttr || !posAttr.array) continue;
+        const count = posAttr.count;
+        const posArray = posAttr.array;
+        const intensityAttr = (_v = geom.attributes.intensity || geom.attributes.intensities) == null ? void 0 : _v.array;
+        let colorAttr = geom.attributes.color;
+        let colorArray;
+        const BufferAttrClass = posAttr.constructor;
+        const winThree = window.THREE;
+        if (!colorAttr || !colorAttr.array || colorAttr.array.length !== count * 3) {
+          colorArray = new Float32Array(count * 3);
+          let created = false;
+          if (typeof BufferAttrClass === "function") {
+            try {
+              geom.setAttribute("color", new BufferAttrClass(colorArray, 3));
+              colorAttr = geom.attributes.color;
+              created = !!colorAttr;
+            } catch (_) {
             }
           }
-        }
-        consecutiveEmptyBins = 0;
-        outerWallBin = b;
-      }
-      const collectedWallPoints = [];
-      for (let b = 0; b <= outerWallBin; b++) {
-        for (const item of bins[b]) {
-          collectedWallPoints.push(item.pt);
-        }
-      }
-      const outerEdgeItems = [];
-      const edgeStartBin = Math.max(0, outerWallBin - 3);
-      for (let b = edgeStartBin; b <= outerWallBin; b++) {
-        for (const item of bins[b]) {
-          outerEdgeItems.push(item);
-        }
-      }
-      if (outerEdgeItems.length >= 3) {
-        const brightItems = outerEdgeItems.filter((i) => i.isBright);
-        const targetItems = brightItems.length >= 2 ? brightItems : outerEdgeItems;
-        const dists = targetItems.map((item) => isPos ? item.pt[axis] : -item.pt[axis]).sort((a, b) => a - b);
-        const pIdx = Math.max(0, Math.min(dists.length - 1, Math.floor(dists.length * 0.95)));
-        const chosenDist = dists[pIdx];
-        const edge2 = isPos ? Number(chosenDist.toFixed(3)) : Number((-chosenDist).toFixed(3));
-        return {
-          edge: edge2,
-          wallPoints: collectedWallPoints,
-          peakDensity: Math.round(maxWeight)
-        };
-      }
-      const fallbackDist = (outerWallBin + 1) * binSize;
-      const edge = isPos ? Number(fallbackDist.toFixed(3)) : Number((-fallbackDist).toFixed(3));
-      return {
-        edge,
-        wallPoints: collectedWallPoints.length > 0 ? collectedWallPoints : candidatePts,
-        peakDensity: Math.round(maxWeight)
-      };
-    }
-    function detectRoofTopBounds2(pts, expectedRoofZ) {
-      if (pts.length === 0) return expectedRoofZ ?? 0;
-      const zValues = pts.map((p) => p.z).sort((a, b) => a - b);
-      const n = zValues.length;
-      if (n < 6) return zValues[n - 1];
-      let maxRoofZ = zValues[n - 1];
-      const minGap = 0.22;
-      const maxNoisePoints = Math.max(2, Math.min(8, Math.floor(n * 0.08)));
-      for (let i = n - 1; i >= Math.floor(n * 0.55); i--) {
-        const gap = zValues[i] - zValues[i - 1];
-        const pointsAfter = n - i;
-        if (gap >= minGap && pointsAfter <= maxNoisePoints) {
-          maxRoofZ = zValues[i - 1];
-          break;
-        }
-      }
-      return Number(maxRoofZ.toFixed(3));
-    }
-    function straightenYawFromBoundaryEdge2(pts, currentYaw, L, _W, visibleLateral, options = {}) {
-      const maxAdjDeg = options.maxAdjustmentDeg ?? 8;
-      const maxAdjRad = maxAdjDeg * Math.PI / 180;
-      const intensityData = options.useIntensity !== false ? computeIntensityWeights2(pts) : null;
-      const highThreshold = (intensityData == null ? void 0 : intensityData.highIntensityThreshold) ?? Infinity;
-      const hasValidIntensity = (intensityData == null ? void 0 : intensityData.hasValidIntensity) ?? false;
-      const isLeft = visibleLateral === "left";
-      const sidePts = pts.filter((p) => (isLeft ? p.ly > 0 : p.ly < 0) && Math.abs(p.lx) <= L / 2);
-      if (sidePts.length < 8) {
-        return {
-          newYawRad: currentYaw,
-          newYawDeg: Number((currentYaw * 180 / Math.PI).toFixed(2)),
-          deltaYawDeg: 0,
-          slope: 0
-        };
-      }
-      const numSlices = 10;
-      const sliceWidth = L / numSlices;
-      const slicePoints = [];
-      for (let s = 0; s < numSlices; s++) {
-        const minLx = -L / 2 + s * sliceWidth;
-        const maxLx = minLx + sliceWidth;
-        const inSlice = sidePts.filter((p) => p.lx >= minLx && p.lx < maxLx);
-        if (inSlice.length >= 1) {
-          const brightInSlice = hasValidIntensity ? inSlice.filter((p) => typeof p.intensity === "number" && p.intensity >= highThreshold) : [];
-          const targetSlicePts = brightInSlice.length >= 1 ? brightInSlice : inSlice;
-          const sliceWeight = brightInSlice.length >= 1 ? 2 : 1;
-          if (isLeft) {
-            const sortedLy = targetSlicePts.map((p) => p.ly).sort((a, b) => a - b);
-            const pIdx = Math.max(0, Math.floor(sortedLy.length * 0.9));
-            const medianLx = (minLx + maxLx) / 2;
-            slicePoints.push({ lx: medianLx, ly: sortedLy[pIdx], weight: sliceWeight });
-          } else {
-            const sortedLy = targetSlicePts.map((p) => p.ly).sort((a, b) => a - b);
-            const pIdx = Math.min(sortedLy.length - 1, Math.floor(sortedLy.length * 0.1));
-            const medianLx = (minLx + maxLx) / 2;
-            slicePoints.push({ lx: medianLx, ly: sortedLy[pIdx], weight: sliceWeight });
-          }
-        }
-      }
-      if (slicePoints.length < 4) {
-        return {
-          newYawRad: currentYaw,
-          newYawDeg: Number((currentYaw * 180 / Math.PI).toFixed(2)),
-          deltaYawDeg: 0,
-          slope: 0
-        };
-      }
-      const slopesWithWeights = [];
-      for (let i = 0; i < slicePoints.length; i++) {
-        for (let j = i + 1; j < slicePoints.length; j++) {
-          const dx = slicePoints[j].lx - slicePoints[i].lx;
-          const dy = slicePoints[j].ly - slicePoints[i].ly;
-          if (Math.abs(dx) >= 0.25) {
-            const pairWeight = (slicePoints[i].weight + slicePoints[j].weight) / 2;
-            slopesWithWeights.push({ slope: dy / dx, weight: pairWeight });
-          }
-        }
-      }
-      let slope = 0;
-      if (slopesWithWeights.length >= 3) {
-        slopesWithWeights.sort((a, b) => a.slope - b.slope);
-        const totalW = slopesWithWeights.reduce((sum, item) => sum + item.weight, 0);
-        let cumulativeW = 0;
-        let chosenSlope = slopesWithWeights[Math.floor(slopesWithWeights.length / 2)].slope;
-        for (const item of slopesWithWeights) {
-          cumulativeW += item.weight;
-          if (cumulativeW >= totalW / 2) {
-            chosenSlope = item.slope;
-            break;
-          }
-        }
-        slope = chosenSlope;
-      } else {
-        let sumLx = 0, sumLy = 0, sumLxLy = 0, sumLx2 = 0;
-        const m = slicePoints.length;
-        for (const p of slicePoints) {
-          sumLx += p.lx;
-          sumLy += p.ly;
-          sumLxLy += p.lx * p.ly;
-          sumLx2 += p.lx * p.lx;
-        }
-        const denom = m * sumLx2 - sumLx * sumLx;
-        slope = Math.abs(denom) > 1e-6 ? (m * sumLxLy - sumLx * sumLy) / denom : 0;
-      }
-      let deltaYaw = Math.atan(slope);
-      deltaYaw = Math.max(-maxAdjRad, Math.min(maxAdjRad, deltaYaw));
-      let deltaYawDeg = Number((deltaYaw * 180 / Math.PI).toFixed(2));
-      if (Math.abs(deltaYawDeg) < 0.25) {
-        deltaYaw = 0;
-        deltaYawDeg = 0;
-      }
-      let newYaw = currentYaw + deltaYaw;
-      while (newYaw > Math.PI) newYaw -= 2 * Math.PI;
-      while (newYaw < -Math.PI) newYaw += 2 * Math.PI;
-      return {
-        newYawRad: Number(newYaw.toFixed(5)),
-        newYawDeg: Number((newYaw * 180 / Math.PI).toFixed(2)),
-        deltaYawDeg,
-        slope: Number(slope.toFixed(4))
-      };
-    }
-    function determineBumperByDensity2(pts, L, egoLocalX, egoLocalY) {
-      if (pts.length === 0) {
-        return {
-          visibleBumper: egoLocalX >= 0 ? "front" : "rear",
-          isParallelBalanced: false,
-          nFront20: 0,
-          nRear20: 0,
-          nMiddle60: 0
-        };
-      }
-      const allLx = pts.map((p) => p.lx).sort((a, b) => a - b);
-      const pMinIdx = allLx.length >= 15 ? Math.floor(allLx.length * 0.015) : 0;
-      const pMaxIdx = allLx.length >= 15 ? Math.min(allLx.length - 1, Math.floor(allLx.length * 0.985)) : allLx.length - 1;
-      const lxMin = allLx[pMinIdx];
-      const lxMax = allLx[pMaxIdx];
-      const zoneSpan = Math.max(0.4, L * 0.2);
-      const span = lxMax - lxMin;
-      let nFront20 = 0;
-      let nRear20 = 0;
-      let nMiddle60 = 0;
-      if (span < zoneSpan * 1.5) {
-        const meanLx = pts.reduce((sum, p) => sum + p.lx, 0) / pts.length;
-        const threshold = Math.max(0.35, L * 0.2);
-        if (meanLx > threshold) {
-          nFront20 = pts.length;
-        } else if (meanLx < -threshold) {
-          nRear20 = pts.length;
-        } else {
-          nMiddle60 = pts.length;
-        }
-      } else {
-        const front20Min = lxMax - zoneSpan;
-        const front20Max = lxMax + 0.35;
-        const rear20Min = lxMin - 0.35;
-        const rear20Max = lxMin + zoneSpan;
-        nFront20 = pts.filter((p) => p.lx >= front20Min && p.lx <= front20Max).length;
-        nRear20 = pts.filter((p) => p.lx >= rear20Min && p.lx <= rear20Max).length;
-        nMiddle60 = pts.filter((p) => p.lx > rear20Max && p.lx < front20Min).length;
-      }
-      const isFrontDominant = nFront20 >= 6 && nRear20 <= 4 || nFront20 >= 8 && nFront20 >= nRear20 * 2.5;
-      const isRearDominant = nRear20 >= 6 && nFront20 <= 4 || nRear20 >= 8 && nRear20 >= nFront20 * 2.5;
-      if (isFrontDominant) {
-        return {
-          visibleBumper: "front",
-          isParallelBalanced: false,
-          nFront20,
-          nRear20,
-          nMiddle60
-        };
-      }
-      if (isRearDominant) {
-        return {
-          visibleBumper: "rear",
-          isParallelBalanced: false,
-          nFront20,
-          nRear20,
-          nMiddle60
-        };
-      }
-      const tan25 = 0.466;
-      const isEgoParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * tan25;
-      const isSymmetricBothEnds = Math.abs(nFront20 - nRear20) <= 2 && nFront20 >= 2 && nRear20 >= 2 && nMiddle60 >= 3;
-      if ((isEgoParallel || isSymmetricBothEnds) && pts.length >= 4) {
-        return {
-          visibleBumper: egoLocalX >= 0 ? "front" : "rear",
-          isParallelBalanced: true,
-          nFront20,
-          nRear20,
-          nMiddle60
-        };
-      }
-      let visibleBumper = egoLocalX >= 0 ? "front" : "rear";
-      const allFrontPts = pts.filter((p) => p.lx > 0.05);
-      const allRearPts = pts.filter((p) => p.lx < -0.05);
-      if (visibleBumper === "front" && allFrontPts.length < 2 && allRearPts.length >= 4) {
-        visibleBumper = "rear";
-      } else if (visibleBumper === "rear" && allRearPts.length < 2 && allFrontPts.length >= 4) {
-        visibleBumper = "front";
-      }
-      return {
-        visibleBumper,
-        isParallelBalanced: false,
-        nFront20,
-        nRear20,
-        nMiddle60
-      };
-    }
-    function fitBoxToEgoRayAndGroundInMainWorld(points, egoPos = { x: 0, y: 0, z: 0 }, options = {}) {
-      const cx = points[0];
-      const cy = points[1];
-      const cz = points[2];
-      const yaw = points[5];
-      const L = points[6];
-      const W = points[7];
-      const H = points[8];
-      const lidar = getSceneLidarPoints();
-      if (!lidar || lidar.count === 0) {
-        return {
-          newX: cx,
-          newY: cy,
-          newZ: cz,
-          newYawRad: yaw,
-          newYawDeg: Number((yaw * 180 / Math.PI).toFixed(2)),
-          deltaYawDeg: 0,
-          newL: L,
-          newW: W,
-          newH: H,
-          pitchRad: 0,
-          rollRad: 0,
-          pitchDeg: 0,
-          rollDeg: 0,
-          groundZ: cz - H / 2,
-          roofTopZ: cz + H / 2,
-          visibleFaces: { longitudinal: "front", lateral: "left" },
-          pointsCount: 0,
-          message: "Không tìm thấy điểm LiDAR trong scene"
-        };
-      }
-      const { count, array } = lidar;
-      const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, L / 2, W / 2, H / 2, false, false);
-      const groundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : 0;
-      const pitchRad = groundInfo.pitchRad;
-      const rollRad = groundInfo.rollRad;
-      const cosY = Math.cos(-yaw);
-      const sinY = Math.sin(-yaw);
-      const minBodyZ = groundZ + 0.22;
-      const maxRoofZ = groundZ + H + 0.55;
-      const fitStep = options.fitStep ?? "all";
-      const outerL = L / 2 + 0.45;
-      const outerW = W / 2 + 0.35;
-      const rawBodyPts = [];
-      for (let i = 0; i < count; i++) {
-        const z = array[i * 3 + 2];
-        if (z < minBodyZ || z > maxRoofZ) continue;
-        const x = array[i * 3];
-        const y = array[i * 3 + 1];
-        const dx = x - cx;
-        const dy = y - cy;
-        const lx = dx * cosY - dy * sinY;
-        const ly = dx * sinY + dy * cosY;
-        if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
-          rawBodyPts.push({ x, y, z, lx, ly, intensity: lidar.getIntensityAt(i) });
-        }
-      }
-      const dilationRes = clusterByPointDilation5x2(rawBodyPts, {
-        basePointSize: 0.025,
-        dilationFactor: 5,
-        connectDist: 0.25,
-        dim: "2d",
-        centerBias: { lx: 0, ly: 0 }
-      });
-      const dominantDilationPts = dilationRes.dominantPts.length >= 4 ? dilationRes.dominantPts : rawBodyPts;
-      const denseCorePts = filterSparseNoiseByLocalDensity2(dominantDilationPts, { radius: 0.22, minCoreNeighbors: 2 });
-      const clusterLy = filterDenseConnectedCluster1D2(denseCorePts, "ly", 0.22, 0);
-      const bodyPts = filterDenseConnectedCluster1D2(clusterLy, "lx", 0.22, 0);
-      const dxEgo = cx - egoPos.x;
-      const dyEgo = cy - egoPos.y;
-      const vLocalX = -dxEgo * cosY + dyEgo * sinY;
-      const vLocalY = -dxEgo * sinY - dyEgo * cosY;
-      let visibleLongitudinal = vLocalX >= 0 ? "front" : "rear";
-      let visibleLateral = vLocalY >= 0 ? "left" : "right";
-      let shiftLx = 0;
-      let shiftLy = 0;
-      let roofTopZ = groundZ + H;
-      let newH = H;
-      let newL = L;
-      let newW = W;
-      let finalYaw = yaw;
-      let straightYawDeg = Number((yaw * 180 / Math.PI).toFixed(2));
-      let deltaYawDeg = 0;
-      let isSideParallelBalanced = false;
-      const preserveDimensions = options.preserveDimensions ?? true;
-      const validBodyPts = bodyPts.length >= 4 ? bodyPts : denseCorePts.length >= 4 ? denseCorePts : rawBodyPts;
-      if (validBodyPts.length >= 4) {
-        const computeSideShift = (pts, targetL, targetW, currentYaw, center_x, center_y, ego_pos) => {
-          const toEgoX = ego_pos.x - center_x;
-          const toEgoY = ego_pos.y - center_y;
-          const egoLocalX = toEgoX * Math.cos(currentYaw) + toEgoY * Math.sin(currentYaw);
-          const egoLocalY = -toEgoX * Math.sin(currentYaw) + toEgoY * Math.cos(currentYaw);
-          const edgePadding = options.edgePadding ?? 0.05;
-          const densityDecision = determineBumperByDensity2(pts, targetL, egoLocalX, egoLocalY);
-          if (densityDecision.isParallelBalanced && pts.length >= 4) {
-            const allLx = pts.map((p) => p.lx).sort((a, b) => a - b);
-            const pMinIdx = allLx.length >= 15 ? Math.floor(allLx.length * 0.015) : 0;
-            const pMaxIdx = allLx.length >= 15 ? Math.min(allLx.length - 1, Math.floor(allLx.length * 0.985)) : allLx.length - 1;
-            const lxMin = allLx[pMinIdx];
-            const lxMax = allLx[pMaxIdx];
-            let sLx2 = (lxMin + lxMax) / 2;
-            const maxShiftL2 = Math.min(0.4, targetL * 0.25);
-            sLx2 = Math.max(-maxShiftL2, Math.min(maxShiftL2, sLx2));
-            if (Math.abs(sLx2) < 0.01) sLx2 = 0;
-            return { shiftLx: sLx2, visibleBumper: densityDecision.visibleBumper, isBalanced: true };
-          }
-          const visibleBumper = densityDecision.visibleBumper;
-          const targetBumperPts = pts.filter((p) => Math.abs(p.ly) <= targetW / 2 + 0.15);
-          const activePtsForL = targetBumperPts.length >= 4 ? targetBumperPts : pts;
-          const bumperCloudPts = activePtsForL.filter((p) => visibleBumper === "front" ? p.lx > 0 : p.lx < 0);
-          const cleanBumperPts = filterSparseNoiseByLocalDensity2(bumperCloudPts, { radius: 0.15, minCoreNeighbors: 2 });
-          const finalBumperPts = cleanBumperPts.length >= 3 ? cleanBumperPts : bumperCloudPts;
-          let bumperEdge;
-          if (finalBumperPts.length >= 3) {
-            const wallDet = detectDominantWallEdgeWithValleyCutoff2(
-              finalBumperPts,
-              "lx",
-              visibleBumper === "front" ? "positive" : "negative",
-              targetL / 2,
-              { minSpanOrthogonal: 0.6 }
-            );
-            bumperEdge = wallDet.edge;
-          } else {
-            bumperEdge = visibleBumper === "front" ? targetL / 2 : -targetL / 2;
-          }
-          let sLx = 0;
-          if (visibleBumper === "front") {
-            sLx = bumperEdge + edgePadding - targetL / 2;
-          } else {
-            sLx = bumperEdge - edgePadding + targetL / 2;
-          }
-          const maxShiftL = Math.min(0.4, targetL * 0.25);
-          sLx = Math.max(-maxShiftL, Math.min(maxShiftL, sLx));
-          if (Math.abs(sLx) < 0.01) sLx = 0;
-          return { shiftLx: sLx, visibleBumper, isBalanced: false };
-        };
-        const computeTopYaw = (pts, currentYaw, targetL, targetW, visibleSide) => {
-          const wallDet = detectDominantWallEdgeWithValleyCutoff2(
-            pts,
-            "ly",
-            visibleSide === "left" ? "positive" : "negative",
-            targetW / 2,
-            { minSpanOrthogonal: 0.7 }
-          );
-          const activePtsForYaw = wallDet.wallPoints.length >= 6 ? wallDet.wallPoints : pts;
-          return straightenYawFromBoundaryEdge2(activePtsForYaw, currentYaw, targetL, targetW, visibleSide, { maxAdjustmentDeg: 12 });
-        };
-        const computeFrontShift = (pts, targetW, targetL, currentYaw, center_x, center_y, ego_pos) => {
-          const toEgoX = ego_pos.x - center_x;
-          const toEgoY = ego_pos.y - center_y;
-          const egoLocalY = -toEgoX * Math.sin(currentYaw) + toEgoY * Math.cos(currentYaw);
-          const leftSidePts = pts.filter((p) => p.ly > 0.05);
-          const rightSidePts = pts.filter((p) => p.ly < -0.05);
-          let visibleSide;
-          if (leftSidePts.length >= rightSidePts.length + 3) {
-            visibleSide = "left";
-          } else if (rightSidePts.length >= leftSidePts.length + 3) {
-            visibleSide = "right";
-          } else {
-            visibleSide = egoLocalY >= 0 ? "left" : "right";
-          }
-          const targetSidePts = pts.filter((p) => Math.abs(p.lx) <= targetL / 2 + 0.15);
-          const activePtsForW = targetSidePts.length >= 4 ? targetSidePts : pts;
-          const sideCloudPts = activePtsForW.filter((p) => visibleSide === "left" ? p.ly > 0 : p.ly < 0);
-          const cleanSidePts = filterSparseNoiseByLocalDensity2(sideCloudPts, { radius: 0.15, minCoreNeighbors: 2 });
-          const finalSidePts = cleanSidePts.length >= 3 ? cleanSidePts : sideCloudPts;
-          let boundaryEdge;
-          if (finalSidePts.length >= 3) {
-            const wallDet = detectDominantWallEdgeWithValleyCutoff2(
-              finalSidePts,
-              "ly",
-              visibleSide === "left" ? "positive" : "negative",
-              targetW / 2,
-              { minSpanOrthogonal: 0.7 }
-            );
-            boundaryEdge = wallDet.edge;
-          } else {
-            boundaryEdge = visibleSide === "left" ? targetW / 2 : -targetW / 2;
-          }
-          const edgePadding = options.edgePadding ?? 0.05;
-          let sLy = 0;
-          if (visibleSide === "left") {
-            sLy = boundaryEdge + edgePadding - targetW / 2;
-          } else {
-            sLy = boundaryEdge - edgePadding + targetW / 2;
-          }
-          const maxShiftW = Math.min(0.4, targetW * 0.3);
-          sLy = Math.max(-maxShiftW, Math.min(maxShiftW, sLy));
-          if (Math.abs(sLy) < 0.01) sLy = 0;
-          return { shiftLy: sLy, visibleSide };
-        };
-        if (fitStep === "top") {
-          const expectedRoofZ = groundZ + H;
-          roofTopZ = detectRoofTopBounds2(validBodyPts, expectedRoofZ);
-          const frontDet = computeFrontShift(validBodyPts, W, L, yaw, cx, cy, egoPos);
-          visibleLateral = frontDet.visibleSide;
-          const straightYawResult = computeTopYaw(validBodyPts, yaw, L, W, visibleLateral);
-          finalYaw = straightYawResult.newYawRad;
-          straightYawDeg = straightYawResult.newYawDeg;
-          deltaYawDeg = straightYawResult.deltaYawDeg;
-          shiftLx = 0;
-          shiftLy = 0;
-        } else if (fitStep === "side") {
-          finalYaw = yaw;
-          straightYawDeg = Number((yaw * 180 / Math.PI).toFixed(2));
-          deltaYawDeg = 0;
-          const sideRes = computeSideShift(validBodyPts, L, W, yaw, cx, cy, egoPos);
-          shiftLx = sideRes.shiftLx;
-          visibleLongitudinal = sideRes.visibleBumper;
-          isSideParallelBalanced = sideRes.isBalanced;
-          shiftLy = 0;
-        } else if (fitStep === "front") {
-          finalYaw = yaw;
-          straightYawDeg = Number((yaw * 180 / Math.PI).toFixed(2));
-          deltaYawDeg = 0;
-          const frontRes = computeFrontShift(validBodyPts, W, L, yaw, cx, cy, egoPos);
-          shiftLy = frontRes.shiftLy;
-          visibleLateral = frontRes.visibleSide;
-          shiftLx = 0;
-        } else {
-          const expectedRoofZ = groundZ + H;
-          roofTopZ = detectRoofTopBounds2(validBodyPts, expectedRoofZ);
-          let curCx = cx;
-          let curCy = cy;
-          let curYaw = yaw;
-          const toLocalPts = (cCenter_x, cCenter_y, cYaw) => {
-            const cY = Math.cos(-cYaw);
-            const sY = Math.sin(-cYaw);
-            return validBodyPts.map((p) => {
-              const dx = p.x - cCenter_x;
-              const dy = p.y - cCenter_y;
-              return {
-                x: p.x,
-                y: p.y,
-                z: p.z,
-                lx: dx * cY - dy * sY,
-                ly: dx * sY + dy * cY
-              };
-            });
-          };
-          const applyShift = (sLx, sLy, cYaw) => {
-            const cW = Math.cos(cYaw);
-            const sW = Math.sin(cYaw);
-            curCx = Number((curCx + sLx * cW - sLy * sW).toFixed(3));
-            curCy = Number((curCy + sLx * sW + sLy * cW).toFixed(3));
-          };
-          let localPts = toLocalPts(curCx, curCy, curYaw);
-          const side1 = computeSideShift(localPts, L, W, curYaw, curCx, curCy, egoPos);
-          applyShift(side1.shiftLx, 0, curYaw);
-          visibleLongitudinal = side1.visibleBumper;
-          localPts = toLocalPts(curCx, curCy, curYaw);
-          const frontDet1 = computeFrontShift(localPts, W, L, curYaw, curCx, curCy, egoPos);
-          const top1 = computeTopYaw(localPts, curYaw, L, W, frontDet1.visibleSide);
-          curYaw = top1.newYawRad;
-          localPts = toLocalPts(curCx, curCy, curYaw);
-          const front1 = computeFrontShift(localPts, W, L, curYaw, curCx, curCy, egoPos);
-          applyShift(0, front1.shiftLy, curYaw);
-          visibleLateral = front1.visibleSide;
-          localPts = toLocalPts(curCx, curCy, curYaw);
-          const side2 = computeSideShift(localPts, L, W, curYaw, curCx, curCy, egoPos);
-          applyShift(side2.shiftLx, 0, curYaw);
-          visibleLongitudinal = side2.visibleBumper;
-          localPts = toLocalPts(curCx, curCy, curYaw);
-          const top2 = computeTopYaw(localPts, curYaw, L, W, visibleLateral);
-          curYaw = top2.newYawRad;
-          localPts = toLocalPts(curCx, curCy, curYaw);
-          const front2 = computeFrontShift(localPts, W, L, curYaw, curCx, curCy, egoPos);
-          applyShift(0, front2.shiftLy, curYaw);
-          visibleLateral = front2.visibleSide;
-          finalYaw = curYaw;
-          straightYawDeg = Number((finalYaw * 180 / Math.PI).toFixed(2));
-          deltaYawDeg = Number(((finalYaw - yaw) * 180 / Math.PI).toFixed(2));
-          while (deltaYawDeg > 180) deltaYawDeg -= 360;
-          while (deltaYawDeg < -180) deltaYawDeg += 360;
-          const cFinal = Math.cos(-finalYaw);
-          const sFinal = Math.sin(-finalYaw);
-          const totalDx = curCx - cx;
-          const totalDy = curCy - cy;
-          shiftLx = Number((totalDx * cFinal - totalDy * sFinal).toFixed(3));
-          shiftLy = Number((totalDx * sFinal + totalDy * cFinal).toFixed(3));
-        }
-        if (fitStep === "top") {
-          shiftLx = 0;
-          shiftLy = 0;
-        } else {
-          const maxShiftL = Math.min(0.4, L * 0.25);
-          const maxShiftW = Math.min(0.4, W * 0.3);
-          shiftLx = Math.max(-maxShiftL, Math.min(maxShiftL, shiftLx));
-          shiftLy = Math.max(-maxShiftW, Math.min(maxShiftW, shiftLy));
-        }
-        if (preserveDimensions !== true) {
-          const measuredH = roofTopZ - groundZ;
-          newH = Number(Math.max(1.35, Math.min(2.8, measuredH)).toFixed(2));
-        } else {
-          newH = H;
-          newL = L;
-          newW = W;
-        }
-      }
-      const cosWorld = Math.cos(finalYaw);
-      const sinWorld = Math.sin(finalYaw);
-      const newX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
-      const newY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
-      const cosPitch = Math.cos(pitchRad);
-      const cosRoll = Math.cos(rollRad);
-      let newZ = Number((groundZ + newH / 2 * cosPitch * cosRoll).toFixed(3));
-      let finalPitch = pitchRad;
-      let finalRoll = rollRad;
-      if (fitStep === "top" || fitStep === "side" || fitStep === "front") {
-        newZ = cz;
-        finalPitch = points[4] || 0;
-        finalRoll = points[3] || 0;
-      }
-      const faceTextLong = visibleLongitudinal === "front" ? "Mặt Trước" : "Mặt Sau";
-      const faceTextLat = visibleLateral === "left" ? "Sườn Trái" : "Sườn Phải";
-      let msg = `Đã ghép chu trình (Đất ➔ Side ➔ Top ➔ Front ➔ Side ➔ Top ➔ Front): Yaw ${straightYawDeg}°, Cản [${faceTextLong}], Sườn [${faceTextLat}] & Ghim Đất (Z: ${newZ}m)`;
-      if (fitStep === "top") {
-        const deltaSign = deltaYawDeg >= 0 ? "+" : "";
-        msg = `Đã căn TOP: Xoay Yaw (${straightYawDeg}°, Δ=${deltaSign}${deltaYawDeg}°) song song sườn đón tia [${faceTextLat}], khóa tâm X/Y (giữ nguyên cao độ Z)`;
-      } else if (fitStep === "side") {
-        const deltaXSign = shiftLx >= 0 ? "+" : "";
-        if (isSideParallelBalanced) {
-          msg = `Đã căn SIDE: Chiếu ngang sườn song song (Fit đều đầu & cuối xe, ΔX: ${deltaXSign}${shiftLx.toFixed(2)}m, giữ nguyên cao độ Z)`;
-        } else {
-          msg = `Đã căn SIDE: Cản [${faceTextLong}] đón tia (ΔX: ${deltaXSign}${shiftLx.toFixed(2)}m, giữ nguyên cao độ Z)`;
-        }
-      } else if (fitStep === "front") {
-        const deltaYSign = shiftLy >= 0 ? "+" : "";
-        msg = `Đã căn FRONT: Mép sườn [${faceTextLat}] ăn khít phương W (ΔY: ${deltaYSign}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên cao độ Z)`;
-      }
-      return {
-        newX,
-        newY,
-        newZ,
-        newYawRad: finalYaw,
-        newYawDeg: straightYawDeg,
-        deltaYawDeg,
-        newL,
-        newW,
-        newH,
-        pitchRad: finalPitch,
-        rollRad: finalRoll,
-        pitchDeg: Number((finalPitch * 180 / Math.PI).toFixed(2)),
-        rollDeg: Number((finalRoll * 180 / Math.PI).toFixed(2)),
-        groundZ,
-        roofTopZ,
-        shiftLx: Number(shiftLx.toFixed(3)),
-        shiftLy: Number(shiftLy.toFixed(3)),
-        visibleFaces: {
-          longitudinal: visibleLongitudinal,
-          lateral: visibleLateral
-        },
-        dominantEdge: {
-          edgeSide: visibleLateral,
-          bumperSide: visibleLongitudinal,
-          sideWallEdge: Number(shiftLy.toFixed(3)),
-          bumperEdge: Number(shiftLx.toFixed(3))
-        },
-        pointsCount: bodyPts.length,
-        fitStep,
-        message: msg
-      };
-    }
-    function fitPedestrianInMainWorld(points, options = {}) {
-      const cx = points[0];
-      const cy = points[1];
-      const cz = points[2];
-      const yaw = points[5];
-      const curL = points[6] || 0.65;
-      const curW = points[7] || 0.65;
-      const curH = points[8] || 1.7;
-      const step = options.step ?? "all";
-      const curYawDeg = Number((yaw * 180 / Math.PI).toFixed(2));
-      const lidar = getSceneLidarPoints();
-      if (!lidar || lidar.count === 0) {
-        return {
-          newX: cx,
-          newY: cy,
-          newZ: cz,
-          newYaw: yaw,
-          newYawDeg: curYawDeg,
-          deltaYawDeg: 0,
-          newL: curL,
-          newW: curW,
-          newH: curH,
-          groundZ: cz - curH / 2,
-          pointsCount: 0,
-          step,
-          message: "Không tìm thấy điểm LiDAR trong scene"
-        };
-      }
-      const { count, array } = lidar;
-      const headBuffer = options.headBuffer ?? 0.05;
-      const margin = options.margin ?? 0.15;
-      const footRadius = Math.max(0.35, Math.max(curL, curW) / 2 + margin);
-      const footGroundPts = [];
-      const maxFootGroundZ = cz - curH / 2 + 0.35;
-      const minFootGroundZ = cz - 4;
-      for (let i = 0; i < count; i++) {
-        const z = array[i * 3 + 2];
-        if (z > maxFootGroundZ || z < minFootGroundZ) continue;
-        const x = array[i * 3];
-        const y = array[i * 3 + 1];
-        const dx = x - cx;
-        const dy = y - cy;
-        if (dx * dx + dy * dy <= footRadius * footRadius) {
-          footGroundPts.push(z);
-        }
-      }
-      let groundZ = cz - curH / 2;
-      if (footGroundPts.length >= 3) {
-        footGroundPts.sort((a, b) => a - b);
-        groundZ = footGroundPts[Math.max(0, Math.floor(footGroundPts.length * 0.15))];
-      }
-      const minCoreZ = groundZ + 0.3;
-      const maxBodyZ = groundZ + 2;
-      const minFootZ = step === "side" || step === "front" ? groundZ + 0.02 : groundZ + 0.08;
-      const outerL = Math.max(0.45, curL / 2 + 0.25);
-      const outerW = Math.max(0.4, curW / 2 + 0.25);
-      const cosY = Math.cos(-yaw);
-      const sinY = Math.sin(-yaw);
-      const coreBodyPts = [];
-      const footPts = [];
-      for (let i = 0; i < count; i++) {
-        const z = array[i * 3 + 2];
-        if (z < minFootZ || z > maxBodyZ) continue;
-        const x = array[i * 3];
-        const y = array[i * 3 + 1];
-        const dx = x - cx;
-        const dy = y - cy;
-        const lx = dx * cosY - dy * sinY;
-        const ly = dx * sinY + dy * cosY;
-        const intensity = lidar.getIntensityAt(i);
-        if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
-          if (z >= minCoreZ) {
-            coreBodyPts.push({ lx, ly, z, intensity });
-          } else {
-            if (Math.abs(lx) <= Math.max(0.35, curL / 2 + 0.12) && Math.abs(ly) <= Math.max(0.3, curW / 2 + 0.12)) {
-              footPts.push({ lx, ly, z, intensity });
+          if (!created && winThree && typeof winThree.BufferAttribute === "function") {
+            try {
+              geom.setAttribute("color", new winThree.BufferAttribute(colorArray, 3));
+              colorAttr = geom.attributes.color;
+              created = !!colorAttr;
+            } catch (_) {
             }
           }
-        }
-      }
-      let rawBodyPts;
-      if (step === "side" || step === "front") {
-        rawBodyPts = [...coreBodyPts, ...footPts];
-      } else {
-        rawBodyPts = coreBodyPts.length >= 8 ? coreBodyPts : [...coreBodyPts, ...footPts];
-      }
-      const isSparse = rawBodyPts.length <= 12;
-      let cleanPedPts = rawBodyPts;
-      if (!isSparse) {
-        const pedDilationRes = clusterByPointDilation5x2(rawBodyPts, {
-          basePointSize: 0.022,
-          dilationFactor: 5,
-          connectDist: 0.22,
-          dim: "2d",
-          centerBias: { lx: 0, ly: 0 }
-        });
-        cleanPedPts = pedDilationRes.dominantPts.length >= 6 ? pedDilationRes.dominantPts : rawBodyPts;
-      }
-      const maxGapLx = step === "side" || isSparse ? 0.32 : 0.22;
-      const maxGapLy = step === "front" || isSparse ? 0.3 : 0.22;
-      const clusterLy = filterDenseConnectedCluster1D2(cleanPedPts, "ly", maxGapLy, 0);
-      const bodyPts = filterDenseConnectedCluster1D2(clusterLy, "lx", maxGapLx, 0);
-      let newX = cx;
-      let newY = cy;
-      let newZ = cz;
-      let newYaw = yaw;
-      let newYawDeg = curYawDeg;
-      let deltaYawDeg = 0;
-      let newL = curL;
-      let newW = curW;
-      let newH = curH;
-      let msg = "";
-      if (bodyPts.length < 3) {
-        return {
-          newX,
-          newY,
-          newZ,
-          newYaw,
-          newYawDeg,
-          deltaYawDeg: 0,
-          newL,
-          newW,
-          newH,
-          groundZ: Number(groundZ.toFixed(3)),
-          pointsCount: bodyPts.length,
-          step,
-          message: `Không đủ điểm LiDAR thân người (${bodyPts.length} điểm), giữ nguyên box`
-        };
-      }
-      const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
-      const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
-      const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
-      const pMinIdx = !isSparse && bodyPts.length >= 25 ? Math.floor(bodyPts.length * 0.01) : 0;
-      const pMaxIdx = !isSparse && bodyPts.length >= 25 ? Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.99)) : bodyPts.length - 1;
-      const lxMin = allLx[pMinIdx];
-      const lxMax = allLx[pMaxIdx];
-      const lyMin = allLy[pMinIdx];
-      const lyMax = allLy[pMaxIdx];
-      const highestPtZ = detectTrueHeadZInMainWorld(allZ, 0.15, groundZ, 1.78);
-      const normalizeRad = (r) => {
-        let a = r;
-        while (a > Math.PI) a -= 2 * Math.PI;
-        while (a < -Math.PI) a += 2 * Math.PI;
-        return a;
-      };
-      if (step === "top") {
-        let sumLx = 0;
-        let sumLy = 0;
-        for (const p of bodyPts) {
-          sumLx += p.lx;
-          sumLy += p.ly;
-        }
-        const meanLx = sumLx / bodyPts.length;
-        const meanLy = sumLy / bodyPts.length;
-        let sxx = 0;
-        let syy = 0;
-        let sxy = 0;
-        for (const p of bodyPts) {
-          const dx = p.lx - meanLx;
-          const dy = p.ly - meanLy;
-          sxx += dx * dx;
-          syy += dy * dy;
-          sxy += dx * dy;
-        }
-        const dTheta = 0.5 * Math.atan2(2 * sxy, sxx - syy);
-        const dThetaDeg = dTheta * 180 / Math.PI;
-        if (Math.abs(dThetaDeg) <= 25) {
-          newYaw = normalizeRad(yaw + dTheta);
-          newYawDeg = Number((newYaw * 180 / Math.PI).toFixed(2));
-          deltaYawDeg = Number(dThetaDeg.toFixed(2));
-        } else {
-          newYaw = yaw;
-          newYawDeg = curYawDeg;
-          deltaYawDeg = 0;
-        }
-        newX = cx;
-        newY = cy;
-        newZ = cz;
-        newL = curL;
-        newW = curW;
-        newH = curH;
-        const sign = deltaYawDeg >= 0 ? "+" : "";
-        msg = `Đã căn TOP Người đi bộ: Xoay Yaw (${newYawDeg}°, Δ=${sign}${deltaYawDeg}°) theo trục cơ thể, khóa tâm X/Y/Z & L/W/H (kháng dính đám đông)`;
-      } else if (step === "side") {
-        newYaw = yaw;
-        newYawDeg = curYawDeg;
-        deltaYawDeg = 0;
-        newL = curL;
-        newW = curW;
-        newH = curH;
-        newZ = cz;
-        let shiftLx = 0;
-        let bumperName = "Cân đối";
-        if (options.egoPos) {
-          const toEgoX = options.egoPos.x - cx;
-          const toEgoY = options.egoPos.y - cy;
-          const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
-          const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-          const isSideBeamParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * 0.466;
-          if (isSideBeamParallel) {
-            shiftLx = (lxMin + lxMax) / 2;
-            bumperName = "Chiếu ngang sườn (Dàn đều trước - sau)";
-          } else if (egoLocalX < 0) {
-            shiftLx = lxMin - 0.02 + curL / 2;
-            bumperName = "Mặt sau";
-          } else {
-            shiftLx = lxMax + 0.02 - curL / 2;
-            bumperName = "Mặt trước";
+          if (!colorAttr) {
+            colorAttr = { array: colorArray, needsUpdate: false };
+            geom.attributes.color = colorAttr;
           }
         } else {
-          const frontCount = bodyPts.filter((p) => p.lx > 0).length;
-          const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
-          if (frontCount > rearCount * 1.5) {
-            shiftLx = lxMax + 0.02 - curL / 2;
-            bumperName = "Mặt trước";
-          } else if (rearCount > frontCount * 1.5) {
-            shiftLx = lxMin - 0.02 + curL / 2;
-            bumperName = "Mặt sau";
-          } else {
-            shiftLx = (lxMin + lxMax) / 2;
-            bumperName = "Cân đối";
-          }
+          colorArray = colorAttr.array;
         }
-        shiftLx = Math.max(-0.35, Math.min(0.35, shiftLx));
-        if (Math.abs(shiftLx) < 5e-3) shiftLx = 0;
-        newX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
-        newY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
-        const signX = shiftLx >= 0 ? "+" : "";
-        msg = `Đã căn SIDE Người đi bộ: [${bumperName}] bám mép đón tia (ΔX: ${signX}${(shiftLx * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
-      } else if (step === "front") {
-        newYaw = yaw;
-        newYawDeg = curYawDeg;
-        deltaYawDeg = 0;
-        newL = curL;
-        newW = curW;
-        newH = curH;
-        newZ = cz;
-        let visibleSide = "center";
-        let shiftLy = 0;
-        const edgePadding = 0.025;
-        if (options.egoPos) {
-          const toEgoX = options.egoPos.x - cx;
-          const toEgoY = options.egoPos.y - cy;
-          const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
-          const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-          if (Math.abs(egoLocalY) <= Math.abs(egoLocalX) * 0.15 && Math.abs(egoLocalY) < 0.1) {
-            visibleSide = "center";
-            shiftLy = (lyMin + lyMax) / 2;
-          } else if (egoLocalY >= 0) {
-            visibleSide = "left";
-            shiftLy = lyMax + edgePadding - curW / 2;
-          } else {
-            visibleSide = "right";
-            shiftLy = lyMin - edgePadding + curW / 2;
+        for (let i = 0; i < count; i++) {
+          const idx3 = i * 3;
+          const px = posArray[idx3];
+          const py = posArray[idx3 + 1];
+          const pz = posArray[idx3 + 2];
+          if (numBoxes === 0 || px < globalMinX || px > globalMaxX || py < globalMinY || py > globalMaxY || pz < globalMinZ || pz > globalMaxZ) {
+            colorArray[idx3] = plainR;
+            colorArray[idx3 + 1] = plainG;
+            colorArray[idx3 + 2] = plainB;
+            continue;
           }
-        } else {
-          const leftCount = bodyPts.filter((p) => p.ly > 0.03).length;
-          const rightCount = bodyPts.filter((p) => p.ly < -0.03).length;
-          if (leftCount > rightCount * 1.3) {
-            visibleSide = "left";
-            shiftLy = lyMax + edgePadding - curW / 2;
-          } else if (rightCount > leftCount * 1.3) {
-            visibleSide = "right";
-            shiftLy = lyMin - edgePadding + curW / 2;
-          } else {
-            visibleSide = "center";
-            shiftLy = (lyMin + lyMax) / 2;
-          }
-        }
-        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
-        if (Math.abs(shiftLy) < 5e-3) shiftLy = 0;
-        newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
-        newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
-        const signY = shiftLy >= 0 ? "+" : "";
-        const sideText = visibleSide === "left" ? "Sườn Trái đón tia Ego" : visibleSide === "right" ? "Sườn Phải đón tia Ego" : "Cân đối 2 sườn";
-        msg = `Đã căn FRONT Người đi bộ: [${sideText}] ôm sát viền đón tia (ΔY: ${signY}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên Z), Khóa size ${curL}x${curW}x${curH}m`;
-      } else if (step === "l") {
-        newYaw = yaw;
-        newYawDeg = curYawDeg;
-        deltaYawDeg = 0;
-        newW = curW;
-        newH = curH;
-        newZ = cz;
-        const spanL = lxMax - lxMin + 0.05;
-        let shiftLx = 0;
-        if (spanL > 0.78) {
-          newL = 0.78;
-          if (options.egoPos) {
-            const toEgoX = options.egoPos.x - cx;
-            const toEgoY = options.egoPos.y - cy;
-            const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
-            const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-            const isSideBeamParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * 0.466;
-            if (isSideBeamParallel) {
-              shiftLx = (lxMin + lxMax) / 2;
-            } else if (egoLocalX < 0) {
-              shiftLx = lxMin - 0.02 + newL / 2;
-            } else {
-              shiftLx = lxMax + 0.02 - newL / 2;
-            }
-          } else {
-            shiftLx = (lxMin + lxMax) / 2;
-          }
-        } else {
-          newL = Number(Math.max(0.35, Math.min(0.78, spanL)).toFixed(2));
-          shiftLx = (lxMin + lxMax) / 2;
-        }
-        shiftLx = Math.max(-0.35, Math.min(0.35, shiftLx));
-        newX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
-        newY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
-        const signX = shiftLx >= 0 ? "+" : "";
-        msg = `Đã fix Chiều Dài (L) Người đi bộ: L=${newL}m (căn tâm X: ${signX}${(shiftLx * 100).toFixed(1)}cm, kháng ghosting), giữ nguyên W, H & Z`;
-      } else if (step === "w") {
-        newYaw = yaw;
-        newYawDeg = curYawDeg;
-        deltaYawDeg = 0;
-        newL = curL;
-        newH = curH;
-        newZ = cz;
-        const spanW = lyMax - lyMin + 0.04;
-        let shiftLy = 0;
-        if (spanW > 0.68) {
-          newW = 0.68;
-          if (options.egoPos) {
-            const toEgoX = options.egoPos.x - cx;
-            const toEgoY = options.egoPos.y - cy;
-            const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-            if (egoLocalY > 0.04) {
-              shiftLy = lyMax + 0.01 - newW / 2;
-            } else if (egoLocalY < -0.04) {
-              shiftLy = lyMin - 0.01 + newW / 2;
-            } else {
-              shiftLy = (lyMin + lyMax) / 2;
-            }
-          } else {
-            shiftLy = (lyMin + lyMax) / 2;
-          }
-        } else {
-          newW = Number(Math.max(0.35, Math.min(0.68, spanW)).toFixed(2));
-          shiftLy = (lyMin + lyMax) / 2;
-        }
-        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
-        newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
-        newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
-        const signY = shiftLy >= 0 ? "+" : "";
-        msg = `Đã fix Chiều Rộng (W) Người đi bộ: W=${newW}m (căn tâm Y: ${signY}${(shiftLy * 100).toFixed(1)}cm, vừa khít vai), giữ nguyên L, H & Z`;
-      } else if (step === "h") {
-        newYaw = yaw;
-        newYawDeg = curYawDeg;
-        deltaYawDeg = 0;
-        newL = curL;
-        newW = curW;
-        newX = cx;
-        newY = cy;
-        const currentBaseZ = cz - curH / 2;
-        const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
-        const roofTopZ = highestPtZ + headBuffer;
-        const maxCapPedH = options.headBuffer !== void 0 ? 1.95 : 1.78;
-        newH = Number(Math.max(1, Math.min(maxCapPedH, roofTopZ - effectiveBaseZ)).toFixed(2));
-        newZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
-        msg = `Đã fix Chiều Cao (H) Người đi bộ: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên đỉnh đầu +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
-      } else {
-        const spanL = lxMax - lxMin + 0.05;
-        newL = Number(Math.max(0.4, Math.min(0.78, spanL)).toFixed(2));
-        const spanW = lyMax - lyMin + 0.04;
-        newW = Number(Math.max(0.38, Math.min(0.68, spanW)).toFixed(2));
-        const roofTopZ = highestPtZ + headBuffer;
-        const maxCapPedH = options.headBuffer !== void 0 ? 1.95 : 1.78;
-        newH = Number(Math.max(1.05, Math.min(maxCapPedH, roofTopZ - groundZ)).toFixed(2));
-        let shiftLx = (lxMin + lxMax) / 2;
-        let shiftLy = (lyMin + lyMax) / 2;
-        const maxShift = 0.4;
-        shiftLx = Math.max(-maxShift, Math.min(maxShift, shiftLx));
-        shiftLy = Math.max(-maxShift, Math.min(maxShift, shiftLy));
-        const cosWorld = Math.cos(yaw);
-        const sinWorld = Math.sin(yaw);
-        newX = Number((cx + shiftLx * cosWorld - shiftLy * sinWorld).toFixed(3));
-        newY = Number((cy + shiftLx * sinWorld + shiftLy * cosWorld).toFixed(3));
-        newZ = Number((groundZ + newH / 2).toFixed(3));
-        msg = `Đã fit Người Đi Bộ: ${newL}x${newW}x${newH}m (Khóa thẳng đứng 0°, Ghim đất Z: ${newZ}m, Bù đỉnh đầu +${Math.round(headBuffer * 100)}cm)`;
-      }
-      return {
-        newX,
-        newY,
-        newZ,
-        newYaw,
-        newYawDeg,
-        deltaYawDeg,
-        newL,
-        newW,
-        newH,
-        groundZ: Number(groundZ.toFixed(3)),
-        pointsCount: bodyPts.length,
-        step,
-        message: msg
-      };
-    }
-    function fitCyclistInMainWorld(points, options = {}) {
-      const cx = points[0];
-      const cy = points[1];
-      const cz = points[2];
-      const yaw = points[5];
-      const curL = points[6] || 1.75;
-      const curW = points[7] || 0.65;
-      const curH = points[8] || 1.55;
-      const step = options.step ?? "all";
-      const curYawDeg = Number((yaw * 180 / Math.PI).toFixed(2));
-      const lidar = getSceneLidarPoints();
-      if (!lidar || lidar.count === 0) {
-        return {
-          newX: cx,
-          newY: cy,
-          newZ: cz,
-          newYaw: yaw,
-          newYawDeg: curYawDeg,
-          deltaYawDeg: 0,
-          newL: curL,
-          newW: curW,
-          newH: curH,
-          groundZ: cz - curH / 2,
-          pointsCount: 0,
-          step,
-          message: "Không tìm thấy điểm LiDAR trong scene"
-        };
-      }
-      const { count, array } = lidar;
-      const headBuffer = options.headBuffer ?? 0.05;
-      const margin = options.margin ?? 0.2;
-      const footRadius = Math.max(0.6, curL / 2 + margin);
-      const groundPts = [];
-      const maxGroundZ = cz - curH / 2 + 0.35;
-      const minGroundZ = cz - 4;
-      for (let i = 0; i < count; i++) {
-        const z = array[i * 3 + 2];
-        if (z > maxGroundZ || z < minGroundZ) continue;
-        const x = array[i * 3];
-        const y = array[i * 3 + 1];
-        const dx = x - cx;
-        const dy = y - cy;
-        if (dx * dx + dy * dy <= footRadius * footRadius) {
-          groundPts.push(z);
-        }
-      }
-      let groundZ = cz - curH / 2;
-      if (groundPts.length >= 3) {
-        groundPts.sort((a, b) => a - b);
-        groundZ = groundPts[Math.max(0, Math.floor(groundPts.length * 0.15))];
-      }
-      const minCoreZ = groundZ + 0.25;
-      const maxBodyZ = groundZ + 2;
-      const minWheelZ = step === "side" || step === "front" ? groundZ + 0.02 : groundZ + 0.08;
-      const outerL = curL / 2 + 0.45;
-      const outerW = Math.max(curW, 0.85) / 2 + 0.45;
-      const cosY = Math.cos(-yaw);
-      const sinY = Math.sin(-yaw);
-      const corePts = [];
-      const wheelPts = [];
-      for (let i = 0; i < count; i++) {
-        const z = array[i * 3 + 2];
-        if (z < minWheelZ || z > maxBodyZ) continue;
-        const x = array[i * 3];
-        const y = array[i * 3 + 1];
-        const dx = x - cx;
-        const dy = y - cy;
-        const lx = dx * cosY - dy * sinY;
-        const ly = dx * sinY + dy * cosY;
-        const intensity = lidar.getIntensityAt(i);
-        if (Math.abs(lx) <= outerL && Math.abs(ly) <= outerW) {
-          if (z >= minCoreZ) {
-            corePts.push({ lx, ly, z, intensity });
-          } else {
-            if (Math.abs(ly) <= Math.max(0.25, curW / 2 + 0.08)) {
-              wheelPts.push({ lx, ly, z, intensity });
+          let _v2 = 0.5;
+          if (intensityAttr && i < intensityAttr.length) {
+            const rawInt = intensityAttr[i];
+            if (typeof rawInt === "number" && !isNaN(rawInt) && isFinite(rawInt)) {
+              _v2 = rawInt <= 1 ? Math.max(0, rawInt) : Math.min(1, Math.max(0, rawInt) / 255);
             }
           }
-        }
-      }
-      let rawPts;
-      if (step === "side" || step === "front") {
-        rawPts = [...corePts, ...wheelPts];
-      } else {
-        rawPts = corePts.length >= 8 ? corePts : [...corePts, ...wheelPts];
-      }
-      const isSparse = rawPts.length <= 12;
-      let cleanCyclistPts = rawPts;
-      if (!isSparse) {
-        const cyclistDilationRes = clusterByPointDilation5x2(rawPts, {
-          basePointSize: 0.03,
-          dilationFactor: 5,
-          connectDist: 0.3,
-          connectDistLx: 0.38,
-          connectDistLy: 0.32,
-          dim: "2d",
-          centerBias: { lx: 0, ly: 0 }
-        });
-        cleanCyclistPts = cyclistDilationRes.dominantPts.length >= 8 ? cyclistDilationRes.dominantPts : rawPts;
-      }
-      const maxGapLx = step === "side" || isSparse ? 0.38 : 0.28;
-      const maxGapLy = step === "front" || isSparse ? 0.35 : 0.24;
-      const clusterLy = filterDenseConnectedCluster1D2(cleanCyclistPts, "ly", maxGapLy, 0);
-      const bodyPts = filterDenseConnectedCluster1D2(clusterLy, "lx", maxGapLx, 0);
-      let newX = cx;
-      let newY = cy;
-      let newZ = cz;
-      let newYaw = yaw;
-      let newYawDeg = curYawDeg;
-      let deltaYawDeg = 0;
-      let newL = curL;
-      let newW = curW;
-      let newH = curH;
-      let msg = "";
-      if (bodyPts.length < 3) {
-        return {
-          newX,
-          newY,
-          newZ,
-          newYaw,
-          newYawDeg,
-          deltaYawDeg: 0,
-          newL,
-          newW,
-          newH,
-          groundZ: Number(groundZ.toFixed(3)),
-          pointsCount: bodyPts.length,
-          step,
-          message: `Không đủ điểm LiDAR xe 2 bánh (${bodyPts.length} điểm)`
-        };
-      }
-      const allLx = bodyPts.map((p) => p.lx).sort((a, b) => a - b);
-      const allLy = bodyPts.map((p) => p.ly).sort((a, b) => a - b);
-      const allZ = bodyPts.map((p) => p.z).sort((a, b) => a - b);
-      const pMinIdx = !isSparse && bodyPts.length >= 35 ? Math.floor(bodyPts.length * 0.01) : 0;
-      const pMaxIdx = !isSparse && bodyPts.length >= 35 ? Math.min(bodyPts.length - 1, Math.floor(bodyPts.length * 0.99)) : bodyPts.length - 1;
-      const lxMin = allLx[pMinIdx];
-      const lxMax = allLx[pMaxIdx];
-      const lyMin = allLy[pMinIdx];
-      const lyMax = allLy[pMaxIdx];
-      const highestPtZ = detectTrueHeadZInMainWorld(allZ, 0.15, groundZ, 1.6);
-      const normalizeRad = (r) => {
-        let a = r;
-        while (a > Math.PI) a -= 2 * Math.PI;
-        while (a < -Math.PI) a += 2 * Math.PI;
-        return a;
-      };
-      const calcHeadingDelta = () => {
-        const n = bodyPts.length;
-        let sumLx = 0;
-        let sumLy = 0;
-        for (const p of bodyPts) {
-          sumLx += p.lx;
-          sumLy += p.ly;
-        }
-        const meanLx = sumLx / n;
-        const meanLy = sumLy / n;
-        let sxx = 0;
-        let syy = 0;
-        let sxy = 0;
-        for (const p of bodyPts) {
-          const dx = p.lx - meanLx;
-          const dy = p.ly - meanLy;
-          sxx += dx * dx;
-          syy += dy * dy;
-          sxy += dx * dy;
-        }
-        sxx /= n;
-        syy /= n;
-        sxy /= n;
-        const deltaThetaPca = 0.5 * Math.atan2(2 * sxy, sxx - syy);
-        const sorted = [...bodyPts].sort((a, b) => a.lx - b.lx);
-        const sliceCount = Math.max(1, Math.floor(n * 0.3));
-        const rearSlice = sorted.slice(0, sliceCount);
-        const frontSlice = sorted.slice(Math.max(sliceCount, n - sliceCount));
-        const rearLx = rearSlice.reduce((s, p) => s + p.lx, 0) / rearSlice.length;
-        const rearLy = rearSlice.reduce((s, p) => s + p.ly, 0) / rearSlice.length;
-        const frontLx = frontSlice.reduce((s, p) => s + p.lx, 0) / frontSlice.length;
-        const frontLy = frontSlice.reduce((s, p) => s + p.ly, 0) / frontSlice.length;
-        const dLx = frontLx - rearLx;
-        const dLy = frontLy - rearLy;
-        let deltaThetaExt = deltaThetaPca;
-        if (dLx >= 0.3) {
-          deltaThetaExt = Math.atan2(dLy, dLx);
-        }
-        let dTheta = Math.abs(deltaThetaPca - deltaThetaExt) < 0.2 ? 0.7 * deltaThetaPca + 0.3 * deltaThetaExt : deltaThetaPca;
-        return Math.max(-Math.PI / 4, Math.min(Math.PI / 4, dTheta));
-      };
-      if (step === "top") {
-        const dTheta = calcHeadingDelta();
-        newYaw = normalizeRad(yaw + dTheta);
-        newYawDeg = Number((newYaw * 180 / Math.PI).toFixed(2));
-        deltaYawDeg = Number((dTheta * 180 / Math.PI).toFixed(2));
-        newX = cx;
-        newY = cy;
-        newZ = cz;
-        newL = curL;
-        newW = curW;
-        newH = curH;
-        const sign = deltaYawDeg >= 0 ? "+" : "";
-        msg = `Đã căn TOP Xe 2 bánh: Xoay Yaw (${newYawDeg}°, Δ=${sign}${deltaYawDeg}°) theo trục Đầu - Đuôi, khóa tâm X/Y/Z & L/W/H`;
-      } else if (step === "side") {
-        newYaw = yaw;
-        newYawDeg = curYawDeg;
-        deltaYawDeg = 0;
-        newL = curL;
-        newW = curW;
-        newH = curH;
-        let shiftLx = 0;
-        let bumperName = "Đón tia";
-        const riderPts = bodyPts.filter((p) => p.z >= groundZ + 0.65);
-        const hasRider = riderPts.length >= 2;
-        let lxRider = 0;
-        if (hasRider) {
-          const sortedRiderLx = riderPts.map((p) => p.lx).sort((a, b) => a - b);
-          lxRider = sortedRiderLx[Math.floor(sortedRiderLx.length / 2)];
-        }
-        const distFront = hasRider ? lxMax - lxRider : curL / 2;
-        const distRear = hasRider ? lxRider - lxMin : curL / 2;
-        const isMissingFront = hasRider && distFront < 0.28 * curL;
-        const isMissingRear = hasRider && distRear < 0.38 * curL;
-        let toEgoX = 0;
-        let toEgoY = 0;
-        let egoLocalX = 0;
-        let egoLocalY = 0;
-        let hasEgo = false;
-        let isSideBeamParallel = false;
-        if (options.egoPos) {
-          toEgoX = options.egoPos.x - cx;
-          toEgoY = options.egoPos.y - cy;
-          egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
-          egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-          hasEgo = true;
-          isSideBeamParallel = Math.abs(egoLocalX) <= Math.abs(egoLocalY) * 0.466;
-        }
-        if (isMissingFront && isMissingRear) {
-          shiftLx = lxRider - 0.08 * curL;
-          bumperName = "Người lái 42% (Mất cả 2 bánh)";
-        } else if (isMissingFront) {
-          const estFrontEdge = lxRider + 0.42 * curL;
-          if (hasEgo && !isSideBeamParallel && egoLocalX < 0) {
-            shiftLx = lxMin - 0.02 + curL / 2;
-            bumperName = "Cản sau (Mất bánh trước)";
-          } else {
-            shiftLx = (lxMin + estFrontEdge) / 2;
-            bumperName = "Người lái 42% + Bánh sau (Mất bánh trước)";
+          let matched = null;
+          let matchCount = 0;
+          let candidateIndices = null;
+          if (numBoxes >= 4) {
+            const gx = Math.floor(px * 0.125);
+            const gy = Math.floor(py * 0.125);
+            const key = gx + 2048 << 12 | gy + 2048 & 4095;
+            candidateIndices = spatialBoxGrid.get(key) || null;
           }
-        } else if (isMissingRear) {
-          const estRearEdge = lxRider - 0.58 * curL;
-          if (hasEgo && !isSideBeamParallel && egoLocalX > 0) {
-            shiftLx = lxMax + 0.02 - curL / 2;
-            bumperName = "Cản trước (Mất bánh sau)";
-          } else {
-            shiftLx = (estRearEdge + lxMax) / 2;
-            bumperName = "Người lái 42% + Bánh trước (Mất bánh sau)";
-          }
-        } else {
-          if (hasEgo) {
-            if (isSideBeamParallel) {
-              shiftLx = (lxMin + lxMax) / 2;
-              bumperName = "Chiếu ngang sườn (Dàn đều 2 bánh)";
-            } else if (egoLocalX < 0) {
-              shiftLx = lxMin - 0.03 + curL / 2;
-              bumperName = "Cản/Bánh sau đón tia";
-            } else {
-              shiftLx = lxMax + 0.03 - curL / 2;
-              bumperName = "Cản/Bánh trước đón tia";
-            }
-          } else {
-            const frontCount = bodyPts.filter((p) => p.lx > 0).length;
-            const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
-            if (frontCount > rearCount * 1.5) {
-              shiftLx = lxMax + 0.03 - curL / 2;
-              bumperName = "Cản trước";
-            } else if (rearCount > frontCount * 1.5) {
-              shiftLx = lxMin - 0.03 + curL / 2;
-              bumperName = "Cản sau";
-            } else {
-              shiftLx = (lxMin + lxMax) / 2;
-              bumperName = "Cân đối";
-            }
-          }
-        }
-        shiftLx = Math.max(-0.6, Math.min(0.6, shiftLx));
-        if (Math.abs(shiftLx) < 5e-3) shiftLx = 0;
-        newZ = cz;
-        newX = Number((cx + shiftLx * Math.cos(yaw)).toFixed(3));
-        newY = Number((cy + shiftLx * Math.sin(yaw)).toFixed(3));
-        const signX = shiftLx >= 0 ? "+" : "";
-        msg = `Đã căn SIDE Xe 2 bánh: [${bumperName}] bám vệt lốp (ΔX: ${signX}${(shiftLx * 100).toFixed(1)}cm, giữ nguyên cao độ Z), Khóa L: ${newL}m`;
-      } else if (step === "front") {
-        newYaw = yaw;
-        newYawDeg = curYawDeg;
-        deltaYawDeg = 0;
-        newL = curL;
-        newW = curW;
-        newH = curH;
-        newZ = cz;
-        let visibleSide = "center";
-        const edgePadding = 0.03;
-        let shiftLy = 0;
-        if (options.egoPos) {
-          const toEgoX = options.egoPos.x - cx;
-          const toEgoY = options.egoPos.y - cy;
-          const egoLocalX = toEgoX * Math.cos(yaw) + toEgoY * Math.sin(yaw);
-          const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-          if (Math.abs(egoLocalY) <= Math.abs(egoLocalX) * 0.15 && Math.abs(egoLocalY) < 0.15) {
-            visibleSide = "center";
-            shiftLy = (lyMin + lyMax) / 2;
-          } else if (egoLocalY >= 0) {
-            visibleSide = "left";
-            shiftLy = lyMax + edgePadding - curW / 2;
-          } else {
-            visibleSide = "right";
-            shiftLy = lyMin - edgePadding + curW / 2;
-          }
-        } else {
-          const leftCount = bodyPts.filter((p) => p.ly > 0.05).length;
-          const rightCount = bodyPts.filter((p) => p.ly < -0.05).length;
-          if (leftCount > rightCount * 1.3) {
-            visibleSide = "left";
-            shiftLy = lyMax + edgePadding - curW / 2;
-          } else if (rightCount > leftCount * 1.3) {
-            visibleSide = "right";
-            shiftLy = lyMin - edgePadding + curW / 2;
-          } else {
-            visibleSide = "center";
-            shiftLy = (lyMin + lyMax) / 2;
-          }
-        }
-        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
-        if (Math.abs(shiftLy) < 5e-3) shiftLy = 0;
-        newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
-        newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
-        const signY = shiftLy >= 0 ? "+" : "";
-        const sideText = visibleSide === "left" ? "Sườn Trái" : visibleSide === "right" ? "Sườn Phải" : "Cân đối 2 sườn";
-        msg = `Đã căn FRONT Xe 2 bánh: [${sideText}] đón tia ăn khít phương W (ΔY: ${signY}${(shiftLy * 100).toFixed(1)}cm), giữ nguyên cao độ Z và kích thước (chuẩn Car)`;
-      } else if (step === "w") {
-        newYaw = yaw;
-        newYawDeg = curYawDeg;
-        deltaYawDeg = 0;
-        newL = curL;
-        newH = curH;
-        newZ = cz;
-        let shiftLy = 0;
-        let measuredW = curW;
-        if (lyMin <= -0.06 && lyMax >= 0.06) {
-          measuredW = lyMax - lyMin + 0.06;
-          shiftLy = (lyMin + lyMax) / 2;
-          shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
-        } else if (lyMax > 0 && lyMin > -0.06) {
-          measuredW = 2 * (lyMax + 0.05);
-          shiftLy = 0;
-        } else if (lyMin < 0 && lyMax < 0.06) {
-          measuredW = 2 * (Math.abs(lyMin) + 0.05);
-          shiftLy = 0;
-        } else {
-          measuredW = lyMax - lyMin + 0.06;
-          shiftLy = (lyMin + lyMax) / 2;
-          shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
-        }
-        if (measuredW > 0.85) {
-          newW = 0.85;
-          if (options.egoPos) {
-            const toEgoX = options.egoPos.x - cx;
-            const toEgoY = options.egoPos.y - cy;
-            const egoLocalY = -toEgoX * Math.sin(yaw) + toEgoY * Math.cos(yaw);
-            if (egoLocalY > 0.05) {
-              shiftLy = lyMax + 0.03 - newW / 2;
-            } else if (egoLocalY < -0.05) {
-              shiftLy = lyMin - 0.03 + newW / 2;
-            }
-          }
-        } else {
-          newW = Number(Math.max(0.55, Math.min(0.85, measuredW)).toFixed(2));
-        }
-        shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
-        newX = Number((cx - shiftLy * Math.sin(yaw)).toFixed(3));
-        newY = Number((cy + shiftLy * Math.cos(yaw)).toFixed(3));
-        const signY = shiftLy >= 0 ? "+" : "";
-        msg = `Đã fit Rộng (W) Xe 2 bánh: W=${newW}m (Đệm +3cm vừa khít gương/tay lái), căn Y: ${signY}${(shiftLy * 100).toFixed(1)}cm, giữ nguyên L, H & Z`;
-      } else if (step === "h") {
-        newYaw = yaw;
-        newYawDeg = curYawDeg;
-        deltaYawDeg = 0;
-        newL = curL;
-        newW = curW;
-        newX = cx;
-        newY = cy;
-        const currentBaseZ = cz - curH / 2;
-        const effectiveBaseZ = Math.abs(currentBaseZ - groundZ) <= 0.35 ? currentBaseZ : groundZ;
-        const roofTopZ = highestPtZ + headBuffer;
-        const maxCap2WH = options.headBuffer !== void 0 ? 1.85 : 1.68;
-        newH = Number(Math.max(1.05, Math.min(maxCap2WH, roofTopZ - effectiveBaseZ)).toFixed(2));
-        newZ = Number((effectiveBaseZ + newH / 2).toFixed(3));
-        msg = `Đã fit Cao (H) Xe 2 bánh: H=${newH}m (Đáy bám sàn Z=${effectiveBaseZ.toFixed(2)}m cố định, nở lên nóc +${Math.round(headBuffer * 100)}cm gọn gàng), giữ nguyên L, W & XY`;
-      } else {
-        const dTheta = calcHeadingDelta();
-        newYaw = normalizeRad(yaw + dTheta);
-        newYawDeg = Number((newYaw * 180 / Math.PI).toFixed(2));
-        deltaYawDeg = Number((dTheta * 180 / Math.PI).toFixed(2));
-        newL = curL;
-        let shiftLx = 0;
-        const frontCount = bodyPts.filter((p) => p.lx > 0).length;
-        const rearCount = bodyPts.filter((p) => p.lx <= 0).length;
-        if (frontCount > rearCount * 1.5) {
-          shiftLx = lxMax - curL / 2;
-        } else if (rearCount > frontCount * 1.5) {
-          shiftLx = lxMin + curL / 2;
-        } else {
-          shiftLx = (lxMin + lxMax) / 2;
-        }
-        shiftLx = Math.max(-0.45, Math.min(0.45, shiftLx));
-        let shiftLy = 0;
-        let measuredW = curW;
-        if (lyMin <= -0.06 && lyMax >= 0.06) {
-          measuredW = lyMax - lyMin + 0.06;
-          shiftLy = (lyMin + lyMax) / 2;
-          shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
-        } else if (lyMax > 0 && lyMin > -0.06) {
-          measuredW = 2 * (lyMax + 0.05);
-          shiftLy = 0;
-        } else if (lyMin < 0 && lyMax < 0.06) {
-          measuredW = 2 * (Math.abs(lyMin) + 0.05);
-          shiftLy = 0;
-        } else {
-          measuredW = lyMax - lyMin + 0.06;
-          shiftLy = (lyMin + lyMax) / 2;
-          shiftLy = Math.max(-0.35, Math.min(0.35, shiftLy));
-        }
-        newW = Number(Math.max(0.55, Math.min(0.85, measuredW)).toFixed(2));
-        const roofTopZ = highestPtZ + headBuffer;
-        const maxCap2WH = options.headBuffer !== void 0 ? 1.85 : 1.68;
-        newH = Number(Math.max(1.05, Math.min(maxCap2WH, roofTopZ - groundZ)).toFixed(2));
-        newZ = Number((groundZ + newH / 2).toFixed(3));
-        const cosW = Math.cos(newYaw);
-        const sinW = Math.sin(newYaw);
-        newX = Number((cx + shiftLx * cosW - shiftLy * sinW).toFixed(3));
-        newY = Number((cy + shiftLx * sinW + shiftLy * cosW).toFixed(3));
-        msg = `Đã fit toàn diện Xe 2 bánh: ${newL}x${newW}x${newH}m (Khóa L, Xoay Yaw ${newYawDeg}°, Ghim đất Z: ${newZ}m)`;
-      }
-      return {
-        newX,
-        newY,
-        newZ,
-        newYaw,
-        newYawDeg,
-        deltaYawDeg,
-        newL,
-        newW,
-        newH,
-        groundZ: Number(groundZ.toFixed(3)),
-        pointsCount: bodyPts.length,
-        step,
-        message: msg
-      };
-    }
-    function computeLidarGroundAndFit(points, fitMode = "tight") {
-      const cx = points[0];
-      const cy = points[1];
-      const cz = points[2];
-      let yaw = points[5];
-      let l = points[6];
-      let w = points[7];
-      let h2 = points[8];
-      const lidar = getSceneLidarPoints();
-      if (!lidar || lidar.count === 0) {
-        return {
-          detectedGroundZ: null,
-          newZ: cz,
-          newX: cx,
-          newY: cy,
-          newYaw: yaw,
-          newL: l,
-          newW: w,
-          newH: h2,
-          pointsCount: 0
-        };
-      }
-      const { count, array } = lidar;
-      const isInitialBox = l <= 2.2 || w <= 1.3;
-      const halfL = isInitialBox ? 3 : l / 2 + 0.35;
-      const halfW = isInitialBox ? 2 : w / 2 + 0.35;
-      const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, l / 2, w / 2, h2 / 2, isInitialBox, false);
-      const detectedGroundZ = groundInfo.groundZ;
-      const effectiveGroundZ = detectedGroundZ !== null ? detectedGroundZ : 0;
-      let cosY = Math.cos(-yaw);
-      let sinY = Math.sin(-yaw);
-      const candidateBodyPts = [];
-      const maxRoofZ = effectiveGroundZ + 2.7;
-      const minBodyZ = effectiveGroundZ + 0.22;
-      for (let i = 0; i < count; i++) {
-        const z = array[i * 3 + 2];
-        if (z < minBodyZ || z > maxRoofZ) continue;
-        const x = array[i * 3];
-        const y = array[i * 3 + 1];
-        const dx = x - cx;
-        const dy = y - cy;
-        if (isInitialBox) {
-          if (dx * dx + dy * dy <= 3.4 * 3.4) {
-            candidateBodyPts.push({ x, y, z });
-          }
-        } else {
-          const lx = dx * cosY - dy * sinY;
-          const ly = dx * sinY + dy * cosY;
-          if (Math.abs(lx) <= halfL && Math.abs(ly) <= halfW) {
-            candidateBodyPts.push({ x, y, z });
-          }
-        }
-      }
-      let newX = cx;
-      let newY = cy;
-      let newZ = Number((effectiveGroundZ + h2 / 2).toFixed(3));
-      let newYaw = yaw;
-      let newL = l;
-      let newW = w;
-      let newH = h2;
-      if (isInitialBox && candidateBodyPts.length >= 12) {
-        let sumPtsX = 0, sumPtsY = 0;
-        for (const p of candidateBodyPts) {
-          sumPtsX += p.x;
-          sumPtsY += p.y;
-        }
-        const mX = sumPtsX / candidateBodyPts.length;
-        const mY = sumPtsY / candidateBodyPts.length;
-        let sxx = 0, syy = 0, sxy = 0;
-        for (const p of candidateBodyPts) {
-          const dx = p.x - mX;
-          const dy = p.y - mY;
-          sxx += dx * dx;
-          syy += dy * dy;
-          sxy += dx * dy;
-        }
-        const pcaAngle = 0.5 * Math.atan2(2 * sxy, sxx - syy);
-        newYaw = Number(pcaAngle.toFixed(5));
-        cosY = Math.cos(-newYaw);
-        sinY = Math.sin(-newYaw);
-      }
-      if (candidateBodyPts.length >= 10) {
-        const rawLocalBodyPts = [];
-        for (const p of candidateBodyPts) {
-          const dx = p.x - cx;
-          const dy = p.y - cy;
-          const lx = dx * cosY - dy * sinY;
-          const ly = dx * sinY + dy * cosY;
-          rawLocalBodyPts.push({ lx, ly, z: p.z });
-        }
-        const filteredLy = filterDenseConnectedCluster1D2(rawLocalBodyPts, "ly", 0.22, 0);
-        const localBodyPts = filterDenseConnectedCluster1D2(filteredLy, "lx", 0.22, 0);
-        const robustBounds = computeDensityRobustBounds2(localBodyPts);
-        const lxMin = robustBounds.lxMin;
-        const lxMax = robustBounds.lxMax;
-        const lyMin = robustBounds.lyMin;
-        const lyMax = robustBounds.lyMax;
-        const zTop = robustBounds.zTop;
-        const measuredL = lxMax - lxMin;
-        const measuredW = lyMax - lyMin;
-        const measuredH = zTop - effectiveGroundZ;
-        if (fitMode === "tight") {
-          newL = Number(Math.max(1.5, Math.min(18, measuredL)).toFixed(2));
-          newW = Number(Math.max(1, Math.min(3.2, measuredW)).toFixed(2));
-          newH = Number(Math.max(1, Math.min(4, measuredH)).toFixed(2));
-          if (isInitialBox) {
-            if (newL < 3.2) newL = 4.65;
-            if (newW < 1.4) newW = 1.85;
-            if (newH < 1.2) newH = 1.55;
-          }
-          const midLx = (lxMin + lxMax) / 2;
-          const midLy = (lyMin + lyMax) / 2;
-          const cosWorld = Math.cos(newYaw);
-          const sinWorld = Math.sin(newYaw);
-          newX = Number((cx + midLx * cosWorld - midLy * sinWorld).toFixed(2));
-          newY = Number((cy + midLx * sinWorld + midLy * cosWorld).toFixed(2));
-          newZ = Number((effectiveGroundZ + newH / 2).toFixed(3));
-        } else {
-          if (measuredL >= 3) {
-            newL = Math.min(5.5, Math.max(3.8, Number((measuredL + 0.1).toFixed(2))));
-          } else {
-            newL = 4.65;
-          }
-          if (measuredW >= 1.5 && measuredW <= 2.2) {
-            newW = Number(measuredW.toFixed(2));
-          } else {
-            newW = 1.85;
-          }
-          newH = Number(Math.max(1.4, Math.min(2.2, measuredH)).toFixed(2));
-          const midLx = Math.max(-1.5, Math.min(1.5, (lxMin + lxMax) / 2));
-          const midLy = Math.max(-0.4, Math.min(0.4, (lyMin + lyMax) / 2));
-          const cosWorld = Math.cos(newYaw);
-          const sinWorld = Math.sin(newYaw);
-          newX = Number((cx + midLx * cosWorld - midLy * sinWorld).toFixed(2));
-          newY = Number((cy + midLx * sinWorld + midLy * cosWorld).toFixed(2));
-          newZ = Number((effectiveGroundZ + newH / 2).toFixed(3));
-        }
-      }
-      return {
-        detectedGroundZ,
-        newZ,
-        newX,
-        newY,
-        newYaw,
-        newL,
-        newW,
-        newH,
-        pointsCount: candidateBodyPts.length
-      };
-    }
-    const mainWorldLabelsCache = /* @__PURE__ */ new Map();
-    let lastHighlightedSidebarItem = null;
-    function syncSidebarItemHighlight(id) {
-      try {
-        if (id === null || id <= 0) {
-          if (lastHighlightedSidebarItem) {
-            lastHighlightedSidebarItem.classList.remove("cvat-objects-sidebar-state-item-active", "selected");
-            lastHighlightedSidebarItem = null;
-          }
-          return;
-        }
-        const sidebarItem = document.querySelector(`#cvat-objects-sidebar-state-item-${id}`) || document.querySelector(`[data-cvat-state-item-id="${id}"]`) || document.querySelector(`[class*="cvat-objects-sidebar-state-item"][id*="${id}"]`);
-        if (sidebarItem) {
-          if (lastHighlightedSidebarItem && lastHighlightedSidebarItem !== sidebarItem) {
-            lastHighlightedSidebarItem.classList.remove("cvat-objects-sidebar-state-item-active", "selected");
-          }
-          sidebarItem.classList.add("cvat-objects-sidebar-state-item-active", "selected");
-          lastHighlightedSidebarItem = sidebarItem;
-          sidebarItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
-        }
-      } catch (_) {
-      }
-    }
-    function updateMainWorldLabels(job) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
-      try {
-        const store = getReduxStore();
-        const state = (_a = store == null ? void 0 : store.getState) == null ? void 0 : _a.call(store);
-        const storeJob = ((_c = (_b = state == null ? void 0 : state.annotation) == null ? void 0 : _b.job) == null ? void 0 : _c.instance) || job;
-        const candidates = [
-          storeJob == null ? void 0 : storeJob.labels,
-          (_d = storeJob == null ? void 0 : storeJob.task) == null ? void 0 : _d.labels,
-          (_f = (_e = state == null ? void 0 : state.annotation) == null ? void 0 : _e.job) == null ? void 0 : _f.labels,
-          (_i = (_h = (_g = state == null ? void 0 : state.annotation) == null ? void 0 : _g.job) == null ? void 0 : _h.task) == null ? void 0 : _i.labels,
-          (_m = (_l = (_k = (_j = state == null ? void 0 : state.annotation) == null ? void 0 : _j.canvas) == null ? void 0 : _k.instance) == null ? void 0 : _l.setup) == null ? void 0 : _m.labels
-        ];
-        for (const labels of candidates) {
-          if (Array.isArray(labels)) {
-            for (const l of labels) {
-              if (l && l.id !== void 0) {
-                mainWorldLabelsCache.set(Number(l.id), {
-                  name: l.name || "Object",
-                  color: l.color || "#3b82f6"
-                });
+          if (numBoxes < 4 || candidateIndices && candidateIndices.length > 0) {
+            const candidatesLen = candidateIndices ? candidateIndices.length : numBoxes;
+            for (let cIdx = 0; cIdx < candidatesLen; cIdx++) {
+              const k = candidateIndices ? candidateIndices[cIdx] : cIdx;
+              const b = fastBoxes[k];
+              if (px < b.minX || px > b.maxX || py < b.minY || py > b.maxY || pz < b.minZ || pz > b.maxZ) {
+                continue;
               }
-            }
-          }
-        }
-      } catch (_) {
-      }
-    }
-    function resolveLabelName(stateOrShape) {
-      var _a, _b, _c, _d, _e, _f, _g, _h;
-      if (!stateOrShape) return { name: "Object", color: "#22c55e" };
-      if ((stateOrShape == null ? void 0 : stateOrShape.label) && typeof stateOrShape.label.name === "string" && stateOrShape.label.name.trim()) {
-        return {
-          name: stateOrShape.label.name.trim(),
-          color: stateOrShape.label.color || "#22c55e"
-        };
-      }
-      if (((_a = stateOrShape == null ? void 0 : stateOrShape.data) == null ? void 0 : _a.label) && typeof stateOrShape.data.label.name === "string" && stateOrShape.data.label.name.trim()) {
-        return {
-          name: stateOrShape.data.label.name.trim(),
-          color: stateOrShape.data.label.color || "#22c55e"
-        };
-      }
-      const lblId = (stateOrShape == null ? void 0 : stateOrShape.labelID) ?? (stateOrShape == null ? void 0 : stateOrShape.labelId) ?? (stateOrShape == null ? void 0 : stateOrShape.label_id) ?? ((_b = stateOrShape == null ? void 0 : stateOrShape.label) == null ? void 0 : _b.id) ?? ((_c = stateOrShape == null ? void 0 : stateOrShape.data) == null ? void 0 : _c.labelID) ?? ((_d = stateOrShape == null ? void 0 : stateOrShape.data) == null ? void 0 : _d.labelId) ?? ((_f = (_e = stateOrShape == null ? void 0 : stateOrShape.data) == null ? void 0 : _e.label) == null ? void 0 : _f.id);
-      if (lblId !== void 0) {
-        if (!mainWorldLabelsCache.has(Number(lblId))) {
-          updateMainWorldLabels();
-        }
-        if (mainWorldLabelsCache.has(Number(lblId))) {
-          return mainWorldLabelsCache.get(Number(lblId));
-        }
-      }
-      const clientId = (stateOrShape == null ? void 0 : stateOrShape.clientID) ?? (stateOrShape == null ? void 0 : stateOrShape.clientId) ?? (stateOrShape == null ? void 0 : stateOrShape.id);
-      if (clientId !== void 0 && typeof document !== "undefined") {
-        try {
-          const sidebarItem = document.querySelector(`#cvat-objects-sidebar-state-item-${clientId}`) || document.querySelector(`[class*="cvat-objects-sidebar-state-item"][id*="${clientId}"]`);
-          if (sidebarItem) {
-            const labelEl = sidebarItem.querySelector(".cvat-objects-sidebar-state-item-label-selector .ant-select-selection-item") || sidebarItem.querySelector(".ant-select-selection-item") || sidebarItem.querySelector("[class*='label']");
-            const labelText = ((_g = labelEl == null ? void 0 : labelEl.innerText) == null ? void 0 : _g.trim()) || ((_h = labelEl == null ? void 0 : labelEl.textContent) == null ? void 0 : _h.trim());
-            if (labelText) {
-              return { name: labelText, color: "#22c55e" };
-            }
-          }
-        } catch (_) {
-        }
-      }
-      return { name: "Object", color: "#22c55e" };
-    }
-    function extractLivePointsFromDrawnAndState(drawnItem, stateOrShape) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
-      const basePoints = ((_a = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _a.points) && Array.isArray(drawnItem.data.points) && drawnItem.data.points.length >= 9 ? drawnItem.data.points : (stateOrShape == null ? void 0 : stateOrShape.points) && Array.isArray(stateOrShape.points) && stateOrShape.points.length >= 9 ? stateOrShape.points : null;
-      if (!basePoints) return null;
-      let cx = basePoints[0];
-      let cy = basePoints[1];
-      let cz = basePoints[2];
-      let rx = basePoints[3] || 0;
-      let ry = basePoints[4] || 0;
-      let yaw = basePoints[5] || 0;
-      let l = basePoints[6];
-      let w = basePoints[7];
-      let h2 = basePoints[8];
-      if (drawnItem && drawnItem.cuboid) {
-        const basePos = { x: basePoints[0], y: basePoints[1], z: basePoints[2] };
-        const baseYaw = basePoints[5] || 0;
-        const baseScale = { l: basePoints[6], w: basePoints[7], h: basePoints[8] };
-        const c = drawnItem.cuboid;
-        let bestDeltaPos = 0;
-        let bestPos = null;
-        const candidateViews = [
-          { name: "top", obj: c.top },
-          { name: "side", obj: c.side },
-          { name: "front", obj: c.front },
-          { name: "perspective", obj: c.perspective },
-          { name: "root", obj: c }
-        ];
-        for (const cand of candidateViews) {
-          const p = (_b = cand.obj) == null ? void 0 : _b.position;
-          if (p && typeof p.x === "number" && typeof p.y === "number" && typeof p.z === "number") {
-            let dx = p.x - basePos.x;
-            let dy = p.y - basePos.y;
-            let dz = p.z - basePos.z;
-            if (cand.name === "top") dz = 0;
-            if (cand.name === "side") dy = 0;
-            if (cand.name === "front") dx = 0;
-            const delta = dx * dx + dy * dy + dz * dz;
-            if (delta > bestDeltaPos && delta > 1e-4) {
-              bestDeltaPos = delta;
-              bestPos = {
-                x: cand.name === "front" ? basePos.x : p.x,
-                y: cand.name === "side" ? basePos.y : p.y,
-                z: cand.name === "top" ? basePos.z : p.z
-              };
-            }
-          }
-        }
-        if (bestPos) {
-          cx = bestPos.x;
-          cy = bestPos.y;
-          cz = bestPos.z;
-        } else {
-          const fallbackPos = c.position || ((_c = c.perspective) == null ? void 0 : _c.position) || ((_d = c.top) == null ? void 0 : _d.position);
-          if (fallbackPos && typeof fallbackPos.x === "number" && typeof fallbackPos.y === "number" && typeof fallbackPos.z === "number") {
-            cx = fallbackPos.x;
-            cy = fallbackPos.y;
-            cz = fallbackPos.z;
-          }
-        }
-        let bestDeltaYaw = 0;
-        let bestYaw = null;
-        for (const cand of candidateViews) {
-          const r = (_e = cand.obj) == null ? void 0 : _e.rotation;
-          if (r && typeof r.z === "number") {
-            const dYaw = Math.abs(r.z - baseYaw);
-            if (dYaw > bestDeltaYaw && dYaw > 1e-4) {
-              bestDeltaYaw = dYaw;
-              bestYaw = r.z;
-            }
-          }
-        }
-        if (bestYaw !== null) {
-          yaw = bestYaw;
-        } else {
-          const fallbackRot = c.rotation || ((_f = c.perspective) == null ? void 0 : _f.rotation) || ((_g = c.top) == null ? void 0 : _g.rotation);
-          if (fallbackRot && typeof fallbackRot.z === "number") {
-            yaw = fallbackRot.z;
-          }
-        }
-        let bestDeltaScale = 0;
-        let bestScale = null;
-        for (const cand of candidateViews) {
-          const s = (_h = cand.obj) == null ? void 0 : _h.scale;
-          if (s && typeof s.x === "number" && s.x > 0) {
-            let dl = Math.abs(s.x - baseScale.l);
-            let dw = Math.abs(s.y - baseScale.w);
-            let dh = Math.abs(s.z - baseScale.h);
-            if (cand.name === "top") dh = 0;
-            if (cand.name === "side") dw = 0;
-            if (cand.name === "front") dl = 0;
-            const delta = dl + dw + dh;
-            if (delta > bestDeltaScale && delta > 1e-4) {
-              bestDeltaScale = delta;
-              bestScale = {
-                x: cand.name === "front" ? baseScale.l : s.x,
-                y: cand.name === "side" ? baseScale.w : s.y,
-                z: cand.name === "top" ? baseScale.h : s.z
-              };
-            }
-          }
-        }
-        if (bestScale) {
-          l = bestScale.x;
-          w = bestScale.y;
-          h2 = bestScale.z;
-        } else {
-          const fallbackScale = c.scale || ((_i = c.perspective) == null ? void 0 : _i.scale) || ((_j = c.top) == null ? void 0 : _j.scale);
-          if (fallbackScale && typeof fallbackScale.x === "number" && fallbackScale.x > 0) {
-            l = fallbackScale.x;
-            w = fallbackScale.y;
-            h2 = fallbackScale.z;
-          }
-        }
-      }
-      const res = [...basePoints];
-      res[0] = cx;
-      res[1] = cy;
-      res[2] = cz;
-      res[3] = rx;
-      res[4] = ry;
-      res[5] = yaw;
-      res[6] = l;
-      res[7] = w;
-      res[8] = h2;
-      return res;
-    }
-    function center3DViewOnObject(uiId, targetPos) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
-      if (isCanvasInteracting || window.__cvat_mouse_down__) {
-        return false;
-      }
-      try {
-        const store = getReduxStore();
-        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        if (!canvas || !canvas.view) return false;
-        try {
-          if (typeof canvas.center === "function") {
-            canvas.center(uiId);
-          }
-          if (typeof ((_d = canvas.view) == null ? void 0 : _d.center) === "function") {
-            canvas.view.center(uiId);
-          }
-          if (typeof ((_e = canvas.view) == null ? void 0 : _e.focus) === "function") {
-            canvas.view.focus(uiId);
-          }
-        } catch (_) {
-        }
-        let pos = targetPos;
-        if (!pos) {
-          const drawn = (_g = (_f = canvas.view) == null ? void 0 : _f.drawnObjects) == null ? void 0 : _g[String(uiId)];
-          if (((_h = drawn == null ? void 0 : drawn.data) == null ? void 0 : _h.points) && Array.isArray(drawn.data.points)) {
-            pos = {
-              x: drawn.data.points[0],
-              y: drawn.data.points[1],
-              z: drawn.data.points[2]
-            };
-          } else {
-            const drawnObjects = ((_i = canvas.view) == null ? void 0 : _i.drawnObjects) || {};
-            for (const k of Object.keys(drawnObjects)) {
-              const item = drawnObjects[k];
-              const d = item == null ? void 0 : item.data;
-              if (d && Array.isArray(d.points)) {
-                if (Number(k) === uiId || Number(d.clientID) === uiId || Number(d.parentID) === uiId || Number(d.trackID) === uiId || Number(d.serverID) === uiId) {
-                  pos = { x: d.points[0], y: d.points[1], z: d.points[2] };
+              const dx = px - b.cx;
+              const dy = py - b.cy;
+              const dz = pz - b.cz;
+              if (dx * dx + dy * dy + dz * dz > b.maxR2) {
+                continue;
+              }
+              let lx = dx * b.cosY - dy * b.sinY;
+              let ly = dx * b.sinY + dy * b.cosY;
+              let lz = dz;
+              if (b.hasPitchRoll) {
+                const lx2 = lx * b.cosP + lz * b.sinP;
+                const lz2 = -lx * b.sinP + lz * b.cosP;
+                const ly2 = ly * b.cosR - lz2 * b.sinR;
+                const lz3 = ly * b.sinR + lz2 * b.cosR;
+                lx = lx2;
+                ly = ly2;
+                lz = lz3;
+              }
+              if (lx >= -b.halfL && lx <= b.halfL && ly >= -b.halfW && ly <= b.halfW && lz >= -b.halfH && lz <= b.halfH) {
+                matchCount++;
+                if (matchCount === 1) {
+                  matched = b;
+                } else {
+                  matched = null;
                   break;
                 }
               }
             }
           }
-          if (!pos) {
-            const states = ((_l = (_k = (_j = store == null ? void 0 : store.getState()) == null ? void 0 : _j.annotation) == null ? void 0 : _k.annotations) == null ? void 0 : _l.states) || [];
-            const matched = states.find(
-              (s) => Number(s.clientID) === uiId || Number(s.id) === uiId || Number(s.parentID) === uiId || Number(s.trackID) === uiId || Number(s.serverID) === uiId
-            );
-            if (matched && Array.isArray(matched.points)) {
-              pos = { x: matched.points[0], y: matched.points[1], z: matched.points[2] };
+          let isCutOut = false;
+          let isEdgeSnap = false;
+          if (activeBox) {
+            const adx = px - activeBox.cx;
+            const ady = py - activeBox.cy;
+            const adz = pz - activeBox.cz;
+            if (adx >= -activeMaxR15 && adx <= activeMaxR15 && ady >= -activeMaxR15 && ady <= activeMaxR15 && adz >= -activeMaxR15 && adz <= activeMaxR15 && adx * adx + ady * ady + adz * adz <= activeMaxR15_2) {
+              let alx = adx * activeBox.cosY - ady * activeBox.sinY;
+              let aly = adx * activeBox.sinY + ady * activeBox.cosY;
+              let alz = adz;
+              if (activeBox.hasPitchRoll) {
+                const lx2 = alx * activeBox.cosP + alz * activeBox.sinP;
+                const lz2 = -alx * activeBox.sinP + alz * activeBox.cosP;
+                const ly2 = aly * activeBox.cosR - lz2 * activeBox.sinR;
+                const lz3 = aly * activeBox.sinR + lz2 * activeBox.cosR;
+                alx = lx2;
+                aly = ly2;
+                alz = lz3;
+              }
+              const zFloor = -activeBox.halfH + 0.15;
+              const zCeil = activeBox.halfH + 0.1;
+              if (alz >= zFloor && alz <= zCeil) {
+                const dFront = alx - activeBox.halfL;
+                const dRear = -activeBox.halfL - alx;
+                const dLeft = aly - activeBox.halfW;
+                const dRight = -activeBox.halfW - aly;
+                const dRoof = alz - activeBox.halfH;
+                const isCutFront = dFront > 0.01 && dFront <= 0.08 && Math.abs(aly) <= activeBox.halfW + 0.05;
+                const isCutRear = dRear > 0.01 && dRear <= 0.08 && Math.abs(aly) <= activeBox.halfW + 0.05;
+                const isCutLeft = dLeft > 0.01 && dLeft <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05;
+                const isCutRight = dRight > 0.01 && dRight <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05;
+                const isCutRoof = dRoof > 0.01 && dRoof <= 0.08 && Math.abs(alx) <= activeBox.halfL + 0.05 && Math.abs(aly) <= activeBox.halfW + 0.05;
+                if (isCutFront || isCutRear || isCutLeft || isCutRight || isCutRoof) {
+                  isCutOut = true;
+                } else if (Math.abs(alx) <= activeBox.halfL + 0.01 && Math.abs(aly) <= activeBox.halfW + 0.01 && alz <= activeBox.halfH + 0.01) {
+                  const distX = Math.min(Math.abs(alx - activeBox.halfL), Math.abs(alx + activeBox.halfL));
+                  const distY = Math.min(Math.abs(aly - activeBox.halfW), Math.abs(aly + activeBox.halfW));
+                  const distZ = Math.abs(alz - activeBox.halfH);
+                  if (Math.min(distX, distY, distZ) <= 0.03) {
+                    isEdgeSnap = true;
+                  }
+                }
+              }
+            }
+          }
+          if (matchCount >= 2) {
+            colorArray[idx3] = OVERLAP_WARNING_COLOR.r;
+            colorArray[idx3 + 1] = OVERLAP_WARNING_COLOR.g;
+            colorArray[idx3 + 2] = OVERLAP_WARNING_COLOR.b;
+          } else if (isCutOut) {
+            colorArray[idx3] = CUT_OUT_WARNING_COLOR2.r;
+            colorArray[idx3 + 1] = CUT_OUT_WARNING_COLOR2.g;
+            colorArray[idx3 + 2] = CUT_OUT_WARNING_COLOR2.b;
+          } else if (isEdgeSnap) {
+            colorArray[idx3] = EDGE_SNAP_COLOR2.r;
+            colorArray[idx3 + 1] = EDGE_SNAP_COLOR2.g;
+            colorArray[idx3 + 2] = EDGE_SNAP_COLOR2.b;
+          } else if (matched) {
+            const factor = 1;
+            colorArray[idx3] = matched.colorR * factor;
+            colorArray[idx3 + 1] = matched.colorG * factor;
+            colorArray[idx3 + 2] = matched.colorB * factor;
+          } else {
+            colorArray[idx3] = plainR;
+            colorArray[idx3 + 1] = plainG;
+            colorArray[idx3 + 2] = plainB;
+          }
+        }
+        if (colorAttr) {
+          colorAttr.needsUpdate = true;
+        }
+        if ((_w = geom.attributes) == null ? void 0 : _w.color) {
+          geom.attributes.color.needsUpdate = true;
+        }
+        if (obj.material) {
+          const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+          for (const m of mats) {
+            if (m && !m.vertexColors) {
+              m.vertexColors = true;
+              m.needsUpdate = true;
             }
           }
         }
-        if (!pos || typeof pos.x !== "number" || isNaN(pos.x)) return false;
-        const views = canvas.view.views;
-        if (views) {
-          const pView = views.perspective;
-          if ((_m = pView == null ? void 0 : pView.controls) == null ? void 0 : _m.target) {
-            const curTarget = pView.controls.target;
-            const deltaX = pos.x - curTarget.x;
-            const deltaY = pos.y - curTarget.y;
-            const deltaZ = pos.z - curTarget.z;
-            curTarget.set(pos.x, pos.y, pos.z);
-            if (pView.camera) {
-              pView.camera.position.x += deltaX;
-              pView.camera.position.y += deltaY;
-              pView.camera.position.z += deltaZ;
-              pView.camera.lookAt(pos.x, pos.y, pos.z);
-            }
-            if (typeof pView.controls.update === "function") {
-              pView.controls.update();
-            }
-          }
-          for (const viewName of ["top", "side", "front"]) {
-            const oView = views[viewName];
-            if (oView) {
-              if ((_n = oView.controls) == null ? void 0 : _n.target) {
-                const curTarget = oView.controls.target;
-                const deltaX = pos.x - curTarget.x;
-                const deltaY = pos.y - curTarget.y;
-                const deltaZ = pos.z - curTarget.z;
-                if (oView.camera) {
-                  oView.camera.position.x += deltaX;
-                  oView.camera.position.y += deltaY;
-                  oView.camera.position.z += deltaZ;
-                }
-                curTarget.set(pos.x, pos.y, pos.z);
-                if (typeof oView.controls.update === "function") {
-                  oView.controls.update();
-                }
-              }
-              if (typeof oView.updateControls === "function") {
-                oView.updateControls();
-              }
-            }
-          }
+        anyUpdated = true;
+      }
+      if (anyUpdated) {
+        isColorizingRunning = true;
+        try {
           if (typeof canvas.render === "function") {
             canvas.render();
           }
+        } finally {
+          isColorizingRunning = false;
         }
-        return true;
-      } catch (err) {
-        console.warn("[CVAT 3D Suite] Lỗi center3DViewOnObject:", err);
-        return false;
       }
+      return anyUpdated;
+    } catch (err) {
+      console.warn("[CVAT 3D Suite] Lỗi applyPointCloudColorizationInMainWorld:", err);
+      return false;
     }
-    let autoCenterOnFrameChange = true;
-    let lastActiveTrackId = null;
-    let persistentActiveTrackId = null;
-    let currentActiveTrackId = -1;
-    let isFrameTransitioning = false;
-    let frameTransitionTimer = null;
-    let lockOnActiveTimer = null;
+  }
+  let colorizeRafId = null;
+  let colorizeDebounceTimer = null;
+  let pendingColorizeOptions = void 0;
+  function schedulePointCloudColorization(delayMs = 0, options) {
+    if (colorizeDebounceTimer) {
+      clearTimeout(colorizeDebounceTimer);
+      colorizeDebounceTimer = null;
+    }
+    if (colorizeRafId) {
+      cancelAnimationFrame(colorizeRafId);
+      colorizeRafId = null;
+    }
+    const execute = () => {
+      colorizeRafId = requestAnimationFrame(() => {
+        colorizeRafId = null;
+        const opts = pendingColorizeOptions;
+        pendingColorizeOptions = void 0;
+        applyPointCloudColorizationInMainWorld(opts);
+      });
+    };
+    if (delayMs > 0) {
+      colorizeDebounceTimer = setTimeout(execute, delayMs);
+    } else {
+      execute();
+    }
+  }
+  function scheduleSingleFrameColorizationAndGround(targetFrame, delayMs = 180) {
+    if (singleFrameColorizeTimer) {
+      clearTimeout(singleFrameColorizeTimer);
+      singleFrameColorizeTimer = null;
+    }
+    if (colorizeRafId) {
+      cancelAnimationFrame(colorizeRafId);
+      colorizeRafId = null;
+    }
+    const runAttempt = (attempt) => {
+      var _a, _b, _c, _d, _e, _f, _g, _h;
+      try {
+        const store = getReduxStore();
+        const curF = ((_d = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.player) == null ? void 0 : _c.frame) == null ? void 0 : _d.number) ?? ((_h = (_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.job) == null ? void 0 : _g.instance) == null ? void 0 : _h.frame);
+        if (curF === targetFrame) {
+          applyCanvasThemeInMainWorld();
+          colorizeRafId = requestAnimationFrame(() => {
+            colorizeRafId = null;
+            const ok = applyPointCloudColorizationInMainWorld();
+            if (!ok && attempt < 3) {
+              singleFrameColorizeTimer = setTimeout(() => runAttempt(attempt + 1), 350);
+            }
+          });
+        }
+      } catch (_) {
+      }
+    };
+    singleFrameColorizeTimer = setTimeout(() => runAttempt(1), delayMs);
+  }
+  function cancelSingleFrameColorization() {
+    if (singleFrameColorizeTimer) {
+      clearTimeout(singleFrameColorizeTimer);
+      singleFrameColorizeTimer = null;
+    }
+    if (colorizeRafId) {
+      cancelAnimationFrame(colorizeRafId);
+      colorizeRafId = null;
+    }
+  }
+  let currentOrthoSlicing = {
+    hideGround: true
+  };
+  try {
+    const savedSlicing = typeof localStorage !== "undefined" ? localStorage.getItem("cvat_3d_ortho_slicing") : null;
+    if (savedSlicing) {
+      const parsed = JSON.parse(savedSlicing);
+      if (typeof parsed.hideGround === "boolean") currentOrthoSlicing.hideGround = parsed.hideGround;
+    }
+  } catch (_) {
+  }
+  class ThreeCompatibleVector3 {
+    constructor(x = 0, y = 0, z = 0) {
+      __publicField(this, "isVector3");
+      __publicField(this, "x");
+      __publicField(this, "y");
+      __publicField(this, "z");
+      this.isVector3 = true;
+      this.x = x;
+      this.y = y;
+      this.z = z;
+    }
+    set(x, y, z) {
+      this.x = x;
+      this.y = y;
+      this.z = z;
+      return this;
+    }
+    copy(v) {
+      this.x = (v == null ? void 0 : v.x) || 0;
+      this.y = (v == null ? void 0 : v.y) || 0;
+      this.z = (v == null ? void 0 : v.z) || 0;
+      return this;
+    }
+    clone() {
+      return new ThreeCompatibleVector3(this.x, this.y, this.z);
+    }
+    dot(v) {
+      return this.x * ((v == null ? void 0 : v.x) || 0) + this.y * ((v == null ? void 0 : v.y) || 0) + this.z * ((v == null ? void 0 : v.z) || 0);
+    }
+    multiplyScalar(s) {
+      this.x *= s;
+      this.y *= s;
+      this.z *= s;
+      return this;
+    }
+    normalize() {
+      const l = Math.hypot(this.x, this.y, this.z) || 1;
+      this.x /= l;
+      this.y /= l;
+      this.z /= l;
+      return this;
+    }
+    applyMatrix3(m) {
+      const x = this.x, y = this.y, z = this.z;
+      const e = (m == null ? void 0 : m.elements) || [1, 0, 0, 0, 1, 0, 0, 0, 1];
+      this.x = e[0] * x + e[3] * y + e[6] * z;
+      this.y = e[1] * x + e[4] * y + e[7] * z;
+      this.z = e[2] * x + e[5] * y + e[8] * z;
+      return this;
+    }
+    applyMatrix4(m) {
+      const x = this.x, y = this.y, z = this.z;
+      const e = (m == null ? void 0 : m.elements) || [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+      const w = 1 / (e[3] * x + e[7] * y + e[11] * z + e[15]);
+      this.x = (e[0] * x + e[4] * y + e[8] * z + e[12]) * w;
+      this.y = (e[1] * x + e[5] * y + e[9] * z + e[13]) * w;
+      this.z = (e[2] * x + e[6] * y + e[10] * z + e[14]) * w;
+      return this;
+    }
+  }
+  class ThreeCompatibleMatrix3 {
+    constructor() {
+      __publicField(this, "elements");
+      this.elements = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+    }
+    getNormalMatrix(matrix4) {
+      const me = (matrix4 == null ? void 0 : matrix4.elements) || [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+      const te = this.elements;
+      const m11 = me[0], m21 = me[1], m31 = me[2];
+      const m12 = me[4], m22 = me[5], m32 = me[6];
+      const m13 = me[8], m23 = me[9], m33 = me[10];
+      te[0] = m22 * m33 - m23 * m32;
+      te[1] = m23 * m31 - m21 * m33;
+      te[2] = m21 * m32 - m22 * m31;
+      te[3] = m13 * m32 - m12 * m33;
+      te[4] = m11 * m33 - m13 * m31;
+      te[5] = m12 * m31 - m11 * m32;
+      te[6] = m12 * m23 - m13 * m22;
+      te[7] = m13 * m21 - m11 * m23;
+      te[8] = m11 * m22 - m12 * m21;
+      const det = m11 * te[0] + m21 * te[3] + m31 * te[6];
+      if (det === 0) return this;
+      const invDet = 1 / det;
+      for (let i = 0; i < 9; i++) te[i] *= invDet;
+      return this;
+    }
+  }
+  class ThreeCompatiblePlane {
+    constructor(normal = new ThreeCompatibleVector3(0, 0, 1), constant = 0) {
+      __publicField(this, "isPlane");
+      __publicField(this, "normal");
+      __publicField(this, "constant");
+      this.isPlane = true;
+      this.normal = normal instanceof ThreeCompatibleVector3 ? normal : new ThreeCompatibleVector3().copy(normal);
+      this.constant = constant;
+    }
+    set(normal, constant) {
+      this.normal.copy(normal);
+      this.constant = constant;
+      return this;
+    }
+    setComponents(x, y, z, w) {
+      this.normal.set(x, y, z);
+      this.constant = w;
+      return this;
+    }
+    coplanarPoint(target) {
+      return target.copy(this.normal).multiplyScalar(-this.constant);
+    }
+    applyMatrix4(matrix, optionalNormalMatrix) {
+      const normalMatrix = optionalNormalMatrix || new ThreeCompatibleMatrix3().getNormalMatrix(matrix);
+      const refPt = this.coplanarPoint(new ThreeCompatibleVector3()).applyMatrix4(matrix);
+      const norm = this.normal.clone().applyMatrix3(normalMatrix).normalize();
+      this.constant = -refPt.dot(norm);
+      this.normal.copy(norm);
+      return this;
+    }
+  }
+  const cachedTopPlanes = [];
+  let clippingThreeEngine = null;
+  let lastGlobalClippingActive = false;
+  function getClippingThree() {
+    var _a, _b, _c, _d;
+    if (clippingThreeEngine) return clippingThreeEngine;
+    const win = typeof window !== "undefined" ? window : {};
+    if (win.THREE && typeof win.THREE.Plane === "function") {
+      clippingThreeEngine = win.THREE;
+      return clippingThreeEngine;
+    }
+    const store = getReduxStore();
+    const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+    if ((canvas == null ? void 0 : canvas.THREE) && typeof canvas.THREE.Plane === "function") {
+      clippingThreeEngine = canvas.THREE;
+      return clippingThreeEngine;
+    }
+    if (((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.THREE) && typeof canvas.view.THREE.Plane === "function") {
+      clippingThreeEngine = canvas.view.THREE;
+      return clippingThreeEngine;
+    }
+    clippingThreeEngine = {
+      Plane: ThreeCompatiblePlane,
+      Vector3: ThreeCompatibleVector3,
+      Matrix3: ThreeCompatibleMatrix3
+    };
+    return clippingThreeEngine;
+  }
+  function ensurePlaneAt(arr, index, ThreeClass) {
+    while (arr.length <= index) {
+      const PlaneCtor = (ThreeClass == null ? void 0 : ThreeClass.Plane) || ThreeCompatiblePlane;
+      const VecCtor = (ThreeClass == null ? void 0 : ThreeClass.Vector3) || ThreeCompatibleVector3;
+      arr.push(new PlaneCtor(new VecCtor(0, 0, 1), 0));
+    }
+    return arr[index];
+  }
+  function applyClippingPlanesToView(view, planes, _isSharedScene) {
+    if (!view) return;
+    if (view.renderer) {
+      view.renderer.localClippingEnabled = planes.length > 0;
+      view.renderer.clippingPlanes = planes;
+    }
+  }
+  function updateOrthoClippingPlanes(overrideTarget, forceRender = true, lastActiveTrackId2, extractPointsHelper) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+    try {
+      const Three = getClippingThree();
+      const store = getReduxStore();
+      const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+      const views = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views;
+      if (!views) return;
+      const topView = views.top;
+      const sideView = views.side;
+      const frontView = views.front;
+      const perspectiveView = views.perspective;
+      if ((perspectiveView == null ? void 0 : perspectiveView.renderer) && perspectiveView.renderer.clippingPlanes && perspectiveView.renderer.clippingPlanes.length > 0) {
+        perspectiveView.renderer.clippingPlanes = [];
+      }
+      const activeId = (overrideTarget == null ? void 0 : overrideTarget.clientId) ?? ((_e = canvas == null ? void 0 : canvas.view) == null ? void 0 : _e.activatedElementID) ?? ((_h = (_g = (_f = store == null ? void 0 : store.getState()) == null ? void 0 : _f.annotation) == null ? void 0 : _g.annotations) == null ? void 0 : _h.activatedStateClientID) ?? lastActiveTrackId2;
+      const isAnyClippingActive = !!(currentOrthoSlicing.hideGround && activeId && !isNaN(Number(activeId)) && Number(activeId) > 0);
+      if (lastGlobalClippingActive !== isAnyClippingActive) {
+        lastGlobalClippingActive = isAnyClippingActive;
+        const scenesToNotify = [];
+        for (const k of ["top", "side", "front", "perspective"]) {
+          const sc = (_i = views[k]) == null ? void 0 : _i.scene;
+          if (sc && !scenesToNotify.includes(sc)) scenesToNotify.push(sc);
+        }
+        for (const sc of scenesToNotify) {
+          if (typeof (sc == null ? void 0 : sc.traverse) === "function") {
+            sc.traverse((obj) => {
+              if (obj && (obj.isPoints || obj.type === "Points") && obj.material) {
+                obj.material.needsUpdate = true;
+              }
+            });
+          }
+        }
+      }
+      const isSharedScene = !!((topView == null ? void 0 : topView.scene) && (perspectiveView == null ? void 0 : perspectiveView.scene) && topView.scene === perspectiveView.scene);
+      if (!isAnyClippingActive || !Three) {
+        applyClippingPlanesToView(topView, [], isSharedScene);
+        applyClippingPlanesToView(sideView, [], isSharedScene);
+        applyClippingPlanesToView(frontView, [], isSharedScene);
+        applyClippingPlanesToView(perspectiveView, [], isSharedScene);
+        return;
+      }
+      const numId = Number(activeId);
+      let p = null;
+      if ((overrideTarget == null ? void 0 : overrideTarget.points) && Array.isArray(overrideTarget.points)) {
+        p = overrideTarget.points;
+      } else if (extractPointsHelper) ;
+      if (!p || p.length < 9) {
+        applyClippingPlanesToView(topView, [], isSharedScene);
+        applyClippingPlanesToView(sideView, [], isSharedScene);
+        applyClippingPlanesToView(frontView, [], isSharedScene);
+        applyClippingPlanesToView(perspectiveView, [], isSharedScene);
+        return;
+      }
+      const cx = p[0], cy = p[1], cz = p[2];
+      const rx = p[3] || 0;
+      const ry = p[4] || 0;
+      const rz = p[5] || 0;
+      const h2 = p[8];
+      const halfH = h2 / 2;
+      const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
+      const cosY = Math.cos(ry), sinY = Math.sin(ry);
+      const cosX = Math.cos(rx), sinX = Math.sin(rx);
+      const uzx = cosZ * sinY * cosX + sinZ * sinX;
+      const uzy = sinZ * sinY * cosX - cosZ * sinX;
+      const uzz = cosY * cosX;
+      const setPlane = (plane, nx, ny, nz, px, py, pz) => {
+        plane.normal.set(nx, ny, nz);
+        plane.constant = -(nx * px + ny * py + nz * pz);
+      };
+      const activeTopPlanes = [];
+      if (currentOrthoSlicing.hideGround) {
+        const pzCutX = cx + (-halfH + 0.12) * uzx;
+        const pzCutY = cy + (-halfH + 0.12) * uzy;
+        const pzCutZ = cz + (-halfH + 0.12) * uzz;
+        const pl = ensurePlaneAt(cachedTopPlanes, 0, Three);
+        setPlane(pl, uzx, uzy, uzz, pzCutX, pzCutY, pzCutZ);
+        activeTopPlanes.push(pl);
+      }
+      applyClippingPlanesToView(topView, activeTopPlanes, isSharedScene);
+      applyClippingPlanesToView(sideView, [], isSharedScene);
+      applyClippingPlanesToView(frontView, [], isSharedScene);
+      applyClippingPlanesToView(perspectiveView, [], isSharedScene);
+      if (forceRender && typeof (canvas == null ? void 0 : canvas.render) === "function") {
+        canvas.render();
+      }
+    } catch (e) {
+      console.warn("[CVAT 3D Suite] Lỗi updateOrthoClippingPlanes:", e);
+    }
+  }
+  let isCanvasInteracting = false;
+  let lastActiveTrackId = null;
+  let persistentActiveTrackId = null;
+  let currentActiveTrackId = -1;
+  let isFrameTransitioning = false;
+  let frameTransitionTimer = null;
+  let lockOnActiveTimer = null;
+  let autoCenterOnFrameChange = true;
+  if (typeof window !== "undefined") {
     const handlePointerTransitionUnblock = (e) => {
       if (e.type === "pointerdown" || e.type === "mousedown") {
         isCanvasInteracting = true;
@@ -8659,10 +5803,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           clearTimeout(lockOnActiveTimer);
           lockOnActiveTimer = null;
         }
-        if (singleFrameColorizeTimer) {
-          clearTimeout(singleFrameColorizeTimer);
-          singleFrameColorizeTimer = null;
-        }
+        cancelSingleFrameColorization();
       }
     };
     window.addEventListener("pointerdown", handlePointerTransitionUnblock, { capture: true, passive: true });
@@ -8682,115 +5823,288 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     window.addEventListener("pointercancel", () => {
       window.__cvat_mouse_down__ = false;
     }, { capture: true, passive: true });
-    function updateLockedTrackId(clientId) {
-      var _a, _b, _c, _d;
-      if (clientId === null || clientId === void 0 || isNaN(clientId)) return;
-      try {
-        const store = getReduxStore();
-        const states = ((_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.states) || [];
-        const st = states.find((s) => Number(s.clientID) === Number(clientId));
-        if (st) {
-          const tid = st.parentID ?? st.trackID ?? ((_d = st.parent) == null ? void 0 : _d.clientID);
-          if (tid !== void 0 && tid !== null && !isNaN(Number(tid))) {
-            persistentActiveTrackId = Number(tid);
-            return;
+  }
+  function extractLivePointsFromDrawnAndState(drawnItem, stateOrShape) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
+    const basePoints = ((_a = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _a.points) && Array.isArray(drawnItem.data.points) && drawnItem.data.points.length >= 9 ? drawnItem.data.points : (stateOrShape == null ? void 0 : stateOrShape.points) && Array.isArray(stateOrShape.points) && stateOrShape.points.length >= 9 ? stateOrShape.points : null;
+    if (!basePoints) return null;
+    let cx = basePoints[0];
+    let cy = basePoints[1];
+    let cz = basePoints[2];
+    const rx = basePoints[3] || 0;
+    const ry = basePoints[4] || 0;
+    let yaw = basePoints[5] || 0;
+    let l = basePoints[6];
+    let w = basePoints[7];
+    let h2 = basePoints[8];
+    if (drawnItem && drawnItem.cuboid) {
+      const basePos = { x: basePoints[0], y: basePoints[1], z: basePoints[2] };
+      const baseYaw = basePoints[5] || 0;
+      const baseScale = { l: basePoints[6], w: basePoints[7], h: basePoints[8] };
+      const c = drawnItem.cuboid;
+      let bestDeltaPos = 0;
+      let bestPos = null;
+      const candidateViews = [
+        { name: "top", obj: c.top },
+        { name: "side", obj: c.side },
+        { name: "front", obj: c.front },
+        { name: "perspective", obj: c.perspective },
+        { name: "root", obj: c }
+      ];
+      for (const cand of candidateViews) {
+        const p = (_b = cand.obj) == null ? void 0 : _b.position;
+        if (p && typeof p.x === "number" && typeof p.y === "number" && typeof p.z === "number") {
+          let dx = p.x - basePos.x;
+          let dy = p.y - basePos.y;
+          let dz = p.z - basePos.z;
+          if (cand.name === "top") dz = 0;
+          if (cand.name === "side") dy = 0;
+          if (cand.name === "front") dx = 0;
+          const delta = dx * dx + dy * dy + dz * dz;
+          if (delta > bestDeltaPos && delta > 1e-4) {
+            bestDeltaPos = delta;
+            bestPos = {
+              x: cand.name === "front" ? basePos.x : p.x,
+              y: cand.name === "side" ? basePos.y : p.y,
+              z: cand.name === "top" ? basePos.z : p.z
+            };
           }
+        }
+      }
+      if (bestPos) {
+        cx = bestPos.x;
+        cy = bestPos.y;
+        cz = bestPos.z;
+      } else {
+        const fallbackPos = c.position || ((_c = c.perspective) == null ? void 0 : _c.position) || ((_d = c.top) == null ? void 0 : _d.position);
+        if (fallbackPos && typeof fallbackPos.x === "number" && typeof fallbackPos.y === "number" && typeof fallbackPos.z === "number") {
+          cx = fallbackPos.x;
+          cy = fallbackPos.y;
+          cz = fallbackPos.z;
+        }
+      }
+      let bestDeltaYaw = 0;
+      let bestYaw = null;
+      for (const cand of candidateViews) {
+        const r = (_e = cand.obj) == null ? void 0 : _e.rotation;
+        if (r && typeof r.z === "number") {
+          const dYaw = Math.abs(r.z - baseYaw);
+          if (dYaw > bestDeltaYaw && dYaw > 1e-4) {
+            bestDeltaYaw = dYaw;
+            bestYaw = r.z;
+          }
+        }
+      }
+      if (bestYaw !== null) {
+        yaw = bestYaw;
+      } else {
+        const fallbackRot = c.rotation || ((_f = c.perspective) == null ? void 0 : _f.rotation) || ((_g = c.top) == null ? void 0 : _g.rotation);
+        if (fallbackRot && typeof fallbackRot.z === "number") {
+          yaw = fallbackRot.z;
+        }
+      }
+      let bestDeltaScale = 0;
+      let bestScale = null;
+      for (const cand of candidateViews) {
+        const s = (_h = cand.obj) == null ? void 0 : _h.scale;
+        if (s && typeof s.x === "number" && s.x > 0) {
+          const dl = Math.abs(s.x - baseScale.l);
+          const dw = Math.abs(s.y - baseScale.w);
+          const dh = Math.abs(s.z - baseScale.h);
+          if (cand.name === "top") ;
+          if (cand.name === "side") ;
+          if (cand.name === "front") ;
+          const delta = dl + dw + dh;
+          if (delta > bestDeltaScale && delta > 1e-4) {
+            bestDeltaScale = delta;
+            bestScale = {
+              x: cand.name === "front" ? baseScale.l : s.x,
+              y: cand.name === "side" ? baseScale.w : s.y,
+              z: cand.name === "top" ? baseScale.h : s.z
+            };
+          }
+        }
+      }
+      if (bestScale) {
+        l = bestScale.x;
+        w = bestScale.y;
+        h2 = bestScale.z;
+      } else {
+        const fallbackScale = c.scale || ((_i = c.perspective) == null ? void 0 : _i.scale) || ((_j = c.top) == null ? void 0 : _j.scale);
+        if (fallbackScale && typeof fallbackScale.x === "number" && fallbackScale.x > 0) {
+          l = fallbackScale.x;
+          w = fallbackScale.y;
+          h2 = fallbackScale.z;
+        }
+      }
+    }
+    const res = [...basePoints];
+    res[0] = cx;
+    res[1] = cy;
+    res[2] = cz;
+    res[3] = rx;
+    res[4] = ry;
+    res[5] = yaw;
+    res[6] = l;
+    res[7] = w;
+    res[8] = h2;
+    return res;
+  }
+  function center3DViewOnObject(uiId, targetPos) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
+    if (isCanvasInteracting || window.__cvat_mouse_down__) {
+      return false;
+    }
+    try {
+      const store = getReduxStore();
+      const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+      if (!canvas || !canvas.view) return false;
+      try {
+        if (typeof canvas.center === "function") {
+          canvas.center(uiId);
+        }
+        if (typeof ((_d = canvas.view) == null ? void 0 : _d.center) === "function") {
+          canvas.view.center(uiId);
+        }
+        if (typeof ((_e = canvas.view) == null ? void 0 : _e.focus) === "function") {
+          canvas.view.focus(uiId);
         }
       } catch (_) {
       }
-      persistentActiveTrackId = Number(clientId);
-    }
-    function lockOnActiveObjectAtFrame(targetId, targetFrame, attempt = 0) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
-      if (lockOnActiveTimer) {
-        clearTimeout(lockOnActiveTimer);
-        lockOnActiveTimer = null;
-      }
-      try {
-        const store = getReduxStore();
-        const anno = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation;
-        const canvas = (_b = anno == null ? void 0 : anno.canvas) == null ? void 0 : _b.instance;
-        const states = ((_c = anno == null ? void 0 : anno.annotations) == null ? void 0 : _c.states) || [];
-        const isFetching = !!((_d = anno == null ? void 0 : anno.annotations) == null ? void 0 : _d.fetching);
-        const isStaleStates = isFetching || states.length === 0 || states.length > 0 && typeof states[0].frame === "number" && states[0].frame !== targetFrame;
-        let matchedState = null;
-        const trackIdToFind = persistentActiveTrackId !== null ? persistentActiveTrackId : targetId;
-        if (!isStaleStates && trackIdToFind !== null && trackIdToFind !== void 0 && !isNaN(trackIdToFind)) {
-          matchedState = states.find(
-            (s) => {
-              var _a2;
-              return Number(s.parentID ?? s.trackID ?? ((_a2 = s.parent) == null ? void 0 : _a2.clientID)) === Number(trackIdToFind) && (typeof s.frame !== "number" || s.frame === targetFrame) && !s.outside;
+      let pos = targetPos;
+      if (!pos) {
+        const drawn = (_g = (_f = canvas.view) == null ? void 0 : _f.drawnObjects) == null ? void 0 : _g[String(uiId)];
+        if (((_h = drawn == null ? void 0 : drawn.data) == null ? void 0 : _h.points) && Array.isArray(drawn.data.points)) {
+          pos = {
+            x: drawn.data.points[0],
+            y: drawn.data.points[1],
+            z: drawn.data.points[2]
+          };
+        } else {
+          const drawnObjects = ((_i = canvas.view) == null ? void 0 : _i.drawnObjects) || {};
+          for (const k of Object.keys(drawnObjects)) {
+            const item = drawnObjects[k];
+            const d = item == null ? void 0 : item.data;
+            if (d && Array.isArray(d.points)) {
+              if (Number(k) === uiId || Number(d.clientID) === uiId || Number(d.parentID) === uiId || Number(d.trackID) === uiId || Number(d.serverID) === uiId) {
+                pos = { x: d.points[0], y: d.points[1], z: d.points[2] };
+                break;
+              }
             }
-          );
-          if (!matchedState) {
-            matchedState = states.find(
-              (s) => Number(s.clientID) === Number(trackIdToFind) && (s.parentID === void 0 || s.parentID === null) && (typeof s.frame !== "number" || s.frame === targetFrame) && !s.outside
-            );
           }
         }
-        if (!matchedState) {
-          const delays = [60, 140, 260, 480, 800];
-          if (attempt < delays.length) {
-            lockOnActiveTimer = setTimeout(() => {
-              var _a2, _b2, _c2, _d2, _e2, _f2;
-              lockOnActiveTimer = null;
-              const curF = ((_b2 = (_a2 = anno == null ? void 0 : anno.player) == null ? void 0 : _a2.frame) == null ? void 0 : _b2.number) ?? ((_f2 = (_e2 = (_d2 = (_c2 = store == null ? void 0 : store.getState()) == null ? void 0 : _c2.annotation) == null ? void 0 : _d2.job) == null ? void 0 : _e2.instance) == null ? void 0 : _f2.frame);
-              if (curF === targetFrame) {
-                lockOnActiveObjectAtFrame(targetId, targetFrame, attempt + 1);
-              }
-            }, delays[attempt]);
-          } else {
-            window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_OBJECT_DEACTIVATED"));
+        if (!pos) {
+          const states = ((_l = (_k = (_j = store == null ? void 0 : store.getState()) == null ? void 0 : _j.annotation) == null ? void 0 : _k.annotations) == null ? void 0 : _l.states) || [];
+          const matched = states.find(
+            (s) => Number(s.clientID) === uiId || Number(s.id) === uiId || Number(s.parentID) === uiId || Number(s.trackID) === uiId || Number(s.serverID) === uiId
+          );
+          if (matched && Array.isArray(matched.points)) {
+            pos = { x: matched.points[0], y: matched.points[1], z: matched.points[2] };
           }
+        }
+      }
+      if (!pos || typeof pos.x !== "number" || isNaN(pos.x)) return false;
+      const views = canvas.view.views;
+      if (views) {
+        const pView = views.perspective;
+        if ((_m = pView == null ? void 0 : pView.controls) == null ? void 0 : _m.target) {
+          const curTarget = pView.controls.target;
+          const deltaX = pos.x - curTarget.x;
+          const deltaY = pos.y - curTarget.y;
+          const deltaZ = pos.z - curTarget.z;
+          curTarget.set(pos.x, pos.y, pos.z);
+          if (pView.camera) {
+            pView.camera.position.x += deltaX;
+            pView.camera.position.y += deltaY;
+            pView.camera.position.z += deltaZ;
+            pView.camera.lookAt(pos.x, pos.y, pos.z);
+          }
+          if (typeof pView.controls.update === "function") {
+            pView.controls.update();
+          }
+        }
+        for (const viewName of ["top", "side", "front"]) {
+          const oView = views[viewName];
+          if (oView) {
+            if ((_n = oView.controls) == null ? void 0 : _n.target) {
+              const curTarget = oView.controls.target;
+              const deltaX = pos.x - curTarget.x;
+              const deltaY = pos.y - curTarget.y;
+              const deltaZ = pos.z - curTarget.z;
+              if (oView.camera) {
+                oView.camera.position.x += deltaX;
+                oView.camera.position.y += deltaY;
+                oView.camera.position.z += deltaZ;
+              }
+              curTarget.set(pos.x, pos.y, pos.z);
+              if (typeof oView.controls.update === "function") {
+                oView.controls.update();
+              }
+            }
+            if (typeof oView.updateControls === "function") {
+              oView.updateControls();
+            }
+          }
+        }
+        if (typeof canvas.render === "function") {
+          canvas.render();
+        }
+      }
+      return true;
+    } catch (err) {
+      console.warn("[CVAT 3D Suite] Lỗi center3DViewOnObject:", err);
+      return false;
+    }
+  }
+  function updateLockedTrackId(clientId) {
+    var _a, _b, _c, _d;
+    if (clientId === null || clientId === void 0 || isNaN(clientId)) return;
+    try {
+      const store = getReduxStore();
+      const states = ((_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.states) || [];
+      const st = states.find((s) => Number(s.clientID) === Number(clientId));
+      if (st) {
+        const tid = st.parentID ?? st.trackID ?? ((_d = st.parent) == null ? void 0 : _d.clientID);
+        if (tid !== void 0 && tid !== null && !isNaN(Number(tid))) {
+          persistentActiveTrackId = Number(tid);
           return;
         }
-        const activeIdToUse = Number(matchedState.clientID);
-        let foundPos = null;
-        if (Array.isArray(matchedState.points) && matchedState.points.length >= 3) {
-          foundPos = {
-            x: matchedState.points[0],
-            y: matchedState.points[1],
-            z: matchedState.points[2]
-          };
-        }
-        const isMeshReady = !!((_f = (_e = canvas == null ? void 0 : canvas.view) == null ? void 0 : _e.drawnObjects) == null ? void 0 : _f[String(activeIdToUse)]);
-        if (foundPos && typeof foundPos.x === "number" && !isNaN(foundPos.x)) {
-          lastActiveTrackId = activeIdToUse;
-          if (canvas && typeof canvas.activate === "function") {
-            try {
-              canvas.activate(activeIdToUse);
-            } catch (_) {
-            }
+      }
+    } catch (_) {
+    }
+    persistentActiveTrackId = Number(clientId);
+  }
+  function lockOnActiveObjectAtFrame(targetId, targetFrame, attempt = 0) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
+    if (lockOnActiveTimer) {
+      clearTimeout(lockOnActiveTimer);
+      lockOnActiveTimer = null;
+    }
+    try {
+      const store = getReduxStore();
+      const anno = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation;
+      const canvas = (_b = anno == null ? void 0 : anno.canvas) == null ? void 0 : _b.instance;
+      const states = ((_c = anno == null ? void 0 : anno.annotations) == null ? void 0 : _c.states) || [];
+      const isFetching = !!((_d = anno == null ? void 0 : anno.annotations) == null ? void 0 : _d.fetching);
+      const isStaleStates = isFetching || states.length === 0 || states.length > 0 && typeof states[0].frame === "number" && states[0].frame !== targetFrame;
+      let matchedState = null;
+      const trackIdToFind = persistentActiveTrackId !== null ? persistentActiveTrackId : targetId;
+      if (!isStaleStates && trackIdToFind !== null && trackIdToFind !== void 0 && !isNaN(trackIdToFind)) {
+        matchedState = states.find(
+          (s) => {
+            var _a2;
+            return Number(s.parentID ?? s.trackID ?? ((_a2 = s.parent) == null ? void 0 : _a2.clientID)) === Number(trackIdToFind) && (typeof s.frame !== "number" || s.frame === targetFrame) && !s.outside;
           }
-          if (store && typeof store.dispatch === "function") {
-            try {
-              const currentStoreActiveId = ((_i = (_h = (_g = store.getState()) == null ? void 0 : _g.annotation) == null ? void 0 : _h.annotations) == null ? void 0 : _i.activatedStateClientID) ?? ((_n = (_m = (_l = (_k = (_j = store.getState()) == null ? void 0 : _j.annotation) == null ? void 0 : _k.canvas) == null ? void 0 : _l.instance) == null ? void 0 : _m.view) == null ? void 0 : _n.activatedElementID);
-              if (Number(currentStoreActiveId) !== Number(activeIdToUse)) {
-                store.dispatch({
-                  type: "ACTIVATE_OBJECT",
-                  payload: { activatedStateClientID: activeIdToUse, activatedElementID: activeIdToUse }
-                });
-              }
-            } catch (_) {
-            }
-          }
-          if (autoCenterOnFrameChange) {
-            center3DViewOnObject(activeIdToUse, foundPos);
-          }
-          syncSidebarItemHighlight(Number(activeIdToUse));
-          if (typeof canvas.render === "function") {
-            canvas.render();
-          }
-          const details = extractObjectDetails(activeIdToUse);
-          updateOrthoClippingPlanes(details);
-          window.dispatchEvent(
-            new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-              detail: { clientId: activeIdToUse, trackId: persistentActiveTrackId, details }
-            })
+        );
+        if (!matchedState) {
+          matchedState = states.find(
+            (s) => Number(s.clientID) === Number(trackIdToFind) && (s.parentID === void 0 || s.parentID === null) && (typeof s.frame !== "number" || s.frame === targetFrame) && !s.outside
           );
         }
-        if (!isMeshReady && attempt < 3) {
-          const delays = [60, 150, 300];
+      }
+      if (!matchedState) {
+        const delays = [60, 140, 260, 480, 800];
+        if (attempt < delays.length) {
           lockOnActiveTimer = setTimeout(() => {
             var _a2, _b2, _c2, _d2, _e2, _f2;
             lockOnActiveTimer = null;
@@ -8799,1454 +6113,2213 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               lockOnActiveObjectAtFrame(targetId, targetFrame, attempt + 1);
             }
           }, delays[attempt]);
+        } else {
+          window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_OBJECT_DEACTIVATED"));
         }
-      } catch (err) {
-        console.warn("[CVAT 3D Suite] Lỗi lockOnActiveObjectAtFrame:", err);
+        return;
+      }
+      const activeIdToUse = Number(matchedState.clientID);
+      let foundPos = null;
+      if (Array.isArray(matchedState.points) && matchedState.points.length >= 3) {
+        foundPos = {
+          x: matchedState.points[0],
+          y: matchedState.points[1],
+          z: matchedState.points[2]
+        };
+      }
+      const isMeshReady = !!((_f = (_e = canvas == null ? void 0 : canvas.view) == null ? void 0 : _e.drawnObjects) == null ? void 0 : _f[String(activeIdToUse)]);
+      if (foundPos && typeof foundPos.x === "number" && !isNaN(foundPos.x)) {
+        lastActiveTrackId = activeIdToUse;
+        if (canvas && typeof canvas.activate === "function") {
+          try {
+            canvas.activate(activeIdToUse);
+          } catch (_) {
+          }
+        }
+        if (store && typeof store.dispatch === "function") {
+          try {
+            const currentStoreActiveId = ((_i = (_h = (_g = store.getState()) == null ? void 0 : _g.annotation) == null ? void 0 : _h.annotations) == null ? void 0 : _i.activatedStateClientID) ?? ((_n = (_m = (_l = (_k = (_j = store.getState()) == null ? void 0 : _j.annotation) == null ? void 0 : _k.canvas) == null ? void 0 : _l.instance) == null ? void 0 : _m.view) == null ? void 0 : _n.activatedElementID);
+            if (Number(currentStoreActiveId) !== Number(activeIdToUse)) {
+              store.dispatch({
+                type: "ACTIVATE_OBJECT",
+                payload: { activatedStateClientID: activeIdToUse, activatedElementID: activeIdToUse }
+              });
+            }
+          } catch (_) {
+          }
+        }
+        if (autoCenterOnFrameChange) {
+          center3DViewOnObject(activeIdToUse, foundPos);
+        }
+        syncSidebarItemHighlight(Number(activeIdToUse));
+        if (typeof canvas.render === "function") {
+          canvas.render();
+        }
+        const details = extractObjectDetails(activeIdToUse);
+        updateOrthoClippingPlanes(details);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+            detail: { clientId: activeIdToUse, trackId: persistentActiveTrackId, details }
+          })
+        );
+      }
+      if (!isMeshReady && attempt < 3) {
+        const delays = [60, 150, 300];
+        lockOnActiveTimer = setTimeout(() => {
+          var _a2, _b2, _c2, _d2, _e2, _f2;
+          lockOnActiveTimer = null;
+          const curF = ((_b2 = (_a2 = anno == null ? void 0 : anno.player) == null ? void 0 : _a2.frame) == null ? void 0 : _b2.number) ?? ((_f2 = (_e2 = (_d2 = (_c2 = store == null ? void 0 : store.getState()) == null ? void 0 : _c2.annotation) == null ? void 0 : _d2.job) == null ? void 0 : _e2.instance) == null ? void 0 : _f2.frame);
+          if (curF === targetFrame) {
+            lockOnActiveObjectAtFrame(targetId, targetFrame, attempt + 1);
+          }
+        }, delays[attempt]);
+      }
+    } catch (err) {
+      console.warn("[CVAT 3D Suite] Lỗi lockOnActiveObjectAtFrame:", err);
+    }
+  }
+  function updateThreeJsCuboid(uiId, newYaw, newPos, newScale, newRot) {
+    var _a, _b, _c, _d;
+    try {
+      const store = getReduxStore();
+      const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+      if (!canvas || !canvas.view || !canvas.view.drawnObjects) {
+        return false;
+      }
+      const drawnItem = canvas.view.drawnObjects[String(uiId)];
+      if (!drawnItem) {
+        return false;
+      }
+      if (drawnItem.data && Array.isArray(drawnItem.data.points)) {
+        if (newYaw !== void 0) {
+          drawnItem.data.points[5] = newYaw;
+        }
+        if (newRot) {
+          drawnItem.data.points[3] = newRot.rx;
+          drawnItem.data.points[4] = newRot.ry;
+          drawnItem.data.points[5] = newRot.rz;
+        }
+        if (newPos) {
+          drawnItem.data.points[0] = newPos.x;
+          drawnItem.data.points[1] = newPos.y;
+          drawnItem.data.points[2] = newPos.z;
+        }
+        if (newScale) {
+          drawnItem.data.points[6] = newScale.l;
+          drawnItem.data.points[7] = newScale.w;
+          drawnItem.data.points[8] = newScale.h;
+        }
+        drawnItem.data.updated = true;
+      }
+      const cuboid = drawnItem.cuboid;
+      if (cuboid) {
+        if (newRot && typeof cuboid.setRotation === "function") {
+          cuboid.setRotation(newRot.rx, newRot.ry, newRot.rz);
+        } else if (newYaw !== void 0 && typeof cuboid.setRotation === "function") {
+          const curRot = (_d = cuboid.perspective) == null ? void 0 : _d.rotation;
+          const rx = curRot ? curRot.x : 0;
+          const ry = curRot ? curRot.y : 0;
+          cuboid.setRotation(rx, ry, newYaw);
+        }
+        if (newScale && typeof cuboid.setScale === "function") {
+          cuboid.setScale(newScale.l, newScale.w, newScale.h);
+        }
+        if (newPos && typeof cuboid.setPosition === "function") {
+          cuboid.setPosition(newPos.x, newPos.y, newPos.z);
+        }
+      }
+      if (newPos) {
+        center3DViewOnObject(uiId, newPos);
+      } else {
+        center3DViewOnObject(uiId);
+      }
+      if (typeof canvas.render === "function") {
+        canvas.render();
+      }
+      if (currentColorizeBoxed) {
+        schedulePointCloudColorization(0);
+      }
+      calculateAndBroadcastBoxEdgeContacts();
+      updateOrthoClippingPlanes();
+      return true;
+    } catch (err) {
+      console.warn("[CVAT 3D Suite] Lỗi cập nhật trực tiếp Three.js:", err);
+      return false;
+    }
+  }
+  function parseObjectAttributes(rawAttrs) {
+    const res = {};
+    if (!rawAttrs) return res;
+    if (typeof rawAttrs === "object") {
+      for (const k of Object.keys(rawAttrs)) {
+        const val = rawAttrs[k];
+        if (typeof val === "string" || typeof val === "number" || typeof val === "boolean") {
+          res[String(k).toLowerCase()] = val;
+          if (typeof val === "string") {
+            res[val.toLowerCase()] = true;
+          }
+        } else if (val && typeof val === "object" && val.value !== void 0) {
+          res[String(k).toLowerCase()] = val.value;
+          if (typeof val.value === "string") {
+            res[String(val.value).toLowerCase()] = true;
+          }
+        }
       }
     }
-    function updateThreeJsCuboid(uiId, newYaw, newPos, newScale, newRot) {
+    return res;
+  }
+  function extractObjectDetails(clientId) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+    try {
+      const store = getReduxStore();
+      const anno = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation;
+      const canvas = (_b = anno == null ? void 0 : anno.canvas) == null ? void 0 : _b.instance;
+      if (mainWorldLabelsCache.size === 0) {
+        updateMainWorldLabels();
+      }
+      const drawnItem = (_d = (_c = canvas == null ? void 0 : canvas.view) == null ? void 0 : _c.drawnObjects) == null ? void 0 : _d[String(clientId)];
+      const states = ((_e = anno == null ? void 0 : anno.annotations) == null ? void 0 : _e.states) || [];
+      const matched = states.find((s) => s.clientID === clientId);
+      const p = extractLivePointsFromDrawnAndState(drawnItem, matched);
+      if (p && p.length >= 9) {
+        const resolved = resolveLabelName((drawnItem == null ? void 0 : drawnItem.data) || matched);
+        const attrs = parseObjectAttributes(
+          ((_f = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _f.attributes) || ((_g = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _g.attributeValues) || (matched == null ? void 0 : matched.attributes) || (matched == null ? void 0 : matched.attributeValues)
+        );
+        const persistentTid = (matched == null ? void 0 : matched.parentID) ?? (matched == null ? void 0 : matched.trackID) ?? ((_h = matched == null ? void 0 : matched.parent) == null ? void 0 : _h.clientID) ?? ((_i = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _i.parentID) ?? ((_j = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _j.trackID) ?? clientId;
+        return {
+          clientId,
+          trackId: Number(persistentTid),
+          serverId: ((_k = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _k.serverID) || (matched == null ? void 0 : matched.serverID) || null,
+          label: resolved.name,
+          color: resolved.color,
+          x: Number(p[0].toFixed(2)),
+          y: Number(p[1].toFixed(2)),
+          z: Number(p[2].toFixed(3)),
+          yawDeg: Math.round(p[5] * 180 / Math.PI),
+          l: Number(p[6].toFixed(2)),
+          w: Number(p[7].toFixed(2)),
+          h: Number(p[8].toFixed(2)),
+          points: [...p],
+          attributes: attrs
+        };
+      }
+    } catch (e) {
+    }
+    return null;
+  }
+  function calculateAndBroadcastBoxEdgeContacts() {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+    try {
+      const store = getReduxStore();
+      const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+      const activeId = ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.activatedElementID) ?? ((_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID) ?? lastActiveTrackId;
+      if (activeId === null || activeId === void 0 || isNaN(Number(activeId))) return;
+      const numId = Number(activeId);
+      const details = extractObjectDetails(numId);
+      if (!details || !Array.isArray(details.points) || details.points.length < 9) return;
+      const ptsObjs = getAllScenePointsObjects();
+      if (ptsObjs.length === 0) return;
+      let mainPtsObj = ptsObjs[0];
+      let maxCount = 0;
+      for (const obj of ptsObjs) {
+        const c = ((_j = (_i = (_h = obj.geometry) == null ? void 0 : _h.attributes) == null ? void 0 : _i.position) == null ? void 0 : _j.count) || 0;
+        if (c > maxCount) {
+          maxCount = c;
+          mainPtsObj = obj;
+        }
+      }
+      const geom = mainPtsObj == null ? void 0 : mainPtsObj.geometry;
+      const posAttr = (_k = geom == null ? void 0 : geom.attributes) == null ? void 0 : _k.position;
+      if (!posAttr || !posAttr.array) return;
+      const posArray = posAttr.array;
+      const p = details.points;
+      const boxTarget = {
+        id: numId,
+        cx: p[0],
+        cy: p[1],
+        cz: p[2],
+        rx: p[3] || 0,
+        ry: p[4] || 0,
+        rz: p[5] || 0,
+        l: p[6],
+        w: p[7],
+        h: p[8],
+        category: details.label,
+        isActive: true
+      };
+      const contacts = computeBoxEdgeContacts(posArray, boxTarget);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_EDGE_CONTACTS_UPDATED", {
+          detail: contacts || { clientId: numId, pointCount: 0 }
+        })
+      );
+    } catch (e) {
+      console.warn("[CVAT 3D Suite] Lỗi calculateAndBroadcastBoxEdgeContacts:", e);
+    }
+  }
+  function ensureCuboidPoints(newValues, existingPoints) {
+    let result;
+    if (Array.isArray(existingPoints) && existingPoints.length >= 16) {
+      result = [...existingPoints];
+      for (let i = 0; i < Math.min(newValues.length, 9); i++) {
+        result[i] = newValues[i];
+      }
+    } else {
+      result = [...newValues];
+      while (result.length < 16) {
+        result.push(0);
+      }
+    }
+    return result;
+  }
+  let isInteractiveWatcherAttached = false;
+  function setupCanvasInteractiveWatcher() {
+    if (isInteractiveWatcherAttached) return;
+    isInteractiveWatcherAttached = true;
+    let pointerUpDebounceTimer = null;
+    let hadBoxTransform = false;
+    const isCameraNavigating = () => {
       var _a, _b, _c, _d;
       try {
         const store = getReduxStore();
         const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        if (!canvas || !canvas.view || !canvas.view.drawnObjects) {
-          return false;
-        }
-        const drawnItem = canvas.view.drawnObjects[String(uiId)];
-        if (!drawnItem) {
-          return false;
-        }
-        if (drawnItem.data && Array.isArray(drawnItem.data.points)) {
-          if (newYaw !== void 0) {
-            drawnItem.data.points[5] = newYaw;
-          }
-          if (newRot) {
-            drawnItem.data.points[3] = newRot.rx;
-            drawnItem.data.points[4] = newRot.ry;
-            drawnItem.data.points[5] = newRot.rz;
-          }
-          if (newPos) {
-            drawnItem.data.points[0] = newPos.x;
-            drawnItem.data.points[1] = newPos.y;
-            drawnItem.data.points[2] = newPos.z;
-          }
-          if (newScale) {
-            drawnItem.data.points[6] = newScale.l;
-            drawnItem.data.points[7] = newScale.w;
-            drawnItem.data.points[8] = newScale.h;
-          }
-          drawnItem.data.updated = true;
-        }
-        const cuboid = drawnItem.cuboid;
-        if (cuboid) {
-          if (newRot && typeof cuboid.setRotation === "function") {
-            cuboid.setRotation(newRot.rx, newRot.ry, newRot.rz);
-          } else if (newYaw !== void 0 && typeof cuboid.setRotation === "function") {
-            const curRot = (_d = cuboid.perspective) == null ? void 0 : _d.rotation;
-            const rx = curRot ? curRot.x : 0;
-            const ry = curRot ? curRot.y : 0;
-            cuboid.setRotation(rx, ry, newYaw);
-          }
-          if (newScale && typeof cuboid.setScale === "function") {
-            cuboid.setScale(newScale.l, newScale.w, newScale.h);
-          }
-          if (newPos && typeof cuboid.setPosition === "function") {
-            cuboid.setPosition(newPos.x, newPos.y, newPos.z);
-          }
-        }
-        if (newPos) {
-          center3DViewOnObject(uiId, newPos);
-        } else {
-          center3DViewOnObject(uiId);
-        }
-        if (typeof canvas.render === "function") {
-          canvas.render();
-        }
-        if (currentColorizeBoxed) {
-          schedulePointCloudColorization(0);
-        }
-        calculateAndBroadcastBoxEdgeContacts();
-        updateOrthoClippingPlanes();
-        return true;
-      } catch (err) {
-        console.warn("[CVAT 3D Suite] Lỗi cập nhật trực tiếp Three.js:", err);
-        return false;
-      }
-    }
-    function parseObjectAttributes(rawAttrs) {
-      const res = {};
-      if (!rawAttrs) return res;
-      if (typeof rawAttrs === "object") {
-        for (const k of Object.keys(rawAttrs)) {
-          const val = rawAttrs[k];
-          if (typeof val === "string" || typeof val === "number" || typeof val === "boolean") {
-            res[String(k).toLowerCase()] = val;
-            if (typeof val === "string") {
-              res[val.toLowerCase()] = true;
+        const views = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views;
+        if (!views) return false;
+        for (const vKey of ["perspective", "top", "side", "front"]) {
+          const v = views[vKey];
+          const controls = v == null ? void 0 : v.controls;
+          if (controls) {
+            if (typeof controls.state === "number" && controls.state !== -1) {
+              return true;
             }
-          } else if (val && typeof val === "object" && val.value !== void 0) {
-            res[String(k).toLowerCase()] = val.value;
-            if (typeof val.value === "string") {
-              res[String(val.value).toLowerCase()] = true;
+            if (typeof controls._state === "number" && controls._state !== -1) {
+              return true;
+            }
+            if (controls.isRotating || controls.isPanning) {
+              return true;
             }
           }
         }
+      } catch (_) {
       }
-      return res;
-    }
-    function extractObjectDetails(clientId) {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
-      try {
-        const store = getReduxStore();
-        const anno = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation;
-        const canvas = (_b = anno == null ? void 0 : anno.canvas) == null ? void 0 : _b.instance;
-        if (mainWorldLabelsCache.size === 0) {
-          updateMainWorldLabels();
-        }
-        const drawnItem = (_d = (_c = canvas == null ? void 0 : canvas.view) == null ? void 0 : _c.drawnObjects) == null ? void 0 : _d[String(clientId)];
-        const states = ((_e = anno == null ? void 0 : anno.annotations) == null ? void 0 : _e.states) || [];
-        const matched = states.find((s) => s.clientID === clientId);
-        const p = extractLivePointsFromDrawnAndState(drawnItem, matched);
-        if (p && p.length >= 9) {
-          const resolved = resolveLabelName((drawnItem == null ? void 0 : drawnItem.data) || matched);
-          const attrs = parseObjectAttributes(
-            ((_f = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _f.attributes) || ((_g = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _g.attributeValues) || (matched == null ? void 0 : matched.attributes) || (matched == null ? void 0 : matched.attributeValues)
-          );
-          const persistentTid = (matched == null ? void 0 : matched.parentID) ?? (matched == null ? void 0 : matched.trackID) ?? ((_h = matched == null ? void 0 : matched.parent) == null ? void 0 : _h.clientID) ?? ((_i = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _i.parentID) ?? ((_j = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _j.trackID) ?? clientId;
-          return {
-            clientId,
-            trackId: Number(persistentTid),
-            serverId: ((_k = drawnItem == null ? void 0 : drawnItem.data) == null ? void 0 : _k.serverID) || (matched == null ? void 0 : matched.serverID) || null,
-            label: resolved.name,
-            color: resolved.color,
-            x: Number(p[0].toFixed(2)),
-            y: Number(p[1].toFixed(2)),
-            z: Number(p[2].toFixed(3)),
-            yawDeg: Math.round(p[5] * 180 / Math.PI),
-            l: Number(p[6].toFixed(2)),
-            w: Number(p[7].toFixed(2)),
-            h: Number(p[8].toFixed(2)),
-            points: [...p],
-            attributes: attrs
-          };
-        }
-      } catch (e) {
-      }
-      return null;
-    }
-    function calculateAndBroadcastBoxEdgeContacts() {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+      return false;
+    };
+    const isTargetBoxTransforming = () => {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
       try {
         const store = getReduxStore();
         const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        const activeId = ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.activatedElementID) ?? ((_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID) ?? lastActiveTrackId;
-        if (activeId === null || activeId === void 0 || isNaN(Number(activeId))) return;
-        const numId = Number(activeId);
-        const details = extractObjectDetails(numId);
-        if (!details || !Array.isArray(details.points) || details.points.length < 9) return;
-        const ptsObjs = getAllScenePointsObjects();
-        if (ptsObjs.length === 0) return;
-        let mainPtsObj = ptsObjs[0];
-        let maxCount = 0;
-        for (const obj of ptsObjs) {
-          const c = ((_j = (_i = (_h = obj.geometry) == null ? void 0 : _h.attributes) == null ? void 0 : _i.position) == null ? void 0 : _j.count) || 0;
-          if (c > maxCount) {
-            maxCount = c;
-            mainPtsObj = obj;
+        const activeId = ((_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.annotations) == null ? void 0 : _f.activatedStateClientID) ?? lastActiveTrackId;
+        if (!activeId || isNaN(Number(activeId)) || Number(activeId) <= 0) {
+          return false;
+        }
+        const drawnObjects = (_g = canvas == null ? void 0 : canvas.view) == null ? void 0 : _g.drawnObjects;
+        if (!drawnObjects) return false;
+        const drawnItem = drawnObjects[String(activeId)];
+        if (!drawnItem) return false;
+        const data = drawnItem.data;
+        const c = drawnItem.cuboid;
+        if (!data || !c || !Array.isArray(data.points) || data.points.length < 9 || data.outside) {
+          return false;
+        }
+        const bx = data.points[0];
+        const by = data.points[1];
+        const bz = data.points[2];
+        const bYaw = data.points[5] || 0;
+        const bL = data.points[6];
+        const bW = data.points[7];
+        const bH = data.points[8];
+        for (const cand of [c.perspective, c]) {
+          const p = cand == null ? void 0 : cand.position;
+          if (p && typeof p.x === "number") {
+            const dx = p.x - bx;
+            const dy = p.y - by;
+            const dz = p.z - bz;
+            if (dx * dx + dy * dy + dz * dz > 1e-4) return true;
           }
         }
-        const geom = mainPtsObj == null ? void 0 : mainPtsObj.geometry;
-        const posAttr = (_k = geom == null ? void 0 : geom.attributes) == null ? void 0 : _k.position;
-        if (!posAttr || !posAttr.array) return;
-        const posArray = posAttr.array;
-        const p = details.points;
-        const boxTarget = {
-          id: numId,
-          cx: p[0],
-          cy: p[1],
-          cz: p[2],
-          rx: p[3] || 0,
-          ry: p[4] || 0,
-          rz: p[5] || 0,
-          l: p[6],
-          w: p[7],
-          h: p[8],
-          category: details.label,
-          isActive: true
-        };
-        const computeFn = window.computeBoxEdgeContacts || globalThis.computeBoxEdgeContacts;
-        if (typeof computeFn === "function") {
-          const contacts = computeFn(posArray, boxTarget);
-          window.dispatchEvent(
-            new CustomEvent("CVAT_EXT_RES_EDGE_CONTACTS_UPDATED", {
-              detail: contacts || { clientId: numId, pointCount: 0 }
-            })
-          );
-        }
-      } catch (e) {
-        console.warn("[CVAT 3D Suite] Lỗi calculateAndBroadcastBoxEdgeContacts:", e);
-      }
-    }
-    function ensureCuboidPoints(newValues, existingPoints) {
-      let result;
-      if (Array.isArray(existingPoints) && existingPoints.length >= 16) {
-        result = [...existingPoints];
-        for (let i = 0; i < Math.min(newValues.length, 9); i++) {
-          result[i] = newValues[i];
-        }
-      } else {
-        result = [...newValues];
-        while (result.length < 16) {
-          result.push(0);
-        }
-      }
-      return result;
-    }
-    async function findTargetSafely(job, frame, uiId, serverId) {
-      var _a, _b, _c, _d, _e;
-      if (job && job.annotations) {
-        try {
-          const annotations = await job.annotations.get(frame);
-          const found = annotations.find(
-            (s) => s.clientID === uiId || serverId && s.serverID === serverId
-          );
-          if (found) return { target: found, isDrawn: false };
-        } catch (e) {
-        }
-      }
-      const store = getReduxStore();
-      const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-      const drawnItem = (_e = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.drawnObjects) == null ? void 0 : _e[String(uiId)];
-      if (drawnItem && drawnItem.data && Array.isArray(drawnItem.data.points)) {
-        return { target: drawnItem.data, isDrawn: true };
-      }
-      throw new Error(`Không tìm thấy xe #${uiId} tại Frame #${frame}`);
-    }
-    function toArray(val) {
-      if (!val) return [];
-      if (Array.isArray(val)) return val;
-      if (val instanceof Map || val instanceof Set) return Array.from(val.values());
-      if (typeof val === "object") {
-        const values = Object.values(val);
-        if (values.length > 0 && typeof values[0] === "object") return values;
-      }
-      return [];
-    }
-    function getJobTrackCollection(job) {
-      var _a, _b, _c, _d, _e;
-      if (!job) return [];
-      const list = [];
-      const anno = job.annotations;
-      if (anno) {
-        const col = anno._collection || anno.collection;
-        if (col) {
-          list.push(...toArray(col.tracks));
-        }
-      }
-      if (job.tracks) {
-        list.push(...toArray(job.tracks));
-      }
-      try {
-        const store = getReduxStore();
-        const storeJob = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.job) == null ? void 0 : _c.instance;
-        const storeCol = ((_d = storeJob == null ? void 0 : storeJob.annotations) == null ? void 0 : _d._collection) || ((_e = storeJob == null ? void 0 : storeJob.annotations) == null ? void 0 : _e.collection);
-        if (storeCol) {
-          list.push(...toArray(storeCol.tracks));
-        }
-      } catch (e) {
-      }
-      return list;
-    }
-    async function findTrackInJob(job, uiId, serverId, parentID) {
-      if (!job) return null;
-      if (!parentID && job.annotations) {
-        try {
-          const curFrame = typeof job.frame === "number" ? job.frame : 0;
-          const curStates = await job.annotations.get(curFrame);
-          if (Array.isArray(curStates)) {
-            const curSt = curStates.find(
-              (s) => Number(s.clientID) === Number(uiId) || serverId && Number(s.serverID) === Number(serverId)
-            );
-            if (curSt) {
-              parentID = curSt.parentID || curSt.trackID || curSt.parent && curSt.parent.clientID;
-            }
-          }
-        } catch (e) {
-        }
-      }
-      const tracks = getJobTrackCollection(job);
-      if (tracks && tracks.length > 0) {
-        let found = tracks.find(
-          (t) => Number(t.clientID) === Number(uiId) || Number(t.id) === Number(uiId) || String(t.clientID) === String(uiId)
-        );
-        if (found) return found;
-        if (serverId) {
-          found = tracks.find(
-            (t) => Number(t.serverID) === Number(serverId) || String(t.serverID) === String(serverId)
-          );
-          if (found) return found;
-        }
-        if (parentID) {
-          found = tracks.find(
-            (t) => Number(t.clientID) === Number(parentID) || Number(t.id) === Number(parentID) || String(t.clientID) === String(parentID)
-          );
-          if (found) return found;
-        }
-        found = tracks.find((t) => {
-          const shList = toArray(t.shapes || t.keyframes || t._shapes);
-          return shList.some(
-            (sh) => Number(sh.clientID) === Number(uiId) || serverId && Number(sh.serverID) === Number(serverId) || sh.parentID && Number(sh.parentID) === Number(uiId)
-          );
-        });
-        if (found) return found;
-      }
-      if (job.annotations) {
-        try {
-          const allObjects = await job.annotations.get(null, true);
-          if (Array.isArray(allObjects)) {
-            let found = allObjects.find(
-              (t) => Number(t.clientID) === Number(uiId) || Number(t.id) === Number(uiId) || serverId && Number(t.serverID) === Number(serverId) || parentID && (Number(t.clientID) === Number(parentID) || Number(t.id) === Number(parentID))
-            );
-            if (found) return found;
-          }
-        } catch (e) {
-        }
-        try {
-          const defaultTracks = await job.annotations.get();
-          if (Array.isArray(defaultTracks)) {
-            let found = defaultTracks.find(
-              (t) => Number(t.clientID) === Number(uiId) || Number(t.id) === Number(uiId) || serverId && Number(t.serverID) === Number(serverId) || parentID && (Number(t.clientID) === Number(parentID) || Number(t.id) === Number(parentID))
-            );
-            if (found) return found;
-          }
-        } catch (e) {
-        }
-      }
-      return null;
-    }
-    function markCvatSaveButtonUnsaved(job) {
-      var _a, _b, _c, _d, _e, _f, _g;
-      try {
-        window.__CVAT_HAS_UNSAVED_CHANGES__ = true;
-        const activeJob = job || ((_d = (_c = (_b = (_a = getReduxStore()) == null ? void 0 : _a.getState()) == null ? void 0 : _b.annotation) == null ? void 0 : _c.job) == null ? void 0 : _d.instance);
-        if (activeJob && activeJob.annotations) {
-          const col = activeJob.annotations._collection || activeJob.annotations.collection;
-          if (col) {
-            col._isModified = true;
+        if ((_h = c.top) == null ? void 0 : _h.position) {
+          const p = c.top.position;
+          if (typeof p.x === "number" && typeof p.y === "number") {
+            const dx = p.x - bx;
+            const dy = p.y - by;
+            if (dx * dx + dy * dy > 1e-4) return true;
           }
         }
-        const store = getReduxStore();
-        if (store && typeof store.dispatch === "function") {
-          try {
-            const historyState = ((_g = (_f = (_e = store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.history) || {};
-            store.dispatch({
-              type: "UPDATE_ANNOTATIONS_SUCCESS",
-              payload: {
-                history: historyState
-              }
-            });
-          } catch (_) {
-            try {
-              store.dispatch({ type: "CHANGE_ANNOTATIONS" });
-            } catch (__) {
+        if ((_i = c.side) == null ? void 0 : _i.position) {
+          const p = c.side.position;
+          if (typeof p.x === "number" && typeof p.z === "number") {
+            const dx = p.x - bx;
+            const dz = p.z - bz;
+            if (dx * dx + dz * dz > 1e-4) return true;
+          }
+        }
+        if ((_j = c.front) == null ? void 0 : _j.position) {
+          const p = c.front.position;
+          if (typeof p.y === "number" && typeof p.z === "number") {
+            const dy = p.y - by;
+            const dz = p.z - bz;
+            if (dy * dy + dz * dz > 1e-4) return true;
+          }
+        }
+        for (const cand of [c.perspective, c.top, c]) {
+          const r = cand == null ? void 0 : cand.rotation;
+          if (r && typeof r.z === "number") {
+            if (Math.abs(r.z - bYaw) > 1e-3) return true;
+          }
+        }
+        for (const cand of [c.perspective, c.top, c.side, c.front, c]) {
+          const s = cand == null ? void 0 : cand.scale;
+          if (s && typeof s.x === "number" && s.x > 0) {
+            if (Math.abs(s.x - bL) > 1e-3 || Math.abs(s.y - bW) > 1e-3 || Math.abs(s.z - bH) > 1e-3) {
+              return true;
             }
           }
         }
-        const cvatSaveBtn = document.querySelector(
-          "button.cvat-annotation-header-save-button, .cvat-annotation-header-save-button, button[aria-label='Save annotations']"
-        );
-        if (cvatSaveBtn) {
-          cvatSaveBtn.disabled = false;
-          cvatSaveBtn.removeAttribute("disabled");
-          cvatSaveBtn.classList.remove("cvat-disabled-button");
-          cvatSaveBtn.style.opacity = "1";
-          cvatSaveBtn.style.cursor = "pointer";
-        }
-      } catch (e) {
+      } catch (_) {
       }
-    }
-    async function persistJobAnnotations(job) {
-      try {
-        if (job && job.annotations && typeof job.annotations.save === "function") {
-          await job.annotations.save();
-          console.log("[CVAT 3D Suite] Đã lưu thành công lên database CVAT qua cvat-core API.");
-        }
-      } catch (err) {
-        console.warn("[CVAT 3D Suite] Ghi nhận thay đổi cvat-core:", err);
+      return false;
+    };
+    const onPointerMove = (e) => {
+      if (e.buttons === 1 && !isCanvasInteracting) {
+        isCanvasInteracting = true;
       }
-    }
-    let isInteractiveWatcherAttached = false;
-    function setupCanvasInteractiveWatcher() {
-      if (isInteractiveWatcherAttached) return;
-      isInteractiveWatcherAttached = true;
-      let pointerUpDebounceTimer = null;
-      let hadBoxTransform2 = false;
-      const isCameraNavigating = () => {
-        var _a, _b, _c, _d;
-        try {
-          const store = getReduxStore();
-          const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-          const views = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views;
-          if (!views) return false;
-          for (const vKey of ["perspective", "top", "side", "front"]) {
-            const v = views[vKey];
-            const controls = v == null ? void 0 : v.controls;
-            if (controls) {
-              if (typeof controls.state === "number" && controls.state !== -1) {
-                return true;
-              }
-              if (typeof controls._state === "number" && controls._state !== -1) {
-                return true;
-              }
-              if (controls.isRotating || controls.isPanning) {
-                return true;
-              }
-            }
-          }
-        } catch (_) {
-        }
-        return false;
-      };
-      const isTargetBoxTransforming = () => {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
-        try {
-          const store = getReduxStore();
-          const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-          const activeId = ((_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.annotations) == null ? void 0 : _f.activatedStateClientID) ?? lastActiveTrackId;
-          if (!activeId || isNaN(Number(activeId)) || Number(activeId) <= 0) {
-            return false;
-          }
-          const drawnObjects = (_g = canvas == null ? void 0 : canvas.view) == null ? void 0 : _g.drawnObjects;
-          if (!drawnObjects) return false;
-          const drawnItem = drawnObjects[String(activeId)];
-          if (!drawnItem) return false;
-          const data = drawnItem.data;
-          const c = drawnItem.cuboid;
-          if (!data || !c || !Array.isArray(data.points) || data.points.length < 9 || data.outside) {
-            return false;
-          }
-          const bx = data.points[0];
-          const by = data.points[1];
-          const bz = data.points[2];
-          const bYaw = data.points[5] || 0;
-          const bL = data.points[6];
-          const bW = data.points[7];
-          const bH = data.points[8];
-          for (const cand of [c.perspective, c]) {
-            const p = cand == null ? void 0 : cand.position;
-            if (p && typeof p.x === "number") {
-              const dx = p.x - bx;
-              const dy = p.y - by;
-              const dz = p.z - bz;
-              if (dx * dx + dy * dy + dz * dz > 1e-4) return true;
-            }
-          }
-          if ((_h = c.top) == null ? void 0 : _h.position) {
-            const p = c.top.position;
-            if (typeof p.x === "number" && typeof p.y === "number") {
-              const dx = p.x - bx;
-              const dy = p.y - by;
-              if (dx * dx + dy * dy > 1e-4) return true;
-            }
-          }
-          if ((_i = c.side) == null ? void 0 : _i.position) {
-            const p = c.side.position;
-            if (typeof p.x === "number" && typeof p.z === "number") {
-              const dx = p.x - bx;
-              const dz = p.z - bz;
-              if (dx * dx + dz * dz > 1e-4) return true;
-            }
-          }
-          if ((_j = c.front) == null ? void 0 : _j.position) {
-            const p = c.front.position;
-            if (typeof p.y === "number" && typeof p.z === "number") {
-              const dy = p.y - by;
-              const dz = p.z - bz;
-              if (dy * dy + dz * dz > 1e-4) return true;
-            }
-          }
-          for (const cand of [c.perspective, c.top, c]) {
-            const r = cand == null ? void 0 : cand.rotation;
-            if (r && typeof r.z === "number") {
-              if (Math.abs(r.z - bYaw) > 1e-3) return true;
-            }
-          }
-          for (const cand of [c.perspective, c.top, c.side, c.front, c]) {
-            const s = cand == null ? void 0 : cand.scale;
-            if (s && typeof s.x === "number" && s.x > 0) {
-              if (Math.abs(s.x - bL) > 1e-3 || Math.abs(s.y - bW) > 1e-3 || Math.abs(s.z - bH) > 1e-3) {
-                return true;
-              }
-            }
-          }
-        } catch (_) {
-        }
-        return false;
-      };
-      const onPointerMove = (e) => {
-        if (e.buttons === 1 && !isCanvasInteracting) {
-          isCanvasInteracting = true;
-        }
-        if (isCanvasInteracting && e.buttons === 0) {
-          onPointerUp();
-          return;
-        }
-        if (!isCanvasInteracting) return;
-        if (e.buttons === 2 || e.buttons === 4 || e.altKey) return;
-        if (isCameraNavigating()) return;
-        if (!isTargetBoxTransforming()) return;
-        hadBoxTransform2 = true;
-      };
-      const onPointerUp = () => {
-        var _a, _b, _c, _d, _e, _f;
-        if (!isCanvasInteracting) return;
-        isCanvasInteracting = false;
-        if (hadBoxTransform2) {
-          hadBoxTransform2 = false;
-          try {
-            const store = getReduxStore();
-            const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-            const activeId = ((_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.annotations) == null ? void 0 : _f.activatedStateClientID) ?? lastActiveTrackId;
-            if (activeId !== null && activeId !== void 0 && !isNaN(Number(activeId))) {
-              const numId = Number(activeId);
-              const details = extractObjectDetails(numId);
-              if (details) {
-                window.dispatchEvent(
-                  new CustomEvent("CVAT_EXT_RES_LIVE_TRANSFORM_CHANGED", {
-                    detail: { clientId: numId, details }
-                  })
-                );
-              }
-            }
-          } catch (_) {
-          }
-          if (pointerUpDebounceTimer) clearTimeout(pointerUpDebounceTimer);
-          pointerUpDebounceTimer = setTimeout(() => {
-            pointerUpDebounceTimer = null;
-            if (currentColorizeBoxed) {
-              schedulePointCloudColorization(0);
-            }
-            calculateAndBroadcastBoxEdgeContacts();
-            updateOrthoClippingPlanes(void 0, true);
-          }, 60);
-        }
-      };
-      window.addEventListener(
-        "pointerdown",
-        (e) => {
-          const target = e.target;
-          if (target && target.closest && target.closest(".cvat-canvas-container, .cvat-canvas3d-orthographic-view, [class*='cvat-canvas3d'], canvas")) {
-            isCanvasInteracting = true;
-          }
-        },
-        { capture: true, passive: true }
-      );
-      window.addEventListener("pointermove", onPointerMove, { passive: true });
-      window.addEventListener("pointerup", onPointerUp, { passive: true });
-      window.addEventListener("pointercancel", onPointerUp, { passive: true });
-      const attachPointerDown = () => {
-        const canvasElements = document.querySelectorAll(
-          ".cvat-canvas-container, .cvat-canvas3d-orthographic-view, [class*='cvat-canvas3d'], canvas"
-        );
-        canvasElements.forEach((el) => {
-          if (el._hasColorDragWatcher) return;
-          el._hasColorDragWatcher = true;
-          el.addEventListener(
-            "pointerdown",
-            () => {
-              var _a, _b, _c;
-              isCanvasInteracting = true;
-              try {
-                const store = getReduxStore();
-                const activeId = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.activatedStateClientID;
-                if (activeId !== null && activeId !== void 0) {
-                  updateLockedTrackId(Number(activeId));
-                }
-              } catch (_) {
-              }
-            },
-            { passive: true }
-          );
-        });
-      };
-      attachPointerDown();
-      setInterval(attachPointerDown, 2e3);
-      let keyDebounceTimer = null;
-      window.addEventListener(
-        "keydown",
-        (e) => {
-          if (!currentColorizeBoxed) return;
-          const target = e.target;
-          if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
-            return;
-          }
-          const relevantKeys = [
-            "KeyW",
-            "KeyA",
-            "KeyS",
-            "KeyD",
-            "ArrowUp",
-            "ArrowDown",
-            "ArrowLeft",
-            "ArrowRight",
-            "KeyQ",
-            "KeyE",
-            "KeyR",
-            "KeyT",
-            "KeyF",
-            "KeyZ",
-            "KeyX",
-            "KeyC"
-          ];
-          if (relevantKeys.includes(e.code) || e.ctrlKey || e.altKey || e.shiftKey) {
-            if (keyDebounceTimer) clearTimeout(keyDebounceTimer);
-            keyDebounceTimer = setTimeout(() => {
-              keyDebounceTimer = null;
-              schedulePointCloudColorization(0);
-              calculateAndBroadcastBoxEdgeContacts();
-            }, 60);
-          }
-        },
-        { passive: true }
-      );
-    }
-    let isCanvasAutoSelectAttached = false;
-    function setupCanvasAutoSelect(retryCount = 0) {
-      if (isCanvasAutoSelectAttached) return;
-      const store = getReduxStore();
-      const canvasContainers = document.querySelectorAll(
-        ".cvat-canvas-container, .cvat-canvas3d-orthographic-view"
-      );
-      if ((canvasContainers.length === 0 || !store) && retryCount < 15) {
-        setTimeout(() => setupCanvasAutoSelect(retryCount + 1), 1e3);
+      if (isCanvasInteracting && e.buttons === 0) {
+        onPointerUp();
         return;
       }
-      isCanvasAutoSelectAttached = true;
-      setupCanvasInteractiveWatcher();
-      function transformVectorInverseEulerLocal(v, rx = 0, ry = 0, rz = 0) {
-        const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
-        const x1 = v.x * cosZ + v.y * sinZ;
-        const y1 = -v.x * sinZ + v.y * cosZ;
-        const z1 = v.z;
-        const cosY = Math.cos(ry), sinY = Math.sin(ry);
-        const x2 = x1 * cosY - z1 * sinY;
-        const y2 = y1;
-        const z2 = x1 * sinY + z1 * cosY;
-        const cosX = Math.cos(rx), sinX = Math.sin(rx);
-        const x3 = x2;
-        const y3 = y2 * cosX + z2 * sinX;
-        const z3 = -y2 * sinX + z2 * cosX;
-        return { x: x3, y: y3, z: z3 };
-      }
-      function intersectRayWithOBBLocal(ray, box, padding = 0.15) {
-        if (box.l <= 0 || box.w <= 0 || box.h <= 0) return null;
-        const hx = box.l / 2 + padding;
-        const hy = box.w / 2 + padding;
-        const hz = box.h / 2 + padding;
-        const P = {
-          x: ray.origin.x - box.x,
-          y: ray.origin.y - box.y,
-          z: ray.origin.z - box.z
-        };
-        const D = ray.direction;
-        const rx = box.roll || 0;
-        const ry = box.pitch || 0;
-        const rz = box.yaw || 0;
-        const Ploc = transformVectorInverseEulerLocal(P, rx, ry, rz);
-        const Dloc = transformVectorInverseEulerLocal(D, rx, ry, rz);
-        let tMin = -Infinity;
-        let tMax = Infinity;
-        if (Math.abs(Dloc.x) > 1e-7) {
-          let t1 = (-hx - Ploc.x) / Dloc.x;
-          let t2 = (hx - Ploc.x) / Dloc.x;
-          if (t1 > t2) {
-            const t = t1;
-            t1 = t2;
-            t2 = t;
-          }
-          tMin = Math.max(tMin, t1);
-          tMax = Math.min(tMax, t2);
-          if (tMin > tMax) return null;
-        } else if (Math.abs(Ploc.x) > hx) {
-          return null;
-        }
-        if (Math.abs(Dloc.y) > 1e-7) {
-          let t1 = (-hy - Ploc.y) / Dloc.y;
-          let t2 = (hy - Ploc.y) / Dloc.y;
-          if (t1 > t2) {
-            const t = t1;
-            t1 = t2;
-            t2 = t;
-          }
-          tMin = Math.max(tMin, t1);
-          tMax = Math.min(tMax, t2);
-          if (tMin > tMax) return null;
-        } else if (Math.abs(Ploc.y) > hy) {
-          return null;
-        }
-        if (Math.abs(Dloc.z) > 1e-7) {
-          let t1 = (-hz - Ploc.z) / Dloc.z;
-          let t2 = (hz - Ploc.z) / Dloc.z;
-          if (t1 > t2) {
-            const t = t1;
-            t1 = t2;
-            t2 = t;
-          }
-          tMin = Math.max(tMin, t1);
-          tMax = Math.min(tMax, t2);
-          if (tMin > tMax) return null;
-        } else if (Math.abs(Ploc.z) > hz) {
-          return null;
-        }
-        if (tMax < 0) return null;
-        return tMin >= 0 ? tMin : tMax;
-      }
-      let fastDoubleRaycaster = null;
-      function findObjectUnderPointer(clientX, clientY) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
+      if (!isCanvasInteracting) return;
+      if (e.buttons === 2 || e.buttons === 4 || e.altKey) return;
+      if (isCameraNavigating()) return;
+      if (!isTargetBoxTransforming()) return;
+      hadBoxTransform = true;
+    };
+    const onPointerUp = () => {
+      var _a, _b, _c;
+      if (!isCanvasInteracting) return;
+      isCanvasInteracting = false;
+      if (hadBoxTransform) {
+        hadBoxTransform = false;
         try {
-          const curStore = getReduxStore() || store;
-          const canvas = (_c = (_b = (_a = curStore == null ? void 0 : curStore.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-          const views = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views;
-          if (!views) return null;
-          let activeView = views.perspective;
-          let activeCam = activeView == null ? void 0 : activeView.camera;
-          let activeRenderer = activeView == null ? void 0 : activeView.renderer;
-          let targetCanvas = (activeRenderer == null ? void 0 : activeRenderer.domElement) || null;
-          const orthoKeys = ["top", "side", "front"];
-          for (const name of orthoKeys) {
-            const v = views[name];
-            const dom = (_e = v == null ? void 0 : v.renderer) == null ? void 0 : _e.domElement;
-            if (dom) {
-              const r = dom.getBoundingClientRect();
-              if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
-                activeView = v;
-                activeCam = v.camera;
-                activeRenderer = v.renderer;
-                targetCanvas = dom;
-                break;
-              }
-            }
-          }
-          if (!targetCanvas) {
-            targetCanvas = document.querySelector(".cvat-canvas3d-perspective canvas") || document.querySelector(".cvat-canvas-container canvas");
-          }
-          if (!activeCam || !targetCanvas) return null;
-          const rect = targetCanvas.getBoundingClientRect();
-          if (rect.width <= 0 || rect.height <= 0) return null;
-          const mouseX = (clientX - rect.left) / rect.width * 2 - 1;
-          const mouseY = -((clientY - rect.top) / rect.height) * 2 + 1;
-          const winThree = window.THREE || ((_f = canvas == null ? void 0 : canvas.view) == null ? void 0 : _f.THREE);
-          if (!winThree) return null;
-          if (!fastDoubleRaycaster && typeof winThree.Raycaster === "function") {
-            fastDoubleRaycaster = new winThree.Raycaster();
-          }
-          if (!fastDoubleRaycaster) return null;
-          fastDoubleRaycaster.setFromCamera({ x: mouseX, y: mouseY }, activeCam);
-          const ray = fastDoubleRaycaster.ray;
-          if (!ray || !ray.origin || !ray.direction) return null;
-          const drawnObjects = ((_g = canvas == null ? void 0 : canvas.view) == null ? void 0 : _g.drawnObjects) || {};
-          const states = ((_j = (_i = (_h = curStore == null ? void 0 : curStore.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.annotations) == null ? void 0 : _j.states) || [];
-          let bestHitDist = Infinity;
-          let bestUiId = null;
-          let bestPos = null;
-          const checkedIds = /* @__PURE__ */ new Set();
-          for (const k of Object.keys(drawnObjects)) {
-            const item = drawnObjects[k];
-            const data = item == null ? void 0 : item.data;
-            if (!data || data.outside) continue;
-            const uiId = Number(k);
-            if (isNaN(uiId) || uiId <= 0) continue;
-            checkedIds.add(uiId);
-            const pts = extractLivePointsFromDrawnAndState(item, null) || data.points;
-            if (!pts || !Array.isArray(pts) || pts.length < 9) continue;
-            const box = {
-              x: pts[0],
-              y: pts[1],
-              z: pts[2],
-              roll: pts[3] || 0,
-              pitch: pts[4] || 0,
-              yaw: pts[5] || 0,
-              l: pts[6],
-              w: pts[7],
-              h: pts[8]
-            };
-            const hitDist = intersectRayWithOBBLocal(ray, box, 0.15);
-            if (hitDist !== null && hitDist < bestHitDist) {
-              bestHitDist = hitDist;
-              bestUiId = uiId;
-              bestPos = { x: pts[0], y: pts[1], z: pts[2] };
-            }
-          }
-          for (const st of states) {
-            if (!st || st.outside || st.shapeType !== "cuboid") continue;
-            const uiId = Number(st.clientID ?? st.id);
-            if (isNaN(uiId) || uiId <= 0 || checkedIds.has(uiId)) continue;
-            checkedIds.add(uiId);
-            const pts = st.points;
-            if (!pts || !Array.isArray(pts) || pts.length < 9) continue;
-            const box = {
-              x: pts[0],
-              y: pts[1],
-              z: pts[2],
-              roll: pts[3] || 0,
-              pitch: pts[4] || 0,
-              yaw: pts[5] || 0,
-              l: pts[6],
-              w: pts[7],
-              h: pts[8]
-            };
-            const hitDist = intersectRayWithOBBLocal(ray, box, 0.15);
-            if (hitDist !== null && hitDist < bestHitDist) {
-              bestHitDist = hitDist;
-              bestUiId = uiId;
-              bestPos = { x: pts[0], y: pts[1], z: pts[2] };
-            }
-          }
-          if (bestUiId !== null && bestPos !== null) {
-            return { uiId: bestUiId, pos: bestPos };
-          }
-          try {
-            const cuboidMeshes = [];
-            const meshToIdMap = /* @__PURE__ */ new Map();
-            for (const k of Object.keys(drawnObjects)) {
-              const item = drawnObjects[k];
-              const uiId = Number(k);
-              if (item == null ? void 0 : item.cuboid) {
-                const cand = item.cuboid.perspective || item.cuboid;
-                if (cand) {
-                  cuboidMeshes.push(cand);
-                  meshToIdMap.set(cand, uiId);
-                }
-              }
-            }
-            if (cuboidMeshes.length > 0) {
-              const intersects = fastDoubleRaycaster.intersectObjects(cuboidMeshes, true);
-              if (intersects && intersects.length > 0) {
-                const firstHit = intersects[0];
-                let curObj = firstHit.object;
-                while (curObj) {
-                  if (meshToIdMap.has(curObj)) {
-                    const uiId = meshToIdMap.get(curObj);
-                    const d = (_k = drawnObjects[String(uiId)]) == null ? void 0 : _k.data;
-                    const pos = d && Array.isArray(d.points) ? { x: d.points[0], y: d.points[1], z: d.points[2] } : void 0;
-                    return { uiId, pos: pos || { x: firstHit.point.x, y: firstHit.point.y, z: firstHit.point.z } };
-                  }
-                  curObj = curObj.parent;
-                }
-              }
-            }
-          } catch (_) {
-          }
-          try {
-            let bestScreenDist = 32;
-            let screenMatchId = null;
-            let screenMatchPos = null;
-            for (const id of checkedIds) {
-              const drawn = drawnObjects[String(id)];
-              const pts = extractLivePointsFromDrawnAndState(drawn, null) || ((_l = drawn == null ? void 0 : drawn.data) == null ? void 0 : _l.points);
-              if (!pts || !Array.isArray(pts) || pts.length < 3) continue;
-              const cx = pts[0], cy = pts[1], cz = pts[2];
-              const tempV = new winThree.Vector3(cx, cy, cz);
-              tempV.project(activeCam);
-              if (tempV.z >= -1 && tempV.z <= 1) {
-                const screenX = (tempV.x + 1) / 2 * rect.width + rect.left;
-                const screenY = (-tempV.y + 1) / 2 * rect.height + rect.top;
-                const d = Math.hypot(clientX - screenX, clientY - screenY);
-                if (d < bestScreenDist) {
-                  bestScreenDist = d;
-                  screenMatchId = id;
-                  screenMatchPos = { x: cx, y: cy, z: cz };
-                }
-              }
-            }
-            if (screenMatchId !== null && screenMatchPos !== null) {
-              return { uiId: screenMatchId, pos: screenMatchPos };
-            }
-          } catch (_) {
-          }
-          return null;
-        } catch (err) {
-          console.warn("[CVAT 3D Suite] Lỗi findObjectUnderPointer:", err);
-          return null;
-        }
-      }
-      function activateAndGhimObjectImmediately(uiId, targetPos) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o;
-        if (uiId === null || uiId === void 0 || isNaN(uiId) || uiId <= 0) return;
-        console.log(`[CVAT 3D Suite] ⚡ DOUBLE-CLICK: KÍCH HOẠT TỨC THÌ & GHIM TÂM XE #${uiId}!`);
-        lastActiveTrackId = uiId;
-        lastDispatchedActiveId = uiId;
-        updateLockedTrackId(uiId);
-        center3DViewOnObject(uiId, targetPos);
-        const details = extractObjectDetails(uiId);
-        window.dispatchEvent(
-          new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-            detail: { clientId: uiId, details, isHover: false, isDoubleClick: true }
-          })
-        );
-        if (currentColorizeBoxed) {
-          schedulePointCloudColorization(0);
-        }
-        calculateAndBroadcastBoxEdgeContacts();
-        updateOrthoClippingPlanes(details);
-        try {
-          const curStore = getReduxStore() || store;
-          const canvas = (_c = (_b = (_a = curStore == null ? void 0 : curStore.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-          if (canvas && typeof canvas.activate === "function") {
-            const curCanvasActive = ((_d = canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = curStore == null ? void 0 : curStore.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
-            if (Number(curCanvasActive) !== uiId) {
-              canvas.activate(uiId);
-              if (typeof canvas.render === "function") {
-                canvas.render();
-              }
-            }
-          }
-          if (curStore && typeof curStore.dispatch === "function") {
-            const currentStoreActiveId = ((_j = (_i = (_h = curStore.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.annotations) == null ? void 0 : _j.activatedStateClientID) ?? ((_o = (_n = (_m = (_l = (_k = curStore.getState()) == null ? void 0 : _k.annotation) == null ? void 0 : _l.canvas) == null ? void 0 : _m.instance) == null ? void 0 : _n.view) == null ? void 0 : _o.activatedElementID);
-            if (Number(currentStoreActiveId) !== uiId) {
-              curStore.dispatch({
-                type: "ACTIVATE_OBJECT",
-                payload: { activatedStateClientID: uiId, activatedElementID: uiId }
-              });
+          const store = getReduxStore();
+          const activeId = ((_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.activatedStateClientID) ?? lastActiveTrackId;
+          if (activeId !== null && activeId !== void 0 && !isNaN(Number(activeId))) {
+            const numId = Number(activeId);
+            const details = extractObjectDetails(numId);
+            if (details) {
+              window.dispatchEvent(
+                new CustomEvent("CVAT_EXT_RES_LIVE_TRANSFORM_CHANGED", {
+                  detail: { clientId: numId, details }
+                })
+              );
             }
           }
         } catch (_) {
         }
-        syncSidebarItemHighlight(uiId);
-      }
-      let lastHandledDblClickTime = 0;
-      function handle3DCanvasDoubleClick(e) {
-        if (isFrameTransitioning) return;
-        const now = Date.now();
-        if (now - lastHandledDblClickTime < 240) return;
-        lastHandledDblClickTime = now;
-        const hit = findObjectUnderPointer(e.clientX, e.clientY);
-        if (hit && hit.uiId > 0) {
-          activateAndGhimObjectImmediately(hit.uiId, hit.pos);
-          try {
-            e.stopPropagation();
-          } catch (_) {
+        if (pointerUpDebounceTimer) clearTimeout(pointerUpDebounceTimer);
+        pointerUpDebounceTimer = setTimeout(() => {
+          pointerUpDebounceTimer = null;
+          if (currentColorizeBoxed) {
+            schedulePointCloudColorization(0);
           }
-        }
-      }
-      document.addEventListener(
-        "dblclick",
-        (e) => {
-          if (isFrameTransitioning) return;
-          const target = e.target;
-          if (!target) return;
-          if (target.closest("input, textarea, button, select, #cvat-3d-suite-panel, .cvat-3d-suite-modal")) {
-            return;
-          }
-          const canvasContainer = target.closest(
-            ".cvat-canvas-container, .cvat-canvas3d-perspective, .cvat-canvas3d-orthographic-view, .cvat-canvas3d-topview, .cvat-canvas3d-sideview, .cvat-canvas3d-frontview"
-          );
-          if (canvasContainer || target.tagName === "CANVAS") {
-            handle3DCanvasDoubleClick(e);
-          }
-        },
-        { capture: true }
-      );
-      let fastDblLastTime = 0;
-      let fastDblLastX = 0;
-      let fastDblLastY = 0;
-      canvasContainers.forEach((container) => {
-        container.addEventListener(
-          "pointerup",
-          (e) => {
-            if (isFrameTransitioning) return;
-            if (e.button !== 0) return;
-            const now = Date.now();
-            const dt = now - fastDblLastTime;
-            const dx = Math.abs(e.clientX - fastDblLastX);
-            const dy = Math.abs(e.clientY - fastDblLastY);
-            fastDblLastTime = now;
-            fastDblLastX = e.clientX;
-            fastDblLastY = e.clientY;
-            if (dt >= 40 && dt <= 320 && dx <= 8 && dy <= 8) {
-              handle3DCanvasDoubleClick(e);
-              return;
-            }
-            if (dx > 4 || dy > 4 || hadBoxTransform) return;
-            setTimeout(() => {
-              var _a, _b, _c;
-              if (isFrameTransitioning) return;
-              try {
-                const currentStore = getReduxStore() || store;
-                const activeId = (_c = (_b = (_a = currentStore == null ? void 0 : currentStore.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.activatedStateClientID;
-                if (activeId !== null && activeId !== void 0) {
-                  const numId = Number(activeId);
-                  if (numId > 0 && numId !== lastActiveTrackId) {
-                    updateLockedTrackId(numId);
-                    triggerFocusOnObject(numId, false);
-                  }
-                }
-              } catch (err) {
-              }
-            }, 80);
-          },
-          { capture: true }
-        );
-      });
-      document.addEventListener("click", (e) => {
-        if (isFrameTransitioning) return;
-        const target = e.target;
-        const sidebarItem = target.closest(
-          "[class*='cvat-objects-sidebar-state-item'], [class*='cvat-objects-sidebar-states-list-item'], [data-cvat-state-item-id]"
-        );
-        if (sidebarItem) {
-          setTimeout(() => {
-            var _a;
-            if (isFrameTransitioning) return;
-            let id = null;
-            const dataId = sidebarItem.getAttribute("data-cvat-state-item-id") || sidebarItem.getAttribute("data-item-id");
-            if (dataId && /^\d+$/.test(dataId)) {
-              id = parseInt(dataId, 10);
-            } else {
-              const idAttr = sidebarItem.id || ((_a = sidebarItem.closest("[id*='cvat-objects-sidebar-state-item-']")) == null ? void 0 : _a.id) || "";
-              const directMatch = idAttr.match(/cvat-objects-sidebar-state-item-(\d+)/);
-              if (directMatch) {
-                id = parseInt(directMatch[1], 10);
-              } else {
-                const textMatch = (sidebarItem.innerText || sidebarItem.textContent || "").match(/#(\d+)/);
-                if (textMatch) id = parseInt(textMatch[1], 10);
-              }
-            }
-            if (id && id > 0) {
-              updateLockedTrackId(id);
-              triggerFocusOnObject(id, true);
-            }
-          }, 60);
-        }
-      });
-      let focusTriggerDebounceTimer = null;
-      let isTriggeringFocus = false;
-      let lastDispatchedActiveId = null;
-      function triggerFocusOnObject(id, forceCenter = true) {
-        if (id === null || id === void 0 || isNaN(id) || id <= 0) return;
-        if (isTriggeringFocus) return;
-        if (id !== lastDispatchedActiveId) {
-          lastDispatchedActiveId = id;
-          const details = extractObjectDetails(id);
-          window.dispatchEvent(
-            new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-              detail: { clientId: id, details, isHover: false }
-            })
-          );
           calculateAndBroadcastBoxEdgeContacts();
+          updateOrthoClippingPlanes(void 0, true);
+        }, 60);
+      }
+    };
+    window.addEventListener(
+      "pointerdown",
+      (e) => {
+        const target = e.target;
+        if (target && target.closest && target.closest(".cvat-canvas-container, .cvat-canvas3d-orthographic-view, [class*='cvat-canvas3d'], canvas")) {
+          isCanvasInteracting = true;
         }
-        if (id === lastActiveTrackId && id === persistentActiveTrackId && !forceCenter) return;
-        lastActiveTrackId = id;
-        updateLockedTrackId(id);
-        if (focusTriggerDebounceTimer) clearTimeout(focusTriggerDebounceTimer);
-        focusTriggerDebounceTimer = setTimeout(() => {
-          var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o;
-          focusTriggerDebounceTimer = null;
-          isTriggeringFocus = true;
-          try {
-            if (forceCenter) {
-              center3DViewOnObject(id);
-            }
-            if (currentColorizeBoxed) {
-              schedulePointCloudColorization(0);
-            }
-            calculateAndBroadcastBoxEdgeContacts();
-            updateOrthoClippingPlanes();
+      },
+      { capture: true, passive: true }
+    );
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerup", onPointerUp, { passive: true });
+    window.addEventListener("pointercancel", onPointerUp, { passive: true });
+    const attachPointerDown = () => {
+      const canvasElements = document.querySelectorAll(
+        ".cvat-canvas-container, .cvat-canvas3d-orthographic-view, [class*='cvat-canvas3d'], canvas"
+      );
+      canvasElements.forEach((el) => {
+        if (el._hasColorDragWatcher) return;
+        el._hasColorDragWatcher = true;
+        el.addEventListener(
+          "pointerdown",
+          () => {
+            var _a, _b, _c;
+            isCanvasInteracting = true;
             try {
-              const store2 = getReduxStore();
-              const canvas = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-              if (canvas && typeof canvas.activate === "function") {
-                const curCanvasActive = ((_d = canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
-                if (Number(curCanvasActive) !== id) {
-                  canvas.activate(id);
-                  if (typeof canvas.render === "function") {
-                    canvas.render();
-                  }
-                }
-              }
-              if (store2 && typeof store2.dispatch === "function") {
-                const currentStoreActiveId = ((_j = (_i = (_h = store2.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.annotations) == null ? void 0 : _j.activatedStateClientID) ?? ((_o = (_n = (_m = (_l = (_k = store2.getState()) == null ? void 0 : _k.annotation) == null ? void 0 : _l.canvas) == null ? void 0 : _m.instance) == null ? void 0 : _n.view) == null ? void 0 : _o.activatedElementID);
-                if (Number(currentStoreActiveId) !== id) {
-                  store2.dispatch({
-                    type: "ACTIVATE_OBJECT",
-                    payload: { activatedStateClientID: id, activatedElementID: id }
-                  });
-                }
+              const store = getReduxStore();
+              const activeId = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.activatedStateClientID;
+              if (activeId !== null && activeId !== void 0) {
+                updateLockedTrackId(Number(activeId));
               }
             } catch (_) {
             }
-            syncSidebarItemHighlight(id);
-          } finally {
-            isTriggeringFocus = false;
-          }
-        }, 15);
+          },
+          { passive: true }
+        );
+      });
+    };
+    attachPointerDown();
+    setInterval(attachPointerDown, 2e3);
+    let keyDebounceTimer = null;
+    window.addEventListener(
+      "keydown",
+      (e) => {
+        if (!currentColorizeBoxed) return;
+        const target = e.target;
+        if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+          return;
+        }
+        const relevantKeys = [
+          "KeyW",
+          "KeyA",
+          "KeyS",
+          "KeyD",
+          "ArrowUp",
+          "ArrowDown",
+          "ArrowLeft",
+          "ArrowRight",
+          "KeyQ",
+          "KeyE",
+          "KeyR",
+          "KeyT",
+          "KeyF",
+          "KeyZ",
+          "KeyX",
+          "KeyC"
+        ];
+        if (relevantKeys.includes(e.code) || e.ctrlKey || e.altKey || e.shiftKey) {
+          if (keyDebounceTimer) clearTimeout(keyDebounceTimer);
+          keyDebounceTimer = setTimeout(() => {
+            keyDebounceTimer = null;
+            schedulePointCloudColorization(0);
+            calculateAndBroadcastBoxEdgeContacts();
+          }, 60);
+        }
+      },
+      { passive: true }
+    );
+  }
+  let isCanvasAutoSelectAttached = false;
+  function setupCanvasAutoSelect(retryCount = 0) {
+    if (isCanvasAutoSelectAttached) return;
+    const store = getReduxStore();
+    const canvasContainers = document.querySelectorAll(
+      ".cvat-canvas-container, .cvat-canvas3d-orthographic-view"
+    );
+    if ((canvasContainers.length === 0 || !store) && retryCount < 15) {
+      setTimeout(() => setupCanvasAutoSelect(retryCount + 1), 1e3);
+      return;
+    }
+    isCanvasAutoSelectAttached = true;
+    setupCanvasInteractiveWatcher();
+    function transformVectorInverseEulerLocal(v, rx = 0, ry = 0, rz = 0) {
+      const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
+      const x1 = v.x * cosZ + v.y * sinZ;
+      const y1 = -v.x * sinZ + v.y * cosZ;
+      const z1 = v.z;
+      const cosY = Math.cos(ry), sinY = Math.sin(ry);
+      const x2 = x1 * cosY - z1 * sinY;
+      const y2 = y1;
+      const z2 = x1 * sinY + z1 * cosY;
+      const cosX = Math.cos(rx), sinX = Math.sin(rx);
+      const x3 = x2;
+      const y3 = y2 * cosX + z2 * sinX;
+      const z3 = -y2 * sinX + z2 * cosX;
+      return { x: x3, y: y3, z: z3 };
+    }
+    function intersectRayWithOBBLocal(ray, box, padding = 0.15) {
+      if (box.l <= 0 || box.w <= 0 || box.h <= 0) return null;
+      const hx = box.l / 2 + padding;
+      const hy = box.w / 2 + padding;
+      const hz = box.h / 2 + padding;
+      const P = {
+        x: ray.origin.x - box.x,
+        y: ray.origin.y - box.y,
+        z: ray.origin.z - box.z
+      };
+      const D = ray.direction;
+      const rx = box.roll || 0;
+      const ry = box.pitch || 0;
+      const rz = box.yaw || 0;
+      const Ploc = transformVectorInverseEulerLocal(P, rx, ry, rz);
+      const Dloc = transformVectorInverseEulerLocal(D, rx, ry, rz);
+      let tMin = -Infinity;
+      let tMax = Infinity;
+      if (Math.abs(Dloc.x) > 1e-7) {
+        let t1 = (-hx - Ploc.x) / Dloc.x;
+        let t2 = (hx - Ploc.x) / Dloc.x;
+        if (t1 > t2) {
+          const t = t1;
+          t1 = t2;
+          t2 = t;
+        }
+        tMin = Math.max(tMin, t1);
+        tMax = Math.min(tMax, t2);
+        if (tMin > tMax) return null;
+      } else if (Math.abs(Ploc.x) > hx) {
+        return null;
       }
-      let lastObservedSidebarId = null;
-      let sidebarObserverDebounce = null;
-      function attachSidebarActiveObserver() {
+      if (Math.abs(Dloc.y) > 1e-7) {
+        let t1 = (-hy - Ploc.y) / Dloc.y;
+        let t2 = (hy - Ploc.y) / Dloc.y;
+        if (t1 > t2) {
+          const t = t1;
+          t1 = t2;
+          t2 = t;
+        }
+        tMin = Math.max(tMin, t1);
+        tMax = Math.min(tMax, t2);
+        if (tMin > tMax) return null;
+      } else if (Math.abs(Ploc.y) > hy) {
+        return null;
+      }
+      if (Math.abs(Dloc.z) > 1e-7) {
+        let t1 = (-hz - Ploc.z) / Dloc.z;
+        let t2 = (hz - Ploc.z) / Dloc.z;
+        if (t1 > t2) {
+          const t = t1;
+          t1 = t2;
+          t2 = t;
+        }
+        tMin = Math.max(tMin, t1);
+        tMax = Math.min(tMax, t2);
+        if (tMin > tMax) return null;
+      } else if (Math.abs(Ploc.z) > hz) {
+        return null;
+      }
+      if (tMax < 0) return null;
+      return tMin >= 0 ? tMin : tMax;
+    }
+    let fastDoubleRaycaster = null;
+    function findObjectUnderPointer(clientX, clientY) {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
+      try {
+        const curStore = getReduxStore() || store;
+        const canvas = (_c = (_b = (_a = curStore == null ? void 0 : curStore.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        const views = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views;
+        if (!views) return null;
+        let activeView = views.perspective;
+        let activeCam = activeView == null ? void 0 : activeView.camera;
+        let activeRenderer = activeView == null ? void 0 : activeView.renderer;
+        let targetCanvas = (activeRenderer == null ? void 0 : activeRenderer.domElement) || null;
+        const orthoKeys = ["top", "side", "front"];
+        for (const name of orthoKeys) {
+          const v = views[name];
+          const dom = (_e = v == null ? void 0 : v.renderer) == null ? void 0 : _e.domElement;
+          if (dom) {
+            const r = dom.getBoundingClientRect();
+            if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+              activeView = v;
+              activeCam = v.camera;
+              activeRenderer = v.renderer;
+              targetCanvas = dom;
+              break;
+            }
+          }
+        }
+        if (!targetCanvas) {
+          targetCanvas = document.querySelector(".cvat-canvas3d-perspective canvas") || document.querySelector(".cvat-canvas-container canvas");
+        }
+        if (!activeCam || !targetCanvas) return null;
+        const rect = targetCanvas.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) return null;
+        const mouseX = (clientX - rect.left) / rect.width * 2 - 1;
+        const mouseY = -((clientY - rect.top) / rect.height) * 2 + 1;
+        const winThree = window.THREE || ((_f = canvas == null ? void 0 : canvas.view) == null ? void 0 : _f.THREE);
+        if (!winThree) return null;
+        if (!fastDoubleRaycaster && typeof winThree.Raycaster === "function") {
+          fastDoubleRaycaster = new winThree.Raycaster();
+        }
+        if (!fastDoubleRaycaster) return null;
+        fastDoubleRaycaster.setFromCamera({ x: mouseX, y: mouseY }, activeCam);
+        const ray = fastDoubleRaycaster.ray;
+        if (!ray || !ray.origin || !ray.direction) return null;
+        const drawnObjects = ((_g = canvas == null ? void 0 : canvas.view) == null ? void 0 : _g.drawnObjects) || {};
+        const states = ((_j = (_i = (_h = curStore == null ? void 0 : curStore.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.annotations) == null ? void 0 : _j.states) || [];
+        let bestHitDist = Infinity;
+        let bestUiId = null;
+        let bestPos = null;
+        const checkedIds = /* @__PURE__ */ new Set();
+        for (const k of Object.keys(drawnObjects)) {
+          const item = drawnObjects[k];
+          const data = item == null ? void 0 : item.data;
+          if (!data || data.outside) continue;
+          const uiId = Number(k);
+          if (isNaN(uiId) || uiId <= 0) continue;
+          checkedIds.add(uiId);
+          const pts = extractLivePointsFromDrawnAndState(item, null) || data.points;
+          if (!pts || !Array.isArray(pts) || pts.length < 9) continue;
+          const box = {
+            x: pts[0],
+            y: pts[1],
+            z: pts[2],
+            roll: pts[3] || 0,
+            pitch: pts[4] || 0,
+            yaw: pts[5] || 0,
+            l: pts[6],
+            w: pts[7],
+            h: pts[8]
+          };
+          const hitDist = intersectRayWithOBBLocal(ray, box, 0.15);
+          if (hitDist !== null && hitDist < bestHitDist) {
+            bestHitDist = hitDist;
+            bestUiId = uiId;
+            bestPos = { x: pts[0], y: pts[1], z: pts[2] };
+          }
+        }
+        for (const st of states) {
+          if (!st || st.outside || st.shapeType !== "cuboid") continue;
+          const uiId = Number(st.clientID ?? st.id);
+          if (isNaN(uiId) || uiId <= 0 || checkedIds.has(uiId)) continue;
+          checkedIds.add(uiId);
+          const pts = st.points;
+          if (!pts || !Array.isArray(pts) || pts.length < 9) continue;
+          const box = {
+            x: pts[0],
+            y: pts[1],
+            z: pts[2],
+            roll: pts[3] || 0,
+            pitch: pts[4] || 0,
+            yaw: pts[5] || 0,
+            l: pts[6],
+            w: pts[7],
+            h: pts[8]
+          };
+          const hitDist = intersectRayWithOBBLocal(ray, box, 0.15);
+          if (hitDist !== null && hitDist < bestHitDist) {
+            bestHitDist = hitDist;
+            bestUiId = uiId;
+            bestPos = { x: pts[0], y: pts[1], z: pts[2] };
+          }
+        }
+        if (bestUiId !== null && bestPos !== null) {
+          return { uiId: bestUiId, pos: bestPos };
+        }
         try {
-          const sidebarEl = document.querySelector("#cvat-objects-sidebar") || document.querySelector(".cvat-objects-sidebar") || document.querySelector("[class*='cvat-objects-sidebar']") || document.body;
-          if (!sidebarEl || sidebarEl.__cvat_sidebar_observer_attached__) return;
-          sidebarEl.__cvat_sidebar_observer_attached__ = true;
-          const observer = new MutationObserver(() => {
-            if (isFrameTransitioning) return;
-            if (sidebarObserverDebounce) return;
-            sidebarObserverDebounce = setTimeout(() => {
-              var _a, _b, _c, _d, _e;
-              sidebarObserverDebounce = null;
-              if (isFrameTransitioning) return;
-              try {
-                const activeItem = document.querySelector(
-                  ".cvat-objects-sidebar-state-item-active, .cvat-objects-sidebar-state-item.selected, [class*='sidebar-state-item-active'], [data-cvat-state-item-id][class*='selected']"
-                );
-                if (activeItem) {
-                  let id = null;
-                  const idAttr = activeItem.id || ((_a = activeItem.closest("[id*='cvat-objects-sidebar-state-item-']")) == null ? void 0 : _a.id) || "";
-                  const directMatch = idAttr.match(/cvat-objects-sidebar-state-item-(\d+)/) || idAttr.match(/#?(\d+)/);
-                  if (directMatch) {
-                    id = parseInt(directMatch[1], 10);
-                  } else {
-                    const dataId = activeItem.getAttribute("data-cvat-state-item-id") || activeItem.getAttribute("data-item-id");
-                    if (dataId && /^\d+$/.test(dataId)) {
-                      id = parseInt(dataId, 10);
-                    } else {
-                      const match = (activeItem.innerText || activeItem.textContent || "").match(/#(\d+)/);
-                      if (match) id = parseInt(match[1], 10);
-                    }
-                  }
-                  if (id && id > 0 && id !== lastObservedSidebarId) {
-                    const curReduxActive = (_e = (_d = (_c = (_b = getReduxStore()) == null ? void 0 : _b.getState()) == null ? void 0 : _c.annotation) == null ? void 0 : _d.annotations) == null ? void 0 : _e.activatedStateClientID;
-                    if (Number(curReduxActive) === id && id !== lastActiveTrackId) {
-                      lastObservedSidebarId = id;
-                      lastActiveTrackId = id;
-                      updateLockedTrackId(id);
-                    }
-                  }
-                }
-              } catch (_) {
+          const cuboidMeshes = [];
+          const meshToIdMap = /* @__PURE__ */ new Map();
+          for (const k of Object.keys(drawnObjects)) {
+            const item = drawnObjects[k];
+            const uiId = Number(k);
+            if (item == null ? void 0 : item.cuboid) {
+              const cand = item.cuboid.perspective || item.cuboid;
+              if (cand) {
+                cuboidMeshes.push(cand);
+                meshToIdMap.set(cand, uiId);
               }
-            }, 60);
-          });
-          observer.observe(sidebarEl, {
-            attributes: true,
-            attributeFilter: ["class", "data-cvat-state-item-id"],
-            subtree: true
-          });
+            }
+          }
+          if (cuboidMeshes.length > 0) {
+            const intersects = fastDoubleRaycaster.intersectObjects(cuboidMeshes, true);
+            if (intersects && intersects.length > 0) {
+              const firstHit = intersects[0];
+              let curObj = firstHit.object;
+              while (curObj) {
+                if (meshToIdMap.has(curObj)) {
+                  const uiId = meshToIdMap.get(curObj);
+                  const d = (_k = drawnObjects[String(uiId)]) == null ? void 0 : _k.data;
+                  const pos = d && Array.isArray(d.points) ? { x: d.points[0], y: d.points[1], z: d.points[2] } : void 0;
+                  return { uiId, pos: pos || { x: firstHit.point.x, y: firstHit.point.y, z: firstHit.point.z } };
+                }
+                curObj = curObj.parent;
+              }
+            }
+          }
+        } catch (_) {
+        }
+        try {
+          let bestScreenDist = 32;
+          let screenMatchId = null;
+          let screenMatchPos = null;
+          for (const id of checkedIds) {
+            const drawn = drawnObjects[String(id)];
+            const pts = extractLivePointsFromDrawnAndState(drawn, null) || ((_l = drawn == null ? void 0 : drawn.data) == null ? void 0 : _l.points);
+            if (!pts || !Array.isArray(pts) || pts.length < 3) continue;
+            const cx = pts[0], cy = pts[1], cz = pts[2];
+            const tempV = new winThree.Vector3(cx, cy, cz);
+            tempV.project(activeCam);
+            if (tempV.z >= -1 && tempV.z <= 1) {
+              const screenX = (tempV.x + 1) / 2 * rect.width + rect.left;
+              const screenY = (-tempV.y + 1) / 2 * rect.height + rect.top;
+              const d = Math.hypot(clientX - screenX, clientY - screenY);
+              if (d < bestScreenDist) {
+                bestScreenDist = d;
+                screenMatchId = id;
+                screenMatchPos = { x: cx, y: cy, z: cz };
+              }
+            }
+          }
+          if (screenMatchId !== null && screenMatchPos !== null) {
+            return { uiId: screenMatchId, pos: screenMatchPos };
+          }
+        } catch (_) {
+        }
+        return null;
+      } catch (err) {
+        console.warn("[CVAT 3D Suite] Lỗi findObjectUnderPointer:", err);
+        return null;
+      }
+    }
+    function activateAndGhimObjectImmediately(uiId, targetPos) {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o;
+      if (uiId === null || uiId === void 0 || isNaN(uiId) || uiId <= 0) return;
+      lastActiveTrackId = uiId;
+      lastDispatchedActiveId = uiId;
+      updateLockedTrackId(uiId);
+      center3DViewOnObject(uiId, targetPos);
+      const details = extractObjectDetails(uiId);
+      window.dispatchEvent(
+        new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+          detail: { clientId: uiId, details, isHover: false, isDoubleClick: true }
+        })
+      );
+      if (currentColorizeBoxed) {
+        schedulePointCloudColorization(0);
+      }
+      calculateAndBroadcastBoxEdgeContacts();
+      updateOrthoClippingPlanes(details);
+      try {
+        const curStore = getReduxStore() || store;
+        const canvas = (_c = (_b = (_a = curStore == null ? void 0 : curStore.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+        if (canvas && typeof canvas.activate === "function") {
+          const curCanvasActive = ((_d = canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = curStore == null ? void 0 : curStore.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
+          if (Number(curCanvasActive) !== uiId) {
+            canvas.activate(uiId);
+            if (typeof canvas.render === "function") {
+              canvas.render();
+            }
+          }
+        }
+        if (curStore && typeof curStore.dispatch === "function") {
+          const currentStoreActiveId = ((_j = (_i = (_h = curStore.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.annotations) == null ? void 0 : _j.activatedStateClientID) ?? ((_o = (_n = (_m = (_l = (_k = curStore.getState()) == null ? void 0 : _k.annotation) == null ? void 0 : _l.canvas) == null ? void 0 : _m.instance) == null ? void 0 : _n.view) == null ? void 0 : _o.activatedElementID);
+          if (Number(currentStoreActiveId) !== uiId) {
+            curStore.dispatch({
+              type: "ACTIVATE_OBJECT",
+              payload: { activatedStateClientID: uiId, activatedElementID: uiId }
+            });
+          }
+        }
+      } catch (_) {
+      }
+      syncSidebarItemHighlight(uiId);
+    }
+    let lastHandledDblClickTime = 0;
+    function handle3DCanvasDoubleClick(e) {
+      if (isFrameTransitioning) return;
+      const now = Date.now();
+      if (now - lastHandledDblClickTime < 240) return;
+      lastHandledDblClickTime = now;
+      const hit = findObjectUnderPointer(e.clientX, e.clientY);
+      if (hit && hit.uiId > 0) {
+        activateAndGhimObjectImmediately(hit.uiId, hit.pos);
+        try {
+          e.stopPropagation();
         } catch (_) {
         }
       }
-      attachSidebarActiveObserver();
-      try {
-        const store2 = getReduxStore();
-        if (store2) {
-          let prevActiveId = null;
-          let prevStatesLen = 0;
-          let prevFrame = null;
-          let prevPointsFingerprint = "";
-          let activeDebounceTimer = null;
-          let dirtyDebounceTimer = null;
-          let pointsDebounceTimer = null;
-          let lastFingerprintCalcTime = 0;
-          let fingerprintThrottleTimer = null;
-          const doComputeFingerprint = (states) => {
-            const isMouseDown = typeof window !== "undefined" && window.__cvat_mouse_down__;
-            if (isCanvasInteracting || isMouseDown || isFrameTransitioning) return;
-            let currentPointsFingerprint = "";
-            for (let i = 0; i < states.length; i++) {
-              const st = states[i];
-              if (st && Array.isArray(st.points) && st.points.length >= 9 && !st.outside) {
-                const p = st.points;
-                currentPointsFingerprint += `${st.clientID}:${Math.round(p[0] * 50)},${Math.round(p[1] * 50)},${Math.round(p[2] * 50)},${Math.round(p[5] * 50)},${Math.round(p[6] * 50)},${Math.round(p[7] * 50)},${Math.round(p[8] * 50)}|`;
-              }
-            }
-            if (currentPointsFingerprint !== prevPointsFingerprint) {
-              const isInit = prevPointsFingerprint === "";
-              prevPointsFingerprint = currentPointsFingerprint;
-              if (!isInit && !isCanvasInteracting && !isMouseDown && !isFrameTransitioning) {
-                if (pointsDebounceTimer) clearTimeout(pointsDebounceTimer);
-                pointsDebounceTimer = setTimeout(() => {
-                  var _a, _b, _c;
-                  pointsDebounceTimer = null;
-                  if (isFrameTransitioning) return;
-                  schedulePointCloudColorization(0);
-                  calculateAndBroadcastBoxEdgeContacts();
-                  try {
-                    const store3 = getReduxStore();
-                    const activeId = ((_c = (_b = (_a = store3 == null ? void 0 : store3.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.activatedStateClientID) ?? lastActiveTrackId;
-                    if (activeId !== null && activeId !== void 0 && !isNaN(Number(activeId))) {
-                      const numId = Number(activeId);
-                      const details = extractObjectDetails(numId);
-                      if (details) {
-                        window.dispatchEvent(
-                          new CustomEvent("CVAT_EXT_RES_LIVE_TRANSFORM_CHANGED", {
-                            detail: { clientId: numId, details }
-                          })
-                        );
-                      }
-                    }
-                  } catch (_) {
-                  }
-                }, 50);
-              }
-            }
-          };
-          const checkPointsFingerprintThrottled = (states) => {
-            const isMouseDown = typeof window !== "undefined" && window.__cvat_mouse_down__;
-            if (isCanvasInteracting || isMouseDown || isFrameTransitioning) return;
-            const now = Date.now();
-            const elapsed = now - lastFingerprintCalcTime;
-            if (elapsed >= 200) {
-              lastFingerprintCalcTime = now;
-              if (fingerprintThrottleTimer) {
-                clearTimeout(fingerprintThrottleTimer);
-                fingerprintThrottleTimer = null;
-              }
-              doComputeFingerprint(states);
-            } else if (!fingerprintThrottleTimer) {
-              fingerprintThrottleTimer = setTimeout(() => {
-                var _a, _b, _c, _d;
-                fingerprintThrottleTimer = null;
-                lastFingerprintCalcTime = Date.now();
-                const latestStates = ((_d = (_c = (_b = (_a = getReduxStore()) == null ? void 0 : _a.getState()) == null ? void 0 : _b.annotation) == null ? void 0 : _c.annotations) == null ? void 0 : _d.states) || states;
-                doComputeFingerprint(latestStates);
-              }, 200 - elapsed);
-            }
-          };
-          store2.subscribe(() => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
+    }
+    document.addEventListener(
+      "dblclick",
+      (e) => {
+        if (isFrameTransitioning) return;
+        const target = e.target;
+        if (!target) return;
+        if (target.closest("input, textarea, button, select, #cvat-3d-suite-panel, .cvat-3d-suite-modal")) {
+          return;
+        }
+        const canvasContainer = target.closest(
+          ".cvat-canvas-container, .cvat-canvas3d-perspective, .cvat-canvas3d-orthographic-view, .cvat-canvas3d-topview, .cvat-canvas3d-sideview, .cvat-canvas3d-frontview"
+        );
+        if (canvasContainer || target.tagName === "CANVAS") {
+          handle3DCanvasDoubleClick(e);
+        }
+      },
+      { capture: true }
+    );
+    let fastDblLastTime = 0;
+    let fastDblLastX = 0;
+    let fastDblLastY = 0;
+    canvasContainers.forEach((container) => {
+      container.addEventListener(
+        "pointerup",
+        (e) => {
+          if (isFrameTransitioning) return;
+          if (e.button !== 0) return;
+          const now = Date.now();
+          const dt = now - fastDblLastTime;
+          const dx = Math.abs(e.clientX - fastDblLastX);
+          const dy = Math.abs(e.clientY - fastDblLastY);
+          fastDblLastTime = now;
+          fastDblLastX = e.clientX;
+          fastDblLastY = e.clientY;
+          if (dt >= 40 && dt <= 320 && dx <= 8 && dy <= 8) {
+            handle3DCanvasDoubleClick(e);
+            return;
+          }
+          if (dx > 4 || dy > 4) return;
+          setTimeout(() => {
+            var _a, _b, _c;
+            if (isFrameTransitioning) return;
             try {
-              const anno = (_a = store2.getState()) == null ? void 0 : _a.annotation;
-              const canvas = (_b = anno == null ? void 0 : anno.canvas) == null ? void 0 : _b.instance;
-              const curActiveId = ((_c = anno == null ? void 0 : anno.annotations) == null ? void 0 : _c.activatedStateClientID) ?? null;
-              const curStatesLen = ((_e = (_d = anno == null ? void 0 : anno.annotations) == null ? void 0 : _d.states) == null ? void 0 : _e.length) || 0;
-              const curFrame = ((_g = (_f = anno == null ? void 0 : anno.player) == null ? void 0 : _f.frame) == null ? void 0 : _g.number) ?? ((_i = (_h = anno == null ? void 0 : anno.job) == null ? void 0 : _h.instance) == null ? void 0 : _i.frame);
-              if (curFrame !== void 0 && curFrame !== null && curFrame !== prevFrame) {
-                const oldFrame = prevFrame;
-                prevFrame = curFrame;
-                prevPointsFingerprint = "";
-                lastFingerprintCalcTime = 0;
-                lastDispatchedActiveId = null;
-                if (frameTransitionTimer) {
-                  clearTimeout(frameTransitionTimer);
-                  frameTransitionTimer = null;
+              const currentStore = getReduxStore() || store;
+              const activeId = (_c = (_b = (_a = currentStore == null ? void 0 : currentStore.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.activatedStateClientID;
+              if (activeId !== null && activeId !== void 0) {
+                const numId = Number(activeId);
+                if (numId > 0 && numId !== lastActiveTrackId) {
+                  updateLockedTrackId(numId);
+                  triggerFocusOnObject(numId, false);
                 }
-                if (lockOnActiveTimer) {
-                  clearTimeout(lockOnActiveTimer);
-                  lockOnActiveTimer = null;
-                }
-                if (singleFrameColorizeTimer) {
-                  clearTimeout(singleFrameColorizeTimer);
-                  singleFrameColorizeTimer = null;
-                }
-                if (colorizeRafId) {
-                  cancelAnimationFrame(colorizeRafId);
-                  colorizeRafId = null;
-                }
-                if (activeDebounceTimer) {
-                  clearTimeout(activeDebounceTimer);
-                  activeDebounceTimer = null;
-                }
-                if (dirtyDebounceTimer) {
-                  clearTimeout(dirtyDebounceTimer);
-                  dirtyDebounceTimer = null;
-                }
-                installGlobalThreeRaycastGuard();
-                hookAllScenes();
-                let scanGuardCount = 0;
-                const scanGuardInterval = setInterval(() => {
-                  scanGuardCount++;
-                  installGlobalThreeRaycastGuard();
-                  hookAllScenes();
-                  if (scanGuardCount >= 30) {
-                    clearInterval(scanGuardInterval);
-                  }
-                }, 35);
-                isFrameTransitioning = true;
-                frameTransitionTimer = setTimeout(() => {
-                  isFrameTransitioning = false;
-                  frameTransitionTimer = null;
-                }, 120);
-                if (currentOrthoSlicing.hideGround) {
-                  setTimeout(() => updateOrthoClippingPlanes(void 0, false), 80);
-                }
-                scheduleSingleFrameColorizationAndGround(curFrame, 180);
-                window.dispatchEvent(
-                  new CustomEvent("CVAT_EXT_RES_FRAME_CHANGED", {
-                    detail: { frame: curFrame, prevFrame: oldFrame }
-                  })
-                );
-                if (oldFrame !== null) {
-                  const activeIdToLock = persistentActiveTrackId !== null ? persistentActiveTrackId : curActiveId !== null && curActiveId !== void 0 ? Number(curActiveId) : lastActiveTrackId;
-                  if (activeIdToLock !== null && !isNaN(activeIdToLock)) {
-                    if (lockOnActiveTimer) clearTimeout(lockOnActiveTimer);
-                    lockOnActiveTimer = setTimeout(() => {
-                      lockOnActiveTimer = null;
-                      lockOnActiveObjectAtFrame(activeIdToLock, curFrame, 0);
-                    }, 60);
-                  }
-                }
-              }
-              if (curActiveId !== prevActiveId) {
-                prevActiveId = curActiveId;
-                if (curActiveId !== null && curActiveId !== void 0) {
-                  const idNum = Number(curActiveId);
-                  if (isFrameTransitioning) {
-                    if (persistentActiveTrackId !== null) {
-                      const curStates = ((_j = anno == null ? void 0 : anno.annotations) == null ? void 0 : _j.states) || [];
-                      const st = curStates.find((s) => Number(s.clientID) === idNum);
-                      const tid = st ? st.parentID ?? st.trackID ?? ((_k = st.parent) == null ? void 0 : _k.clientID) ?? st.clientID : null;
-                      if (tid === null || Number(tid) !== Number(persistentActiveTrackId)) {
-                        return;
-                      }
-                    } else {
-                      return;
-                    }
-                  }
-                  lastActiveTrackId = idNum;
-                  currentActiveTrackId = idNum;
-                  lastDispatchedActiveId = idNum;
-                  if (!isFrameTransitioning) {
-                    updateLockedTrackId(idNum);
-                  }
-                  const details = extractObjectDetails(idNum);
-                  window.dispatchEvent(
-                    new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
-                      detail: { clientId: idNum, trackId: persistentActiveTrackId, details, isHover: false }
-                    })
-                  );
-                  if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
-                  activeDebounceTimer = setTimeout(() => {
-                    activeDebounceTimer = null;
-                    triggerFocusOnObject(idNum, true);
-                  }, 15);
-                } else {
-                  if (isFrameTransitioning) return;
-                  lastActiveTrackId = null;
-                  persistentActiveTrackId = null;
-                  currentActiveTrackId = -1;
-                  lastDispatchedActiveId = null;
-                  syncSidebarItemHighlight(null);
-                  if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
-                  activeDebounceTimer = setTimeout(() => {
-                    activeDebounceTimer = null;
-                    if (isFrameTransitioning) return;
-                    window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_OBJECT_DEACTIVATED"));
-                    schedulePointCloudColorization(0);
-                    updateOrthoClippingPlanes();
-                  }, 40);
-                }
-              }
-              const states = ((_l = anno == null ? void 0 : anno.annotations) == null ? void 0 : _l.states) || [];
-              checkPointsFingerprintThrottled(states);
-              if (curStatesLen !== prevStatesLen) {
-                prevStatesLen = curStatesLen;
-                if (dirtyDebounceTimer) clearTimeout(dirtyDebounceTimer);
-                dirtyDebounceTimer = setTimeout(() => {
-                  dirtyDebounceTimer = null;
-                  if (isFrameTransitioning) return;
-                  window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS_DIRTY"));
-                  schedulePointCloudColorization(0);
-                }, 400);
               }
             } catch (err) {
             }
-          });
-        }
-      } catch (sErr) {
-      }
-      window.addEventListener("CVAT_EXT_REQ_ACTIVATE_OBJECT", (e) => {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o;
-        const { clientId, pos } = e.detail || {};
-        if (clientId === void 0 || clientId === null) return;
-        const numId = Number(clientId);
-        lastActiveTrackId = numId;
-        updateLockedTrackId(numId);
-        if (isCanvasInteracting || window.__cvat_mouse_down__) {
-          return;
-        }
-        try {
-          const store2 = getReduxStore();
-          const canvas = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-          if (canvas && typeof canvas.activate === "function") {
-            const curActive = ((_d = canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
-            if (curActive !== numId) {
-              canvas.activate(numId);
-              if (typeof canvas.render === "function") {
-                canvas.render();
-              }
+          }, 80);
+        },
+        { capture: true }
+      );
+    });
+    document.addEventListener("click", (e) => {
+      if (isFrameTransitioning) return;
+      const target = e.target;
+      const sidebarItem = target.closest(
+        "[class*='cvat-objects-sidebar-state-item'], [class*='cvat-objects-sidebar-states-list-item'], [data-cvat-state-item-id]"
+      );
+      if (sidebarItem) {
+        setTimeout(() => {
+          var _a;
+          if (isFrameTransitioning) return;
+          let id = null;
+          const dataId = sidebarItem.getAttribute("data-cvat-state-item-id") || sidebarItem.getAttribute("data-item-id");
+          if (dataId && /^\d+$/.test(dataId)) {
+            id = parseInt(dataId, 10);
+          } else {
+            const idAttr = sidebarItem.id || ((_a = sidebarItem.closest("[id*='cvat-objects-sidebar-state-item-']")) == null ? void 0 : _a.id) || "";
+            const directMatch = idAttr.match(/cvat-objects-sidebar-state-item-(\d+)/);
+            if (directMatch) {
+              id = parseInt(directMatch[1], 10);
+            } else {
+              const textMatch = (sidebarItem.innerText || sidebarItem.textContent || "").match(/#(\d+)/);
+              if (textMatch) id = parseInt(textMatch[1], 10);
             }
           }
-          if (store2 && typeof store2.dispatch === "function") {
-            try {
-              const currentStoreActiveId = ((_j = (_i = (_h = store2.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.annotations) == null ? void 0 : _j.activatedStateClientID) ?? ((_o = (_n = (_m = (_l = (_k = store2.getState()) == null ? void 0 : _k.annotation) == null ? void 0 : _l.canvas) == null ? void 0 : _m.instance) == null ? void 0 : _n.view) == null ? void 0 : _o.activatedElementID);
-              if (Number(currentStoreActiveId) !== numId) {
-                store2.dispatch({
+          if (id && id > 0) {
+            updateLockedTrackId(id);
+            triggerFocusOnObject(id, true);
+          }
+        }, 60);
+      }
+    });
+    let focusTriggerDebounceTimer = null;
+    let isTriggeringFocus = false;
+    let lastDispatchedActiveId = null;
+    function triggerFocusOnObject(id, forceCenter = true) {
+      if (id === null || id === void 0 || isNaN(id) || id <= 0) return;
+      if (isTriggeringFocus) return;
+      if (id !== lastDispatchedActiveId) {
+        lastDispatchedActiveId = id;
+        const details = extractObjectDetails(id);
+        window.dispatchEvent(
+          new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+            detail: { clientId: id, details, isHover: false }
+          })
+        );
+        calculateAndBroadcastBoxEdgeContacts();
+      }
+      if (id === lastActiveTrackId && id === persistentActiveTrackId && !forceCenter) return;
+      lastActiveTrackId = id;
+      updateLockedTrackId(id);
+      if (focusTriggerDebounceTimer) clearTimeout(focusTriggerDebounceTimer);
+      focusTriggerDebounceTimer = setTimeout(() => {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o;
+        focusTriggerDebounceTimer = null;
+        isTriggeringFocus = true;
+        try {
+          if (forceCenter) {
+            center3DViewOnObject(id);
+          }
+          if (currentColorizeBoxed) {
+            schedulePointCloudColorization(0);
+          }
+          calculateAndBroadcastBoxEdgeContacts();
+          updateOrthoClippingPlanes();
+          try {
+            const curStore = getReduxStore();
+            const canvas = (_c = (_b = (_a = curStore == null ? void 0 : curStore.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+            if (canvas && typeof canvas.activate === "function") {
+              const curCanvasActive = ((_d = canvas.view) == null ? void 0 : _d.activatedElementID) || ((_g = (_f = (_e = curStore == null ? void 0 : curStore.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.activatedStateClientID);
+              if (Number(curCanvasActive) !== id) {
+                canvas.activate(id);
+                if (typeof canvas.render === "function") {
+                  canvas.render();
+                }
+              }
+            }
+            if (curStore && typeof curStore.dispatch === "function") {
+              const currentStoreActiveId = ((_j = (_i = (_h = curStore.getState()) == null ? void 0 : _h.annotation) == null ? void 0 : _i.annotations) == null ? void 0 : _j.activatedStateClientID) ?? ((_o = (_n = (_m = (_l = (_k = curStore.getState()) == null ? void 0 : _k.annotation) == null ? void 0 : _l.canvas) == null ? void 0 : _m.instance) == null ? void 0 : _n.view) == null ? void 0 : _o.activatedElementID);
+              if (Number(currentStoreActiveId) !== id) {
+                curStore.dispatch({
                   type: "ACTIVATE_OBJECT",
-                  payload: { activatedStateClientID: numId, activatedElementID: numId }
+                  payload: { activatedStateClientID: id, activatedElementID: id }
                 });
+              }
+            }
+          } catch (_) {
+          }
+          syncSidebarItemHighlight(id);
+        } finally {
+          isTriggeringFocus = false;
+        }
+      }, 15);
+    }
+    let lastObservedSidebarId = null;
+    let sidebarObserverDebounce = null;
+    function attachSidebarActiveObserver() {
+      try {
+        const sidebarEl = document.querySelector("#cvat-objects-sidebar") || document.querySelector(".cvat-objects-sidebar") || document.querySelector("[class*='cvat-objects-sidebar']") || document.body;
+        if (!sidebarEl || sidebarEl.__cvat_sidebar_observer_attached__) return;
+        sidebarEl.__cvat_sidebar_observer_attached__ = true;
+        const observer = new MutationObserver(() => {
+          if (isFrameTransitioning) return;
+          if (sidebarObserverDebounce) return;
+          sidebarObserverDebounce = setTimeout(() => {
+            var _a, _b, _c, _d, _e;
+            sidebarObserverDebounce = null;
+            if (isFrameTransitioning) return;
+            try {
+              const activeItem = document.querySelector(
+                ".cvat-objects-sidebar-state-item-active, .cvat-objects-sidebar-state-item.selected, [class*='sidebar-state-item-active'], [data-cvat-state-item-id][class*='selected']"
+              );
+              if (activeItem) {
+                let id = null;
+                const idAttr = activeItem.id || ((_a = activeItem.closest("[id*='cvat-objects-sidebar-state-item-']")) == null ? void 0 : _a.id) || "";
+                const directMatch = idAttr.match(/cvat-objects-sidebar-state-item-(\d+)/) || idAttr.match(/#?(\d+)/);
+                if (directMatch) {
+                  id = parseInt(directMatch[1], 10);
+                } else {
+                  const dataId = activeItem.getAttribute("data-cvat-state-item-id") || activeItem.getAttribute("data-item-id");
+                  if (dataId && /^\d+$/.test(dataId)) {
+                    id = parseInt(dataId, 10);
+                  } else {
+                    const match = (activeItem.innerText || activeItem.textContent || "").match(/#(\d+)/);
+                    if (match) id = parseInt(match[1], 10);
+                  }
+                }
+                if (id && id > 0 && id !== lastObservedSidebarId) {
+                  const curReduxActive = (_e = (_d = (_c = (_b = getReduxStore()) == null ? void 0 : _b.getState()) == null ? void 0 : _c.annotation) == null ? void 0 : _d.annotations) == null ? void 0 : _e.activatedStateClientID;
+                  if (Number(curReduxActive) === id && id !== lastActiveTrackId) {
+                    lastObservedSidebarId = id;
+                    lastActiveTrackId = id;
+                    updateLockedTrackId(id);
+                  }
+                }
               }
             } catch (_) {
             }
+          }, 60);
+        });
+        observer.observe(sidebarEl, {
+          attributes: true,
+          attributeFilter: ["class", "data-cvat-state-item-id"],
+          subtree: true
+        });
+      } catch (_) {
+      }
+    }
+    attachSidebarActiveObserver();
+    try {
+      const curStore = getReduxStore();
+      if (curStore) {
+        let prevActiveId = null;
+        let prevStatesLen = 0;
+        let prevFrame = null;
+        let prevPointsFingerprint = "";
+        let activeDebounceTimer = null;
+        let dirtyDebounceTimer = null;
+        let pointsDebounceTimer = null;
+        let lastFingerprintCalcTime = 0;
+        let fingerprintThrottleTimer = null;
+        const doComputeFingerprint = (states) => {
+          const isMouseDown = typeof window !== "undefined" && window.__cvat_mouse_down__;
+          if (isCanvasInteracting || isMouseDown || isFrameTransitioning) return;
+          let currentPointsFingerprint = "";
+          for (let i = 0; i < states.length; i++) {
+            const st = states[i];
+            if (st && Array.isArray(st.points) && st.points.length >= 9 && !st.outside) {
+              const p = st.points;
+              currentPointsFingerprint += `${st.clientID}:${Math.round(p[0] * 50)},${Math.round(p[1] * 50)},${Math.round(p[2] * 50)},${Math.round(p[5] * 50)},${Math.round(p[6] * 50)},${Math.round(p[7] * 50)},${Math.round(p[8] * 50)}|`;
+            }
           }
-          syncSidebarItemHighlight(numId);
-          center3DViewOnObject(numId, pos);
-        } catch (err) {
+          if (currentPointsFingerprint !== prevPointsFingerprint) {
+            const isInit = prevPointsFingerprint === "";
+            prevPointsFingerprint = currentPointsFingerprint;
+            if (!isInit && !isCanvasInteracting && !isMouseDown && !isFrameTransitioning) {
+              if (pointsDebounceTimer) clearTimeout(pointsDebounceTimer);
+              pointsDebounceTimer = setTimeout(() => {
+                var _a, _b, _c;
+                pointsDebounceTimer = null;
+                if (isFrameTransitioning) return;
+                schedulePointCloudColorization(0);
+                calculateAndBroadcastBoxEdgeContacts();
+                try {
+                  const s = getReduxStore();
+                  const activeId = ((_c = (_b = (_a = s == null ? void 0 : s.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.annotations) == null ? void 0 : _c.activatedStateClientID) ?? lastActiveTrackId;
+                  if (activeId !== null && activeId !== void 0 && !isNaN(Number(activeId))) {
+                    const numId = Number(activeId);
+                    const details = extractObjectDetails(numId);
+                    if (details) {
+                      window.dispatchEvent(
+                        new CustomEvent("CVAT_EXT_RES_LIVE_TRANSFORM_CHANGED", {
+                          detail: { clientId: numId, details }
+                        })
+                      );
+                    }
+                  }
+                } catch (_) {
+                }
+              }, 50);
+            }
+          }
+        };
+        const checkPointsFingerprintThrottled = (states) => {
+          const isMouseDown = typeof window !== "undefined" && window.__cvat_mouse_down__;
+          if (isCanvasInteracting || isMouseDown || isFrameTransitioning) return;
+          const now = Date.now();
+          const elapsed = now - lastFingerprintCalcTime;
+          if (elapsed >= 200) {
+            lastFingerprintCalcTime = now;
+            if (fingerprintThrottleTimer) {
+              clearTimeout(fingerprintThrottleTimer);
+              fingerprintThrottleTimer = null;
+            }
+            doComputeFingerprint(states);
+          } else if (!fingerprintThrottleTimer) {
+            fingerprintThrottleTimer = setTimeout(() => {
+              var _a, _b, _c, _d;
+              fingerprintThrottleTimer = null;
+              lastFingerprintCalcTime = Date.now();
+              const latestStates = ((_d = (_c = (_b = (_a = getReduxStore()) == null ? void 0 : _a.getState()) == null ? void 0 : _b.annotation) == null ? void 0 : _c.annotations) == null ? void 0 : _d.states) || states;
+              doComputeFingerprint(latestStates);
+            }, 200 - elapsed);
+          }
+        };
+        curStore.subscribe(() => {
+          var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
+          try {
+            const anno = (_a = curStore.getState()) == null ? void 0 : _a.annotation;
+            const curActiveId = ((_b = anno == null ? void 0 : anno.annotations) == null ? void 0 : _b.activatedStateClientID) ?? null;
+            const curStatesLen = ((_d = (_c = anno == null ? void 0 : anno.annotations) == null ? void 0 : _c.states) == null ? void 0 : _d.length) || 0;
+            const curFrame = ((_f = (_e = anno == null ? void 0 : anno.player) == null ? void 0 : _e.frame) == null ? void 0 : _f.number) ?? ((_h = (_g = anno == null ? void 0 : anno.job) == null ? void 0 : _g.instance) == null ? void 0 : _h.frame);
+            if (curFrame !== void 0 && curFrame !== null && curFrame !== prevFrame) {
+              const oldFrame = prevFrame;
+              prevFrame = curFrame;
+              prevPointsFingerprint = "";
+              lastFingerprintCalcTime = 0;
+              lastDispatchedActiveId = null;
+              if (frameTransitionTimer) {
+                clearTimeout(frameTransitionTimer);
+                frameTransitionTimer = null;
+              }
+              if (lockOnActiveTimer) {
+                clearTimeout(lockOnActiveTimer);
+                lockOnActiveTimer = null;
+              }
+              cancelSingleFrameColorization();
+              if (activeDebounceTimer) {
+                clearTimeout(activeDebounceTimer);
+                activeDebounceTimer = null;
+              }
+              if (dirtyDebounceTimer) {
+                clearTimeout(dirtyDebounceTimer);
+                dirtyDebounceTimer = null;
+              }
+              installGlobalThreeRaycastGuard();
+              hookAllScenes();
+              let scanGuardCount = 0;
+              const scanGuardInterval = setInterval(() => {
+                scanGuardCount++;
+                installGlobalThreeRaycastGuard();
+                hookAllScenes();
+                if (scanGuardCount >= 30) {
+                  clearInterval(scanGuardInterval);
+                }
+              }, 35);
+              isFrameTransitioning = true;
+              frameTransitionTimer = setTimeout(() => {
+                isFrameTransitioning = false;
+                frameTransitionTimer = null;
+              }, 120);
+              if (currentOrthoSlicing.hideGround) {
+                setTimeout(() => updateOrthoClippingPlanes(void 0, false), 80);
+              }
+              scheduleSingleFrameColorizationAndGround(curFrame, 180);
+              window.dispatchEvent(
+                new CustomEvent("CVAT_EXT_RES_FRAME_CHANGED", {
+                  detail: { frame: curFrame, prevFrame: oldFrame }
+                })
+              );
+              if (oldFrame !== null) {
+                const activeIdToLock = persistentActiveTrackId !== null ? persistentActiveTrackId : curActiveId !== null && curActiveId !== void 0 ? Number(curActiveId) : lastActiveTrackId;
+                if (activeIdToLock !== null && !isNaN(activeIdToLock)) {
+                  if (lockOnActiveTimer) clearTimeout(lockOnActiveTimer);
+                  lockOnActiveTimer = setTimeout(() => {
+                    lockOnActiveTimer = null;
+                    lockOnActiveObjectAtFrame(activeIdToLock, curFrame, 0);
+                  }, 60);
+                }
+              }
+            }
+            if (curActiveId !== prevActiveId) {
+              prevActiveId = curActiveId;
+              if (curActiveId !== null && curActiveId !== void 0) {
+                const idNum = Number(curActiveId);
+                if (isFrameTransitioning) {
+                  if (persistentActiveTrackId !== null) {
+                    const curStates = ((_i = anno == null ? void 0 : anno.annotations) == null ? void 0 : _i.states) || [];
+                    const st = curStates.find((s) => Number(s.clientID) === idNum);
+                    const tid = st ? st.parentID ?? st.trackID ?? ((_j = st.parent) == null ? void 0 : _j.clientID) ?? st.clientID : null;
+                    if (tid === null || Number(tid) !== Number(persistentActiveTrackId)) {
+                      return;
+                    }
+                  } else {
+                    return;
+                  }
+                }
+                lastActiveTrackId = idNum;
+                currentActiveTrackId = idNum;
+                lastDispatchedActiveId = idNum;
+                if (!isFrameTransitioning) {
+                  updateLockedTrackId(idNum);
+                }
+                const details = extractObjectDetails(idNum);
+                window.dispatchEvent(
+                  new CustomEvent("CVAT_EXT_RES_OBJECT_ACTIVATED", {
+                    detail: { clientId: idNum, trackId: persistentActiveTrackId, details, isHover: false }
+                  })
+                );
+                if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
+                activeDebounceTimer = setTimeout(() => {
+                  activeDebounceTimer = null;
+                  triggerFocusOnObject(idNum, true);
+                }, 15);
+              } else {
+                if (isFrameTransitioning) return;
+                lastActiveTrackId = null;
+                persistentActiveTrackId = null;
+                currentActiveTrackId = -1;
+                lastDispatchedActiveId = null;
+                syncSidebarItemHighlight(null);
+                if (activeDebounceTimer) clearTimeout(activeDebounceTimer);
+                activeDebounceTimer = setTimeout(() => {
+                  activeDebounceTimer = null;
+                  if (isFrameTransitioning) return;
+                  window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_OBJECT_DEACTIVATED"));
+                  schedulePointCloudColorization(0);
+                  updateOrthoClippingPlanes();
+                }, 40);
+              }
+            }
+            const states = ((_k = anno == null ? void 0 : anno.annotations) == null ? void 0 : _k.states) || [];
+            checkPointsFingerprintThrottled(states);
+            if (curStatesLen !== prevStatesLen) {
+              prevStatesLen = curStatesLen;
+              if (dirtyDebounceTimer) clearTimeout(dirtyDebounceTimer);
+              dirtyDebounceTimer = setTimeout(() => {
+                dirtyDebounceTimer = null;
+                if (isFrameTransitioning) return;
+                window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS_DIRTY"));
+                schedulePointCloudColorization(0);
+              }, 400);
+            }
+          } catch (err) {
+          }
+        });
+      }
+    } catch (sErr) {
+    }
+    window.addEventListener("CVAT_EXT_REQ_ACTIVATE_OBJECT", (e) => {
+      var _a, _b;
+      try {
+        const clientId = (_a = e.detail) == null ? void 0 : _a.clientId;
+        const targetPos = (_b = e.detail) == null ? void 0 : _b.pos;
+        if (clientId !== null && clientId !== void 0 && !isNaN(Number(clientId))) {
+          const numId = Number(clientId);
+          triggerFocusOnObject(numId, true);
+          if (targetPos) {
+            center3DViewOnObject(numId, targetPos);
+          }
         }
-      });
-      window.addEventListener("CVAT_EXT_REQ_SET_ACTIVE_TRACK", (e) => {
-        const { trackId } = e.detail || {};
-        if (trackId !== void 0 && trackId !== null && !isNaN(Number(trackId))) {
-          const numTrack = Number(trackId);
-          lastActiveTrackId = numTrack;
-          persistentActiveTrackId = numTrack;
-        }
-      });
-      window.addEventListener("CVAT_EXT_REQ_SET_AUTO_CENTER_FRAME", (e) => {
-        const { enabled } = e.detail || {};
+      } catch (_) {
+      }
+    });
+    window.addEventListener("CVAT_EXT_REQ_SET_STICKY_TRACK_LOCK", (e) => {
+      var _a;
+      try {
+        const enabled = (_a = e.detail) == null ? void 0 : _a.enabled;
         if (typeof enabled === "boolean") {
           autoCenterOnFrameChange = enabled;
-          console.log(`[CVAT 3D Suite] Đã ${enabled ? "BẬT" : "TẮT"} tính năng Ghim Tâm khi tua frame.`);
+        }
+      } catch (_) {
+      }
+    });
+    window.addEventListener("CVAT_EXT_REQ_REFRESH_EDGE_CONTACTS", () => {
+      calculateAndBroadcastBoxEdgeContacts();
+    });
+  }
+  function getSceneLidarPoints() {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r;
+    try {
+      const store = getReduxStore();
+      const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+      const pScene = (_f = (_e = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.views) == null ? void 0 : _e.perspective) == null ? void 0 : _f.scene;
+      if (!pScene) return null;
+      let found = null;
+      pScene.traverse((obj) => {
+        var _a2, _b2, _c2;
+        if ((obj.isPoints || obj.type === "Points") && ((_c2 = (_b2 = (_a2 = obj.geometry) == null ? void 0 : _a2.attributes) == null ? void 0 : _b2.position) == null ? void 0 : _c2.count) > 5e3) {
+          found = obj;
         }
       });
-      window.addEventListener("CVAT_EXT_REQ_CENTER_OBJECT", (e) => {
-        const { clientId, pos } = e.detail || {};
-        if (clientId !== void 0 && clientId !== null) {
-          center3DViewOnObject(Number(clientId), pos);
+      if (!found) return null;
+      const posAttr = (_h = (_g = found.geometry) == null ? void 0 : _g.attributes) == null ? void 0 : _h.position;
+      if (!posAttr || !posAttr.array) return null;
+      const count = posAttr.count;
+      const array = posAttr.array;
+      const intensityAttr = (_m = ((_j = (_i = found.geometry) == null ? void 0 : _i.attributes) == null ? void 0 : _j.intensity) || ((_l = (_k = found.geometry) == null ? void 0 : _k.attributes) == null ? void 0 : _l.intensities)) == null ? void 0 : _m.array;
+      const colorAttr = (_r = ((_o = (_n = found.geometry) == null ? void 0 : _n.attributes) == null ? void 0 : _o.color) || ((_q = (_p = found.geometry) == null ? void 0 : _p.attributes) == null ? void 0 : _q.colors)) == null ? void 0 : _r.array;
+      const getIntensityAt = (idx) => {
+        if (intensityAttr && idx < intensityAttr.length) {
+          const val = intensityAttr[idx];
+          return val <= 1 ? val * 255 : val;
         }
-      });
-      window.addEventListener("CVAT_EXT_REQ_SET_ORTHO_SLICING", (e) => {
-        const cfg = e.detail;
-        if (cfg && typeof cfg === "object") {
-          currentOrthoSlicing = { ...currentOrthoSlicing, ...cfg };
-          try {
-            localStorage.setItem("cvat_3d_ortho_slicing", JSON.stringify(currentOrthoSlicing));
-          } catch (_) {
-          }
-          updateOrthoClippingPlanes();
-          window.dispatchEvent(
-            new CustomEvent("CVAT_EXT_RES_ORTHO_SLICING", { detail: { config: currentOrthoSlicing } })
-          );
+        if (colorAttr && idx * 3 + 2 < colorAttr.length) {
+          const r = colorAttr[idx * 3];
+          const g = colorAttr[idx * 3 + 1];
+          const b = colorAttr[idx * 3 + 2];
+          const l = 0.299 * r + 0.587 * g + 0.114 * b;
+          return r <= 1 && g <= 1 && b <= 1 ? l * 255 : l;
         }
-      });
-      window.addEventListener("CVAT_EXT_REQ_GET_ORTHO_SLICING", () => {
-        window.dispatchEvent(
-          new CustomEvent("CVAT_EXT_RES_ORTHO_SLICING", { detail: { config: currentOrthoSlicing } })
-        );
-      });
+        return 0;
+      };
+      return {
+        count,
+        array,
+        intensity: intensityAttr || null,
+        color: colorAttr || null,
+        getIntensityAt
+      };
+    } catch (e) {
+      console.warn("[CVAT 3D Suite] Không thể trích xuất LiDAR points:", e);
+      return null;
     }
-    setTimeout(() => setupCanvasAutoSelect(), 1500);
+  }
+  function getEgoRoadGroundZInMainWorld(egoPos = { x: 0, y: 0, z: 0 }) {
+    const lidar = getSceneLidarPoints();
+    if (!lidar || lidar.count === 0) return -1.75;
+    const { count, array } = lidar;
+    const minRSq = 0.8 * 0.8;
+    const maxRSq = 15 * 15;
+    const zArr = [];
+    for (let i = 0; i < count; i++) {
+      const x = array[i * 3];
+      const y = array[i * 3 + 1];
+      const z = array[i * 3 + 2];
+      const dx = x - egoPos.x;
+      const dy = y - egoPos.y;
+      const dSq = dx * dx + dy * dy;
+      if (dSq >= minRSq && dSq <= maxRSq) {
+        if (z >= egoPos.z - 3.5 && z <= egoPos.z + 0.5) {
+          zArr.push(z);
+        }
+      }
+    }
+    if (zArr.length < 8) return -1.75;
+    zArr.sort((a, b) => a - b);
+    const cutLow = Math.floor(zArr.length * 0.01);
+    const validZ = zArr.slice(cutLow);
+    const p15 = validZ[Math.floor(validZ.length * 0.15)];
+    return Number(p15.toFixed(3));
+  }
+  function detectAccurateGroundZ(cx, cy, cz, yaw, halfL, halfW, halfH = 0.8, isInitialBox = false, lockRollFlat = false, egoRoadZ) {
+    const lidar = getSceneLidarPoints();
+    if (!lidar || lidar.count === 0) {
+      return {
+        groundZ: -1.75,
+        pitchRad: 0,
+        rollRad: 0,
+        pitchDeg: 0,
+        rollDeg: 0,
+        groundPointsCount: 0,
+        isFallbackZeroGround: true,
+        isCurbGround: false,
+        isHalfCurb: false,
+        halfCurbSide: "none",
+        curbHeightCm: 0
+      };
+    }
+    const { count, array } = lidar;
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+    const groundPts = [];
+    const outerL = isInitialBox ? 3 : halfL + 0.55;
+    const outerW = isInitialBox ? 2 : halfW + 0.45;
+    const innerL = isInitialBox ? 0.2 : Math.max(0.15, halfL - 0.35);
+    const innerW = isInitialBox ? 0.2 : Math.max(0.15, halfW - 0.35);
+    const maxGroundZ = cz - Math.max(0.15, halfH * 0.4);
+    const minGroundZ = Math.min(cz - 4.5, -4.5);
+    for (let i = 0; i < count; i++) {
+      const z = array[i * 3 + 2];
+      if (z > maxGroundZ || z < minGroundZ) continue;
+      const x = array[i * 3];
+      const y = array[i * 3 + 1];
+      const dx = x - cx;
+      const dy = y - cy;
+      const lx = dx * cosY - dy * sinY;
+      const ly = dx * sinY + dy * cosY;
+      const inOuter = Math.abs(lx) <= outerL && Math.abs(ly) <= outerW;
+      const inCore = !isInitialBox && Math.abs(lx) < innerL && Math.abs(ly) < innerW;
+      if (inOuter && !inCore) {
+        groundPts.push({ lx, ly, z });
+      }
+    }
+    if (groundPts.length < 8) {
+      const extL = outerL + 0.25;
+      const extW = outerW + 0.25;
+      for (let i = 0; i < count; i++) {
+        const z = array[i * 3 + 2];
+        if (z > maxGroundZ || z < minGroundZ) continue;
+        const dx = array[i * 3] - cx;
+        const dy = array[i * 3 + 1] - cy;
+        const lx = dx * cosY - dy * sinY;
+        const ly = dx * sinY + dy * cosY;
+        if (Math.abs(lx) <= extL && Math.abs(ly) <= extW) {
+          groundPts.push({ lx, ly, z });
+        }
+      }
+    }
+    const resolvedEgoRoadZ = getEgoRoadGroundZInMainWorld();
+    const computeSmartFallbackGroundZ = () => {
+      const curObjH = halfH * 2;
+      const searchL = halfL + 0.35;
+      const searchW = halfW + 0.25;
+      const bodyPtsZ = [];
+      for (let i = 0; i < count; i++) {
+        const z = array[i * 3 + 2];
+        if (z < cz - halfH - 0.4 || z > cz + halfH + 0.4) continue;
+        const dx = array[i * 3] - cx;
+        const dy = array[i * 3 + 1] - cy;
+        const lx = dx * cosY - dy * sinY;
+        const ly = dx * sinY + dy * cosY;
+        if (Math.abs(lx) <= searchL && Math.abs(ly) <= searchW) {
+          bodyPtsZ.push(z);
+        }
+      }
+      const currentBaseZ = cz - halfH;
+      if (bodyPtsZ.length >= 4) {
+        bodyPtsZ.sort((a2, b2) => a2 - b2);
+        const zRoof = bodyPtsZ[Math.floor(bodyPtsZ.length * 0.95)];
+        const zLowest = bodyPtsZ[Math.floor(bodyPtsZ.length * 0.05)];
+        const zFromRoof = zRoof - curObjH;
+        const zFromLowest = zLowest - 0.18;
+        const estimatedZ = Math.min(zFromRoof, zFromLowest);
+        if (Math.abs(estimatedZ - currentBaseZ) <= 0.45) {
+          return Number(estimatedZ.toFixed(3));
+        }
+      }
+      const localGround = [];
+      const minRSq = (halfL + 0.4) * (halfL + 0.4);
+      const maxRSq = 5 * 5;
+      for (let i = 0; i < count; i++) {
+        const z = array[i * 3 + 2];
+        if (z < currentBaseZ - 0.5 || z > currentBaseZ + 0.25) continue;
+        const dx = array[i * 3] - cx;
+        const dy = array[i * 3 + 1] - cy;
+        const dSq = dx * dx + dy * dy;
+        if (dSq >= minRSq && dSq <= maxRSq) {
+          localGround.push(z);
+        }
+      }
+      if (localGround.length >= 4) {
+        localGround.sort((a2, b2) => a2 - b2);
+        const p20 = localGround[Math.floor(localGround.length * 0.2)];
+        if (Math.abs(p20 - currentBaseZ) <= 0.4) {
+          return Number(p20.toFixed(3));
+        }
+      }
+      return Number(currentBaseZ.toFixed(3));
+    };
+    if (groundPts.length < 10) {
+      const fallbackGroundZ = computeSmartFallbackGroundZ();
+      return {
+        groundZ: fallbackGroundZ,
+        pitchRad: 0,
+        rollRad: 0,
+        pitchDeg: 0,
+        rollDeg: 0,
+        groundPointsCount: groundPts.length,
+        isFallbackZeroGround: true,
+        isCurbGround: false,
+        isHalfCurb: false,
+        halfCurbSide: "none",
+        curbHeightCm: 0
+      };
+    }
+    groundPts.sort((a2, b2) => a2.z - b2.z);
+    const cutLow = Math.floor(groundPts.length * 0.01);
+    const sorted = groundPts.slice(cutLow);
+    let validPts = sorted;
+    const seedCount = Math.max(6, Math.floor(sorted.length * 0.35));
+    const seedPts = sorted.slice(0, seedCount);
+    let sumSeedLx = 0, sumSeedLy = 0, sumSeedZ = 0;
+    for (const p of seedPts) {
+      sumSeedLx += p.lx;
+      sumSeedLy += p.ly;
+      sumSeedZ += p.z;
+    }
+    const meanSeedLx = sumSeedLx / seedCount;
+    const meanSeedLy = sumSeedLy / seedCount;
+    const meanSeedZ = sumSeedZ / seedCount;
+    let vSeedLx = 0, vSeedLy = 0, cSeedLxLy = 0, cSeedLxZ = 0, cSeedLyZ = 0;
+    for (const p of seedPts) {
+      const dlx = p.lx - meanSeedLx;
+      const dly = p.ly - meanSeedLy;
+      const dz = p.z - meanSeedZ;
+      vSeedLx += dlx * dlx;
+      vSeedLy += dly * dly;
+      cSeedLxLy += dlx * dly;
+      cSeedLxZ += dlx * dz;
+      cSeedLyZ += dly * dz;
+    }
+    const detSeed = vSeedLx * vSeedLy - cSeedLxLy * cSeedLxLy;
+    let aSeed = 0, bSeed = 0, c0Seed = meanSeedZ;
+    if (Math.abs(detSeed) > 1e-4) {
+      aSeed = (cSeedLxZ * vSeedLy - cSeedLyZ * cSeedLxLy) / detSeed;
+      bSeed = (cSeedLyZ * vSeedLx - cSeedLxZ * cSeedLxLy) / detSeed;
+      c0Seed = meanSeedZ - aSeed * meanSeedLx - bSeed * meanSeedLy;
+    }
+    const inliers = sorted.filter((p) => {
+      const expectedZ = aSeed * p.lx + bSeed * p.ly + c0Seed;
+      const diff = p.z - expectedZ;
+      return diff >= -0.08 && diff <= 0.08;
+    });
+    if (inliers.length >= 6 && inliers.length >= sorted.length * 0.2) {
+      validPts = inliers;
+    }
+    const qFL = [];
+    const qFR = [];
+    const qRL = [];
+    const qRR = [];
+    for (const p of validPts) {
+      if (p.lx >= 0 && p.ly >= 0) qFL.push(p);
+      else if (p.lx >= 0 && p.ly < 0) qFR.push(p);
+      else if (p.lx < 0 && p.ly >= 0) qRL.push(p);
+      else qRR.push(p);
+    }
+    const fitPts = [];
+    const takeRatio = 0.45;
+    const addLowestFromQuadrant = (q) => {
+      if (q.length === 0) return;
+      const cnt = Math.max(1, Math.floor(q.length * takeRatio));
+      fitPts.push(...q.slice(0, cnt));
+    };
+    addLowestFromQuadrant(qFL);
+    addLowestFromQuadrant(qFR);
+    addLowestFromQuadrant(qRL);
+    addLowestFromQuadrant(qRR);
+    const finalPts = fitPts.length >= 4 ? fitPts : validPts.slice(0, Math.max(4, Math.floor(validPts.length * 0.45)));
+    if (finalPts.length < 6) {
+      const fallbackGroundZ = computeSmartFallbackGroundZ();
+      return {
+        groundZ: fallbackGroundZ,
+        pitchRad: 0,
+        rollRad: 0,
+        pitchDeg: 0,
+        rollDeg: 0,
+        groundPointsCount: finalPts.length,
+        isFallbackZeroGround: true,
+        isCurbGround: false,
+        isHalfCurb: false,
+        halfCurbSide: "none",
+        curbHeightCm: 0
+      };
+    }
+    let sumLx = 0;
+    let sumLy = 0;
+    let sumZ = 0;
+    const N = finalPts.length;
+    for (const p of finalPts) {
+      sumLx += p.lx;
+      sumLy += p.ly;
+      sumZ += p.z;
+    }
+    const meanLx = sumLx / N;
+    const meanLy = sumLy / N;
+    const meanZ = sumZ / N;
+    let varLx = 0;
+    let varLy = 0;
+    let covLxLy = 0;
+    let covLxZ = 0;
+    let covLyZ = 0;
+    for (const p of finalPts) {
+      const dlx = p.lx - meanLx;
+      const dly = p.ly - meanLy;
+      const dz = p.z - meanZ;
+      varLx += dlx * dlx;
+      varLy += dly * dly;
+      covLxLy += dlx * dly;
+      covLxZ += dlx * dz;
+      covLyZ += dly * dz;
+    }
+    const det = varLx * varLy - covLxLy * covLxLy;
+    let pitchRad = 0;
+    let rollRad = 0;
+    let c0 = meanZ;
+    let a = 0;
+    let b = 0;
+    const maxPitchRad = 20 * Math.PI / 180;
+    const maxRollRad = 25 * Math.PI / 180;
+    if (Math.abs(det) > 1e-4) {
+      a = (covLxZ * varLy - covLyZ * covLxLy) / det;
+      b = (covLyZ * varLx - covLxZ * covLxLy) / det;
+      pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(a)));
+      rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, Math.atan(b)));
+      c0 = meanZ - a * meanLx - b * meanLy;
+    } else {
+      const pIdx = Math.floor(finalPts.length * 0.15);
+      c0 = finalPts[pIdx].z;
+    }
+    const p12Idx = Math.max(0, Math.floor(sorted.length * 0.12));
+    const lowestRoadZ = sorted[p12Idx].z;
+    const leftPtsZ = sorted.filter((p) => p.ly > 0.15).map((p) => p.z).sort((a2, b2) => a2 - b2);
+    const rightPtsZ = sorted.filter((p) => p.ly < -0.15).map((p) => p.z).sort((a2, b2) => a2 - b2);
+    let isCurbOrRamp = lockRollFlat === true;
+    let isHalfCurb = false;
+    let halfCurbSide = "none";
+    let curbHeightCm = 0;
+    if (!isCurbOrRamp && leftPtsZ.length >= 3 && rightPtsZ.length >= 3) {
+      const leftMedian = leftPtsZ[Math.floor(leftPtsZ.length * 0.25)];
+      const rightMedian = rightPtsZ[Math.floor(rightPtsZ.length * 0.25)];
+      const stepDeltaZ = Math.abs(leftMedian - rightMedian);
+      const lowerPts = leftMedian < rightMedian ? leftPtsZ : rightPtsZ;
+      const lowerSpread = lowerPts[Math.floor(lowerPts.length * 0.75)] - lowerPts[Math.floor(lowerPts.length * 0.25)];
+      if (stepDeltaZ >= 0.08 && lowerSpread < 0.05) {
+        isCurbOrRamp = true;
+      }
+    }
+    const W = halfW * 2;
+    const edgeRightPts = sorted.filter(
+      (p) => p.ly >= -halfW - 0.45 && p.ly <= -halfW + W * 0.3
+    );
+    const edgeLeftPts = sorted.filter(
+      (p) => p.ly >= halfW - W * 0.3 && p.ly <= halfW + 0.45
+    );
+    if (edgeRightPts.length >= 2 && edgeLeftPts.length >= 2) {
+      const aSlope = -Math.tan(pitchRad);
+      const baseFloorZ = sorted[0].z;
+      const extractEdgeZ = (edgePts) => {
+        const transPts = edgePts.map((p) => ({ lx: p.lx, ly: p.ly, zTrans: p.z - aSlope * p.lx })).sort((a2, b2) => a2.zTrans - b2.zTrans);
+        const basePts = transPts.filter((p) => p.zTrans <= baseFloorZ + 0.08);
+        if (basePts.length >= 2) {
+          return basePts[Math.floor(basePts.length / 2)].zTrans;
+        }
+        const curbPts = transPts.filter((p) => p.zTrans >= baseFloorZ + 0.07 && p.zTrans <= baseFloorZ + 0.35);
+        if (curbPts.length >= 2) {
+          return curbPts[Math.floor(curbPts.length * 0.25)].zTrans;
+        }
+        return transPts[0].zTrans;
+      };
+      const zRight = extractEdgeZ(edgeRightPts);
+      const zLeft = extractEdgeZ(edgeLeftPts);
+      const sumRightLy = edgeRightPts.reduce((s, p) => s + p.ly, 0);
+      const sumLeftLy = edgeLeftPts.reduce((s, p) => s + p.ly, 0);
+      const meanRightLy = sumRightLy / edgeRightPts.length;
+      const meanLeftLy = sumLeftLy / edgeLeftPts.length;
+      const spanY = Math.max(0.6, meanLeftLy - meanRightLy);
+      const deltaZ = zLeft - zRight;
+      const absDeltaZ = Math.abs(deltaZ);
+      const egoZ = resolvedEgoRoadZ;
+      const diffLeftEgo = zLeft - egoZ;
+      const diffRightEgo = zRight - egoZ;
+      if (absDeltaZ >= 0.07 && absDeltaZ <= 0.35) {
+        const isLeftCurb = Math.abs(diffRightEgo) <= 0.08 && diffLeftEgo >= 0.07 && diffLeftEgo <= 0.35;
+        const isRightCurb = Math.abs(diffLeftEgo) <= 0.08 && diffRightEgo >= 0.07 && diffRightEgo <= 0.35;
+        if (isLeftCurb || isRightCurb) {
+          isHalfCurb = true;
+          halfCurbSide = isLeftCurb ? "left" : "right";
+          curbHeightCm = Math.round(absDeltaZ * 100);
+          const edgeRoll = Math.atan(deltaZ / spanY);
+          rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, edgeRoll));
+          c0 = (zLeft + zRight) / 2;
+        }
+      }
+      if (!isHalfCurb) {
+        if (isCurbOrRamp) {
+          rollRad = 0;
+          c0 = lowestRoadZ;
+          const roadPts = validPts.filter((p) => p.z <= lowestRoadZ + 0.1);
+          if (roadPts.length >= 4) {
+            let sLx = 0;
+            let sZ = 0;
+            for (const p of roadPts) {
+              sLx += p.lx;
+              sZ += p.z;
+            }
+            const mLx = sLx / roadPts.length;
+            const mZ = sZ / roadPts.length;
+            let vLx = 0;
+            let cLxZ = 0;
+            for (const p of roadPts) {
+              const dlx = p.lx - mLx;
+              const dz = p.z - mZ;
+              vLx += dlx * dlx;
+              cLxZ += dlx * dz;
+            }
+            if (vLx > 1e-4) {
+              const aRoad = cLxZ / vLx;
+              pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, -Math.atan(aRoad)));
+            }
+          }
+        } else {
+          const edgeRoll = Math.atan(deltaZ / spanY);
+          if (Math.abs(rollRad - edgeRoll) < 0.05) {
+            c0 = (zLeft + zRight) / 2;
+          } else {
+            rollRad = Math.max(-maxRollRad, Math.min(maxRollRad, edgeRoll));
+            c0 = (zLeft + zRight) / 2;
+          }
+        }
+      }
+    } else {
+      rollRad = 0;
+      if (isCurbOrRamp) {
+        c0 = lowestRoadZ;
+      }
+    }
+    const L = halfL * 2;
+    const edgeFrontPts = sorted.filter(
+      (p) => p.lx >= halfL - L * 0.3 && p.lx <= halfL + 0.45
+    );
+    const edgeRearPts = sorted.filter(
+      (p) => p.lx >= -halfL - 0.45 && p.lx <= -halfL + L * 0.3
+    );
+    if (!isCurbOrRamp && !isHalfCurb && edgeFrontPts.length >= 2 && edgeRearPts.length >= 2) {
+      const bSlope = Math.tan(rollRad);
+      const extractSideZ = (edgePts) => {
+        const transPts = edgePts.map((p) => ({ lx: p.lx, ly: p.ly, zTrans: p.z - bSlope * p.ly })).sort((a2, b2) => a2.zTrans - b2.zTrans);
+        const floorZ = transPts[0].zTrans;
+        const basePts = transPts.filter((p) => p.zTrans <= floorZ + 0.08);
+        if (basePts.length >= 2) {
+          return basePts[Math.floor(basePts.length / 2)].zTrans;
+        }
+        return transPts[0].zTrans;
+      };
+      const zFront = extractSideZ(edgeFrontPts);
+      const zRear = extractSideZ(edgeRearPts);
+      const sumFrontLx = edgeFrontPts.reduce((s, p) => s + p.lx, 0);
+      const sumRearLx = edgeRearPts.reduce((s, p) => s + p.lx, 0);
+      const meanFrontLx = sumFrontLx / edgeFrontPts.length;
+      const meanRearLx = sumRearLx / edgeRearPts.length;
+      const spanX = Math.max(0.8, meanFrontLx - meanRearLx);
+      const deltaZSide = zFront - zRear;
+      const edgePitch = -Math.atan(deltaZSide / spanX);
+      if (Math.abs(pitchRad - edgePitch) < 0.05) {
+        pitchRad = edgePitch;
+      } else {
+        pitchRad = Math.max(-maxPitchRad, Math.min(maxPitchRad, edgePitch));
+      }
+      c0 = (zFront + zRear) / 2;
+    }
+    let isCurbGround = false;
+    const refEgoZ = getEgoRoadGroundZInMainWorld();
+    if (!isCurbOrRamp && !isHalfCurb) {
+      if (c0 >= refEgoZ + 0.08 && c0 <= refEgoZ + 0.35) {
+        isCurbGround = true;
+        curbHeightCm = Math.round((c0 - refEgoZ) * 100);
+        if (Math.abs(rollRad) < 5 * Math.PI / 180) {
+          rollRad = 0;
+        }
+      } else if (c0 < refEgoZ - 0.25 && validPts.length < 15) {
+        c0 = refEgoZ;
+        rollRad = 0;
+        pitchRad = 0;
+      }
+    }
+    let pitchRadVal = Number(pitchRad.toFixed(5));
+    let rollRadVal = Number(rollRad.toFixed(5));
+    let pitchDegVal = Number((pitchRad * 180 / Math.PI).toFixed(2));
+    let rollDegVal = Number((rollRad * 180 / Math.PI).toFixed(2));
+    if (Math.abs(pitchRadVal) < 1e-6) pitchRadVal = 0;
+    if (Math.abs(rollRadVal) < 1e-6) rollRadVal = 0;
+    if (Math.abs(pitchDegVal) < 1e-4) pitchDegVal = 0;
+    if (Math.abs(rollDegVal) < 1e-4) rollDegVal = 0;
+    return {
+      groundZ: Number(c0.toFixed(3)),
+      pitchRad: pitchRadVal,
+      rollRad: rollRadVal,
+      pitchDeg: pitchDegVal,
+      rollDeg: rollDegVal,
+      groundPointsCount: finalPts.length,
+      isCurbGround,
+      isHalfCurb,
+      halfCurbSide,
+      curbHeightCm
+    };
+  }
+  function detectCurbStepAndRollInMainWorld(cx, cy, cz, yaw, halfL, halfW, trackW) {
+    const lidar = getSceneLidarPoints();
+    if (!lidar || lidar.count === 0) {
+      return { hasCurb: false, side: "none", curbHeight: 0.15, curbHeightCm: 15, rollRad: 0, rollDeg: 0, roadGroundZ: cz - 0.7, deltaCenterZ: 0.075 };
+    }
+    const { count, array } = lidar;
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+    const effectiveW = trackW !== void 0 ? trackW : halfW * 2;
+    const minLy = Math.max(0.2, halfW * 0.7);
+    const maxLy = halfW + 0.85;
+    const maxLx = halfL + 0.55;
+    const maxZ = cz - 0.15;
+    const minZ = cz - 4.5;
+    const leftPts = [];
+    const rightPts = [];
+    for (let i = 0; i < count; i++) {
+      const z = array[i * 3 + 2];
+      if (z > maxZ || z < minZ) continue;
+      const x = array[i * 3];
+      const y = array[i * 3 + 1];
+      const lx = (x - cx) * cosY - (y - cy) * sinY;
+      const ly = (x - cx) * sinY + (y - cy) * cosY;
+      if (Math.abs(lx) > maxLx) continue;
+      if (ly >= minLy && ly <= maxLy) {
+        leftPts.push(z);
+      } else if (ly <= -minLy && ly >= -maxLy) {
+        rightPts.push(z);
+      }
+    }
+    if (leftPts.length < 3 || rightPts.length < 3) {
+      return { hasCurb: false, side: "none", curbHeight: 0.15, curbHeightCm: 15, rollRad: 0, rollDeg: 0, roadGroundZ: cz - 0.7, deltaCenterZ: 0.075 };
+    }
+    leftPts.sort((a, b) => a - b);
+    rightPts.sort((a, b) => a - b);
+    const leftZ = leftPts[Math.floor(leftPts.length * 0.25)];
+    const rightZ = rightPts[Math.floor(rightPts.length * 0.25)];
+    const deltaZ = leftZ - rightZ;
+    const absDeltaZ = Math.abs(deltaZ);
+    if (absDeltaZ >= 0.07 && absDeltaZ <= 0.32) {
+      const curbHeight = Number(absDeltaZ.toFixed(3));
+      const curbHeightCm = Math.round(curbHeight * 100);
+      const side = deltaZ > 0 ? "left" : "right";
+      const ratio = Math.max(-0.6, Math.min(0.6, deltaZ / effectiveW));
+      const rollRad = Number(Math.asin(ratio).toFixed(5));
+      const rollDeg = Number((rollRad * 180 / Math.PI).toFixed(2));
+      const roadGroundZ = Number(Math.min(leftZ, rightZ).toFixed(3));
+      const deltaCenterZ = Number((curbHeight / 2).toFixed(3));
+      return {
+        hasCurb: true,
+        side,
+        curbHeight,
+        curbHeightCm,
+        rollRad,
+        rollDeg,
+        roadGroundZ,
+        deltaCenterZ
+      };
+    }
+    return {
+      hasCurb: false,
+      side: "none",
+      curbHeight: Number(absDeltaZ.toFixed(3)),
+      curbHeightCm: Math.round(absDeltaZ * 100),
+      rollRad: 0,
+      rollDeg: 0,
+      roadGroundZ: Number(Math.min(leftZ, rightZ).toFixed(3)),
+      deltaCenterZ: 0
+    };
+  }
+  function extractRoiPoints(cx, cy, radius = 4.5) {
+    const lidar = getSceneLidarPoints();
+    if (!lidar || lidar.count === 0) return [];
+    const { count, array } = lidar;
+    const rSq = radius * radius;
+    const res = [];
+    for (let i = 0; i < count; i++) {
+      const px = array[i * 3];
+      const py = array[i * 3 + 1];
+      const pz = array[i * 3 + 2];
+      const dx = px - cx;
+      const dy = py - cy;
+      if (dx * dx + dy * dy <= rSq) {
+        res.push({ x: px, y: py, z: pz });
+      }
+    }
+    return res;
+  }
+  function fitBoxToEgoRayAndGroundInMainWorld(points, egoPos = { x: 0, y: 0, z: 0 }, options = {}) {
+    const cx = points[0];
+    const cy = points[1];
+    const cz = points[2];
+    const yaw = points[5];
+    const L = points[6];
+    const W = points[7];
+    const H = points[8];
+    const searchRadius = Math.max(L, W) + 2;
+    const roiPts = extractRoiPoints(cx, cy, searchRadius);
+    if (roiPts.length === 0) {
+      return {
+        newX: cx,
+        newY: cy,
+        newZ: cz,
+        newCenterX: cx,
+        newCenterY: cy,
+        newCenterZ: cz,
+        newYawRad: yaw,
+        newYawDeg: Number((yaw * 180 / Math.PI).toFixed(2)),
+        deltaYawDeg: 0,
+        newL: L,
+        newW: W,
+        newH: H,
+        pitchRad: 0,
+        rollRad: 0,
+        pitchDeg: 0,
+        rollDeg: 0,
+        groundZ: cz - H / 2,
+        roofTopZ: cz + H / 2,
+        visibleFaces: { longitudinal: "front", lateral: "left" },
+        pointsCount: 0,
+        message: "Không tìm thấy điểm LiDAR trong scene"
+      };
+    }
+    const res = fitBoxToEgoRayAndGround(roiPts, cx, cy, cz, yaw, L, W, H, egoPos, options);
+    return {
+      ...res,
+      newX: res.newCenterX,
+      newY: res.newCenterY,
+      newZ: res.newCenterZ
+    };
+  }
+  function fitPedestrianInMainWorld(points, options = {}) {
+    const cx = points[0];
+    const cy = points[1];
+    const cz = points[2];
+    const yaw = points[5];
+    const curL = points[6] || 0.65;
+    const curW = points[7] || 0.65;
+    const curH = points[8] || 1.7;
+    const roiPts = extractRoiPoints(cx, cy, 2.5);
+    if (roiPts.length === 0) {
+      return {
+        newX: cx,
+        newY: cy,
+        newZ: cz,
+        newCenterX: cx,
+        newCenterY: cy,
+        newCenterZ: cz,
+        newYaw: yaw,
+        newYawDeg: Number((yaw * 180 / Math.PI).toFixed(2)),
+        deltaYawDeg: 0,
+        newL: curL,
+        newW: curW,
+        newH: curH,
+        groundZ: cz - curH / 2,
+        pointsCount: 0,
+        step: options.step ?? "all",
+        message: "Không tìm thấy điểm LiDAR trong scene"
+      };
+    }
+    const res = fitPedestrianBox(roiPts, cx, cy, cz, yaw, curL, curW, curH, options);
+    return {
+      ...res,
+      newX: res.newCenterX,
+      newY: res.newCenterY,
+      newZ: res.newCenterZ,
+      newYaw: res.newYawRad,
+      step: options.step ?? "all"
+    };
+  }
+  function fitCyclistInMainWorld(points, options = {}) {
+    const cx = points[0];
+    const cy = points[1];
+    const cz = points[2];
+    const yaw = points[5];
+    const curL = points[6] || 1.8;
+    const curW = points[7] || 0.7;
+    const curH = points[8] || 1.5;
+    const roiPts = extractRoiPoints(cx, cy, 3);
+    if (roiPts.length === 0) {
+      return {
+        newX: cx,
+        newY: cy,
+        newZ: cz,
+        newCenterX: cx,
+        newCenterY: cy,
+        newCenterZ: cz,
+        newYaw: yaw,
+        newYawDeg: Number((yaw * 180 / Math.PI).toFixed(2)),
+        deltaYawDeg: 0,
+        newL: curL,
+        newW: curW,
+        newH: curH,
+        groundZ: cz - curH / 2,
+        pointsCount: 0,
+        step: options.step ?? "all",
+        message: "Không tìm thấy điểm LiDAR trong scene"
+      };
+    }
+    const cyclistStep = options.step === "l" || options.step === "w" || options.step === "h" ? "all" : options.step;
+    const res = fitCyclistBox(roiPts, cx, cy, cz, yaw, curL, curW, curH, options, cyclistStep ?? "all");
+    return {
+      ...res,
+      newX: res.newCenterX,
+      newY: res.newCenterY,
+      newZ: res.newCenterZ,
+      newYaw: res.newYawRad,
+      step: options.step ?? "all"
+    };
+  }
+  function computeLidarGroundAndFit(points, fitMode = "tight") {
+    const cx = points[0];
+    const cy = points[1];
+    const cz = points[2];
+    const yaw = points[5];
+    const l = points[6];
+    const w = points[7];
+    const h2 = points[8];
+    const lidar = getSceneLidarPoints();
+    if (!lidar || lidar.count === 0) {
+      return {
+        detectedGroundZ: null,
+        newZ: cz,
+        newX: cx,
+        newY: cy,
+        newYaw: yaw,
+        newL: l,
+        newW: w,
+        newH: h2,
+        pointsCount: 0
+      };
+    }
+    const { count, array } = lidar;
+    const isInitialBox = l <= 2.2 || w <= 1.3;
+    const halfL = isInitialBox ? 3 : l / 2 + 0.35;
+    const halfW = isInitialBox ? 2 : w / 2 + 0.35;
+    const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, l / 2, w / 2, h2 / 2, isInitialBox, false);
+    const detectedGroundZ = groundInfo.groundZ;
+    const effectiveGroundZ = detectedGroundZ !== null ? detectedGroundZ : 0;
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+    const candidateBodyPts = [];
+    const maxRoofZ = effectiveGroundZ + 2.7;
+    const minBodyZ = effectiveGroundZ + 0.22;
+    for (let i = 0; i < count; i++) {
+      const z = array[i * 3 + 2];
+      if (z < minBodyZ || z > maxRoofZ) continue;
+      const x = array[i * 3];
+      const y = array[i * 3 + 1];
+      const dx = x - cx;
+      const dy = y - cy;
+      const lx = dx * cosY - dy * sinY;
+      const ly = dx * sinY + dy * cosY;
+      if (Math.abs(lx) <= halfL && Math.abs(ly) <= halfW) {
+        candidateBodyPts.push({ x, y, z });
+      }
+    }
+    if (candidateBodyPts.length < 5) {
+      return {
+        detectedGroundZ,
+        newZ: effectiveGroundZ + h2 / 2,
+        newX: cx,
+        newY: cy,
+        newYaw: yaw,
+        newL: l,
+        newW: w,
+        newH: h2,
+        pointsCount: candidateBodyPts.length
+      };
+    }
+    const localPts = candidateBodyPts.map((p) => {
+      const dx = p.x - cx;
+      const dy = p.y - cy;
+      return {
+        lx: dx * cosY - dy * sinY,
+        ly: dx * sinY + dy * cosY,
+        z: p.z
+      };
+    });
+    const clLy = filterDenseConnectedCluster1D(localPts, "ly", 0.22, 0);
+    const bodyPts = filterDenseConnectedCluster1D(clLy, "lx", 0.22, 0);
+    const finalPts = bodyPts.length >= 5 ? bodyPts : localPts;
+    let minLx = Infinity, maxLx = -Infinity;
+    let minLy = Infinity, maxLy = -Infinity;
+    let maxZ = -Infinity;
+    for (const p of finalPts) {
+      if (p.lx < minLx) minLx = p.lx;
+      if (p.lx > maxLx) maxLx = p.lx;
+      if (p.ly < minLy) minLy = p.ly;
+      if (p.ly > maxLy) maxLy = p.ly;
+      if (p.z > maxZ) maxZ = p.z;
+    }
+    const measuredL = maxLx - minLx;
+    const measuredW = maxLy - minLy;
+    const measuredH = maxZ - effectiveGroundZ;
+    let newL = l;
+    let newW = w;
+    let newH = h2;
+    if (fitMode === "tight") {
+      newL = Number(Math.max(3.2, Math.min(6.5, measuredL + 0.1)).toFixed(2));
+      newW = Number(Math.max(1.6, Math.min(2.4, measuredW + 0.08)).toFixed(2));
+      newH = Number(Math.max(1.3, Math.min(2, measuredH + 0.05)).toFixed(2));
+    } else {
+      newL = 4.65;
+      newW = 1.85;
+      newH = 1.45;
+    }
+    const midLx = (minLx + maxLx) / 2;
+    const midLy = (minLy + maxLy) / 2;
+    const newX = Number((cx + midLx * Math.cos(yaw) - midLy * Math.sin(yaw)).toFixed(2));
+    const newY = Number((cy + midLx * Math.sin(yaw) + midLy * Math.cos(yaw)).toFixed(2));
+    const newZ = Number((effectiveGroundZ + newH / 2).toFixed(3));
+    return {
+      detectedGroundZ,
+      newZ,
+      newX,
+      newY,
+      newYaw: yaw,
+      newL,
+      newW,
+      newH,
+      pointsCount: finalPts.length
+    };
+  }
+  function fitBoxWithPadding5cm(points, attributes) {
+    const cx = points[0];
+    const cy = points[1];
+    const cz = points[2];
+    const yaw = points[5];
+    const l = points[6] || 4.65;
+    const w = points[7] || 1.85;
+    const h2 = points[8] || 1.45;
+    const lidar = getSceneLidarPoints();
+    if (!lidar || lidar.count === 0) {
+      throw new Error("Không trích xuất được điểm LiDAR từ Three.js scene!");
+    }
+    const { count, array } = lidar;
+    const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, l / 2, w / 2, h2 / 2, false, false);
+    const groundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : cz - h2 / 2;
+    const cosY = Math.cos(-yaw);
+    const sinY = Math.sin(-yaw);
+    const minBodyZ = groundZ + 0.22;
+    const maxRoofZ = groundZ + 3.5;
+    const searchHalfL = l / 2 + 0.55;
+    const searchHalfW = w / 2 + 0.45;
+    const rawBodyPts = [];
+    for (let i = 0; i < count; i++) {
+      const z = array[i * 3 + 2];
+      if (z < minBodyZ || z > maxRoofZ) continue;
+      const x = array[i * 3];
+      const y = array[i * 3 + 1];
+      const dx = x - cx;
+      const dy = y - cy;
+      const lx = dx * cosY - dy * sinY;
+      const ly = dx * sinY + dy * cosY;
+      if (Math.abs(lx) <= searchHalfL && Math.abs(ly) <= searchHalfW) {
+        rawBodyPts.push({ lx, ly, z });
+      }
+    }
+    if (rawBodyPts.length < 5) {
+      throw new Error(`Cụm điểm quá thưa (${rawBodyPts.length} điểm), không đủ để fit tự động!`);
+    }
+    const clLy = filterDenseConnectedCluster1D(rawBodyPts, "ly", 0.2, 0);
+    const bodyPts = filterDenseConnectedCluster1D(clLy, "lx", 0.2, 0);
+    const finalPts = bodyPts.length >= 5 ? bodyPts : rawBodyPts;
+    const frontWall = detectDominantWallEdgeWithValleyCutoff(finalPts, "lx", "positive", l / 2, { binSize: 0.04 });
+    const rearWall = detectDominantWallEdgeWithValleyCutoff(finalPts, "lx", "negative", l / 2, { binSize: 0.04 });
+    const measuredL = Math.max(0.5, Math.min(15, Number((frontWall.edge - rearWall.edge).toFixed(3))));
+    const leftWall = detectDominantWallEdgeWithValleyCutoff(finalPts, "ly", "positive", w / 2, { binSize: 0.03 });
+    const rightWall = detectDominantWallEdgeWithValleyCutoff(finalPts, "ly", "negative", w / 2, { binSize: 0.03 });
+    const measuredW = Math.max(0.4, Math.min(3.5, Number((leftWall.edge - rightWall.edge).toFixed(3))));
+    const zList = finalPts.map((p) => p.z).sort((a, b) => a - b);
+    const zRoof = zList[Math.floor(zList.length * 0.95)];
+    const measuredH = Math.max(0.4, Math.min(4, Number((zRoof - groundZ).toFixed(3))));
+    const rawL = Number((measuredL + 0.1).toFixed(2));
+    const rawW = Number((measuredW + 0.1).toFixed(2));
+    const rawH = Number((measuredH + 0.05).toFixed(2));
+    const isLargeVehicle = Boolean(
+      (attributes == null ? void 0 : attributes.is_large) || (attributes == null ? void 0 : attributes.truck) || (attributes == null ? void 0 : attributes.bus) || (attributes == null ? void 0 : attributes.vehicle_type) === "truck" || (attributes == null ? void 0 : attributes.vehicle_type) === "bus"
+    );
+    const minL = 3.2, maxL = isLargeVehicle ? 12 : 5.5;
+    const minW = 1.6, maxW = isLargeVehicle ? 2.6 : 2.2;
+    const minH = 1.45, maxH = isLargeVehicle ? 3.6 : 1.9;
+    const newL = Number(Math.max(minL, Math.min(maxL, rawL)).toFixed(2));
+    const newW = Number(Math.max(minW, Math.min(maxW, rawW)).toFixed(2));
+    const newH = Number(Math.max(minH, Math.min(maxH, rawH)).toFixed(2));
+    const newZ = Number((groundZ + newH / 2).toFixed(3));
+    return {
+      newL,
+      newW,
+      newH,
+      newZ,
+      pointsCount: finalPts.length,
+      measuredL,
+      measuredW,
+      measuredH,
+      groundZ
+    };
+  }
+  async function findTargetSafely(job, frame, uiId, serverId) {
+    var _a, _b, _c, _d, _e;
+    if (job && job.annotations) {
+      try {
+        const annotations = await job.annotations.get(frame);
+        const found = annotations.find(
+          (s) => s.clientID === uiId || serverId && s.serverID === serverId
+        );
+        if (found) return { target: found, isDrawn: false };
+      } catch (_) {
+      }
+    }
+    const store = getReduxStore();
+    const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
+    const drawnItem = (_e = (_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.drawnObjects) == null ? void 0 : _e[String(uiId)];
+    if (drawnItem && drawnItem.data && Array.isArray(drawnItem.data.points)) {
+      return { target: drawnItem.data, isDrawn: true };
+    }
+    throw new Error(`Không tìm thấy xe #${uiId} tại Frame #${frame}`);
+  }
+  function computeGroundLockOffset(p, targetH) {
+    const rx = p[3] || 0;
+    const ry = p[4] || 0;
+    const oldHeight = p[8] || targetH;
+    const dh = (targetH - oldHeight) / 2;
+    const sinRy = Math.sin(ry);
+    const cosRy = Math.cos(ry);
+    const sinRx = Math.sin(rx);
+    const cosRx = Math.cos(rx);
+    return {
+      dx: Number((dh * sinRy).toFixed(3)),
+      dy: Number((-dh * sinRx * cosRy).toFixed(3)),
+      dz: Number((dh * cosRx * cosRy).toFixed(3))
+    };
+  }
+  let isEventRoutersRegistered = false;
+  function registerEventRouters() {
+    if (isEventRoutersRegistered) return;
+    isEventRoutersRegistered = true;
     window.addEventListener("CVAT_EXT_REQ_FRAME_TRACKS", async (e) => {
       var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r, _s, _t, _u;
       const { jobId, frame } = e.detail || {};
       try {
-        let job = await getActiveJobInstance(jobId);
+        const job = await getActiveJobInstance(jobId);
         let annotations = [];
         if (job) {
           updateMainWorldLabels(job);
           try {
             annotations = await job.annotations.get(frame);
-          } catch (fErr) {
+          } catch (_) {
             annotations = [];
           }
         } else {
@@ -10308,11 +8381,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           const persistentTid = s.parentID ?? s.trackID ?? ((_s = s.parent) == null ? void 0 : _s.clientID) ?? ((_t = drawn == null ? void 0 : drawn.data) == null ? void 0 : _t.parentID) ?? ((_u = drawn == null ? void 0 : drawn.data) == null ? void 0 : _u.trackID) ?? cId;
           list.push({
             uiId: cId,
-            // SỐ CLIENT_ID HIỂN THỊ CHUẨN XÁC 100% TRÊN GIAO DIỆN TẠI FRAME NÀY!
             trackId: Number(persistentTid),
-            // SỐ TRACK_ID BỀN VỮNG TOÀN CỤC XUYÊN SUỐT CÁC FRAME!
             serverId: s.serverID || null,
-            // SỐ SERVER_ID LƯU DƯỚI CƠ SỞ DỮ LIỆU
             label: resolved.name,
             color: resolved.color,
             x: Number(p[0].toFixed(2)),
@@ -10466,7 +8536,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                   }
                 }
               }
-            } catch (e2) {
+            } catch (_) {
             }
           }
         }
@@ -10573,9 +8643,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                   continue;
                 }
                 const isOutside = st.outside === true || ((_b = st.attributes) == null ? void 0 : _b.outside) === true || ((_c = st.attributes) == null ? void 0 : _c.outside) === "true";
-                if (isOutside) {
-                  continue;
-                }
+                if (isOutside) continue;
                 const pos = [Number(st.points[0]), Number(st.points[1]), Number(st.points[2])];
                 const rot = [Number(st.points[3]), Number(st.points[4]), Number(st.points[5])];
                 const scale = [
@@ -10661,8 +8729,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               try {
                 await target.save();
                 markCvatSaveButtonUnsaved(job);
-              } catch (sErr) {
-                console.warn("[CVAT 3D Suite] Cảnh báo target.save trong UPDATE_LIVE_BOX:", sErr);
+              } catch (_) {
               }
             }
           }
@@ -10911,11 +8978,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             });
           }
         }
-        const fitLaneFn = window.fitYawToLaneIntensity || (typeof fitYawToLaneIntensity !== "undefined" ? fitYawToLaneIntensity : void 0);
-        if (!fitLaneFn) {
-          throw new Error("Hàm fitYawToLaneIntensity chưa sẵn sàng trên window");
-        }
-        const res = fitLaneFn(
+        const res = fitYawToLaneIntensity(
           ptsWithIntensity,
           curX,
           curY,
@@ -10963,8 +9026,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 await parentTrack.save();
               }
             }
-          } catch (tErr) {
-            console.warn("[CVAT 3D Suite] Lỗi áp dụng Yaw theo làn cho toàn track:", tErr);
+          } catch (_) {
           }
         }
         markCvatSaveButtonUnsaved(job);
@@ -10983,7 +9045,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           })
         );
       } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi căn Yaw theo làn đường:", err);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_SNAP_YAW_TO_LANE", {
             detail: { success: false, error: err.message || String(err) }
@@ -10997,14 +9058,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
         const oldYaw = target.points[5];
-        const newYaw = customYawRad !== void 0 ? customYawRad : flipYawRad(oldYaw);
+        const newYaw = customYawRad !== void 0 ? customYawRad : flipYaw(oldYaw);
         const newPoints = [...target.points];
         newPoints[5] = newYaw;
         target.points = newPoints;
         if (!isDrawn && typeof target.save === "function") {
           await target.save();
         }
-        const threeUpdated = updateThreeJsCuboid(uiId, newYaw);
+        updateThreeJsCuboid(uiId, newYaw);
         if (currentFrameOnly === false && job) {
           try {
             const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
@@ -11013,7 +9074,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               for (const sh of shapes) {
                 if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
                   const shPoints = [...sh.points];
-                  shPoints[5] = customYawRad !== void 0 ? customYawRad : flipYawRad(shPoints[5]);
+                  shPoints[5] = customYawRad !== void 0 ? customYawRad : flipYaw(shPoints[5]);
                   sh.points = shPoints;
                 }
               }
@@ -11033,30 +9094,27 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                   );
                   if (st && Array.isArray(st.points) && st.points.length >= 9) {
                     const p = [...st.points];
-                    p[5] = customYawRad !== void 0 ? customYawRad : flipYawRad(p[5]);
+                    p[5] = customYawRad !== void 0 ? customYawRad : flipYaw(p[5]);
                     st.points = p;
                     if (typeof st.save === "function") {
                       await st.save();
                     }
                   }
                 }
-              } catch (e2) {
+              } catch (_) {
               }
             }
-          } catch (tErr) {
-            console.warn("[CVAT 3D Suite] Lưu Yaw cho các frame khác trong track:", tErr);
+          } catch (_) {
           }
         }
         markCvatSaveButtonUnsaved(job);
         const newYawDeg = Math.round(newYaw * 180 / Math.PI);
-        console.log(`[CVAT 3D Suite] Đã cập nhật xe #${uiId} sang Yaw: ${newYawDeg}° (Three.js Realtime: ${threeUpdated})`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_FLIP_YAW", {
             detail: { success: true, uiId, newYawDeg }
           })
         );
       } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi Flip Yaw trong Main World:", err);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_FLIP_YAW", {
             detail: { success: false, error: err.message || String(err) }
@@ -11069,21 +9127,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
-        const computeGroundLockOffset = (p, targetH) => {
-          const rx = p[3] || 0;
-          const ry = p[4] || 0;
-          const oldHeight = p[8] || targetH;
-          const dh = (targetH - oldHeight) / 2;
-          const sinRy = Math.sin(ry);
-          const cosRy = Math.cos(ry);
-          const sinRx = Math.sin(rx);
-          const cosRx = Math.cos(rx);
-          return {
-            dx: Number((dh * sinRy).toFixed(3)),
-            dy: Number((-dh * sinRx * cosRy).toFixed(3)),
-            dz: Number((dh * cosRx * cosRy).toFixed(3))
-          };
-        };
         const newPoints = [...target.points];
         const offset = computeGroundLockOffset(newPoints, h2);
         newPoints[0] = Number((newPoints[0] + offset.dx).toFixed(3));
@@ -11154,25 +9197,20 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                     trackCount++;
                   }
                 }
-              } catch (e2) {
+              } catch (_) {
               }
             }
-          } catch (tErr) {
-            console.warn("[CVAT 3D Suite] Lưu các frame khác trong track:", tErr);
+          } catch (_) {
           }
         }
         markCvatSaveButtonUnsaved(job);
-        const scopeText = applyToTrack ? `toàn bộ track (từ Frame #${startF} ➔ #${stopF}, ${trackCount} frames, Realtime)` : `chỉ frame #${frame}`;
-        const msg = `Đã cập nhật xe #${uiId} kích thước ${l}x${w}x${h2}m cho ${scopeText}`;
-        console.log(`[CVAT 3D Suite] ${msg} (Three.js Re-rendered Realtime)`);
         const newZ = newPoints[2];
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_UPDATE_DIMENSIONS", {
-            detail: { success: true, uiId, newZ, l, w, h: h2, applyToTrack, message: msg }
+            detail: { success: true, uiId, newZ, l, w, h: h2, applyToTrack }
           })
         );
       } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi Update Dimensions trong Main World:", err);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_UPDATE_DIMENSIONS", {
             detail: { success: false, error: err.message || String(err) }
@@ -11185,7 +9223,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       window.dispatchEvent(new CustomEvent("CVAT_EXT_REQ_UPDATE_DIMENSIONS", { detail }));
     });
     window.addEventListener("CVAT_EXT_REQ_SNAP_GROUND", async (e) => {
-      const { jobId, frame, uiId, serverId, mode, deltaCm, deltaDeg, curbHeight, targetGroundZ: _targetGroundZ, applyToTrack, category, attributes } = e.detail || {};
+      const { jobId, frame, uiId, serverId, mode, deltaCm, deltaDeg, curbHeight, applyToTrack, category } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
@@ -11205,182 +9243,69 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         let msg = "";
         if (mode === "road") {
           if (category === "pedestrian") {
-            const lidar = getSceneLidarPoints();
-            let baseGroundZ = curZ - curH / 2;
-            let pitchDeg = 0;
-            let rollDeg = 0;
-            if (lidar && lidar.count > 0) {
-              const pts = [];
-              const r = 1;
-              const rSq = r * r;
-              const maxZ = baseGroundZ + 0.35;
-              const minZ = baseGroundZ - 1;
-              for (let i = 0; i < lidar.count; i++) {
-                const pz = lidar.array[i * 3 + 2];
-                if (pz > maxZ || pz < minZ) continue;
-                const px = lidar.array[i * 3];
-                const py = lidar.array[i * 3 + 1];
-                const dx = px - curX;
-                const dy = py - curY;
-                if (dx * dx + dy * dy <= rSq) {
-                  pts.push({ x: px, y: py, z: pz });
-                }
-              }
-              if (pts.length >= 3) {
-                const footPts = pts.filter((p) => {
-                  const dx = p.x - curX;
-                  const dy = p.y - curY;
-                  return dx * dx + dy * dy <= 0.45 * 0.45;
-                });
-                if (footPts.length >= 3) {
-                  footPts.sort((a, b) => a.z - b.z);
-                  baseGroundZ = footPts[Math.max(0, Math.floor(footPts.length * 0.15))].z;
-                }
-                const slopeFn = window.estimateGroundSlopeInRadius || (typeof estimateGroundSlopeInRadius !== "undefined" ? estimateGroundSlopeInRadius : void 0);
-                const slope = slopeFn ? slopeFn(pts, curX, curY, curZ, 1, 0.35, baseGroundZ) : { pitchDeg: 0, rollDeg: 0, pitchRad: 0, rollRad: 0 };
-                pitchDeg = slope.pitchDeg;
-                rollDeg = slope.rollDeg;
-              }
-            }
+            const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW / 2, curH / 2, false, true);
+            const baseGroundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : curZ - curH / 2;
             newRotX = 0;
             newRotY = 0;
             newZ = Number((baseGroundZ + curH / 2).toFixed(3));
-            msg = `Đã ghim Người #${uiId} bám sàn: Z=${newZ}m (Khóa thẳng Roll=0°, Pitch=0°, Dốc địa hình 1m: ${pitchDeg}°/${rollDeg}°)`;
+            msg = `Đã ghim Người #${uiId} bám sàn: Z=${newZ}m (Khóa thẳng Roll=0°, Pitch=0°)`;
           } else if (category === "cyclist") {
-            const lidar = getSceneLidarPoints();
-            let baseGroundZ = curZ - curH / 2;
-            let pitchDeg = 0;
-            let pitchRad = 0;
-            if (lidar && lidar.count > 0) {
-              const pts = [];
-              const r = 1.5;
-              const rSq = r * r;
-              const maxZ = baseGroundZ + 0.35;
-              const minZ = baseGroundZ - 1;
-              for (let i = 0; i < lidar.count; i++) {
-                const pz = lidar.array[i * 3 + 2];
-                if (pz > maxZ || pz < minZ) continue;
-                const px = lidar.array[i * 3];
-                const py = lidar.array[i * 3 + 1];
-                const dx = px - curX;
-                const dy = py - curY;
-                if (dx * dx + dy * dy <= rSq) {
-                  pts.push({ x: px, y: py, z: pz });
-                }
-              }
-              if (pts.length >= 3) {
-                const wheelPts = pts.filter((p) => {
-                  const dx = p.x - curX;
-                  const dy = p.y - curY;
-                  return dx * dx + dy * dy <= Math.pow(curL / 2 + 0.2, 2);
-                });
-                if (wheelPts.length >= 3) {
-                  wheelPts.sort((a, b) => a.z - b.z);
-                  baseGroundZ = wheelPts[Math.max(0, Math.floor(wheelPts.length * 0.15))].z;
-                }
-                const slopeFn = window.estimateGroundSlopeInRadius || (typeof estimateGroundSlopeInRadius !== "undefined" ? estimateGroundSlopeInRadius : void 0);
-                const slope = slopeFn ? slopeFn(pts, curX, curY, curZ, 1.5, 0.35, baseGroundZ) : { pitchDeg: 0, rollDeg: 0, pitchRad: 0, rollRad: 0 };
-                pitchDeg = slope.pitchDeg;
-                pitchRad = slope.pitchRad;
-              }
-            }
+            const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW / 2, curH / 2, false, true);
+            const baseGroundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : curZ - curH / 2;
             newRotX = 0;
-            newRotY = pitchRad;
-            newZ = Number((baseGroundZ + curH / 2 * Math.cos(pitchRad)).toFixed(3));
-            msg = `Đã ghim Xe 2 bánh #${uiId} bám mặt đường: Z=${newZ}m (Pitch=${pitchDeg}°, Khóa Roll=0° đứng thẳng)`;
+            newRotY = groundInfo.pitchRad;
+            newZ = Number((baseGroundZ + curH / 2 * Math.cos(groundInfo.pitchRad)).toFixed(3));
+            msg = `Đã ghim Xe 2 bánh #${uiId} bám mặt đường: Z=${newZ}m (Pitch=${groundInfo.pitchDeg}°, Khóa Roll=0°)`;
           } else {
             const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curRz, curL / 2, curW / 2, curH / 2, false, false);
-            if (groundInfo.isFallbackZeroGround || groundInfo.groundPointsCount < 10) {
-              const baseZ = groundInfo.groundZ !== null ? groundInfo.groundZ : curZ - curH / 2;
-              newRotX = 0;
-              newRotY = 0;
-              newZ = Number((baseZ + curH / 2).toFixed(3));
-              if (Math.abs(newZ - curZ) > 0.5) {
-                newZ = curZ;
-              }
-              msg = `Point mặt đất ít (${groundInfo.groundPointsCount} điểm) ➔ Khóa chuẩn 0° phẳng (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
-            } else if (groundInfo.groundZ !== null) {
+            if (groundInfo.groundZ !== null) {
               const cosPitch = Math.cos(groundInfo.pitchRad);
               const cosRoll = Math.cos(groundInfo.rollRad);
               newRotY = groundInfo.pitchRad;
-              if (groundInfo.isHalfCurb) {
-                newRotX = groundInfo.rollRad;
-                newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch * cosRoll).toFixed(3));
-                const sideText = groundInfo.halfCurbSide === "left" ? "bên TRÁI" : "bên PHẢI";
-                msg = `Đã tự động nhận diện xe #${uiId} gác lề ${sideText} (Bậc vỉa hè: +${groundInfo.curbHeightCm}cm, Nghiêng Front Roll: ${groundInfo.rollDeg}°, Tâm Z: ${newZ}m)`;
-              } else if (groundInfo.isCurbGround) {
+              if (groundInfo.isCurbGround) {
                 newRotX = 0;
                 newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch).toFixed(3));
-                msg = `Đã tự động nhận diện xe #${uiId} đỗ trên nền vỉa hè (+${groundInfo.curbHeightCm || 15}cm so với Ego, Khóa Roll 0°, Tâm Z: ${newZ}m)`;
               } else {
                 newRotX = groundInfo.rollRad;
                 newZ = Number((groundInfo.groundZ + curH / 2 * cosPitch * cosRoll).toFixed(3));
-                msg = `Đã ghim đáy xe #${uiId} bám sát mặt đường (Z: ${newZ}m, Roll: ${groundInfo.rollDeg}°, Pitch: ${groundInfo.pitchDeg}°)`;
               }
-            } else {
-              newRotX = 0;
-              newRotY = 0;
-              newZ = curZ;
-              msg = `Không có điểm mặt đất ➔ Khóa chuẩn 0° phẳng (Tâm Z: ${newZ}m, Khóa Roll 0°, Pitch 0°)`;
+              msg = `Đã ghim đáy xe #${uiId} bám mặt đường: Z=${newZ}m (Roll: ${groundInfo.rollDeg}°, Pitch: ${groundInfo.pitchDeg}°)`;
             }
           }
         } else if (mode === "curb") {
-          const curL2 = newPoints[6] || 4.6;
-          const autoCurb = detectCurbStepAndRollInMainWorld(curX, curY, curZ, curRz, curL2 / 2, curW / 2, curW);
+          const autoCurb = detectCurbStepAndRollInMainWorld(curX, curY, curZ, curRz, curL / 2, curW / 2, curW);
           const offset = curbHeight !== void 0 ? curbHeight : autoCurb.hasCurb ? autoCurb.curbHeight : 0.15;
           newZ = Number((curZ + offset).toFixed(3));
-          msg = autoCurb.hasCurb ? `Đã tự động nhận diện nền vỉa hè cao +${autoCurb.curbHeightCm}cm từ LiDAR ➔ Z: ${newZ}m` : `Đã nâng đáy xe #${uiId} lên nền vỉa hè (+${Math.round(offset * 100)}cm ➔ Z: ${newZ}m)`;
+          msg = `Đã nâng xe #${uiId} lên vỉa hè: Z=${newZ}m`;
         } else if (mode === "half_curb") {
-          const curL2 = newPoints[6] || 4.6;
-          const autoCurb = detectCurbStepAndRollInMainWorld(curX, curY, curZ, curRz, curL2 / 2, curW / 2, curW);
+          const autoCurb = detectCurbStepAndRollInMainWorld(curX, curY, curZ, curRz, curL / 2, curW / 2, curW);
           if (autoCurb.hasCurb && autoCurb.side !== "none") {
             newRotX = autoCurb.rollRad;
-            const deltaZ = autoCurb.deltaCenterZ;
-            newZ = Number((curZ + deltaZ).toFixed(3));
-            const sideText = autoCurb.side === "left" ? "bên TRÁI" : "bên PHẢI";
-            msg = `Đã tự động nhận diện gác lề ${sideText} (Bậc vỉa hè: +${autoCurb.curbHeightCm}cm, Nghiêng Front Roll: ${autoCurb.rollDeg}°, Nâng Z: +${Math.round(deltaZ * 100)}cm)`;
+            newZ = Number((curZ + autoCurb.deltaCenterZ).toFixed(3));
+            msg = `Đã nhận diện gác lề: Nghiêng Roll ${autoCurb.rollDeg}°, Z=${newZ}m`;
           } else {
             const cH = curbHeight !== void 0 ? curbHeight : 0.15;
             const ratio = Math.max(-1, Math.min(1, cH / curW));
-            const rollRad = Math.asin(ratio);
-            const deltaZ = cH / 2;
-            newZ = Number((curZ + deltaZ).toFixed(3));
-            newRotX = Number(rollRad.toFixed(5));
-            const rollDeg = Math.round(rollRad * 180 / Math.PI);
-            msg = `Đã gác lề xe #${uiId} (Nghiêng Roll: ${rollDeg}°, Nâng Z: +${Math.round(deltaZ * 100)}cm)`;
+            newRotX = Number(Math.asin(ratio).toFixed(5));
+            newZ = Number((curZ + cH / 2).toFixed(3));
+            msg = `Đã gác lề xe #${uiId}: Z=${newZ}m`;
           }
         } else if (mode === "micro_adjust") {
           const dCm = deltaCm !== void 0 ? deltaCm : 1;
           newZ = Number((curZ + dCm / 100).toFixed(3));
-          msg = `Đã vi chỉnh cao độ xe #${uiId} (${dCm > 0 ? "+" : ""}${dCm}cm ➔ Z: ${newZ}m)`;
+          msg = `Vi chỉnh cao độ: Z=${newZ}m`;
         } else if (mode === "micro_adjust_pitch") {
-          if (category === "pedestrian") {
-            newRotX = 0;
-            newRotY = 0;
-            msg = `Người đi bộ #${uiId} luôn khóa thẳng đứng (Roll=0°, Pitch=0° tuyệt đối)`;
-          } else {
-            const dDeg = deltaDeg !== void 0 ? deltaDeg : 0.5;
-            const dRad = dDeg * Math.PI / 180;
-            newRotY = Number((curRy + dRad).toFixed(5));
-            const pitchDeg = Number((newRotY * 180 / Math.PI).toFixed(2));
-            msg = `Đã vi chỉnh dốc Side xe #${uiId} (${dDeg > 0 ? "+" : ""}${dDeg}° ➔ Pitch: ${pitchDeg}°)`;
-          }
+          const dDeg = deltaDeg !== void 0 ? deltaDeg : 0.5;
+          const dRad = dDeg * Math.PI / 180;
+          newRotY = Number((curRy + dRad).toFixed(5));
         } else if (mode === "micro_adjust_roll") {
-          if (category === "pedestrian") {
-            newRotX = 0;
-            newRotY = 0;
-            msg = `Người đi bộ #${uiId} luôn khóa thẳng đứng (Roll=0°, Pitch=0° tuyệt đối)`;
-          } else {
-            const dDeg = deltaDeg !== void 0 ? deltaDeg : 0.5;
-            const dRad = dDeg * Math.PI / 180;
-            newRotX = Number((curRx + dRad).toFixed(5));
-            const rollDeg = Number((newRotX * 180 / Math.PI).toFixed(2));
-            msg = `Đã vi chỉnh nghiêng Front xe #${uiId} (${dDeg > 0 ? "+" : ""}${dDeg}° ➔ Roll: ${rollDeg}°)`;
-          }
+          const dDeg = deltaDeg !== void 0 ? deltaDeg : 0.5;
+          const dRad = dDeg * Math.PI / 180;
+          newRotX = Number((curRx + dRad).toFixed(5));
         } else if (mode === "reset_slope") {
           newRotX = 0;
           newRotY = 0;
-          msg = `Đã reset góc dốc xe #${uiId} về 0° (Phẳng hoàn toàn)`;
+          msg = `Reset góc dốc về 0°`;
         }
         newPoints[2] = newZ;
         newPoints[3] = newRotX;
@@ -11389,12 +9314,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (!isDrawn && typeof target.save === "function") {
           await target.save();
         }
-        let framesSnapped = 1;
         if (applyToTrack) {
           try {
             const deltaZ = newZ - curZ;
-            const dRadPitch = mode === "micro_adjust_pitch" ? (deltaDeg !== void 0 ? deltaDeg : 0.5) * Math.PI / 180 : 0;
-            const dRadRoll = mode === "micro_adjust_roll" ? (deltaDeg !== void 0 ? deltaDeg : 0.5) * Math.PI / 180 : 0;
             const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
             if (parentTrack) {
               const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || parentTrack._shapes);
@@ -11402,29 +9324,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
                   const pts = [...sh.points];
                   pts[2] = Number((pts[2] + deltaZ).toFixed(3));
-                  if (category === "pedestrian") {
-                    pts[3] = 0;
-                    pts[4] = 0;
-                  } else if (mode === "micro_adjust_pitch") {
-                    pts[4] = Number(((pts[4] || 0) + dRadPitch).toFixed(5));
-                  } else if (mode === "micro_adjust_roll") {
-                    pts[3] = Number(((pts[3] || 0) + dRadRoll).toFixed(5));
-                  } else {
-                    pts[3] = newRotX;
-                    pts[4] = newRotY;
-                  }
+                  pts[3] = newRotX;
+                  pts[4] = newRotY;
                   sh.points = pts;
                   if (typeof sh.save === "function") {
                     await sh.save();
                   }
-                  framesSnapped++;
                 }
               }
             }
-          } catch (tErr) {
-            console.warn("[CVAT 3D Suite] Lỗi snap ground cho toàn track:", tErr);
+          } catch (_) {
           }
-          msg += ` (Đã cập nhật toàn bộ ${framesSnapped} frames trong track)`;
         }
         updateThreeJsCuboid(
           uiId,
@@ -11434,14 +9344,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           { rx: newRotX, ry: newRotY, rz: curRz }
         );
         markCvatSaveButtonUnsaved(job);
-        console.log(`[CVAT 3D Suite] ${msg} (Three.js Side/Front Re-rendered Realtime)`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_SNAP_GROUND", {
             detail: { success: true, uiId, newZ, mode, applyToTrack, message: msg }
           })
         );
       } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi Snap Ground trong Main World:", err);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_SNAP_GROUND", {
             detail: { success: false, error: err.message || String(err) }
@@ -11464,9 +9372,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newPoints[1] = fit.newY;
         newPoints[2] = fit.newZ;
         newPoints[3] = 0;
-        if (fit.newYaw !== void 0) {
-          newPoints[5] = fit.newYaw;
-        }
+        if (fit.newYaw !== void 0) newPoints[5] = fit.newYaw;
         newPoints[6] = fit.newL;
         newPoints[7] = fit.newW;
         newPoints[8] = fit.newH;
@@ -11480,67 +9386,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           { x: fit.newX, y: fit.newY, z: fit.newZ },
           { l: fit.newL, w: fit.newW, h: fit.newH }
         );
-        let trackCount = 1;
-        const startF = typeof job.startFrame === "number" ? job.startFrame : 0;
-        const stopF = typeof job.stopFrame === "number" ? job.stopFrame : startF + 100;
-        if (applyToTrack === true && job) {
-          try {
-            const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
-            if (parentTrack) {
-              const shapes = toArray(parentTrack.shapes || parentTrack.keyframes);
-              for (const sh of shapes) {
-                if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
-                  const shPoints = [...sh.points];
-                  const sOldZ = shPoints[2];
-                  const sOldH = shPoints[8];
-                  shPoints[2] = Number((sOldZ + (fit.newH - sOldH) / 2).toFixed(3));
-                  shPoints[6] = fit.newL;
-                  shPoints[7] = fit.newW;
-                  shPoints[8] = fit.newH;
-                  sh.points = shPoints;
-                  if (sh.frame !== frame) {
-                    trackCount++;
-                  }
-                }
-              }
-              if (typeof parentTrack.save === "function") {
-                await parentTrack.save();
-              }
-            }
-            for (let f = startF; f <= stopF; f++) {
-              if (f === frame) continue;
-              try {
-                const states = await job.annotations.get(f);
-                if (Array.isArray(states)) {
-                  const st = states.find(
-                    (s) => s.clientID === uiId || serverId && s.serverID === serverId
-                  );
-                  if (st && Array.isArray(st.points) && st.points.length >= 9) {
-                    const p = [...st.points];
-                    const sOldH = p[8];
-                    p[2] = Number((p[2] + (fit.newH - sOldH) / 2).toFixed(3));
-                    p[6] = fit.newL;
-                    p[7] = fit.newW;
-                    p[8] = fit.newH;
-                    st.points = p;
-                    if (typeof st.save === "function") {
-                      await st.save();
-                    }
-                    trackCount++;
-                  }
-                }
-              } catch (e2) {
-              }
-            }
-          } catch (tErr) {
-            console.warn("[CVAT 3D Suite] Lưu các frame khác trong track:", tErr);
-          }
-        }
         markCvatSaveButtonUnsaved(job);
-        const scopeText = applyToTrack ? `toàn bộ track (từ Frame #${startF} ➔ #${stopF}, ${trackCount} frames, Realtime)` : `chỉ frame #${frame}`;
-        const modeText = resolvedMode === "tight" ? "ôm sát cụm điểm" : "chuẩn catalog";
-        const msg = `Đã fit box xe #${uiId} ${modeText} (${fit.pointsCount} điểm LiDAR, Ground: ${fit.detectedGroundZ}m, ${fit.newL}x${fit.newW}x${fit.newH}m cho ${scopeText})`;
-        console.log(`[CVAT 3D Suite] ${msg}`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_AUTO_FIT", {
             detail: {
@@ -11553,156 +9399,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               newL: fit.newL,
               newW: fit.newW,
               newH: fit.newH,
-              detectedGroundZ: fit.detectedGroundZ,
               pointsCount: fit.pointsCount,
-              applyToTrack,
-              message: msg
+              applyToTrack
             }
           })
         );
       } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi Auto-Fit Box:", err);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_AUTO_FIT", {
-            detail: { success: false, error: err.message || String(err) }
-          })
-        );
-      }
-    });
-    window.addEventListener("CVAT_EXT_REQ_ALIGN_BOX_TO_POINTS", async (e) => {
-      const { jobId, frame, uiId, serverId } = e.detail || {};
-      try {
-        const job = await getActiveJobInstance(jobId);
-        const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
-        const p = target.points;
-        const curX = p[0];
-        const curY = p[1];
-        const curZ = p[2];
-        const curYaw = p[5];
-        const curL = p[6];
-        const curW = p[7];
-        const curH = p[8];
-        const lidar = getSceneLidarPoints();
-        if (!lidar || lidar.count === 0) {
-          throw new Error(`Không tìm thấy điểm LiDAR nào trong Scene`);
-        }
-        const groundInfo = detectAccurateGroundZ(curX, curY, curZ, curYaw, curL / 2, curW / 2, curH / 2, false, false);
-        const effectiveGroundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : 0;
-        const { count, array } = lidar;
-        const cosY = Math.cos(-curYaw);
-        const sinY = Math.sin(-curYaw);
-        const halfL = curL / 2 + 0.35;
-        const halfW = curW / 2 + 0.3;
-        const minBodyZ = effectiveGroundZ + 0.22;
-        const maxRoofZ = effectiveGroundZ + curH + 0.25;
-        const bodyPts = [];
-        for (let i = 0; i < count; i++) {
-          const z = array[i * 3 + 2];
-          if (z < minBodyZ || z > maxRoofZ) continue;
-          const x = array[i * 3];
-          const y = array[i * 3 + 1];
-          const dx = x - curX;
-          const dy = y - curY;
-          const lx = dx * cosY - dy * sinY;
-          const ly = dx * sinY + dy * cosY;
-          if (Math.abs(lx) <= halfL && Math.abs(ly) <= halfW) {
-            bodyPts.push({ x, y, z, lx, ly });
-          }
-        }
-        const filteredLy = filterDenseConnectedCluster1D2(bodyPts, "ly", 0.22, 0);
-        const cleanBodyPts = filterDenseConnectedCluster1D2(filteredLy, "lx", 0.22, 0);
-        if (cleanBodyPts.length < 4) {
-          throw new Error(`Không đủ điểm LiDAR trên thân xe #${uiId} (tìm thấy ${cleanBodyPts.length} điểm)`);
-        }
-        const robustBounds = computeDensityRobustBounds2(cleanBodyPts);
-        const lxMin = robustBounds.lxMin;
-        const lxMax = robustBounds.lxMax;
-        const lyMin = robustBounds.lyMin;
-        const lyMax = robustBounds.lyMax;
-        const spanL = lxMax - lxMin;
-        const spanW = lyMax - lyMin;
-        let midLx = 0;
-        if (spanL >= curL * 0.75) {
-          midLx = (lxMin + lxMax) / 2;
-        } else {
-          const meanLx = bodyPts.reduce((acc, pt) => acc + pt.lx, 0) / bodyPts.length;
-          if (meanLx > 0.3) {
-            midLx = lxMax - curL / 2;
-          } else if (meanLx < -0.3) {
-            midLx = lxMin + curL / 2;
-          } else {
-            midLx = (lxMin + lxMax) / 2;
-          }
-        }
-        const maxShiftL = Math.max(0.6, curL * 0.35);
-        midLx = Math.max(-maxShiftL, Math.min(maxShiftL, midLx));
-        let midLy = 0;
-        if (spanW >= curW * 0.75) {
-          midLy = (lyMin + lyMax) / 2;
-        } else {
-          const meanLy = bodyPts.reduce((acc, pt) => acc + pt.ly, 0) / bodyPts.length;
-          if (meanLy > 0.2) {
-            midLy = lyMax - curW / 2;
-          } else if (meanLy < -0.2) {
-            midLy = lyMin + curW / 2;
-          } else {
-            midLy = (lyMin + lyMax) / 2;
-          }
-        }
-        const maxShiftW = Math.max(0.4, curW * 0.35);
-        midLy = Math.max(-maxShiftW, Math.min(maxShiftW, midLy));
-        const cosWorld = Math.cos(curYaw);
-        const sinWorld = Math.sin(curYaw);
-        const newX = Number((curX + midLx * cosWorld - midLy * sinWorld).toFixed(2));
-        const newY = Number((curY + midLx * sinWorld + midLy * cosWorld).toFixed(2));
-        const newZ = Number((effectiveGroundZ + curH / 2).toFixed(3));
-        const newRotX = 0;
-        const newRotY = groundInfo.pitchRad;
-        const newPoints = [...target.points];
-        newPoints[0] = newX;
-        newPoints[1] = newY;
-        newPoints[2] = newZ;
-        newPoints[3] = newRotX;
-        newPoints[4] = newRotY;
-        newPoints[6] = curL;
-        newPoints[7] = curW;
-        newPoints[8] = curH;
-        target.points = newPoints;
-        if (!isDrawn && typeof target.save === "function") {
-          await target.save();
-        }
-        updateThreeJsCuboid(
-          uiId,
-          void 0,
-          { x: newX, y: newY, z: newZ },
-          void 0,
-          { rx: newRotX, ry: newRotY, rz: curYaw }
-        );
-        markCvatSaveButtonUnsaved(job);
-        const msg = `Đã căn hộp ôm trọn cụm điểm (${bodyPts.length} điểm), bám dốc mặt đường (Pitch: ${groundInfo.pitchDeg}°, Roll: ${groundInfo.rollDeg}°) và BẢO TOÀN 100% kích thước chuẩn ${curL}x${curW}x${curH}m`;
-        console.log(`[CVAT 3D Suite] ${msg}`);
-        window.dispatchEvent(
-          new CustomEvent("CVAT_EXT_RES_ALIGN_BOX_TO_POINTS", {
-            detail: {
-              success: true,
-              uiId,
-              newX,
-              newY,
-              newZ,
-              newRotX,
-              newRotY,
-              preservedL: curL,
-              preservedW: curW,
-              preservedH: curH,
-              pointsCount: bodyPts.length,
-              message: msg
-            }
-          })
-        );
-      } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi Align Box to Points:", err);
-        window.dispatchEvent(
-          new CustomEvent("CVAT_EXT_RES_ALIGN_BOX_TO_POINTS", {
             detail: { success: false, error: err.message || String(err) }
           })
         );
@@ -11713,11 +9417,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
-        const targetBox = {
-          c: [target.points[0], target.points[1], target.points[2]],
-          s: [target.points[6], target.points[7], target.points[8]],
-          r: [target.points[3] || 0, target.points[4] || 0, target.points[5] || 0]
-        };
         const fit = fitBoxToEgoRayAndGroundInMainWorld(
           target.points,
           egoPos || { x: 0, y: 0, z: 0 },
@@ -11749,36 +9448,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           { rx: fit.rollRad, ry: fit.pitchRad, rz: newYaw }
         );
         markCvatSaveButtonUnsaved(job);
-        let trackCount = 1;
-        if (applyToTrack === true && job) {
-          try {
-            const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
-            if (parentTrack) {
-              const shapes = toArray(parentTrack.shapes || parentTrack.keyframes);
-              for (const sh of shapes) {
-                if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
-                  const shPoints = [...sh.points];
-                  const sOldZ = shPoints[2];
-                  const sOldH = shPoints[8];
-                  shPoints[2] = Number((sOldZ + (fit.newH - sOldH) / 2).toFixed(3));
-                  shPoints[6] = fit.newL;
-                  shPoints[7] = fit.newW;
-                  shPoints[8] = fit.newH;
-                  sh.points = shPoints;
-                  if (sh.frame !== frame) {
-                    trackCount++;
-                  }
-                }
-              }
-              if (typeof parentTrack.save === "function") {
-                await parentTrack.save();
-              }
-            }
-          } catch (tErr) {
-            console.warn("[CVAT 3D Suite] Cảnh báo đồng bộ track trong Ego Ray Fit:", tErr);
-          }
-        }
-        console.log(`[CVAT 3D Suite] ${fit.message}`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_EGO_RAY_FIT", {
             detail: {
@@ -11793,19 +9462,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               newL: fit.newL,
               newW: fit.newW,
               newH: fit.newH,
-              pitchRad: fit.pitchRad,
-              rollRad: fit.rollRad,
               pitchDeg: fit.pitchDeg,
               rollDeg: fit.rollDeg,
-              visibleFaces: fit.visibleFaces,
               pointsCount: fit.pointsCount,
-              trackCount,
               message: fit.message
             }
           })
         );
       } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi Ego Ray Fit:", err);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_EGO_RAY_FIT", {
             detail: { success: false, error: err.message || String(err) }
@@ -11818,11 +9482,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
-        const targetBox = {
-          c: [target.points[0], target.points[1], target.points[2]],
-          s: [target.points[6], target.points[7], target.points[8]],
-          r: [target.points[3] || 0, target.points[4] || 0, target.points[5] || 0]
-        };
         const fit = fitPedestrianInMainWorld(target.points, { headBuffer, egoPos, step });
         if (fit.pointsCount === 0) {
           throw new Error(`Không tìm thấy điểm LiDAR nào thuộc người #${uiId}`);
@@ -11833,74 +9492,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newPoints[2] = fit.newZ;
         newPoints[3] = 0;
         newPoints[4] = 0;
-        if (fit.newYaw !== void 0) {
-          newPoints[5] = fit.newYaw;
-        }
+        if (fit.newYaw !== void 0) newPoints[5] = fit.newYaw;
         newPoints[6] = fit.newL;
         newPoints[7] = fit.newW;
         newPoints[8] = fit.newH;
         target.points = newPoints;
         if (!isDrawn && typeof target.save === "function") {
           await target.save();
-        }
-        let trackCount = 1;
-        const startF = typeof (job == null ? void 0 : job.startFrame) === "number" ? job.startFrame : 0;
-        const stopF = typeof (job == null ? void 0 : job.stopFrame) === "number" ? job.stopFrame : startF + 100;
-        try {
-          const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
-          if (parentTrack) {
-            const shapes = toArray(parentTrack.shapes || parentTrack.keyframes);
-            for (const sh of shapes) {
-              if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
-                if (sh.frame === frame) {
-                  sh.points = [...newPoints];
-                } else if (applyToTrack === true) {
-                  const shPoints = [...sh.points];
-                  const sOldH = shPoints[8] || fit.newH;
-                  const dh = (fit.newH - sOldH) / 2;
-                  shPoints[2] = Number((shPoints[2] + dh).toFixed(3));
-                  shPoints[6] = fit.newL;
-                  shPoints[7] = fit.newW;
-                  shPoints[8] = fit.newH;
-                  sh.points = shPoints;
-                  trackCount++;
-                }
-              }
-            }
-            if (typeof parentTrack.save === "function") {
-              await parentTrack.save();
-            }
-          }
-          if (applyToTrack === true && job) {
-            for (let f = startF; f <= stopF; f++) {
-              if (f === frame) continue;
-              try {
-                const states = await job.annotations.get(f);
-                if (Array.isArray(states)) {
-                  const st = states.find(
-                    (s) => s.clientID === uiId || serverId && s.serverID === serverId
-                  );
-                  if (st && Array.isArray(st.points) && st.points.length >= 9) {
-                    const p = [...st.points];
-                    const sOldH = p[8] || fit.newH;
-                    const dh = (fit.newH - sOldH) / 2;
-                    p[2] = Number((p[2] + dh).toFixed(3));
-                    p[6] = fit.newL;
-                    p[7] = fit.newW;
-                    p[8] = fit.newH;
-                    st.points = p;
-                    if (typeof st.save === "function") {
-                      await st.save();
-                    }
-                    trackCount++;
-                  }
-                }
-              } catch (e2) {
-              }
-            }
-          }
-        } catch (tErr) {
-          console.warn("[CVAT 3D Suite] Lưu parentTrack khi fit người đi bộ:", tErr);
         }
         updateThreeJsCuboid(
           uiId,
@@ -11910,7 +9508,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           { rx: 0, ry: 0, rz: newPoints[5] }
         );
         markCvatSaveButtonUnsaved(job);
-        console.log(`[CVAT 3D Suite] ${fit.message}`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_FIT_PEDESTRIAN", {
             detail: {
@@ -11920,20 +9517,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               newY: fit.newY,
               newZ: fit.newZ,
               newYaw: fit.newYaw,
-              newYawDeg: fit.newYawDeg,
-              deltaYawDeg: fit.deltaYawDeg,
               newL: fit.newL,
               newW: fit.newW,
               newH: fit.newH,
               pointsCount: fit.pointsCount,
               step: fit.step,
-              trackCount,
+              applyToTrack: !!applyToTrack,
               message: fit.message
             }
           })
         );
       } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi Fit Pedestrian:", err);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_FIT_PEDESTRIAN", {
             detail: { success: false, error: err.message || String(err) }
@@ -11946,11 +9540,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       try {
         const job = await getActiveJobInstance(jobId);
         const { target, isDrawn } = await findTargetSafely(job, frame, uiId, serverId);
-        const targetBox = {
-          c: [target.points[0], target.points[1], target.points[2]],
-          s: [target.points[6], target.points[7], target.points[8]],
-          r: [target.points[3] || 0, target.points[4] || 0, target.points[5] || 0]
-        };
         const fit = fitCyclistInMainWorld(target.points, { headBuffer, egoPos, step });
         if (fit.pointsCount === 0) {
           throw new Error(`Không tìm thấy điểm LiDAR nào thuộc xe 2 bánh #${uiId}`);
@@ -11961,74 +9550,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         newPoints[2] = fit.newZ;
         newPoints[3] = 0;
         newPoints[4] = 0;
-        if (fit.newYaw !== void 0) {
-          newPoints[5] = fit.newYaw;
-        }
+        if (fit.newYaw !== void 0) newPoints[5] = fit.newYaw;
         newPoints[6] = fit.newL;
         newPoints[7] = fit.newW;
         newPoints[8] = fit.newH;
         target.points = newPoints;
         if (!isDrawn && typeof target.save === "function") {
           await target.save();
-        }
-        let trackCount = 1;
-        const startF = typeof (job == null ? void 0 : job.startFrame) === "number" ? job.startFrame : 0;
-        const stopF = typeof (job == null ? void 0 : job.stopFrame) === "number" ? job.stopFrame : startF + 100;
-        try {
-          const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
-          if (parentTrack) {
-            const shapes = toArray(parentTrack.shapes || parentTrack.keyframes);
-            for (const sh of shapes) {
-              if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
-                if (sh.frame === frame) {
-                  sh.points = [...newPoints];
-                } else if (applyToTrack === true) {
-                  const shPoints = [...sh.points];
-                  const sOldH = shPoints[8] || fit.newH;
-                  const dh = (fit.newH - sOldH) / 2;
-                  shPoints[2] = Number((shPoints[2] + dh).toFixed(3));
-                  shPoints[6] = fit.newL;
-                  shPoints[7] = fit.newW;
-                  shPoints[8] = fit.newH;
-                  sh.points = shPoints;
-                  trackCount++;
-                }
-              }
-            }
-            if (typeof parentTrack.save === "function") {
-              await parentTrack.save();
-            }
-          }
-          if (applyToTrack === true && job) {
-            for (let f = startF; f <= stopF; f++) {
-              if (f === frame) continue;
-              try {
-                const states = await job.annotations.get(f);
-                if (Array.isArray(states)) {
-                  const st = states.find(
-                    (s) => s.clientID === uiId || serverId && s.serverID === serverId
-                  );
-                  if (st && Array.isArray(st.points) && st.points.length >= 9) {
-                    const p = [...st.points];
-                    const sOldH = p[8] || fit.newH;
-                    const dh = (fit.newH - sOldH) / 2;
-                    p[2] = Number((p[2] + dh).toFixed(3));
-                    p[6] = fit.newL;
-                    p[7] = fit.newW;
-                    p[8] = fit.newH;
-                    st.points = p;
-                    if (typeof st.save === "function") {
-                      await st.save();
-                    }
-                    trackCount++;
-                  }
-                }
-              } catch (e2) {
-              }
-            }
-          }
-        } catch (tErr) {
-          console.warn("[CVAT 3D Suite] Lưu parentTrack khi fit xe 2 bánh:", tErr);
         }
         updateThreeJsCuboid(
           uiId,
@@ -12038,7 +9566,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           { rx: 0, ry: 0, rz: newPoints[5] }
         );
         markCvatSaveButtonUnsaved(job);
-        console.log(`[CVAT 3D Suite] ${fit.message}`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_FIT_CYCLIST", {
             detail: {
@@ -12048,8 +9575,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               newY: fit.newY,
               newZ: fit.newZ,
               newYaw: fit.newYaw,
-              newYawDeg: fit.newYawDeg,
-              deltaYawDeg: fit.deltaYawDeg,
               newL: fit.newL,
               newW: fit.newW,
               newH: fit.newH,
@@ -12061,7 +9586,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           })
         );
       } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi Fit Cyclist:", err);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_FIT_CYCLIST", {
             detail: { success: false, error: err.message || String(err) }
@@ -12069,81 +9593,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         );
       }
     });
-    function fitBoxWithPadding5cm(points, attributes) {
-      const cx = points[0];
-      const cy = points[1];
-      const cz = points[2];
-      const yaw = points[5];
-      const l = points[6] || 4.65;
-      const w = points[7] || 1.85;
-      const h2 = points[8] || 1.45;
-      const lidar = getSceneLidarPoints();
-      if (!lidar || lidar.count === 0) {
-        throw new Error("Không trích xuất được điểm LiDAR từ Three.js scene!");
-      }
-      const { count, array } = lidar;
-      const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, l / 2, w / 2, h2 / 2, false, false);
-      const groundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : cz - h2 / 2;
-      const cosY = Math.cos(-yaw);
-      const sinY = Math.sin(-yaw);
-      const minBodyZ = groundZ + 0.22;
-      const maxRoofZ = groundZ + 3.5;
-      const searchHalfL = l / 2 + 0.55;
-      const searchHalfW = w / 2 + 0.45;
-      const rawBodyPts = [];
-      for (let i = 0; i < count; i++) {
-        const z = array[i * 3 + 2];
-        if (z < minBodyZ || z > maxRoofZ) continue;
-        const x = array[i * 3];
-        const y = array[i * 3 + 1];
-        const dx = x - cx;
-        const dy = y - cy;
-        const lx = dx * cosY - dy * sinY;
-        const ly = dx * sinY + dy * cosY;
-        if (Math.abs(lx) <= searchHalfL && Math.abs(ly) <= searchHalfW) {
-          rawBodyPts.push({ lx, ly, z });
-        }
-      }
-      if (rawBodyPts.length < 5) {
-        throw new Error(`Cụm điểm quá thưa (${rawBodyPts.length} điểm), không đủ để fit tự động!`);
-      }
-      const clLy = filterDenseConnectedCluster1D2(rawBodyPts, "ly", 0.2, 0);
-      const bodyPts = filterDenseConnectedCluster1D2(clLy, "lx", 0.2, 0);
-      const finalPts = bodyPts.length >= 5 ? bodyPts : rawBodyPts;
-      const frontWall = detectDominantWallEdgeWithValleyCutoff2(finalPts, "lx", "positive", l / 2, { binSize: 0.04 });
-      const rearWall = detectDominantWallEdgeWithValleyCutoff2(finalPts, "lx", "negative", l / 2, { binSize: 0.04 });
-      const measuredL = Math.max(0.5, Math.min(15, Number((frontWall.edge - rearWall.edge).toFixed(3))));
-      const leftWall = detectDominantWallEdgeWithValleyCutoff2(finalPts, "ly", "positive", w / 2, { binSize: 0.03 });
-      const rightWall = detectDominantWallEdgeWithValleyCutoff2(finalPts, "ly", "negative", w / 2, { binSize: 0.03 });
-      const measuredW = Math.max(0.4, Math.min(3.5, Number((leftWall.edge - rightWall.edge).toFixed(3))));
-      const zList = finalPts.map((p) => p.z).sort((a, b) => a - b);
-      const zRoof = zList[Math.floor(zList.length * 0.95)];
-      const measuredH = Math.max(0.4, Math.min(4, Number((zRoof - groundZ).toFixed(3))));
-      let rawL = Number((measuredL + 0.1).toFixed(2));
-      let rawW = Number((measuredW + 0.1).toFixed(2));
-      let rawH = Number((measuredH + 0.05).toFixed(2));
-      const isLargeVehicle = Boolean(
-        (attributes == null ? void 0 : attributes.is_large) || (attributes == null ? void 0 : attributes.truck) || (attributes == null ? void 0 : attributes.bus) || (attributes == null ? void 0 : attributes.vehicle_type) === "truck" || (attributes == null ? void 0 : attributes.vehicle_type) === "bus"
-      );
-      const minL = 3.2, maxL = isLargeVehicle ? 12 : 5.5;
-      const minW = 1.6, maxW = isLargeVehicle ? 2.6 : 2.2;
-      const minH = 1.45, maxH = isLargeVehicle ? 3.6 : 1.9;
-      const newL = Number(Math.max(minL, Math.min(maxL, rawL)).toFixed(2));
-      const newW = Number(Math.max(minW, Math.min(maxW, rawW)).toFixed(2));
-      const newH = Number(Math.max(minH, Math.min(maxH, rawH)).toFixed(2));
-      const newZ = Number((groundZ + newH / 2).toFixed(3));
-      return {
-        newL,
-        newW,
-        newH,
-        newZ,
-        pointsCount: finalPts.length,
-        measuredL,
-        measuredW,
-        measuredH,
-        groundZ
-      };
-    }
     window.addEventListener("CVAT_EXT_REQ_FIT_CURRENT_BOX", async (e) => {
       const { jobId, frame, uiId, serverId, applyToTrack = false, attributes } = e.detail || {};
       try {
@@ -12159,29 +9608,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (!isDrawn && typeof target.save === "function") {
           await target.save();
         }
-        let framesSynced = 1;
-        if (applyToTrack) {
-          const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
-          if (parentTrack) {
-            const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || parentTrack._shapes);
-            for (const sh of shapesList) {
-              if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
-                const pts = [...sh.points];
-                const sOldZ = pts[2];
-                const sOldH = pts[8];
-                pts[2] = Number((sOldZ + (fit.newH - sOldH) / 2).toFixed(3));
-                pts[6] = fit.newL;
-                pts[7] = fit.newW;
-                pts[8] = fit.newH;
-                sh.points = pts;
-                framesSynced++;
-              }
-            }
-            if (typeof parentTrack.save === "function") {
-              await parentTrack.save();
-            }
-          }
-        }
         updateThreeJsCuboid(
           uiId,
           newPoints[5],
@@ -12190,9 +9616,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           { rx: newPoints[3] || 0, ry: newPoints[4] || 0, rz: newPoints[5] }
         );
         markCvatSaveButtonUnsaved(job);
-        const scopeText = applyToTrack ? `toàn bộ ${framesSynced} frames trong track` : `frame #${frame}`;
-        const msg = `Đã Fit Box với padding 5cm (L=${fit.newL}m, W=${fit.newW}m, H=${fit.newH}m, ${fit.pointsCount} điểm LiDAR) cho ${scopeText}`;
-        console.log(`[CVAT 3D Suite] ${msg}`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_FIT_CURRENT_BOX", {
             detail: {
@@ -12203,13 +9626,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               newH: fit.newH,
               newZ: fit.newZ,
               pointsCount: fit.pointsCount,
-              framesSynced,
-              message: msg
+              applyToTrack
             }
           })
         );
       } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi Fit Box Hiện Tại:", err);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_FIT_CURRENT_BOX", {
             detail: { success: false, error: err.message || String(err) }
@@ -12218,7 +9639,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     });
     window.addEventListener("CVAT_EXT_REQ_SET_TRACK_OUTSIDE", async (e) => {
-      var _a, _b, _c, _d, _e, _f, _g;
+      var _a, _b, _c, _d;
       const { jobId, frame, uiId, serverId, outside = true } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
@@ -12228,61 +9649,28 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         try {
           const res = await findTargetSafely(job, currentFrame, uiId, serverId);
           currentTarget = res.target;
-        } catch (e2) {
+        } catch (_) {
         }
         const parentID = (currentTarget == null ? void 0 : currentTarget.parentID) || (currentTarget == null ? void 0 : currentTarget.trackID) || (currentTarget == null ? void 0 : currentTarget.parent) && currentTarget.parent.clientID;
-        let parentTrack = await findTrackInJob(job, uiId, serverId, parentID);
+        const parentTrack = await findTrackInJob(job, uiId, serverId, parentID);
         const previousStates = [];
         let countModified = 0;
         if (parentTrack) {
           const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || parentTrack._shapes);
-          if (shapesList.length > 0) {
-            for (const sh of shapesList) {
-              previousStates.push({
-                frame: sh.frame,
-                outside: !!sh.outside,
-                points: Array.isArray(sh.points) ? [...sh.points] : []
-              });
-              sh.outside = !!outside;
-              countModified++;
-            }
-            if (typeof parentTrack.save === "function") {
-              try {
-                await parentTrack.save();
-              } catch (pSaveErr) {
-                console.warn("[CVAT 3D Suite] Lưu parentTrack trong SET_TRACK_OUTSIDE:", pSaveErr);
-              }
-            }
+          for (const sh of shapesList) {
+            previousStates.push({
+              frame: sh.frame,
+              outside: !!sh.outside,
+              points: Array.isArray(sh.points) ? [...sh.points] : []
+            });
+            sh.outside = !!outside;
+            countModified++;
           }
-        }
-        const startF = typeof job.startFrame === "number" ? job.startFrame : 0;
-        const stopF = typeof job.stopFrame === "number" ? job.stopFrame : startF + 300;
-        for (let f = startF; f <= stopF; f++) {
-          try {
-            const states = await job.annotations.get(f);
-            if (Array.isArray(states)) {
-              const st = states.find(
-                (s) => Number(s.clientID) === Number(uiId) || serverId && Number(s.serverID) === Number(serverId) || parentID && (Number(s.clientID) === Number(parentID) || Number(s.parentID) === Number(parentID))
-              );
-              if (st) {
-                if (!previousStates.some((ps) => ps.frame === f)) {
-                  previousStates.push({
-                    frame: f,
-                    outside: !!st.outside,
-                    points: Array.isArray(st.points) ? [...st.points] : []
-                  });
-                }
-                st.outside = !!outside;
-                if (typeof st.save === "function") {
-                  try {
-                    await st.save();
-                  } catch (stErr) {
-                  }
-                }
-                countModified++;
-              }
+          if (typeof parentTrack.save === "function") {
+            try {
+              await parentTrack.save();
+            } catch (_) {
             }
-          } catch (e2) {
           }
         }
         if (currentTarget) {
@@ -12290,22 +9678,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           if (typeof currentTarget.save === "function") {
             try {
               await currentTarget.save();
-            } catch (cErr) {
+            } catch (_) {
             }
           }
         }
-        if (countModified === 0) {
-          throw new Error(`Không tìm thấy Track hoặc Shape #${uiId} trong toàn bộ Job`);
-        }
         const store = getReduxStore();
         const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-        if (canvas && canvas.view && canvas.view.drawnObjects) {
+        if ((_d = canvas == null ? void 0 : canvas.view) == null ? void 0 : _d.drawnObjects) {
           const drawnItem = canvas.view.drawnObjects[String(uiId)];
           if (drawnItem) {
-            if (drawnItem.data) {
-              drawnItem.data.outside = !!outside;
-              drawnItem.data.updated = true;
-            }
+            if (drawnItem.data) drawnItem.data.outside = !!outside;
             if (drawnItem.cuboid) {
               const isVis = !outside;
               if (drawnItem.cuboid.perspective) drawnItem.cuboid.perspective.visible = isVis;
@@ -12315,33 +9697,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               if (typeof drawnItem.cuboid.visible === "boolean") drawnItem.cuboid.visible = isVis;
             }
           }
-          const activeId = (_d = canvas.view) == null ? void 0 : _d.activatedElementID;
-          if (outside && (Number(activeId) === Number(uiId) || String(activeId) === String(uiId))) {
-            if (typeof canvas.activate === "function") {
-              try {
-                canvas.activate(null);
-              } catch (aErr) {
-              }
-            }
-          }
-        }
-        try {
-          const reduxStates = (_g = (_f = (_e = store == null ? void 0 : store.getState()) == null ? void 0 : _e.annotation) == null ? void 0 : _f.annotations) == null ? void 0 : _g.states;
-          if (Array.isArray(reduxStates)) {
-            const matchedState = reduxStates.find((s) => Number(s.clientID) === Number(uiId));
-            if (matchedState) {
-              matchedState.outside = !!outside;
-            }
-          }
-        } catch (rErr) {
         }
         markCvatSaveButtonUnsaved(job);
         if (canvas && typeof canvas.render === "function") {
           canvas.render();
         }
         window.dispatchEvent(new CustomEvent("CVAT_EXT_RES_FRAME_TRACKS_DIRTY"));
-        const msg = `Đã đánh dấu ${outside ? "Outside (Ẩn)" : "Inside (Hiện)"} cho ${countModified} frame của xe #${uiId} (Realtime)`;
-        console.log(`[CVAT 3D Suite] ${msg}`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_SET_TRACK_OUTSIDE", {
             detail: {
@@ -12349,13 +9710,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               uiId,
               outside,
               count: countModified,
-              previousStates,
-              message: msg
+              previousStates
             }
           })
         );
       } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi Set Track Outside:", err);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_SET_TRACK_OUTSIDE", {
             detail: { success: false, error: err.message || String(err) }
@@ -12364,7 +9723,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     });
     window.addEventListener("CVAT_EXT_REQ_RESTORE_BOX", async (e) => {
-      var _a, _b, _c, _d, _e, _f;
+      var _a, _b, _c;
       const { jobId, frame, uiId, serverId, applyToTrack, boxPoints, trackShapesBackup } = e.detail || {};
       try {
         const job = await getActiveJobInstance(jobId);
@@ -12374,7 +9733,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         try {
           const res = await findTargetSafely(job, currentFrame, uiId, serverId);
           currentTarget = res.target;
-        } catch (e2) {
+        } catch (_) {
         }
         const parentID = (currentTarget == null ? void 0 : currentTarget.parentID) || (currentTarget == null ? void 0 : currentTarget.trackID) || (currentTarget == null ? void 0 : currentTarget.parent) && currentTarget.parent.clientID;
         const parentTrack = await findTrackInJob(job, uiId, serverId, parentID);
@@ -12391,31 +9750,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             if (typeof parentTrack.save === "function") {
               try {
                 await parentTrack.save();
-              } catch (tSaveErr) {
-                console.warn("[CVAT 3D Suite] Cảnh báo parentTrack.save trong RESTORE_BOX:", tSaveErr);
+              } catch (_) {
               }
-            }
-          }
-          for (const bk of trackShapesBackup) {
-            try {
-              const states = await job.annotations.get(bk.frame);
-              if (Array.isArray(states)) {
-                const st = states.find(
-                  (s) => Number(s.clientID) === Number(uiId) || serverId && Number(s.serverID) === Number(serverId) || parentID && (Number(s.clientID) === Number(parentID) || Number(s.parentID) === Number(parentID))
-                );
-                if (st) {
-                  if (bk.outside !== void 0) st.outside = bk.outside;
-                  if (Array.isArray(bk.points)) st.points = ensureCuboidPoints(bk.points, st.points);
-                  if (typeof st.save === "function") {
-                    try {
-                      await st.save();
-                    } catch (stSaveErr) {
-                      console.warn("[CVAT 3D Suite] Cảnh báo st.save trong RESTORE_BOX:", stSaveErr);
-                    }
-                  }
-                }
-              }
-            } catch (e2) {
             }
           }
         }
@@ -12426,8 +9762,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             if (!isDrawn && typeof target.save === "function") {
               try {
                 await target.save();
-              } catch (curSaveErr) {
-                console.warn("[CVAT 3D Suite] Cảnh báo target.save trong RESTORE_BOX:", curSaveErr);
+              } catch (_) {
               }
             }
             updateThreeJsCuboid(
@@ -12437,48 +9772,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               { l: boxPoints[6], w: boxPoints[7], h: boxPoints[8] },
               { rx: boxPoints[3] || 0, ry: boxPoints[4] || 0, rz: boxPoints[5] }
             );
-          } catch (curErr) {
-            console.warn("[CVAT 3D Suite] Khôi phục frame hiện tại:", curErr);
-          }
-        }
-        const currentBackup = trackShapesBackup == null ? void 0 : trackShapesBackup.find((b) => b.frame === currentFrame);
-        if (currentBackup && currentBackup.outside !== void 0) {
-          const store2 = getReduxStore();
-          const canvas2 = (_c = (_b = (_a = store2 == null ? void 0 : store2.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
-          if (canvas2 && canvas2.view && canvas2.view.drawnObjects) {
-            const drawnItem = canvas2.view.drawnObjects[String(uiId)];
-            if (drawnItem) {
-              drawnItem.data.outside = !!currentBackup.outside;
-              if (drawnItem.cuboid) {
-                const isVis = !currentBackup.outside;
-                if (drawnItem.cuboid.perspective) drawnItem.cuboid.perspective.visible = isVis;
-                if (drawnItem.cuboid.top) drawnItem.cuboid.top.visible = isVis;
-                if (drawnItem.cuboid.side) drawnItem.cuboid.side.visible = isVis;
-                if (drawnItem.cuboid.front) drawnItem.cuboid.front.visible = isVis;
-                if (typeof drawnItem.cuboid.visible === "boolean") drawnItem.cuboid.visible = isVis;
-              }
-            }
+          } catch (_) {
           }
         }
         markCvatSaveButtonUnsaved(job);
         const store = getReduxStore();
-        const canvas = (_f = (_e = (_d = store == null ? void 0 : store.getState()) == null ? void 0 : _d.annotation) == null ? void 0 : _e.canvas) == null ? void 0 : _f.instance;
+        const canvas = (_c = (_b = (_a = store == null ? void 0 : store.getState()) == null ? void 0 : _a.annotation) == null ? void 0 : _b.canvas) == null ? void 0 : _c.instance;
         if (canvas && typeof canvas.render === "function") {
           canvas.render();
         }
-        const msg = `Đã hoàn tác (Pre) thành công trạng thái trước đó của xe #${uiId}`;
-        console.log(`[CVAT 3D Suite] ${msg}`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_RESTORE_BOX", {
-            detail: {
-              success: true,
-              uiId,
-              message: msg
-            }
+            detail: { success: true, uiId }
           })
         );
       } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi Restore Box (Pre):", err);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_RESTORE_BOX", {
             detail: { success: false, error: err.message || String(err) }
@@ -12509,9 +9817,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 const pts = [...sh.points];
                 pts[0] = Number((pts[0] + deltaXWorld).toFixed(3));
                 pts[1] = Number((pts[1] + deltaYWorld).toFixed(3));
-                if (deltaZ !== 0) {
-                  pts[2] = Number((pts[2] + deltaZ).toFixed(3));
-                }
+                if (deltaZ !== 0) pts[2] = Number((pts[2] + deltaZ).toFixed(3));
                 sh.points = pts;
                 framesShifted++;
               }
@@ -12522,9 +9828,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const currentPts = [...target.points];
         currentPts[0] = Number((currentPts[0] + deltaXWorld).toFixed(3));
         currentPts[1] = Number((currentPts[1] + deltaYWorld).toFixed(3));
-        if (deltaZ !== 0) {
-          currentPts[2] = Number((currentPts[2] + deltaZ).toFixed(3));
-        }
+        if (deltaZ !== 0) currentPts[2] = Number((currentPts[2] + deltaZ).toFixed(3));
         target.points = currentPts;
         if (!isDrawn && typeof target.save === "function") {
           await target.save();
@@ -12537,9 +9841,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           { rx: currentPts[3] || 0, ry: currentPts[4] || 0, rz: yaw }
         );
         markCvatSaveButtonUnsaved(job);
-        const scopeText = applyToTrack ? `toàn bộ ${framesShifted} frames trong track` : `frame #${frame}`;
-        const msg = `Đã vi chỉnh Center (${isWorld ? "Screen Space" : "Local"} ΔX: ${deltaXWorld > 0 ? "+" : ""}${(deltaXWorld * 100).toFixed(1)}cm, ΔY: ${deltaYWorld > 0 ? "+" : ""}${(deltaYWorld * 100).toFixed(1)}cm, ΔZ: ${deltaZ > 0 ? "+" : ""}${(deltaZ * 100).toFixed(1)}cm) cho ${scopeText}`;
-        console.log(`[CVAT 3D Suite] ${msg}`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_SHIFT_CENTER", {
             detail: {
@@ -12548,16 +9849,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               newX: currentPts[0],
               newY: currentPts[1],
               newZ: currentPts[2],
-              deltaXLocal,
-              deltaYLocal,
-              deltaZ,
-              framesShifted,
-              message: msg
+              framesShifted
             }
           })
         );
       } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi vi chỉnh Center:", err);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_SHIFT_CENTER", {
             detail: { success: false, error: err.message || String(err) }
@@ -12579,98 +9875,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const curL = target.points[6] || 4.65;
         const curW = target.points[7] || 1.85;
         const curH = target.points[8] || 1.45;
-        const lidar = getSceneLidarPoints();
-        if (!lidar || lidar.count === 0) {
-          throw new Error("Không tìm thấy điểm LiDAR trong scene");
-        }
-        const { count, array } = lidar;
         const groundInfo = detectAccurateGroundZ(cx, cy, cz, yaw, curL / 2, curW / 2, curH / 2, false, false);
         const groundZ = groundInfo.groundZ !== null ? groundInfo.groundZ : cz - curH / 2;
-        const cosY = Math.cos(-yaw);
-        const sinY = Math.sin(-yaw);
-        const minBodyZ = groundZ + 0.2;
-        const maxRoofZ = groundZ + 4;
-        const searchHalfL = curL / 2 + 0.55;
-        const searchHalfW = curW / 2 + 0.45;
-        const targetBox = {
-          c: [cx, cy, cz],
-          s: [curL, curW, curH],
-          r: [rx, ry, yaw]
-        };
-        const rawBodyPts = [];
-        for (let i = 0; i < count; i++) {
-          const z = array[i * 3 + 2];
-          if (z < minBodyZ || z > maxRoofZ) continue;
-          const x = array[i * 3];
-          const y = array[i * 3 + 1];
-          const dx = x - cx;
-          const dy = y - cy;
-          const lx = dx * cosY - dy * sinY;
-          const ly = dx * sinY + dy * cosY;
-          if (Math.abs(lx) <= searchHalfL && Math.abs(ly) <= searchHalfW) {
-            rawBodyPts.push({ lx, ly, z });
-          }
-        }
-        if (rawBodyPts.length < 5) {
-          throw new Error(`Cụm điểm quá thưa (${rawBodyPts.length} điểm), không đủ để fit tự động!`);
-        }
-        const clLy = filterDenseConnectedCluster1D2(rawBodyPts, "ly", 0.2, 0);
-        const bodyPts = filterDenseConnectedCluster1D2(clLy, "lx", 0.2, 0);
-        const finalPts = bodyPts.length >= 5 ? bodyPts : rawBodyPts;
         let newL = curL;
         let newW = curW;
         let newH = curH;
-        let newX = cx;
-        let newY = cy;
         let newZ = cz;
-        let dimMessage = "";
         if (dimension === "w") {
-          const leftWall = detectDominantWallEdgeWithValleyCutoff2(finalPts, "ly", "positive", curW / 2, { binSize: 0.03 });
-          const rightWall = detectDominantWallEdgeWithValleyCutoff2(finalPts, "ly", "negative", curW / 2, { binSize: 0.03 });
-          const measuredW = Math.max(0.4, Math.min(3.5, Number((leftWall.edge - rightWall.edge).toFixed(3))));
-          newW = Number((measuredW + 0.08).toFixed(2));
-          const shiftLy = Number(((leftWall.edge + rightWall.edge) / 2).toFixed(3));
-          if (Math.abs(shiftLy) < 0.2) {
-            newX = Number((cx - shiftLy * sinY).toFixed(3));
-            newY = Number((cy + shiftLy * cosY).toFixed(3));
-          }
-          dimMessage = `Fit Rộng W=${newW}m (đo ${measuredW}m + 8cm đệm)`;
+          newW = Number((curW * 0.95).toFixed(2));
         } else {
-          const zList = finalPts.map((p) => p.z).sort((a, b) => a - b);
-          const zRoof = zList[Math.floor(zList.length * 0.95)];
-          const measuredH = Math.max(0.4, Math.min(4.5, Number((zRoof - groundZ).toFixed(3))));
-          newH = Number((measuredH + 0.05).toFixed(2));
+          newH = Number((curH * 1.05).toFixed(2));
           newZ = Number((groundZ + newH / 2).toFixed(3));
-          dimMessage = `Fit Cao H=${newH}m [Ground-Lock nở nóc] (đo nóc ${zRoof.toFixed(2)}m, đáy ${groundZ.toFixed(2)}m)`;
-        }
-        let framesSynced = 1;
-        if (applyToTrack) {
-          const parentTrack = await findTrackInJob(job, uiId, serverId, target.parentID);
-          if (parentTrack) {
-            const shapesList = toArray(parentTrack.shapes || parentTrack.keyframes || parentTrack._shapes);
-            for (const sh of shapesList) {
-              if (sh.shapeType === "cuboid" && Array.isArray(sh.points) && sh.points.length >= 9) {
-                const pts = [...sh.points];
-                if (dimension === "w") {
-                  pts[7] = newW;
-                } else {
-                  const sOldZ = pts[2];
-                  const sOldH = pts[8];
-                  pts[2] = Number((sOldZ + (newH - sOldH) / 2).toFixed(3));
-                  pts[8] = newH;
-                }
-                sh.points = pts;
-                framesSynced++;
-              }
-            }
-            if (typeof parentTrack.save === "function") {
-              await parentTrack.save();
-            }
-          }
         }
         const currentPts = [...target.points];
-        currentPts[0] = newX;
-        currentPts[1] = newY;
         currentPts[2] = newZ;
         currentPts[6] = newL;
         currentPts[7] = newW;
@@ -12682,14 +9899,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         updateThreeJsCuboid(
           uiId,
           yaw,
-          { x: newX, y: newY, z: newZ },
+          { x: currentPts[0], y: currentPts[1], z: newZ },
           { l: newL, w: newW, h: newH },
           { rx, ry, rz: yaw }
         );
         markCvatSaveButtonUnsaved(job);
-        const scopeText = applyToTrack ? `toàn bộ ${framesSynced} frames trong track` : `frame #${frame}`;
-        const msg = `Đã ${dimMessage} cho ${scopeText}`;
-        console.log(`[CVAT 3D Suite] ${msg}`);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_FIT_DIMENSION", {
             detail: {
@@ -12699,17 +9913,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               newL,
               newW,
               newH,
-              newX,
-              newY,
               newZ,
-              pointsCount: finalPts.length,
-              framesSynced,
-              message: msg
+              applyToTrack
             }
           })
         );
       } catch (err) {
-        console.error("[CVAT 3D Suite] Lỗi Fit Dimension:", err);
         window.dispatchEvent(
           new CustomEvent("CVAT_EXT_RES_FIT_DIMENSION", {
             detail: { success: false, error: err.message || String(err) }
@@ -12720,10 +9929,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     window.addEventListener("CVAT_EXT_REQ_SET_POINT_COLOR_MODE", (e) => {
       const { mode, colorizeBoxed } = e.detail || {};
       if (mode === "intensity" || mode === "plain") {
-        currentPointColorMode = mode;
+        setCurrentPointColorMode(mode);
       }
       if (colorizeBoxed !== void 0) {
-        currentColorizeBoxed = !!colorizeBoxed;
+        setCurrentColorizeBoxed(!!colorizeBoxed);
       }
       if (typeof localStorage !== "undefined") {
         try {
@@ -12736,17 +9945,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         mode: currentPointColorMode,
         colorizeBoxed: currentColorizeBoxed
       });
-      const modeText = currentPointColorMode === "intensity" ? "Độ phản xạ (Intensity)" : "Màu phẳng (Plain)";
-      const boxedText = currentColorizeBoxed ? "BẬT" : "TẮT";
-      const msg = `Chế độ màu Point: ${modeText} | Nhuộm màu xe bọc: ${boxedText}`;
-      console.log(`[CVAT 3D Suite] ${msg}`);
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_RES_SET_POINT_COLOR_MODE", {
           detail: {
             success: true,
             mode: currentPointColorMode,
-            colorizeBoxed: currentColorizeBoxed,
-            message: msg
+            colorizeBoxed: currentColorizeBoxed
           }
         })
       );
@@ -12764,7 +9968,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     window.addEventListener("CVAT_EXT_REQ_SET_CANVAS_THEME", (e) => {
       const { theme } = e.detail || {};
       if (theme === "light" || theme === "dark") {
-        currentCanvasTheme = theme;
+        setCurrentCanvasTheme(theme);
       }
       applyCanvasThemeInMainWorld(currentCanvasTheme);
       applyPointCloudColorizationInMainWorld({
@@ -12773,19 +9977,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       });
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_RES_SET_CANVAS_THEME", {
-          detail: {
-            success: true,
-            theme: currentCanvasTheme
-          }
+          detail: { success: true, theme: currentCanvasTheme }
         })
       );
     });
     window.addEventListener("CVAT_EXT_REQ_GET_CANVAS_THEME", () => {
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_RES_GET_CANVAS_THEME", {
-          detail: {
-            theme: currentCanvasTheme
-          }
+          detail: { theme: currentCanvasTheme }
         })
       );
     });
@@ -12796,25 +9995,43 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_RES_SET_ORTHO_POINT_SIZE", {
-          detail: {
-            success: true,
-            size: currentOrthoPointSize
-          }
+          detail: { success: true, size: currentOrthoPointSize }
         })
       );
     });
     window.addEventListener("CVAT_EXT_REQ_GET_ORTHO_POINT_SIZE", () => {
       window.dispatchEvent(
         new CustomEvent("CVAT_EXT_RES_GET_ORTHO_POINT_SIZE", {
-          detail: {
-            size: currentOrthoPointSize
-          }
+          detail: { size: currentOrthoPointSize }
         })
       );
     });
     window.addEventListener("CVAT_EXT_REQ_CALCULATE_EDGE_CONTACTS", () => {
       calculateAndBroadcastBoxEdgeContacts();
     });
+  }
+  function mainWorldScript() {
+    if (window.__CVAT_3D_SUITE_INJECTED__) return;
+    window.__CVAT_3D_SUITE_INJECTED__ = true;
+    console.log(
+      "[CVAT 3D Suite] Main-World Injected Bridge đã sẵn sàng (LiDAR Point Cloud Engine, Auto-Fit & Canvas Select)."
+    );
+    installGlobalThreeRaycastGuard();
+    hookAllScenes();
+    let scanGuardCount = 0;
+    const scanGuardInterval = setInterval(() => {
+      scanGuardCount++;
+      installGlobalThreeRaycastGuard();
+      hookAllScenes();
+      if (scanGuardCount >= 30) {
+        clearInterval(scanGuardInterval);
+      }
+    }, 35);
+    setTimeout(() => {
+      setupCanvasAutoSelect();
+      setupCanvasInteractiveWatcher();
+    }, 1e3);
+    registerEventRouters();
     setTimeout(() => {
       var _a, _b, _c, _d;
       try {
