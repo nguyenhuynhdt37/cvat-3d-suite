@@ -522,8 +522,11 @@ if (window.__CVAT_3D_SUITE_INITIALIZED__) {
     window.addEventListener(
       "pointermove",
       (e: PointerEvent) => {
+        // Zero-Lag Drag Guard: Nếu chuột đang nhấn giữ (kéo thả box hoặc xoay camera), thoát ngay lập tức!
+        if (e.buttons > 0) return;
+
         const now = Date.now();
-        if (now - lastCheck < 60) return; // Throttle 60ms để tối ưu hiệu năng
+        if (now - lastCheck < 80) return; // Throttle 80ms để tối ưu hiệu năng
         lastCheck = now;
 
         const target = e.target as HTMLElement;

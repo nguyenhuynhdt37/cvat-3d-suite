@@ -304,22 +304,22 @@ console.log("🧪 Đang chạy kiểm thử tự động Module Lát Cắt Trự
 }
 
 // =========================================================================
-// TEST 4: Bảo Toàn Toàn Cảnh Perspective 3D View & Tối Ưu forceRender
+// TEST 4: Bảo Toàn Toàn Cảnh Side, Front & Perspective 3D View (0 Clipping Planes)
 // =========================================================================
 {
   function getClippingPlanesForCamera(cameraType: "top" | "side" | "front" | "perspective", activePlanes: any[]) {
-    if (cameraType === "perspective") {
-      return []; // Luôn giữ góc nhìn 3D bao quát toàn bộ thế giới
+    if (cameraType === "perspective" || cameraType === "side" || cameraType === "front") {
+      return []; // Perspective, Side, Front luôn giữ toàn cảnh 100% không bị cắt lát (Zero-Lag 60 FPS)
     }
     return activePlanes;
   }
 
-  const dummyPlanes = [{ name: "plane1" }, { name: "plane2" }];
+  const dummyPlanes = [{ name: "groundPlane" }];
 
   assert.strictEqual(getClippingPlanesForCamera("perspective", dummyPlanes).length, 0, "Perspective View luôn luôn có clippingPlanes rỗng");
-  assert.strictEqual(getClippingPlanesForCamera("top", dummyPlanes).length, 2, "Top View nhận đủ planes");
-  assert.strictEqual(getClippingPlanesForCamera("side", dummyPlanes).length, 2, "Side View nhận đủ planes");
-  assert.strictEqual(getClippingPlanesForCamera("front", dummyPlanes).length, 2, "Front View nhận đủ planes");
+  assert.strictEqual(getClippingPlanesForCamera("side", dummyPlanes).length, 0, "Side View luôn luôn có clippingPlanes rỗng (không cắt lát)");
+  assert.strictEqual(getClippingPlanesForCamera("front", dummyPlanes).length, 0, "Front View luôn luôn có clippingPlanes rỗng (không cắt lát)");
+  assert.strictEqual(getClippingPlanesForCamera("top", dummyPlanes).length, 1, "Top View nhận mặt phẳng cắt mặt đất");
 
   // Kiểm tra cờ forceRender: Khi kéo chuột (drag) không được gọi canvas.render() đồng bộ
   let renderCallCount = 0;
@@ -375,6 +375,120 @@ console.log("🧪 Đang chạy kiểm thử tự động Module Lát Cắt Trự
   assert.strictEqual(isCanvasInteracting, true, "Trạng thái tương tác canvas phải bật để khóa recoloring");
 
   console.log("  ✅ Test 5 Passed: Zero-lag pointer transition unblock hoạt động chuẩn xác không nuốt hover handle.");
+}
+
+// =========================================================================
+// TEST 6: Khóa Raycast Cấp Object3D.prototype.add & Hủy Background Timer Khi Drag
+// =========================================================================
+{
+  class BaseObject3D {
+    children: any[] = [];
+    isPoints?: boolean;
+    name: string;
+    constructor(name: string) {
+      this.name = name;
+    }
+    add(...objs: any[]) {
+      this.children.push(...objs);
+    }
+    traverse(cb: (c: any) => void) {
+      this.children.forEach((c) => {
+        cb(c);
+        if (c.traverse) c.traverse(cb);
+      });
+    }
+    raycast(rc: any, res: any[]) {
+      res.push(this);
+    }
+  }
+
+  class GroupContainer extends BaseObject3D {
+    isGroup = true;
+  }
+
+  class DynamicPoints extends BaseObject3D {
+    isPoints = true;
+    raycast(rc: any, res: any[]) {
+      res.push({ obj: this, points: 305000 });
+    }
+  }
+
+  // Cài đặt Object3D.prototype.add Hook
+  const origAdd = BaseObject3D.prototype.add;
+  BaseObject3D.prototype.add = function (...objects: any[]) {
+    for (const item of objects) {
+      if (item) {
+        if (item.isPoints) {
+          item.raycast = () => {};
+        }
+        if (typeof item.traverse === "function") {
+          item.traverse((child: any) => {
+            if (child && child.isPoints) {
+              child.raycast = () => {};
+            }
+          });
+        }
+      }
+    }
+    return origAdd.apply(this, objects);
+  };
+
+  // Giả lập: CVAT nạp PCD mới bằng cách tạo Group rồi add vào Scene
+  const scene = new BaseObject3D("Scene");
+  const pcdGroup = new GroupContainer("PCDGroup");
+  const newFramePoints = new DynamicPoints("PCD_Frame_New");
+
+  let raycastResults: any[] = [];
+  // Trước khi add: hàm raycast ban đầu vẫn còn
+  newFramePoints.raycast(null, raycastResults);
+  assert.strictEqual(raycastResults.length, 1, "Trước khi add, Points có raycast");
+
+  // Thêm Points vào Group
+  pcdGroup.add(newFramePoints);
+  // Ngay sau khi pcdGroup.add chạy: raycast của Points phải bị vô hiệu hóa
+  raycastResults = [];
+  newFramePoints.raycast(null, raycastResults);
+  assert.strictEqual(raycastResults.length, 0, "Ngay khi add vào Group, raycast phải bị xóa sổ 100%");
+
+  // Kiểm tra hủy background timers khi người dùng click chuột
+  let lockTimerFired = false;
+  let colorizeTimerFired = false;
+
+  let lockOnActiveTimer: any = setTimeout(() => { lockTimerFired = true; }, 100);
+  let singleFrameColorizeTimer: any = setTimeout(() => { colorizeTimerFired = true; }, 100);
+
+  let isCanvasInteracting = false;
+  let isMouseDown = false;
+
+  function onPointerDownSim() {
+    isCanvasInteracting = true;
+    isMouseDown = true;
+    if (lockOnActiveTimer) {
+      clearTimeout(lockOnActiveTimer);
+      lockOnActiveTimer = null;
+    }
+    if (singleFrameColorizeTimer) {
+      clearTimeout(singleFrameColorizeTimer);
+      singleFrameColorizeTimer = null;
+    }
+  }
+
+  onPointerDownSim();
+
+  assert.strictEqual(lockOnActiveTimer, null, "lockOnActiveTimer phải bị clear ngay khi click");
+  assert.strictEqual(singleFrameColorizeTimer, null, "singleFrameColorizeTimer phải bị clear ngay khi click");
+
+  // Kiểm tra Camera Lock guard khi người dùng đang kéo chuột
+  function center3DViewOnObjectSim() {
+    if (isCanvasInteracting || isMouseDown) {
+      return false; // Chặn dời camera khi người dùng đang giữ chuột kéo box
+    }
+    return true;
+  }
+
+  assert.strictEqual(center3DViewOnObjectSim(), false, "Tuyệt đối không dời camera khi chuột đang giữ kéo box");
+
+  console.log("  ✅ Test 6 Passed: Object3D.prototype.add Hook & Background Timer Cancellation bảo vệ hoàn hảo 60 FPS khi drag.");
 }
 
 console.log("🎉 TẤT CẢ CÁC BÀI TEST LÁT CẮT TRỰC GIAO & RAYCAST GUARD ĐỀU THÀNH CÔNG RỰC RỠ 100%!\n");

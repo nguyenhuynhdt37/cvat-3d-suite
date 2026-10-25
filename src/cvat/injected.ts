@@ -51,12 +51,15 @@ export function mainWorldScript(): void {
         const canvas = store?.getState()?.annotation?.canvas?.instance;
         if (canvas?.THREE) candidates.push(canvas.THREE);
         if (canvas?.view?.THREE) candidates.push(canvas.view.THREE);
+        if (canvas?.view?.rayCaster) candidates.push(canvas.view.rayCaster);
         if (canvas?.view?.views) {
           for (const k of ["perspective", "top", "side", "front"]) {
             const v = canvas.view.views[k];
             if (v?.THREE) candidates.push(v.THREE);
             if (v?.renderer?.constructor) candidates.push(v.renderer.constructor);
             if (v?.scene) candidates.push(v.scene);
+            if (v?.rayCaster) candidates.push(v.rayCaster);
+            if (v?.controls?.raycaster) candidates.push(v.controls.raycaster);
           }
         }
       } catch (_) {}
@@ -77,9 +80,16 @@ export function mainWorldScript(): void {
         if (PointsCtor && PointsCtor.prototype && !(PointsCtor.prototype as any).__cvat_proto_guarded__) {
           (PointsCtor.prototype as any).__cvat_proto_guarded__ = true;
           PointsCtor.prototype.raycast = () => {};
+          try {
+            Object.defineProperty(PointsCtor.prototype, "raycast", {
+              value: () => {},
+              writable: true,
+              configurable: true,
+            });
+          } catch (_) {}
         }
 
-        // B. Xử lý Raycaster Constructor / Prototype
+        // B. Xử lý Raycaster Instance & Prototype (Vô hiệu hóa va chạm trên mây 305k điểm)
         let RaycasterCtor = cand.Raycaster;
         if (!RaycasterCtor) {
           if (typeof cand === "function" && cand.name === "Raycaster") {
@@ -87,6 +97,24 @@ export function mainWorldScript(): void {
           } else if (cand.intersectObjects && cand.constructor) {
             RaycasterCtor = cand.constructor;
           }
+        }
+
+        // Khóa trực tiếp trên Raycaster instance nếu cand là một instance
+        if (cand && typeof cand.intersectObject === "function" && !(cand as any).__cvat_instance_guarded__) {
+          (cand as any).__cvat_instance_guarded__ = true;
+          const origInstIntersectObject = cand.intersectObject;
+          cand.intersectObject = function (object: any, recursive?: boolean, optionalTarget?: any) {
+            if (object && (object.isPoints || object.type === "Points")) {
+              return optionalTarget || [];
+            }
+            return origInstIntersectObject.call(this, object, recursive, optionalTarget);
+          };
+          const origInstIntersectObjects = cand.intersectObjects;
+          cand.intersectObjects = function (objects: any[], recursive?: boolean, optionalTarget?: any) {
+            if (!Array.isArray(objects)) return optionalTarget || [];
+            const filtered = objects.filter((o: any) => o && !o.isPoints && o.type !== "Points");
+            return origInstIntersectObjects.call(this, filtered, recursive, optionalTarget);
+          };
         }
 
         if (RaycasterCtor && RaycasterCtor.prototype && !(RaycasterCtor.prototype as any).__cvat_proto_guarded__) {
@@ -112,6 +140,36 @@ export function mainWorldScript(): void {
 
   function hookSceneForPointsGuard(scene: any): void {
     if (!scene) return;
+
+    // A. Intercept Object3D.prototype.add: Đón đầu 100% mọi thể hiện Points được thêm vào bất kỳ container nào
+    try {
+      const sceneProto = Object.getPrototypeOf(scene);
+      const obj3dProto = sceneProto ? Object.getPrototypeOf(sceneProto) : null;
+      if (obj3dProto && typeof obj3dProto.add === "function" && !(obj3dProto as any).__cvat_obj3d_add_guarded__) {
+        (obj3dProto as any).__cvat_obj3d_add_guarded__ = true;
+        const origObj3dAdd = obj3dProto.add;
+        obj3dProto.add = function (...objects: any[]) {
+          for (const item of objects) {
+            if (item) {
+              if (item.isPoints || item.type === "Points") {
+                guardPointsInstance(item);
+                installGlobalThreeRaycastGuard(item);
+              }
+              if (typeof item.traverse === "function") {
+                item.traverse((child: any) => {
+                  if (child && (child.isPoints || child.type === "Points")) {
+                    guardPointsInstance(child);
+                    installGlobalThreeRaycastGuard(child);
+                  }
+                });
+              }
+            }
+          }
+          return origObj3dAdd.apply(this, objects);
+        };
+      }
+    } catch (_) {}
+
     if (typeof scene.traverse === "function") {
       scene.traverse((obj: any) => {
         if (obj && (obj.isPoints || obj.type === "Points")) {
@@ -175,8 +233,12 @@ export function mainWorldScript(): void {
     return newYaw;
   }
 
-  // Helper lấy Redux Store từ React Fiber root container
+  // Helper lấy Redux Store từ React Fiber root container (Cache O(1) chống quét DOM Fiber nhiều lần)
+  let cachedReduxStore: any = null;
   function getReduxStore(): any {
+    if (cachedReduxStore && typeof cachedReduxStore.getState === "function") {
+      return cachedReduxStore;
+    }
     const rootEl = document.getElementById("root");
     if (!rootEl) return null;
     const rKey = Object.keys(rootEl).find(
@@ -185,8 +247,14 @@ export function mainWorldScript(): void {
     if (!rKey) return null;
     let rNode = (rootEl as any)[rKey];
     while (rNode) {
-      if (rNode.memoizedProps?.store) return rNode.memoizedProps.store;
-      if (rNode.stateNode?.store) return rNode.stateNode.store;
+      if (rNode.memoizedProps?.store) {
+        cachedReduxStore = rNode.memoizedProps.store;
+        return cachedReduxStore;
+      }
+      if (rNode.stateNode?.store) {
+        cachedReduxStore = rNode.stateNode.store;
+        return cachedReduxStore;
+      }
       rNode = rNode.child;
     }
     return null;
@@ -393,13 +461,13 @@ export function mainWorldScript(): void {
         .cvat-canvas3d-topview,
         .cvat-canvas3d-sideview,
         .cvat-canvas3d-frontview,
-        .cvat-canvas3d-orthographic-view,
+        .cvat-canvas3d-orthographic-view {
+          background-color: ${bgCss} !important;
+          isolation: isolate !important;
+        }
         .cvat-canvas3d-orthographic-view canvas,
         .cvat-canvas-container canvas {
           background-color: ${bgCss} !important;
-          transform: translateZ(0) !important;
-          will-change: transform !important;
-          isolation: isolate !important;
         }
         .cvat-canvas3d-orthographic-view-header,
         .cvat-canvas3d-perspective-header {
@@ -1380,27 +1448,18 @@ export function mainWorldScript(): void {
   // Bảo toàn 100% Perspective 3D View (View 3D chính không bị cắt)
   // =============================================================================
   interface OrthoSlicingConfig {
-    enabled: boolean;
-    slab: number;
     hideGround: boolean;
-    isolateROI: boolean;
   }
 
   let currentOrthoSlicing: OrthoSlicingConfig = {
-    enabled: false,
-    slab: 0.5,
     hideGround: true,
-    isolateROI: false,
   };
 
   try {
     const savedSlicing = localStorage.getItem("cvat_3d_ortho_slicing");
     if (savedSlicing) {
       const parsed = JSON.parse(savedSlicing);
-      if (typeof parsed.enabled === "boolean") currentOrthoSlicing.enabled = parsed.enabled;
-      if (typeof parsed.slab === "number" && parsed.slab > 0) currentOrthoSlicing.slab = parsed.slab;
       if (typeof parsed.hideGround === "boolean") currentOrthoSlicing.hideGround = parsed.hideGround;
-      if (typeof parsed.isolateROI === "boolean") currentOrthoSlicing.isolateROI = parsed.isolateROI;
     }
   } catch (_) {}
 
@@ -1602,8 +1661,6 @@ export function mainWorldScript(): void {
 
   // Pre-allocated THREE.Plane pools để 0ms Garbage Collection
   const cachedTopPlanes: any[] = [];
-  const cachedSidePlanes: any[] = [];
-  const cachedFrontPlanes: any[] = [];
   let clippingThreeEngine: any = null;
   let lastGlobalClippingActive: boolean = false;
 
@@ -1645,20 +1702,15 @@ export function mainWorldScript(): void {
   function applyClippingPlanesToView(view: any, planes: any[], isSharedScene: boolean): void {
     if (!view) return;
     if (view.renderer) {
-      view.renderer.localClippingEnabled = true;
+      view.renderer.localClippingEnabled = planes.length > 0;
       view.renderer.clippingPlanes = planes;
-    }
-    if (!isSharedScene && view.scene && typeof view.scene.traverse === "function") {
-      view.scene.traverse((obj: any) => {
-        if (obj && (obj.isPoints || obj.type === "Points") && obj.material) {
-          obj.material.clippingPlanes = planes;
-        }
-      });
     }
   }
 
   /**
    * Tính toán và cập nhật các mặt phẳng cắt GPU WebGL cho 3 view trực giao (Top, Side, Front)
+   * Giữ lại duy nhất chức năng Tắt Đất (Top View: cắt tại Z_base + 12cm).
+   * Side và Front hoàn toàn không cắt (0 clipping planes -> 60 FPS cực mượt khi drag/zoom).
    * @param overrideTarget Thông số chi tiết đối tượng active (nếu truyền vào)
    * @param forceRender Ép Three.js render (mặc định: true, đặt false khi đang drag chuột để rAF tự lo)
    */
@@ -1687,7 +1739,7 @@ export function mainWorldScript(): void {
         lastActiveTrackId;
 
       const isAnyClippingActive = !!(
-        (currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI) &&
+        currentOrthoSlicing.hideGround &&
         activeId && !isNaN(Number(activeId)) && Number(activeId) > 0
       );
 
@@ -1751,30 +1803,17 @@ export function mainWorldScript(): void {
       const rx = p[3] || 0;
       const ry = p[4] || 0;
       const rz = p[5] || 0;
-      const l = p[6], w = p[7], h = p[8];
-      const halfL = l / 2, halfW = w / 2, halfH = h / 2;
+      const h = p[8];
+      const halfH = h / 2;
 
-      // Tính ma trận hướng u_x, u_y, u_z
+      // Tính vector hướng trục thẳng đứng u_z
       const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
       const cosY = Math.cos(ry), sinY = Math.sin(ry);
       const cosX = Math.cos(rx), sinX = Math.sin(rx);
 
-      // u_x (Heading vector)
-      const uxx = cosZ * cosY;
-      const uxy = sinZ * cosY;
-      const uxz = -sinY;
-
-      // u_y (Lateral vector)
-      const uyx = cosZ * sinY * sinX - sinZ * cosX;
-      const uyy = sinZ * sinY * sinX + cosZ * cosX;
-      const uyz = cosY * sinX;
-
-      // u_z (Upward vector)
       const uzx = cosZ * sinY * cosX + sinZ * sinX;
       const uzy = sinZ * sinY * cosX - cosZ * sinX;
       const uzz = cosY * cosX;
-
-      const slab = Math.max(0.2, currentOrthoSlicing.slab || 0.5);
 
       // Helper set plane: normal (nx, ny, nz) và constant d = -(n . p)
       const setPlane = (plane: any, nx: number, ny: number, nz: number, px: number, py: number, pz: number) => {
@@ -1782,156 +1821,21 @@ export function mainWorldScript(): void {
         plane.constant = -(nx * px + ny * py + nz * pz);
       };
 
-      // 1. TOP VIEW PLANES
+      // 1. TOP VIEW PLANES: Duy nhất mặt phẳng cắt ngang mặt đất dưới gầm xe (Z_base + 12cm)
       const activeTopPlanes: any[] = [];
-      let topIdx = 0;
-
-      // A. Tắt mặt đất: Mặt cắt ngang cao hơn đáy xe +12cm (Z_base + 0.12m)
       if (currentOrthoSlicing.hideGround) {
         const pzCutX = cx + (-halfH + 0.12) * uzx;
         const pzCutY = cy + (-halfH + 0.12) * uzy;
         const pzCutZ = cz + (-halfH + 0.12) * uzz;
-        const pl = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
+        const pl = ensurePlaneAt(cachedTopPlanes, 0, Three);
         setPlane(pl, uzx, uzy, uzz, pzCutX, pzCutY, pzCutZ);
         activeTopPlanes.push(pl);
       }
 
-      // B. Isolate ROI: Khung hộp quanh xe (±1.0m)
-      if (currentOrthoSlicing.isolateROI) {
-        const roiSpan = 1.0;
-        // Trước (+X)
-        const pFx = cx + (halfL + roiSpan) * uxx;
-        const pFy = cy + (halfL + roiSpan) * uxy;
-        const pFz = cz + (halfL + roiSpan) * uxz;
-        const plF = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
-        setPlane(plF, -uxx, -uxy, -uxz, pFx, pFy, pFz);
-        activeTopPlanes.push(plF);
-
-        // Sau (-X)
-        const pBx = cx - (halfL + roiSpan) * uxx;
-        const pBy = cy - (halfL + roiSpan) * uxy;
-        const pBz = cz - (halfL + roiSpan) * uxz;
-        const plB = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
-        setPlane(plB, uxx, uxy, uxz, pBx, pBy, pBz);
-        activeTopPlanes.push(plB);
-
-        // Trái (+Y)
-        const pLx = cx + (halfW + roiSpan) * uyx;
-        const pLy = cy + (halfW + roiSpan) * uyy;
-        const pLz = cz + (halfW + roiSpan) * uyz;
-        const plL = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
-        setPlane(plL, -uyx, -uyy, -uyz, pLx, pLy, pLz);
-        activeTopPlanes.push(plL);
-
-        // Phải (-Y)
-        const pRx = cx - (halfW + roiSpan) * uyx;
-        const pRy = cy - (halfW + roiSpan) * uyy;
-        const pRz = cz - (halfW + roiSpan) * uyz;
-        const plR = ensurePlaneAt(cachedTopPlanes, topIdx++, Three);
-        setPlane(plR, uyx, uyy, uyz, pRx, pRy, pRz);
-        activeTopPlanes.push(plR);
-      }
-
-      // 2. SIDE VIEW PLANES (Nhìn dọc X-Z, cắt lát ngang sườn xe Y)
-      const activeSidePlanes: any[] = [];
-      let sideIdx = 0;
-
-      if (currentOrthoSlicing.enabled) {
-        // Dải lát cắt sườn xe: ± (halfW + slab)
-        const pLx = cx + (halfW + slab) * uyx;
-        const pLy = cy + (halfW + slab) * uyy;
-        const pLz = cz + (halfW + slab) * uyz;
-        const plL = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
-        setPlane(plL, -uyx, -uyy, -uyz, pLx, pLy, pLz);
-        activeSidePlanes.push(plL);
-
-        const pRx = cx - (halfW + slab) * uyx;
-        const pRy = cy - (halfW + slab) * uyy;
-        const pRz = cz - (halfW + slab) * uyz;
-        const plR = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
-        setPlane(plR, uyx, uyy, uyz, pRx, pRy, pRz);
-        activeSidePlanes.push(plR);
-      }
-
-      if (currentOrthoSlicing.isolateROI) {
-        const roiSpan = 1.0;
-        // Trước (+X)
-        const pFx = cx + (halfL + roiSpan) * uxx;
-        const pFy = cy + (halfL + roiSpan) * uxy;
-        const pFz = cz + (halfL + roiSpan) * uxz;
-        const plF = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
-        setPlane(plF, -uxx, -uxy, -uxz, pFx, pFy, pFz);
-        activeSidePlanes.push(plF);
-
-        // Sau (-X)
-        const pBx = cx - (halfL + roiSpan) * uxx;
-        const pBy = cy - (halfL + roiSpan) * uxy;
-        const pBz = cz - (halfL + roiSpan) * uxz;
-        const plB = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
-        setPlane(plB, uxx, uxy, uxz, pBx, pBy, pBz);
-        activeSidePlanes.push(plB);
-
-        // Nóc trần (+Z)
-        const pTx = cx + (halfH + 0.5) * uzx;
-        const pTy = cy + (halfH + 0.5) * uzy;
-        const pTz = cz + (halfH + 0.5) * uzz;
-        const plT = ensurePlaneAt(cachedSidePlanes, sideIdx++, Three);
-        setPlane(plT, -uzx, -uzy, -uzz, pTx, pTy, pTz);
-        activeSidePlanes.push(plT);
-      }
-
-      // 3. FRONT VIEW PLANES (Nhìn ngang Y-Z, cắt lát dọc cản xe X)
-      const activeFrontPlanes: any[] = [];
-      let frontIdx = 0;
-
-      if (currentOrthoSlicing.enabled) {
-        // Dải lát cắt cản xe: ± (halfL + slab)
-        const pFx = cx + (halfL + slab) * uxx;
-        const pFy = cy + (halfL + slab) * uxy;
-        const pFz = cz + (halfL + slab) * uxz;
-        const plF = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
-        setPlane(plF, -uxx, -uxy, -uxz, pFx, pFy, pFz);
-        activeFrontPlanes.push(plF);
-
-        const pBx = cx - (halfL + slab) * uxx;
-        const pBy = cy - (halfL + slab) * uxy;
-        const pBz = cz - (halfL + slab) * uxz;
-        const plB = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
-        setPlane(plB, uxx, uxy, uxz, pBx, pBy, pBz);
-        activeFrontPlanes.push(plB);
-      }
-
-      if (currentOrthoSlicing.isolateROI) {
-        const roiSpan = 1.0;
-        // Trái (+Y)
-        const pLx = cx + (halfW + roiSpan) * uyx;
-        const pLy = cy + (halfW + roiSpan) * uyy;
-        const pLz = cz + (halfW + roiSpan) * uyz;
-        const plL = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
-        setPlane(plL, -uyx, -uyy, -uyz, pLx, pLy, pLz);
-        activeFrontPlanes.push(plL);
-
-        // Phải (-Y)
-        const pRx = cx - (halfW + roiSpan) * uyx;
-        const pRy = cy - (halfW + roiSpan) * uyy;
-        const pRz = cz - (halfW + roiSpan) * uyz;
-        const plR = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
-        setPlane(plR, uyx, uyy, uyz, pRx, pRy, pRz);
-        activeFrontPlanes.push(plR);
-
-        // Nóc trần (+Z)
-        const pTx = cx + (halfH + 0.5) * uzx;
-        const pTy = cy + (halfH + 0.5) * uzy;
-        const pTz = cz + (halfH + 0.5) * uzz;
-        const plT = ensurePlaneAt(cachedFrontPlanes, frontIdx++, Three);
-        setPlane(plT, -uzx, -uzy, -uzz, pTx, pTy, pTz);
-        activeFrontPlanes.push(plT);
-      }
-
-      // Áp dụng clippingPlanes trực tiếp lên WebGLRenderer và Material của từng View (0ms CPU)
+      // 2. Áp dụng: Top View cắt mặt đất, Side và Front view toàn cảnh không cắt (0 clipping planes)
       applyClippingPlanesToView(topView, activeTopPlanes, isSharedScene);
-      applyClippingPlanesToView(sideView, activeSidePlanes, isSharedScene);
-      applyClippingPlanesToView(frontView, activeFrontPlanes, isSharedScene);
+      applyClippingPlanesToView(sideView, [], isSharedScene);
+      applyClippingPlanesToView(frontView, [], isSharedScene);
       applyClippingPlanesToView(perspectiveView, [], isSharedScene);
 
       // Trigger render Three.js nhẹ (chỉ khi forceRender = true, tránh bão render GPU khi đang drag chuột)
@@ -5864,6 +5768,10 @@ export function mainWorldScript(): void {
 
   // Căn giữa (Center) và tập trung (Focus) View 3D vào đối tượng tức thì (Perspective & Orthographic Views)
   function center3DViewOnObject(uiId: number, targetPos?: { x: number; y: number; z: number }): boolean {
+    // Zero-Stall Guard: Nếu người dùng đang giữ chuột kéo box hoặc điều hướng canvas, tuyệt đối không dời camera
+    if (isCanvasInteracting || (window as any).__cvat_mouse_down__) {
+      return false;
+    }
     try {
       const store = getReduxStore();
       const canvas = store?.getState()?.annotation?.canvas?.instance;
@@ -6011,16 +5919,25 @@ export function mainWorldScript(): void {
 
   // 🚨 BẢO VỆ CHUYỂN FRAME: Theo dõi và thoát transition tức thì khi nhận thao tác chuột
   // Bảo toàn 100% các sự kiện di chuột tự nhiên (pointermove/mouseenter) để CVAT nhận diện hover handle
-  // Cơ chế chống cướp active track đã được bảo vệ tuyệt đối ở tầng Redux store.subscribe
+  // Hủy ngay toàn bộ timer ngầm (lockOnActiveTimer, singleFrameColorizeTimer) để Main Thread mượt mà 60 FPS khi kéo box
   const handlePointerTransitionUnblock = (e: Event) => {
-    if (isFrameTransitioning) {
-      if (e.type === "pointerdown" || e.type === "mousedown") {
+    if (e.type === "pointerdown" || e.type === "mousedown") {
+      isCanvasInteracting = true;
+      (window as any).__cvat_mouse_down__ = true;
+      if (isFrameTransitioning) {
         isFrameTransitioning = false;
         if (frameTransitionTimer) {
           clearTimeout(frameTransitionTimer);
           frameTransitionTimer = null;
         }
-        isCanvasInteracting = true;
+      }
+      if (lockOnActiveTimer) {
+        clearTimeout(lockOnActiveTimer);
+        lockOnActiveTimer = null;
+      }
+      if (singleFrameColorizeTimer) {
+        clearTimeout(singleFrameColorizeTimer);
+        singleFrameColorizeTimer = null;
       }
     }
   };
@@ -6680,7 +6597,7 @@ export function mainWorldScript(): void {
       if (clippingRafId !== null) return;
       clippingRafId = requestAnimationFrame(() => {
         clippingRafId = null;
-        if (currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI) {
+        if (currentOrthoSlicing.hideGround) {
           updateOrthoClippingPlanes(undefined, false);
         }
       });
@@ -6838,13 +6755,9 @@ export function mainWorldScript(): void {
       if (!isTargetBoxTransforming()) return;
 
       hadBoxTransform = true;
-      // Kỹ thuật On-Release Recoloring: TUYỆT ĐỐI KHÔNG RECOLOR TRONG SUỐT QUÁ TRÌNH POINTERMOVE!
-      // Giữ cho Three.js CVAT render việc kéo box ở 60 FPS mượt mà tuyệt đối kể cả khi phóng to (maximize).
-
-      // Cập nhật live GPU clipping planes bám theo box theo thời gian thực qua rAF (0ms CPU, không ép sync render)
-      if (currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI) {
-        scheduleOrthoClippingUpdate();
-      }
+      // Zero-Lag 60 FPS: TUYỆT ĐỐI KHÔNG RECOLOR VÀ KHÔNG UPDATE CLIPPING TRONG SUỐT QUÁ TRÌNH POINTERMOVE!
+      // Toàn bộ GPU và CPU Main Thread được giải phóng để Three.js CVAT render việc kéo/zoom box ở 60 FPS mượt mà tuyệt đối.
+      // Cập nhật clipping planes và recolor sẽ chỉ được thực thi một lần duy nhất khi nhả chuột (onPointerUp).
     };
 
     const onPointerUp = () => {
@@ -7417,7 +7330,11 @@ export function mainWorldScript(): void {
             return;
           }
 
-          // Single click fallback cũ
+          // Nếu chuột đã di chuyển (kéo thả box, pan view) hoặc vừa có thao tác biến đổi box:
+          // Tuyệt đối không can thiệp dời camera để tránh giật vị trí, lệch con trỏ!
+          if (dx > 4 || dy > 4 || hadBoxTransform) return;
+
+          // Single click fallback: Chỉ kích hoạt nếu thực sự là click tĩnh tại chỗ (dx, dy <= 4)
           setTimeout(() => {
             if (isFrameTransitioning) return;
             try {
@@ -7426,9 +7343,9 @@ export function mainWorldScript(): void {
 
               if (activeId !== null && activeId !== undefined) {
                 const numId = Number(activeId);
-                if (numId > 0) {
+                if (numId > 0 && numId !== lastActiveTrackId) {
                   updateLockedTrackId(numId);
-                  triggerFocusOnObject(numId, true);
+                  triggerFocusOnObject(numId, false);
                 }
               }
             } catch (err) {}
@@ -7743,6 +7660,17 @@ export function mainWorldScript(): void {
               installGlobalThreeRaycastGuard();
               hookAllScenes();
 
+              // FAST SCAN GUARD: Quét và khóa Raycast tức thì mỗi 35ms trong 1.2s đầu để đón đầu PCD tải về bất đồng bộ
+              let scanGuardCount = 0;
+              const scanGuardInterval = setInterval(() => {
+                scanGuardCount++;
+                installGlobalThreeRaycastGuard();
+                hookAllScenes();
+                if (scanGuardCount >= 30) {
+                  clearInterval(scanGuardInterval);
+                }
+              }, 35);
+
               isFrameTransitioning = true;
               frameTransitionTimer = setTimeout(() => {
                 isFrameTransitioning = false;
@@ -7750,7 +7678,7 @@ export function mainWorldScript(): void {
               }, 120);
 
               // Cập nhật lại clipping planes cho frame mới (không ép render đồng bộ)
-              if (currentOrthoSlicing.enabled || currentOrthoSlicing.hideGround || currentOrthoSlicing.isolateROI) {
+              if (currentOrthoSlicing.hideGround) {
                 setTimeout(() => updateOrthoClippingPlanes(undefined, false), 80);
               }
 
@@ -7875,6 +7803,12 @@ export function mainWorldScript(): void {
       const numId = Number(clientId);
       lastActiveTrackId = numId;
       updateLockedTrackId(numId);
+
+      // Zero-Stall Drag Guard: Nếu người dùng đang giữ chuột thao tác hoặc kéo thả box trên canvas,
+      // TUYỆT ĐỐI KHÔNG can thiệp dời camera hay dispatch re-render làm gián đoạn luồng kéo chuột 60 FPS!
+      if (isCanvasInteracting || (window as any).__cvat_mouse_down__) {
+        return;
+      }
       try {
         const store = getReduxStore();
         const canvas = store?.getState()?.annotation?.canvas?.instance;

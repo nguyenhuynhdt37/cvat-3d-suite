@@ -2008,7 +2008,7 @@ export class CVATBridge {
   }
 
   /**
-   * Cập nhật cấu hình tính năng Lát cắt (Depth Slicing) & Lọc mặt đất/ROI trực tiếp lên Three.js Views.
+   * Cập nhật cấu hình tính năng Tắt Đất trực tiếp lên Three.js Views.
    */
   public static setOrthoSlicing(config: Partial<OrthoSlicingConfig>): void {
     this.ensureMainWorldBridge();
@@ -2020,24 +2020,24 @@ export class CVATBridge {
   }
 
   /**
-   * Lấy cấu hình Lát cắt hiện tại từ Main World.
+   * Lấy cấu hình Tắt Đất hiện tại từ Main World.
    */
   public static async getOrthoSlicing(): Promise<OrthoSlicingConfig> {
     this.ensureMainWorldBridge();
     return new Promise((resolve) => {
       if (typeof window === "undefined") {
-        resolve({ enabled: false, slab: 0.5, hideGround: true, isolateROI: false });
+        resolve({ hideGround: true });
         return;
       }
       const timeout = setTimeout(() => {
-        resolve({ enabled: false, slab: 0.5, hideGround: true, isolateROI: false });
+        resolve({ hideGround: true });
       }, 500);
 
       const onRes = (e: any) => {
         clearTimeout(timeout);
         window.removeEventListener("CVAT_EXT_RES_ORTHO_SLICING", onRes);
         resolve(
-          e.detail?.config || { enabled: false, slab: 0.5, hideGround: true, isolateROI: false }
+          e.detail?.config || { hideGround: true }
         );
       };
       window.addEventListener("CVAT_EXT_RES_ORTHO_SLICING", onRes);

@@ -991,27 +991,6 @@ export function mountCase2(app: HelperApp, root: HTMLElement, initialTrackId?: n
           'Tắt đất (Top)'
         ),
         h(
-          'label',
-          { title: 'Side/Front: chỉ hiện điểm cách box ± bao nhiêu mét theo chiều sâu' },
-          'Lát cắt ±m',
-          h('input', {
-            type: 'number',
-            value: String(BIG.slab),
-            step: '0.5',
-            min: '0',
-            max: '100',
-            style: { width: '56px' },
-            onchange: (e: Event) => {
-              const v = Number((e.target as HTMLInputElement).value);
-              if (Number.isFinite(v)) {
-                BIG.slab = v;
-                applyScene();
-                big.requestRender();
-              }
-            },
-          })
-        ),
-        h(
           'span',
           { class: 'help' },
           'Cuộn = zoom · kéo = pan · ←/→ frame · 1/2/3 = Top/Side/Front · O = outside'
